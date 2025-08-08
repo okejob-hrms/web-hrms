@@ -38,14 +38,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#FBF9F9]`}
       >
         <Header />
         <HeaderMenu />
         <HeaderBreadcumb items={breadcrumbs} />
-        <div className="flex gap-4">
+        <div className="grid grid-cols-5">
           <Sidebar title="Employee" />
-          <main>{children}</main>
+          <main className="col-span-4">{children}</main>
         </div>
       </body>
     </html>

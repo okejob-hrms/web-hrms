@@ -29,7 +29,7 @@ export default function Sidebar({ title }: SidebarProps) {
       <Tabs
         orientation="vertical"
         defaultValue={tabs[0].value}
-        className="max-w-md w-full flex items-start gap-4 justify-start p-4 rounded-sm border bg-white min-h-1/3"
+        className="max-w-md w-full flex items-start gap-4 justify-start p-4 rounded-sm border bg-white h-80"
       >
         <p className="font-semibold text-lg">{title}</p>
         <TabsList className="shrink-0 grid grid-cols-1 min-w-28 p-0 bg-background pl-0.5">

@@ -3,6 +3,15 @@
 import * as React from "react";
 import * as RadioGroupPrimitive from "@radix-ui/react-radio-group";
 import { CircleIcon } from "lucide-react";
+import { useFormContext } from "react-hook-form";
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+} from "@/components/ui/form";
+import { Label } from "@/components/ui/label";
+import { OptionFormProps } from "@/lib/types";
 
 import { cn } from "@/lib/utils";
 
@@ -42,4 +51,49 @@ function RadioGroupItem({
   );
 }
 
-export { RadioGroup, RadioGroupItem };
+function RadioForm({
+  name,
+  label,
+  isOptional,
+  labelClassName,
+  options,
+}: OptionFormProps) {
+  const { control } = useFormContext();
+  return (
+    <FormField
+      control={control}
+      name={name}
+      render={({ field }) => (
+        <FormItem>
+          {label && (
+            <FormLabel className={cn("text-sm font-normal", labelClassName)}>
+              {label}
+              {isOptional && (
+                <span className="text-text-disabled"> (optional)</span>
+              )}
+            </FormLabel>
+          )}
+          <FormControl>
+            <RadioGroup
+              defaultValue={options[0].value}
+              onValueChange={field.onChange}
+              value={field.value}
+              className="flex"
+            >
+              {options.map((item) => (
+                <div className="flex items-center gap-3" key={item.value}>
+                  <FormControl>
+                    <RadioGroupItem value={item.value} id={item.value} />
+                  </FormControl>
+                  <Label htmlFor={item.value}>{item.label}</Label>
+                </div>
+              ))}
+            </RadioGroup>
+          </FormControl>
+        </FormItem>
+      )}
+    />
+  );
+}
+
+export { RadioGroup, RadioGroupItem, RadioForm };

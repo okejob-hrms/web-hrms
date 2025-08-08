@@ -1,4 +1,14 @@
 import * as React from "react";
+import { useFormContext } from "react-hook-form";
+import {
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { TextareaFormProps } from "@/lib/types";
 
 import { cn } from "@/lib/utils";
 
@@ -15,4 +25,49 @@ function Textarea({ className, ...props }: React.ComponentProps<"textarea">) {
   );
 }
 
-export { Textarea };
+function TextAreaForm({
+  name,
+  label,
+  placeholder,
+  description,
+  isOptional,
+  labelClassName,
+  inputClassName,
+  ...props
+}: TextareaFormProps) {
+  const { control } = useFormContext();
+
+  return (
+    <FormField
+      control={control}
+      name={name}
+      render={({ field }) => (
+        <FormItem className={cn("", props.className)}>
+          {label && (
+            <FormLabel className={cn("text-sm font-normal", labelClassName)}>
+              {label}
+              {isOptional && (
+                <span className="text-text-disabled"> (optional)</span>
+              )}
+            </FormLabel>
+          )}
+          <FormControl>
+            <Textarea
+              {...field}
+              placeholder={placeholder}
+              className={cn("min-h-32", inputClassName)}
+              disabled={props.disabled}
+              value={props.value || field.value}
+              autoComplete={props.autoComplete}
+              onChange={props.onChange}
+            />
+          </FormControl>
+          {description && <FormDescription>{description}</FormDescription>}
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
+
+export { Textarea, TextAreaForm };
