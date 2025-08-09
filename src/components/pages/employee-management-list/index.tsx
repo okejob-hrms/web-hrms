@@ -7,8 +7,8 @@ import * as React from "react";
 import { EmployeeListTable } from "./components/table";
 import { useRouter } from "next/navigation";
 import { Toolbar } from "./components/toolbar";
-import { GeneralPagination } from "../ui/pagination";
 import { IEmployee } from "@/lib/types";
+import { GeneralPagination } from "@/components/ui/pagination";
 
 const employees: IEmployee[] = [
   {
