@@ -6,6 +6,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Plus } from "lucide-react";
 import * as React from "react";
 import { IFamily } from "@/lib/types";
+import { Separator } from "@/components/ui/separator";
 
 export const columns: ColumnDef<IFamily>[] = [
   {
@@ -115,6 +116,7 @@ export const FamilyInformationSection = React.memo(
           tableCellClassName="w-1/9 text-clip text-balance"
           tableHeadClassName="w-1/9 text-clip text-balance"
         />
+        <Separator className="my-6" />
       </React.Fragment>
     );
   },

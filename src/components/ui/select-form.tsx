@@ -65,7 +65,7 @@ const SelectForm: React.FC<OptionFormProps> = ({
             <Select onValueChange={field.onChange} defaultValue={field.value}>
               <FormControl>
                 <SelectTrigger className={className}>
-                  <SelectValue placeholder={placeholder} />
+                  <SelectValue placeholder={placeholder ?? "Select"} />
                 </SelectTrigger>
               </FormControl>
               <SelectContent>

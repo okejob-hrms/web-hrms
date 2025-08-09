@@ -9,6 +9,8 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { InputForm } from "@/components/ui/input";
 import { TextAreaForm } from "@/components/ui/textarea";
 import { RadioForm } from "@/components/ui/radio-group";
+import { CandidateListSection } from "./candidate-list-section";
+import Image from "next/image";
 
 export const PersonalInformationSection = React.memo(
   function PersonalInformationSection() {
@@ -32,14 +34,19 @@ export const PersonalInformationSection = React.memo(
                 <AvatarFallback className="size-10">CN</AvatarFallback>
               </Avatar>
               <Button variant="outline" className="w-44" size="lg">
+                <Image
+                  src="/icons/imagePlaceholder.svg"
+                  width={18}
+                  height={18}
+                  alt="icon search"
+                />
                 Select Image
               </Button>
             </div>
           </div>
           <InputForm name="name" label="Name" required />
-          <Button variant="outline" className="w-44" size="lg">
-            Search Candidate
-          </Button>
+
+          <CandidateListSection />
           <InputForm name="email" label="Email" required />
           <div className="flex items-end gap-1">
             <SelectForm

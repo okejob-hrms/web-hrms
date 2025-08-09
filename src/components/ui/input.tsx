@@ -25,7 +25,6 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             {icon}
           </span>
         )}
-
         <input
           ref={ref}
           className={`
@@ -62,6 +61,7 @@ const InputForm: React.FC<InputFormProps> = ({
   isOptional,
   labelClassName,
   inputClassName,
+  required,
   ...props
 }) => {
   const { control } = useFormContext();
@@ -75,6 +75,7 @@ const InputForm: React.FC<InputFormProps> = ({
           {label && (
             <FormLabel className={cn("text-sm font-normal", labelClassName)}>
               {label}
+              {required && <span className="text-error">*</span>}
               {isOptional && (
                 <span className="text-text-disabled"> (optional)</span>
               )}

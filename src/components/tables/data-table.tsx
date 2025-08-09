@@ -15,6 +15,7 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table";
+import { cn } from "@/lib/utils";
 
 interface DataTableProps<TData, TValue = unknown> {
   columns: ColumnDef<TData, TValue>[];
@@ -40,13 +41,19 @@ export function DataTable<TData, TValue = unknown>({
   });
 
   return (
-    <div className="rounded-md border border-grayscale-20">
+    <div className="rounded-md border border-grayscale-20 max-h-[400px] overflow-y-auto">
       <Table className={tableClassName}>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
-                <TableHead key={header.id} className={tableHeadClassName}>
+                <TableHead
+                  key={header.id}
+                  className={cn(
+                    "bg-gray-50 p-4 sticky top-0 z-10",
+                    tableHeadClassName,
+                  )}
+                >
                   {flexRender(
                     header.column.columnDef.header,
                     header.getContext(),
@@ -61,7 +68,10 @@ export function DataTable<TData, TValue = unknown>({
             table.getRowModel().rows.map((row) => (
               <TableRow key={row.id}>
                 {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id} className={tableCellClassName}>
+                  <TableCell
+                    key={cell.id}
+                    className={cn("p-4", tableCellClassName)}
+                  >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}

@@ -6,7 +6,12 @@ import { Status, StatusIndicator, StatusLabel } from "../ui/shadcn-io/status";
 import { Profile } from "./profile";
 import { Separator } from "../ui/separator";
 import Link from "next/link";
-import { CircleCheckIcon, CircleHelpIcon, CircleIcon } from "lucide-react";
+import {
+  CircleCheckIcon,
+  CircleHelpIcon,
+  CircleIcon,
+  Cloud,
+} from "lucide-react";
 
 import {
   NavigationMenu,
@@ -368,16 +373,20 @@ const Header = React.memo(function Header() {
           </Status>
           <Button
             variant="ghost"
-            onClick={() => setOnline(false)}
+            onClick={() => setOnline((prev) => !prev)}
             className="text-xs text-text-disabled"
           >
-            <Image
-              src="/icons/offline.svg"
-              alt="icon-notification"
-              width={20}
-              height={20}
-            />
-            Offline Mode
+            {isOnline ? (
+              <Image
+                src="/icons/offline.svg"
+                alt="icon-notification"
+                width={20}
+                height={20}
+              />
+            ) : (
+              <Cloud size={20} />
+            )}
+            {isOnline ? "Offline" : "Online"} Mode
           </Button>
           <Button className="bg-background rounded-full size-8 p-0">
             <Image

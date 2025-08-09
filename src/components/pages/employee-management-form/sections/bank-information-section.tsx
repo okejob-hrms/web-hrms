@@ -32,7 +32,7 @@ export const BankInformationSection = React.memo(
             className="col-start-1 col-end-2"
           />
           <InputForm name="accountName" label="Account Name" required />
-          <Separator className="col-span-2 my-4" />
+          <Separator className="col-span-2 my-6" />
         </div>
       </React.Fragment>
     );

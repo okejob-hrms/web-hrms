@@ -1,4 +1,6 @@
-import EmployeeManagementList from "@/components/employee-management-list";
+"use client";
+
+import EmployeeManagementList from "@/components/pages/employee-management-list";
 
 export default function EmployeeListPage() {
   return (

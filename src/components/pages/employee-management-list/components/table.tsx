@@ -11,12 +11,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { IEmployee } from "@/lib/types";
 import { ArrowDown, Ellipsis } from "lucide-react";
 import * as React from "react";
-import { Employee } from "@/lib/types";
 
 interface Props {
-  data: Employee[];
+  data: IEmployee[];
 }
 
 export const EmployeeListTable = React.memo(function EmployeeListTable({

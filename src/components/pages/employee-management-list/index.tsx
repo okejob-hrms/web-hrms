@@ -5,23 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import * as React from "react";
 import { EmployeeListTable } from "./components/table";
-import { EmployeeListPagination } from "./components/pagination";
 import { useRouter } from "next/navigation";
 import { Toolbar } from "./components/toolbar";
-type Employee = {
-  firstName: string;
-  lastName: string;
-  employeeId: string;
-  position: string;
-  department: string;
-  email: string;
-  phoneNo: string;
-  status: "active" | "inactive" | "on_leave";
-  joinDate: string;
-  image: string;
-};
+import { GeneralPagination } from "../ui/pagination";
+import { IEmployee } from "@/lib/types";
 
-const employees: Employee[] = [
+const employees: IEmployee[] = [
   {
     firstName: "Alice",
     lastName: "Johnson",
@@ -112,7 +101,7 @@ export default function EmployeeManagementList() {
           </div>
           <EmployeeListTable data={employees} />
           <Separator />
-          <EmployeeListPagination />
+          <GeneralPagination />
         </div>
       </div>
     </div>

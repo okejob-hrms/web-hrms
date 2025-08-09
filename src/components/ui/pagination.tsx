@@ -7,6 +7,7 @@ import {
 
 import { cn } from "@/lib/utils";
 import { Button, buttonVariants } from "@/components/ui/button";
+import Image from "next/image";
 
 function Pagination({ className, ...props }: React.ComponentProps<"nav">) {
   return (
@@ -73,11 +74,21 @@ function PaginationPrevious({
     <PaginationLink
       aria-label="Go to previous page"
       size="default"
-      className={cn("gap-1 px-2.5 sm:pl-2.5", className)}
+      className={cn(
+        "gap-1 px-2.5 sm:pl-2.5 rounded-sm border border-primary",
+        className,
+      )}
       {...props}
     >
-      <ChevronLeftIcon />
-      <span className="hidden sm:block">Previous</span>
+      <Image
+        src="/icons/arrowLeft.svg"
+        width={18}
+        height={18}
+        alt="arrow left"
+      />
+      <span className="hidden sm:block text-primary text-sm font-semibold">
+        Previous
+      </span>
     </PaginationLink>
   );
 }
@@ -90,11 +101,21 @@ function PaginationNext({
     <PaginationLink
       aria-label="Go to next page"
       size="default"
-      className={cn("gap-1 px-2.5 sm:pr-2.5", className)}
+      className={cn(
+        "gap-1 px-2.5 sm:pr-2.5 rounded-sm border border-primary",
+        className,
+      )}
       {...props}
     >
-      <span className="hidden sm:block">Next</span>
-      <ChevronRightIcon />
+      <span className="hidden sm:block text-primary text-sm font-semibold">
+        Next
+      </span>
+      <Image
+        src="/icons/arrowRight.svg"
+        width={18}
+        height={18}
+        alt="arrow right"
+      />
     </PaginationLink>
   );
 }
@@ -116,6 +137,41 @@ function PaginationEllipsis({
   );
 }
 
+function GeneralPagination() {
+  return (
+    <Pagination className="justify-between py-4">
+      <PaginationContent>
+        <PaginationItem>
+          <PaginationPrevious href="#" />
+        </PaginationItem>
+      </PaginationContent>
+
+      <PaginationContent>
+        <PaginationItem>
+          <PaginationLink href="#">1</PaginationLink>
+        </PaginationItem>
+        <PaginationItem>
+          <PaginationLink href="#" isActive>
+            2
+          </PaginationLink>
+        </PaginationItem>
+        <PaginationItem>
+          <PaginationLink href="#">3</PaginationLink>
+        </PaginationItem>
+        <PaginationItem>
+          <PaginationEllipsis />
+        </PaginationItem>
+      </PaginationContent>
+
+      <PaginationContent>
+        <PaginationItem>
+          <PaginationNext href="#" />
+        </PaginationItem>
+      </PaginationContent>
+    </Pagination>
+  );
+}
+
 export {
   Pagination,
   PaginationContent,
@@ -124,4 +180,5 @@ export {
   PaginationPrevious,
   PaginationNext,
   PaginationEllipsis,
+  GeneralPagination,
 };
