@@ -14,8 +14,10 @@ import {
 
 import {
   NavigationMenu,
+  NavigationMenuContent,
   // NavigationMenuContent,
   NavigationMenuItem,
+  NavigationMenuLink,
   // NavigationMenuLink,
   NavigationMenuList,
   NavigationMenuTrigger,
@@ -33,6 +35,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
 import useNetworkStatus from "@/hooks/use-network-status";
 import { Profile } from "../ui/profile";
+import { usePathname } from "next/navigation";
 
 interface BreadcrumbProps {
   items?: {
@@ -99,257 +102,128 @@ interface BreadcrumbProps {
 //   );
 // });
 
+const menuItems = [
+  {
+    name: "dashboard",
+    label: "Dashboard",
+    icon: "/icons/dashboard.svg",
+    path: "/dashboard",
+    children: [],
+  },
+  {
+    name: "employee",
+    label: "Employee",
+    icon: "/icons/employee.svg",
+    path: "/employee",
+    children: [
+      { label: "Employee Management", desc: "Manage employee data, organization structure, and onboarding/offboarding processes", path: "/employee/employee-management" , icon: "/icons/user02.svg",},
+      { label: "Employee Attendance", desc: "Track employee attendance, timesheets, leave requests, and balances.", path: "/employee/attendance/attendance-tracker", icon: "/icons/clock.svg", },
+      { label: "Payroll", desc: "Streamline salary calculations, benefits, and monthly payroll processing.", path: "/employee/payroll", icon: "/icons/cash.svg", },
+    ],
+  },
+  {
+    name: "performance",
+    label: "Performance",
+    icon: "/icons/storeReport.svg",
+    path: "/performance",
+    children: [],
+  },
+  {
+    name: "recruitment",
+    label: "Recruitment",
+    icon: "/icons/recruitment.svg",
+    path: "/recruitment",
+    children: [],
+  },
+  {
+    name: "training",
+    label: "Training",
+    icon: "/icons/book.svg",
+    path: "/training",
+    children: [],
+  },
+  {
+    name: "expenses",
+    label: "Expenses",
+    icon: "/icons/cash.svg",
+    path: "/expenses",
+    children: [],
+  },
+  {
+    name: "document",
+    label: "Document",
+    icon: "/icons/documentSolid.svg",
+    path: "/document",
+    children: [],
+  },
+];
+
 const HeaderMenu = React.memo(function HeaderMenu() {
-  const navigationMenuTriggerStyle = cn(
-    "primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground rounded-b-none rounded-t-sm bg-white",
-    "data-[state=open]:hover:bg-primary data-[state=open]:text-primary-foreground data-[state=open]:focus:bg-primary data-[state=open]:bg-primary/50",
-    "flex gap-2",
-  );
+  const pathname = usePathname();
+
+  const navigationMenuTriggerStyle = (isActive: boolean) =>
+    cn(
+      "primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground rounded-b-none rounded-t-sm bg-white flex gap-2",
+      "data-[state=open]:hover:bg-primary data-[state=open]:text-primary-foreground data-[state=open]:focus:bg-primary data-[state=open]:bg-primary/50",
+      isActive && "bg-primary text-primary-foreground"
+    );
+
   return (
     <div className="w-full bg-white">
       <NavigationMenu viewport={false} className="w-full px-10 py-2">
         <NavigationMenuList>
-          <NavigationMenuItem>
-            <NavigationMenuTrigger className={navigationMenuTriggerStyle}>
-              <Image
-                src="/icons/dashboard.svg"
-                width={20}
-                height={20}
-                alt="icon-dashboard"
-              />
-              Dashboard
-            </NavigationMenuTrigger>
-            <NavigationMenuContent>
-              <ul className="grid gap-2 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
-                <li className="row-span-3">
-                  <NavigationMenuLink asChild>
-                    <Link
-                      className="from-muted/50 to-muted flex h-full w-full flex-col justify-end rounded-md bg-linear-to-b p-6 no-underline outline-hidden select-none focus:shadow-md"
-                      href="/"
-                    >
-                      <div className="mt-4 mb-2 text-lg font-medium">
-                        shadcn/ui
-                      </div>
-                      <p className="text-muted-foreground text-sm leading-tight">
-                        Beautifully designed components built with Tailwind CSS.
-                      </p>
-                    </Link>
-                  </NavigationMenuLink>
-                </li>
-                <ListItem href="/docs" title="Introduction">
-                  Re-usable components built using Radix UI and Tailwind CSS.
-                </ListItem>
-                <ListItem href="/docs/installation" title="Installation">
-                  How to install dependencies and structure your app.
-                </ListItem>
-                <ListItem href="/docs/primitives/typography" title="Typography">
-                  Styles for headings, paragraphs, lists...etc
-                </ListItem>
-              </ul>
-            </NavigationMenuContent>
-          </NavigationMenuItem>
-          <NavigationMenuItem>
-            <NavigationMenuTrigger className={navigationMenuTriggerStyle}>
-              <Image
-                src="/icons/employee.svg"
-                width={20}
-                height={20}
-                alt="icon-employee"
-              />
-              Employee
-            </NavigationMenuTrigger>
-            <NavigationMenuContent className="bg-white opacity-100">
-              <ul className="grid w-[400px] gap-2 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
-                {components.map((component) => (
-                  <ListItem
-                    key={component.title}
-                    title={component.title}
-                    href={component.href}
-                  >
-                    {component.description}
-                  </ListItem>
-                ))}
-              </ul>
-            </NavigationMenuContent>
-          </NavigationMenuItem>
-          <NavigationMenuItem>
-            <NavigationMenuTrigger className={navigationMenuTriggerStyle}>
-              <Image
-                src="/icons/storeReport.svg"
-                width={20}
-                height={20}
-                alt="icon-performance"
-              />
-              Performance
-            </NavigationMenuTrigger>
-            {/* <NavigationMenuContent>
-              <ul className="grid w-[300px] gap-4">
-                <li>
-                  <NavigationMenuLink asChild>
-                    <Link href="#">
-                      <div className="font-medium">Components</div>
-                      <div className="text-muted-foreground">
-                        Browse all components in the library.
-                      </div>
-                    </Link>
-                  </NavigationMenuLink>
-                  <NavigationMenuLink asChild>
-                    <Link href="#">
-                      <div className="font-medium">Documentation</div>
-                      <div className="text-muted-foreground">
-                        Learn how to use the library.
-                      </div>
-                    </Link>
-                  </NavigationMenuLink>
-                  <NavigationMenuLink asChild>
-                    <Link href="#">
-                      <div className="font-medium">Blog</div>
-                      <div className="text-muted-foreground">
-                        Read our latest blog posts.
-                      </div>
-                    </Link>
-                  </NavigationMenuLink>
-                </li>
-              </ul>
-            </NavigationMenuContent> */}
-          </NavigationMenuItem>
-          <NavigationMenuItem>
-            <NavigationMenuTrigger className={navigationMenuTriggerStyle}>
-              <Image
-                src="/icons/recruitment.svg"
-                width={20}
-                height={20}
-                alt="icon-recruitment"
-              />
-              Recruitment
-            </NavigationMenuTrigger>
-            {/* <NavigationMenuContent>
-              <ul className="grid w-[300px] gap-4">
-                <li>
-                  <NavigationMenuLink asChild>
-                    <Link href="#">
-                      <div className="font-medium">Components</div>
-                      <div className="text-muted-foreground">
-                        Browse all components in the library.
-                      </div>
-                    </Link>
-                  </NavigationMenuLink>
-                  <NavigationMenuLink asChild>
-                    <Link href="#">
-                      <div className="font-medium">Documentation</div>
-                      <div className="text-muted-foreground">
-                        Learn how to use the library.
-                      </div>
-                    </Link>
-                  </NavigationMenuLink>
-                  <NavigationMenuLink asChild>
-                    <Link href="#">
-                      <div className="font-medium">Blog</div>
-                      <div className="text-muted-foreground">
-                        Read our latest blog posts.
-                      </div>
-                    </Link>
-                  </NavigationMenuLink>
-                </li>
-              </ul>
-            </NavigationMenuContent> */}
-          </NavigationMenuItem>
-          <NavigationMenuItem>
-            <NavigationMenuTrigger className={navigationMenuTriggerStyle}>
-              <Image
-                src="/icons/book.svg"
-                width={20}
-                height={20}
-                alt="icon-book"
-              />
-              Training
-            </NavigationMenuTrigger>
-            {/* <NavigationMenuContent>
-              <ul className="grid w-[200px] gap-4">
-                <li>
-                  <NavigationMenuLink asChild>
-                    <Link href="#">Components</Link>
-                  </NavigationMenuLink>
-                  <NavigationMenuLink asChild>
-                    <Link href="#">Documentation</Link>
-                  </NavigationMenuLink>
-                  <NavigationMenuLink asChild>
-                    <Link href="#">Blocks</Link>
-                  </NavigationMenuLink>
-                </li>
-              </ul>
-            </NavigationMenuContent> */}
-          </NavigationMenuItem>
-          <NavigationMenuItem>
-            <NavigationMenuTrigger className={navigationMenuTriggerStyle}>
-              <Image
-                src="/icons/cash.svg"
-                width={20}
-                height={20}
-                alt="icon-cash"
-              />
-              Expenses
-            </NavigationMenuTrigger>
-            {/* <NavigationMenuContent>
-              <ul className="grid w-[200px] gap-4">
-                <li>
-                  <NavigationMenuLink asChild>
-                    <Link href="#" className="flex-row items-center gap-2">
-                      <CircleHelpIcon />
-                      Backlog
-                    </Link>
-                  </NavigationMenuLink>
-                  <NavigationMenuLink asChild>
-                    <Link href="#" className="flex-row items-center gap-2">
-                      <CircleIcon />
-                      To Do
-                    </Link>
-                  </NavigationMenuLink>
-                  <NavigationMenuLink asChild>
-                    <Link href="#" className="flex-row items-center gap-2">
-                      <CircleCheckIcon />
-                      Done
-                    </Link>
-                  </NavigationMenuLink>
-                </li>
-              </ul>
-            </NavigationMenuContent> */}
-          </NavigationMenuItem>
-          <NavigationMenuItem>
-            <NavigationMenuTrigger className={navigationMenuTriggerStyle}>
-              <Image
-                src="/icons/documentSolid.svg"
-                width={20}
-                height={20}
-                alt="icon-document"
-              />
-              Document
-            </NavigationMenuTrigger>
-            {/* <NavigationMenuContent>
-              <ul className="grid w-[200px] gap-4">
-                <li>
-                  <NavigationMenuLink asChild>
-                    <Link href="#" className="flex-row items-center gap-2">
-                      <CircleHelpIcon />
-                      Backlog
-                    </Link>
-                  </NavigationMenuLink>
-                  <NavigationMenuLink asChild>
-                    <Link href="#" className="flex-row items-center gap-2">
-                      <CircleIcon />
-                      To Do
-                    </Link>
-                  </NavigationMenuLink>
-                  <NavigationMenuLink asChild>
-                    <Link href="#" className="flex-row items-center gap-2">
-                      <CircleCheckIcon />
-                      Done
-                    </Link>
-                  </NavigationMenuLink>
-                </li>
-              </ul>
-            </NavigationMenuContent> */}
-          </NavigationMenuItem>
+          {menuItems.map((item) => {
+            const isActive = pathname.includes(`/${item.name}`);
+            return (
+              <NavigationMenuItem key={item.name}>
+                <NavigationMenuTrigger
+                  className={navigationMenuTriggerStyle(isActive)}
+                >
+                  <Image
+                    src={item.icon}
+                    width={20}
+                    height={20}
+                    alt={`icon-${item.name}`}
+                  />
+                  {item.label}
+                </NavigationMenuTrigger>
+
+                {item.children.length > 0 && (
+                  <NavigationMenuContent className="bg-white opacity-100">
+                    <ul className="grid gap-2 p-4 md:w-[300px]">
+                      {item.children.map((child) => (
+                        <li key={child.path}>
+                          <NavigationMenuLink asChild>
+                            <Link
+                              href={child.path}
+                              className={cn(
+                                "block rounded px-3 py-2 text-sm hover:bg-muted hover:text-foreground",
+                                pathname === child.path &&
+                                  "bg-primary/20 opacity-100 text-primary"
+                              )}
+                            >
+                              <div className="flex flex-row gap-3 items-start">
+                                <Image
+                                  src={child.icon}
+                                  width={20}
+                                  height={20}
+                                  alt={`icon-${child.label}`}
+                                />
+                                <div className="space-y-2">
+                                  <div className="font-bold text-gray-800 text-base">{child.label}</div>
+                                  <div className="text-gray-400 text-sm">{child.desc}</div>
+                                </div>
+                              </div>
+                            </Link>
+                          </NavigationMenuLink>
+                        </li>
+                      ))}
+                    </ul>
+                  </NavigationMenuContent>
+                )}
+              </NavigationMenuItem>
+            );
+          })}
         </NavigationMenuList>
       </NavigationMenu>
       <Separator />

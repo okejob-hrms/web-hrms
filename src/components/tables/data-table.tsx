@@ -16,6 +16,7 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { GeneralPagination } from "../ui/pagination";
 
 interface DataTableProps<TData, TValue = unknown> {
   columns: ColumnDef<TData, TValue>[];
@@ -42,7 +43,8 @@ export function DataTable<TData, TValue = unknown>({
 
   return (
     // <div className="rounded-md border border-grayscale-20 max-h-[400px] overflow-y-auto max-w-[980px] overflow-x-scroll">
-    <div className="rounded-md border border-grayscale-20">
+   <div>
+     <div className="rounded-md border border-grayscale-20">
       <Table className={tableClassName}>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
@@ -118,6 +120,10 @@ export function DataTable<TData, TValue = unknown>({
           Next
         </Button>
       </div> */}
+
+
     </div>
+    <GeneralPagination />
+   </div>
   );
 }

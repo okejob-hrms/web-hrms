@@ -2,17 +2,16 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
+// import { Separator } from "@/components/ui/separator";
 import * as React from "react";
-import { useRouter } from "next/navigation";
-import { DepartmentListTable } from "./components/table";
-import { DepartmentListPagination } from "./components/pagination";
+// import { useRouter } from "next/navigation";
+import { DepartmentListTable } from "./sections/table";
 import { useDepartmentManagement } from "@/components/pages/department-management/hooks/useDepartmentManagement";
-import DepartmentModal from "./components/DepartmentModal";
-import DeleteDepartmentDialog from "./components/deleteDepartmentDialog";
+import DeleteDepartmentDialog from "./sections/delete-modal";
+import DepartmentModal from "./sections/edit-modal";
 
 export default function DepartmentManagementList() {
-  const router = useRouter();
+  // const router = useRouter();
   const {
     departmentName,
     setDepartmentName,
@@ -63,9 +62,6 @@ export default function DepartmentManagementList() {
               setDeleteDialogOpen(true);
             }}
           />
-
-          <Separator />
-          <DepartmentListPagination />
         </div>
       </div>
       <DeleteDepartmentDialog

@@ -5,9 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Toolbar } from "./components/toolbar";
+import { Toolbar } from "./sections/toolbar";
 import { IEmployee } from "@/lib/types";
-import { GeneralPagination } from "@/components/ui/pagination";
 import { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/components/tables/data-table";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
@@ -170,8 +169,6 @@ export default function EmployeeManagementList() {
           </Button>
         </div>
         <DataTable columns={columns} data={employees} />
-        <Separator />
-        <GeneralPagination />
       </div>
     </div>
   );
