@@ -4,7 +4,9 @@ const useNetworkStatus = () => {
   const [isOnline, setOnline] = useState<boolean>(true);
 
   const updateNetworkStatus = () => {
-    setOnline(navigator.onLine);
+    if (typeof navigator !== undefined) {
+      setOnline(navigator.onLine);
+    }
   };
 
   useEffect(() => {
@@ -12,16 +14,19 @@ const useNetworkStatus = () => {
   }, []);
 
   useEffect(() => {
-    window.addEventListener("load", updateNetworkStatus);
-    window.addEventListener("online", updateNetworkStatus);
-    window.addEventListener("offline", updateNetworkStatus);
+    if (typeof window !== undefined) {
+      window.addEventListener("load", updateNetworkStatus);
+      window.addEventListener("online", updateNetworkStatus);
+      window.addEventListener("offline", updateNetworkStatus);
 
-    return () => {
-      window.removeEventListener("load", updateNetworkStatus);
-      window.removeEventListener("online", updateNetworkStatus);
-      window.removeEventListener("offline", updateNetworkStatus);
-    };
-  }, [navigator.onLine]);
+      return () => {
+        window.removeEventListener("load", updateNetworkStatus);
+        window.removeEventListener("online", updateNetworkStatus);
+        window.removeEventListener("offline", updateNetworkStatus);
+      };
+    }
+    return;
+  }, [navigator?.onLine]);
 
   return { isOnline, setOnline };
 };

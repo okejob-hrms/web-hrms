@@ -42,7 +42,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#FBF9F9]`}
       >
         <Header />
-        {/* <HeaderMenu /> */}
+        <HeaderMenu />
         <HeaderBreadcumb items={breadcrumbs} />
         <SidebarProvider className="mx-auto w-full container md:py-10 flex flex-col md:flex-row md:gap-4">
           <SidebarTrigger className="md:hidden" />
