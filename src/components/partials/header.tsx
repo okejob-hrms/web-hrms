@@ -119,7 +119,7 @@ const HeaderMenu = React.memo(function HeaderMenu() {
               />
               Dashboard
             </NavigationMenuTrigger>
-            {/* <NavigationMenuContent>
+            <NavigationMenuContent>
               <ul className="grid gap-2 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
                 <li className="row-span-3">
                   <NavigationMenuLink asChild>
@@ -146,7 +146,7 @@ const HeaderMenu = React.memo(function HeaderMenu() {
                   Styles for headings, paragraphs, lists...etc
                 </ListItem>
               </ul>
-            </NavigationMenuContent> */}
+            </NavigationMenuContent>
           </NavigationMenuItem>
           <NavigationMenuItem>
             <NavigationMenuTrigger className={navigationMenuTriggerStyle}>
@@ -158,7 +158,7 @@ const HeaderMenu = React.memo(function HeaderMenu() {
               />
               Employee
             </NavigationMenuTrigger>
-            {/* <NavigationMenuContent>
+            <NavigationMenuContent className="bg-white opacity-100">
               <ul className="grid w-[400px] gap-2 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
                 {components.map((component) => (
                   <ListItem
@@ -170,7 +170,7 @@ const HeaderMenu = React.memo(function HeaderMenu() {
                   </ListItem>
                 ))}
               </ul>
-            </NavigationMenuContent> */}
+            </NavigationMenuContent>
           </NavigationMenuItem>
           <NavigationMenuItem>
             <NavigationMenuTrigger className={navigationMenuTriggerStyle}>
