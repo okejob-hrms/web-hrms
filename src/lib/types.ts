@@ -77,6 +77,13 @@ export interface IContactOfReference {
   occupation: string;
   company: string;
 }
+export interface IDepartment {
+  departmentId: number;
+  departmentName: string;
+  description?: string;
+  lastUpdateDate: string;
+  lastUpdateHour: string;
+}
 
 //============== Component Props ============== //
 export interface InputFormProps
