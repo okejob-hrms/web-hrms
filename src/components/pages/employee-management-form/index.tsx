@@ -29,7 +29,7 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
   return (
     <React.Fragment>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="p-8">
+        <form onSubmit={form.handleSubmit(onSubmit)}>
           <PersonalInformationSection />
           <EmployeeinformationSection />
           <SalaryInformationSection />

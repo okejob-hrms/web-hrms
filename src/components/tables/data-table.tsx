@@ -41,7 +41,8 @@ export function DataTable<TData, TValue = unknown>({
   });
 
   return (
-    <div className="rounded-md border border-grayscale-20 max-h-[400px] overflow-y-auto">
+    // <div className="rounded-md border border-grayscale-20 max-h-[400px] overflow-y-auto max-w-[980px] overflow-x-scroll">
+    <div className="rounded-md border border-grayscale-20">
       <Table className={tableClassName}>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (

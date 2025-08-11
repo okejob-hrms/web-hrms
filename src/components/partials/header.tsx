@@ -3,7 +3,6 @@
 import Image from "next/image";
 import * as React from "react";
 import { Status, StatusIndicator, StatusLabel } from "../ui/shadcn-io/status";
-import { Profile } from "./profile";
 import { Separator } from "../ui/separator";
 import Link from "next/link";
 import {
@@ -33,6 +32,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
 import useNetworkStatus from "@/hooks/use-network-status";
+import { Profile } from "../ui/profile";
 
 interface BreadcrumbProps {
   items?: {
@@ -361,20 +361,25 @@ const Header = React.memo(function Header() {
   const { isOnline, setOnline } = useNetworkStatus();
   return (
     <React.Fragment>
-      <header className="w-full flex flex-row justify-between px-10 py-2 items-center bg-white">
+      <header className="w-full flex flex-row justify-between md:px-10 py-2 items-center bg-white">
         <div className="flex flex-row items-center">
-          <Image src="/logo.png" alt="logo" width={80} height={80} />
-          <span className="font-semibold text-lg">KUBIK HRMS</span>
+          <div className="relative w-10 h-10">
+            <Image src="/logo.png" alt="logo" fill className="object-cover" />
+          </div>
+          <span className="font-semibold md:text-lg text-base">KUBIK HRMS</span>
         </div>
-        <div className="flex items-center justify-end gap-4 h-10">
-          <Status status={isOnline ? "online" : "offline"}>
+        <div className="items-center justify-end gap-4 h-10 flex">
+          <Status
+            status={isOnline ? "online" : "offline"}
+            className="hidden md:flex"
+          >
             <StatusIndicator />
             <StatusLabel className="text-xs text-text-disabled" />
           </Status>
           <Button
             variant="ghost"
             onClick={() => setOnline((prev) => !prev)}
-            className="text-xs text-text-disabled"
+            className="text-xs text-text-disabled md:flex hidden"
           >
             {isOnline ? (
               <Image
@@ -410,7 +415,7 @@ const HeaderBreadcumb = React.memo(function BreadcrumbWithCustomSeparator({
 }: BreadcrumbProps) {
   return (
     <React.Fragment>
-      <Breadcrumb className="w-full px-14 py-2 bg-white">
+      <Breadcrumb className="w-full md:px-10 px-2 py-2 bg-white">
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbLink asChild>

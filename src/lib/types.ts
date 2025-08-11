@@ -134,7 +134,7 @@ export interface GroupOption {
   [key: string]: Option[];
 }
 
-export interface MultipleSelectFormProps {
+export interface MultipleSelectProps {
   value?: Option[];
   defaultOptions?: Option[];
   options?: Option[];
@@ -163,11 +163,16 @@ export interface MultipleSelectFormProps {
   hideClearAllButton?: boolean;
 }
 
-export interface MultipleSelectFormRef {
+export interface MultipleSelectRef {
   selectedValue: Option[];
   input: HTMLInputElement;
   focus: () => void;
   reset: () => void;
+}
+
+export interface MultipleSelectFormProps extends MultipleSelectProps {
+  name: string;
+  label?: string;
 }
 
 export interface UploadButtonProps extends React.ComponentProps<"button"> {

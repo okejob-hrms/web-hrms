@@ -4,10 +4,15 @@ import * as React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ChevronDown } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { cn } from "@/lib/utils";
 
-const Profile = React.memo(function Profile() {
+interface Props {
+  className?: string;
+}
+
+const Profile = React.memo(function Profile({ className }: Props) {
   return (
-    <div className="flex gap-3 items-center">
+    <div className={cn("flex gap-3 items-center", className)}>
       <Avatar>
         <AvatarImage
           className="size-10"
@@ -16,7 +21,7 @@ const Profile = React.memo(function Profile() {
         />
         <AvatarFallback className="size-10">CN</AvatarFallback>
       </Avatar>
-      <div className="flex flex-col gap-1">
+      <div className="md:flex flex-col gap-1 hidden">
         <span className="font-semibold tracking-tight text-base">shadcn</span>
         <span className="leading-none text-xs text-muted-foreground">
           Human Resource

@@ -7,6 +7,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from "@/components/ui/form";
 import { cn } from "@/lib/utils";
 import {
@@ -30,7 +31,8 @@ import {
 import {
   GroupOption,
   MultipleSelectFormProps,
-  MultipleSelectFormRef,
+  MultipleSelectProps,
+  MultipleSelectRef,
   Option,
   OptionFormProps,
   SelectFilterProps,
@@ -171,10 +173,7 @@ const CommandEmpty = forwardRef<
 
 CommandEmpty.displayName = "CommandEmpty";
 
-const MultipleSelectForm = React.forwardRef<
-  MultipleSelectFormRef,
-  MultipleSelectFormProps
->(
+const MultipleSelect = React.forwardRef<MultipleSelectRef, MultipleSelectProps>(
   (
     {
       value,
@@ -200,8 +199,8 @@ const MultipleSelectForm = React.forwardRef<
       commandProps,
       inputProps,
       hideClearAllButton = false,
-    }: MultipleSelectFormProps,
-    ref: React.Ref<MultipleSelectFormRef>,
+    }: MultipleSelectProps,
+    ref: React.Ref<MultipleSelectRef>,
   ) => {
     const inputRef = React.useRef<HTMLInputElement>(null);
     const [open, setOpen] = React.useState(false);
@@ -628,6 +627,36 @@ const MultipleSelectForm = React.forwardRef<
   },
 );
 
+MultipleSelect.displayName = "MultipleSelect";
+
+function MultipleSelectForm({
+  name,
+  label,
+  ...props
+}: MultipleSelectFormProps) {
+  const form = useFormContext();
+
+  return (
+    <FormField
+      control={form.control}
+      name={name}
+      render={({ field }) => (
+        <FormItem>
+          {label && <FormLabel>{label}</FormLabel>}
+          <FormControl>
+            <MultipleSelect
+              {...props}
+              value={field.value}
+              onChange={field.onChange}
+            />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
+
 MultipleSelectForm.displayName = "MultipleSelectForm";
 
-export { SelectForm, SelectFilter, MultipleSelectForm };
+export { SelectForm, SelectFilter, MultipleSelect, MultipleSelectForm };

@@ -4,11 +4,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import * as React from "react";
-import { EmployeeListTable } from "./components/table";
 import { useRouter } from "next/navigation";
 import { Toolbar } from "./components/toolbar";
 import { IEmployee } from "@/lib/types";
 import { GeneralPagination } from "@/components/ui/pagination";
+import { ColumnDef } from "@tanstack/react-table";
+import { DataTable } from "@/components/tables/data-table";
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { cn } from "@/lib/utils";
 
 const employees: IEmployee[] = [
   {
@@ -77,32 +80,98 @@ const employees: IEmployee[] = [
       "https://images.unsplash.com/photo-1520813792240-56fc4a3765a7?crop=faces&fit=crop&h=200&w=200",
   },
 ];
-
+export const columns: ColumnDef<IEmployee>[] = [
+  {
+    accessorKey: "name",
+    header: "Name",
+    cell: ({ row }) => (
+      <div className="flex gap-2 items-center">
+        <Avatar>
+          <AvatarImage src={row.original.image} />
+        </Avatar>
+        <div className="flex flex-col">
+          <span>
+            {row.original.firstName} {row.original.lastName}
+          </span>
+          <span>{row.original.employeeId}</span>
+        </div>
+      </div>
+    ),
+  },
+  {
+    accessorKey: "position",
+    header: "Position",
+  },
+  {
+    accessorKey: "department",
+    header: "Department",
+  },
+  {
+    accessorKey: "email",
+    header: "Email",
+  },
+  {
+    accessorKey: "phoneNo",
+    header: "Phone Number",
+  },
+  {
+    accessorKey: "status",
+    header: "Status",
+    cell: ({ row }) => {
+      const status = row.original.status;
+      return (
+        <Badge
+          variant="default"
+          className={cn(
+            "rounded-full",
+            status === "active" ? "bg-success-focused " : "bg-error-focused ",
+          )}
+        >
+          <div
+            className={cn(
+              "size-2 rounded-full",
+              status === "active" ? "bg-success" : "bg-error",
+            )}
+          />
+          <span
+            className={cn(status === "active" ? "text-success" : "text-error")}
+          >
+            {status === "active" ? "Active" : "Inactive"}
+          </span>
+        </Badge>
+      );
+    },
+  },
+  {
+    accessorKey: "joinDate",
+    header: "Join Date",
+    cell: ({ row }) => {
+      const date = new Date(row.original.joinDate);
+      return date.toLocaleDateString();
+    },
+  },
+];
 export default function EmployeeManagementList() {
   const router = useRouter();
   return (
-    <div className="font-sans min-h-screen">
-      <div className="flex flex-col justify-between gap-6">
-        <Toolbar />
-        <Separator />
-        <div className="rounded-md bg-white border shadow-sm border-grayscale-20 p-6 flex flex-col gap-4">
-          <div className="flex justify-between w-full items-center">
-            <div className="flex gap-2 items-center">
-              <h2 className="font-semibold text-xl">Employee List</h2>
-              <Badge className="bg-primary-background text-primary rounded-full">
-                {employees.length} Employee
-              </Badge>
-            </div>
-            <Button
-              onClick={() => router.push("/dashboard/employee-management/add")}
-            >
-              + New Employee
-            </Button>
+    <div className="flex flex-col justify-between gap-6 p-4">
+      <Toolbar />
+      <Separator />
+      <div className="rounded-md bg-white border shadow-sm border-grayscale-20 p-6 flex flex-col gap-4">
+        <div className="flex justify-between w-full items-center">
+          <div className="flex gap-2 items-center">
+            <h2 className="font-semibold text-xl">Employee List</h2>
+            <Badge className="bg-primary-background text-primary rounded-full">
+              {employees.length} Employee
+            </Badge>
           </div>
-          <EmployeeListTable data={employees} />
-          <Separator />
-          <GeneralPagination />
+          <Button onClick={() => router.push("/employee-management/add")}>
+            + New Employee
+          </Button>
         </div>
+        <DataTable columns={columns} data={employees} />
+        <Separator />
+        <GeneralPagination />
       </div>
     </div>
   );

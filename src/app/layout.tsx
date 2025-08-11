@@ -6,7 +6,8 @@ import {
   HeaderBreadcumb,
   HeaderMenu,
 } from "@/components/partials/header";
-import Sidebar from "@/components/partials/sidebar";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/partials/app-sidebar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -41,12 +42,17 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#FBF9F9]`}
       >
         <Header />
-        <HeaderMenu />
+        {/* <HeaderMenu /> */}
         <HeaderBreadcumb items={breadcrumbs} />
-        <div className="grid grid-cols-5">
-          <Sidebar title="Employee" />
-          <main className="col-span-4">{children}</main>
-        </div>
+        <SidebarProvider className="mx-auto w-full container md:py-10 flex flex-col md:flex-row md:gap-4">
+          <SidebarTrigger className="md:hidden" />
+          <AppSidebar title="Employee" />
+          {/* <div className="grid grid-cols-5">
+            <Sidebar title="Employee" />
+            <main className="col-span-4">{children}</main>
+          </div> */}
+          <main>{children}</main>
+        </SidebarProvider>
       </body>
     </html>
   );
