@@ -11,7 +11,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import z from "zod";
 import {
   Form,
   FormField,
@@ -19,33 +18,33 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { DepartmentFormValues, departmentManagementFormScheme } from "../types";
+import { TeamsFormValues, teamsFormScheme } from "../types";
 
-interface DepartmentModalProps {
+interface TeamModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   editIndex: number | null;
-  handleSave: (data: DepartmentFormValues) => void;
+  handleSave: (data: TeamsFormValues) => void;
   handleClose: () => void;
 }
 
-export default function DepartmentModal({
+export default function TeamModal({
   open,
   onOpenChange,
   editIndex,
   handleSave,
   handleClose,
-}: DepartmentModalProps) {
-  const form = useForm<DepartmentFormValues>({
-    resolver: zodResolver(departmentManagementFormScheme),
+}: TeamModalProps) {
+  const form = useForm<TeamsFormValues>({
+    resolver: zodResolver(teamsFormScheme),
     mode: "onChange", // validate on change so Save button can disable live
     defaultValues: {
-      departmentName: "",
+      name: "",
       description: "",
     },
   });
 
-  const onSubmit = (data: DepartmentFormValues) => {
+  const onSubmit = (data: TeamsFormValues) => {
     handleSave(data);
   };
 
@@ -54,9 +53,7 @@ export default function DepartmentModal({
       <AlertDialogContent className="w-full max-w-md sm:max-w-xl bg-white px-4">
         <AlertDialogHeader>
           <AlertDialogTitle>
-            {editIndex !== null
-              ? "Edit Department Details"
-              : "Create New Department"}
+            {editIndex !== null ? "Edit Team Details" : "Create New Team"}
           </AlertDialogTitle>
         </AlertDialogHeader>
 
@@ -68,13 +65,13 @@ export default function DepartmentModal({
             {/* Department Name */}
             <FormField
               control={form.control}
-              name="departmentName"
+              name="name"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    Department Name <span className="text-red-500">*</span>
+                    Team Name <span className="text-red-500">*</span>
                   </FormLabel>
-                  <Input placeholder="Enter department name" {...field} />
+                  <Input placeholder="Enter team name" {...field} />
                   <FormMessage /> {/* shows inline error */}
                 </FormItem>
               )}

@@ -3,8 +3,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import * as React from "react";
-import { useDepartmentManagement } from "@/components/pages/department-management/hooks/useDepartmentManagement";
-import DeleteDepartmentDialog from "./sections/delete-modal";
+import { useDepartmentManagement } from "@/components/pages/organization/department-management/hooks/useDepartmentManagement";
 import DepartmentModal from "./sections/edit-modal";
 import { DataTable } from "@/components/tables/data-table";
 import { IDepartment } from "@/lib/types";
@@ -12,6 +11,8 @@ import { ColumnDef } from "@tanstack/react-table";
 import { RowActions } from "@/components/tables/row-actions";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ArrowUp, ArrowDown, ChevronsUpDown } from "lucide-react";
+import { formatDateTime } from "@/lib/helpers";
+import DeleteDialog from "../sections/delete-modal";
 
 export default function DepartmentManagementList() {
   const {
@@ -34,12 +35,12 @@ export default function DepartmentManagementList() {
     {
       accessorKey: "departmentName",
       header: "Department Name",
-      size: 300, // px
+      size: 300,
     },
     {
       accessorKey: "description",
       header: "Description",
-      size: 480, // make this wide so long description wraps inside it
+      size: 480,
     },
     {
       accessorKey: "lastUpdate",
@@ -69,13 +70,13 @@ export default function DepartmentManagementList() {
       },
       size: 160,
       cell: ({ row }) => {
-        const lastUpdateDate = row.original.lastUpdateDate;
-        const lastUpdateHour = row.original.lastUpdateHour;
+        const { date, hour } = formatDateTime(row.original.updated_at);
+
         return (
           <div>
-            <span>{lastUpdateDate}</span>
+            <span>{date}</span>
             <br />
-            <span>{lastUpdateHour}</span>
+            <span>{hour}</span>
           </div>
         );
       },
@@ -89,10 +90,10 @@ export default function DepartmentManagementList() {
         return (
           <RowActions
             onEdit={() => {
-              handleEdit(item.departmentId);
+              handleEdit(item.id);
             }}
             onDelete={() => {
-              setDeleteIndex(item.departmentId);
+              setDeleteIndex(item.id);
               setDeleteDialogOpen(true);
             }}
           />
@@ -138,10 +139,15 @@ export default function DepartmentManagementList() {
         </div>
       </div>
       {/* Modals */}
-      <DeleteDepartmentDialog
+      <DeleteDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
         onDelete={handleDelete}
+        title="Are you sure you want to delete this department?"
+        description="Deleting this department may affect any existing job position
+            mappings linked to it. If mappings have been set up, you’ll need to
+            reassign affected positions manually."
+        confirmText="Delete Department"
       />
       <DepartmentModal
         open={open}

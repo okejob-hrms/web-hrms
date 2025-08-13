@@ -1,4 +1,4 @@
-import DepartmentManagementList from "@/components/pages/department-management";
+import DepartmentManagementList from "@/components/pages/organization/department-management";
 
 export default function DepartmentManagementPage() {
   return (

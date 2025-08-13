@@ -78,11 +78,19 @@ export interface IContactOfReference {
   company: string;
 }
 export interface IDepartment {
-  departmentId: number;
-  departmentName: string;
+  id: number;
+  name: string;
   description?: string;
-  lastUpdateDate: string;
-  lastUpdateHour: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ITeam {
+  id: number;
+  name: string;
+  description: string;
+  created_at: string;
+  updated_at: string;
 }
 
 //============== Component Props ============== //

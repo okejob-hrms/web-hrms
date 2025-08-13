@@ -5,6 +5,6 @@ export type DepartmentFormValues = z.infer<
 >;
 
 export const departmentManagementFormScheme = z.object({
-  departmentName: z.string().min(1, "Department name is required"),
+  name: z.string().min(1, "Department name is required"),
   description: z.string(),
 });
