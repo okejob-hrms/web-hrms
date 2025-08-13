@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { DepartmentFormValues } from "../types";
 
 export type Department = {
   name: string;
@@ -106,16 +107,14 @@ export function useDepartmentManagement() {
   const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-  console.log("Departments", departments);
-
-  const handleSave = () => {
+  const handleSave = (data: DepartmentFormValues) => {
     if (editIndex !== null) {
       setDepartments((departments) =>
         departments.map((dept, idx) =>
           idx === editIndex
             ? {
-                departmentName: departmentName,
-                description,
+                departmentName: data.departmentName,
+                description: data.description,
                 departmentId: idx,
                 lastUpdateDate: "March 23, 2013",
                 lastUpdateHour: "12:00",
@@ -127,8 +126,8 @@ export function useDepartmentManagement() {
       setDepartments([
         ...departments,
         {
-          departmentName: departmentName,
-          description,
+          departmentName: data.departmentName,
+          description: data.description,
           departmentId: departments.length,
           lastUpdateDate: "March 23, 2013",
           lastUpdateHour: "12:00",
@@ -142,7 +141,6 @@ export function useDepartmentManagement() {
   };
 
   const handleEdit = (idx: number) => {
-    console.log("IDD", idx, departments[idx].departmentName);
     setDepartmentName(departments[idx].departmentName);
     setDescription(departments[idx].description ?? "");
     setEditIndex(idx);

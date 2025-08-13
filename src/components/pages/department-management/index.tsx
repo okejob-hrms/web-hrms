@@ -10,6 +10,7 @@ import { DataTable } from "@/components/tables/data-table";
 import { IDepartment } from "@/lib/types";
 import { ColumnDef } from "@tanstack/react-table";
 import { RowActions } from "@/components/tables/row-actions";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function DepartmentManagementList() {
   const {
@@ -34,7 +35,7 @@ export default function DepartmentManagementList() {
     {
       accessorKey: "departmentName",
       header: "Department Name",
-      size: 400, // px
+      size: 300, // px
     },
     {
       accessorKey: "description",
@@ -78,6 +79,8 @@ export default function DepartmentManagementList() {
     },
   ];
 
+  const isMobile = useIsMobile();
+
   return (
     <div className="font-sans min-h-screen bg-gray-50">
       {/* Outer container: center content, limit max width, add horizontal padding */}
@@ -104,7 +107,11 @@ export default function DepartmentManagementList() {
                 + New Department
               </Button>
             </div>
-            <DataTable columns={columns} data={departments} customSize />
+            <DataTable
+              columns={columns}
+              data={departments}
+              customSize={!isMobile}
+            />
           </div>
         </div>
       </div>
@@ -117,10 +124,6 @@ export default function DepartmentManagementList() {
       <DepartmentModal
         open={open}
         onOpenChange={setOpen}
-        departmentName={departmentName}
-        setDepartmentName={setDepartmentName}
-        description={description}
-        setDescription={setDescription}
         editIndex={editIndex}
         handleSave={handleSave}
         handleClose={handleClose}
