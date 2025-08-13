@@ -11,12 +11,11 @@ import { IDepartment } from "@/lib/types";
 import { ColumnDef } from "@tanstack/react-table";
 import { RowActions } from "@/components/tables/row-actions";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { ArrowUp, ArrowDown, ChevronsUpDown } from "lucide-react";
 
 export default function DepartmentManagementList() {
   const {
-    departmentName,
     setDepartmentName,
-    description,
     setDescription,
     open,
     setOpen,
@@ -44,7 +43,30 @@ export default function DepartmentManagementList() {
     },
     {
       accessorKey: "lastUpdate",
-      header: "Last Update",
+      header: ({ column }) => {
+        const isSorted = column.getIsSorted();
+        const SortIcon = () =>
+          isSorted === "asc" ? (
+            <ArrowUp className="w-3 h-3" />
+          ) : isSorted === "desc" ? (
+            <ArrowDown className="w-3 h-3" />
+          ) : (
+            <ChevronsUpDown className="w-3 h-3 opacity-50" />
+          );
+
+        return (
+          <div className="flex flex-row gap-2">
+            <span>Last Update</span>
+            <button
+              type="button"
+              onClick={() => column.toggleSorting(isSorted === "asc")}
+              className="flex items-center gap-1"
+            >
+              <SortIcon />
+            </button>
+          </div>
+        );
+      },
       size: 160,
       cell: ({ row }) => {
         const lastUpdateDate = row.original.lastUpdateDate;
