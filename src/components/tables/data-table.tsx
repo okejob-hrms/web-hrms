@@ -19,12 +19,15 @@ import { cn } from "@/lib/utils";
 import { GeneralPagination } from "../ui/pagination";
 
 interface DataTableProps<TData, TValue = unknown> {
-  columns: ColumnDef<TData, TValue>[];
+  columns: (ColumnDef<TData, TValue> & {
+    size?: string | number; // allow optional size
+  })[];
   data: TData[];
   tableClassName?: string;
   tableHeadClassName?: string;
   tableCellClassName?: string;
   withPagination?: boolean;
+  customSize?: boolean;
 }
 
 export function DataTable<TData, TValue = unknown>({
@@ -34,6 +37,7 @@ export function DataTable<TData, TValue = unknown>({
   tableHeadClassName,
   tableCellClassName,
   withPagination,
+  customSize = false,
 }: DataTableProps<TData, TValue>) {
   const table = useReactTable({
     data,
@@ -52,21 +56,28 @@ export function DataTable<TData, TValue = unknown>({
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <TableHead
-                      key={header.id}
-                      className={cn(
-                        "bg-gray-50 p-4 sticky top-0 z-10 text-left font-medium",
-                        "min-w-[120px]", // Minimum width for each column
-                        tableHeadClassName,
-                      )}
-                    >
-                      {flexRender(
-                        header.column.columnDef.header,
-                        header.getContext(),
-                      )}
-                    </TableHead>
-                  ))}
+                  {headerGroup.headers.map((header) => {
+                    const columnSize =
+                      customSize && header.column.columnDef.size
+                        ? header.column.columnDef.size
+                        : "120px"; // default min width
+
+                    return (
+                      <TableHead
+                        key={header.id}
+                        className={cn(
+                          "bg-gray-50 p-4 sticky top-0 z-10 text-left font-medium",
+                          tableHeadClassName,
+                        )}
+                        style={{ minWidth: columnSize }}
+                      >
+                        {flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
+                      </TableHead>
+                    );
+                  })}
                 </TableRow>
               ))}
             </TableHeader>
@@ -74,24 +85,31 @@ export function DataTable<TData, TValue = unknown>({
               {table.getRowModel().rows.length > 0 ? (
                 table.getRowModel().rows.map((row) => (
                   <TableRow key={row.id} className="hover:bg-gray-50/50">
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell
-                        key={cell.id}
-                        className={cn(
-                          "p-4 text-sm",
-                          "min-w-[120px]", // Minimum width for each cell
-                          "break-words", // Allow text to break if needed
-                          tableCellClassName,
-                        )}
-                      >
-                        <div className="max-w-[200px]">
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext(),
+                    {row.getVisibleCells().map((cell) => {
+                      const columnSize =
+                        customSize && cell.column.columnDef.size
+                          ? cell.column.columnDef.size
+                          : "120px"; // default min width
+
+                      return (
+                        <TableCell
+                          key={cell.id}
+                          className={cn(
+                            "p-4 text-sm",
+                            customSize ? "break-words" : "", // only break when customSize
+                            tableCellClassName,
                           )}
-                        </div>
-                      </TableCell>
-                    ))}
+                          style={{ minWidth: columnSize }}
+                        >
+                          <div className="max-w-[200px]">
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext(),
+                            )}
+                          </div>
+                        </TableCell>
+                      );
+                    })}
                   </TableRow>
                 ))
               ) : (
@@ -118,3 +136,5 @@ export function DataTable<TData, TValue = unknown>({
     </div>
   );
 }
+
+export default DataTable;

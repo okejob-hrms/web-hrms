@@ -17,7 +17,7 @@ export default function DeleteDepartmentDialog({
 }) {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="w-full max-w-md sm:max-w-md text-center">
+      <AlertDialogContent className="w-full max-w-md sm:max-w-md text-center bg-white">
         <div className="flex flex-col items-center justify-center mb-4">
           {/* Warning Icon (SVG) */}
           <span className="mb-2">

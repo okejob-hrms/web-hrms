@@ -2,16 +2,16 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-// import { Separator } from "@/components/ui/separator";
 import * as React from "react";
-// import { useRouter } from "next/navigation";
-import { DepartmentListTable } from "./sections/table";
 import { useDepartmentManagement } from "@/components/pages/department-management/hooks/useDepartmentManagement";
 import DeleteDepartmentDialog from "./sections/delete-modal";
 import DepartmentModal from "./sections/edit-modal";
+import { DataTable } from "@/components/tables/data-table";
+import { IDepartment } from "@/lib/types";
+import { ColumnDef } from "@tanstack/react-table";
+import { RowActions } from "@/components/tables/row-actions";
 
 export default function DepartmentManagementList() {
-  // const router = useRouter();
   const {
     departmentName,
     setDepartmentName,
@@ -29,41 +29,86 @@ export default function DepartmentManagementList() {
     handleDelete,
     handleEdit,
   } = useDepartmentManagement();
-  console.log("OPEN", open);
-  return (
-    <div className="font-sans min-h-screen">
-      <div className="flex flex-col justify-between gap-6">
-        <div className="rounded-md bg-white border shadow-sm border-grayscale-20 flex flex-col gap-4">
-          <div className="flex justify-between w-full items-center pt-6 pl-6 pr-6">
-            <div className="flex gap-2 items-center">
-              <h2 className="font-semibold text-xl">Department List</h2>
-              <Badge className="bg-primary-background text-primary rounded-full">
-                {departments.length} Departments
-              </Badge>
-            </div>
-            <Button
-              onClick={() => {
-                setOpen(true);
-                setDepartmentName("");
-                setDescription("");
-              }}
-            >
-              + New Department
-            </Button>
+
+  const columns: ColumnDef<IDepartment>[] = [
+    {
+      accessorKey: "departmentName",
+      header: "Department Name",
+      size: 400, // px
+    },
+    {
+      accessorKey: "description",
+      header: "Description",
+      size: 480, // make this wide so long description wraps inside it
+    },
+    {
+      accessorKey: "lastUpdate",
+      header: "Last Update",
+      size: 160,
+      cell: ({ row }) => {
+        const lastUpdateDate = row.original.lastUpdateDate;
+        const lastUpdateHour = row.original.lastUpdateHour;
+        return (
+          <div>
+            <span>{lastUpdateDate}</span>
+            <br />
+            <span>{lastUpdateHour}</span>
           </div>
-          <DepartmentListTable
-            data={departments}
-            onEdit={(item) => {
+        );
+      },
+    },
+    {
+      id: "actions",
+      header: "",
+      size: 80,
+      cell: ({ row }) => {
+        const item = row.original;
+        return (
+          <RowActions
+            onEdit={() => {
               handleEdit(item.departmentId);
             }}
-            onDelete={(item) => {
-              // store the selected item if needed
+            onDelete={() => {
               setDeleteIndex(item.departmentId);
               setDeleteDialogOpen(true);
             }}
           />
+        );
+      },
+    },
+  ];
+
+  return (
+    <div className="font-sans min-h-screen bg-gray-50">
+      {/* Outer container: center content, limit max width, add horizontal padding */}
+      <div className="max-w-screen-lg mx-auto">
+        <div className="flex flex-col justify-between gap-6">
+          <div className="rounded-md bg-white border shadow-sm border-grayscale-20 flex flex-col gap-4 p-6">
+            <div className="flex flex-col sm:flex-row justify-between w-full items-start sm:items-center gap-4 sm:gap-0">
+              {/* Header Left */}
+              <div className="flex gap-2 items-center flex-wrap">
+                <h2 className="font-semibold text-xl">Department List</h2>
+                <Badge className="bg-primary-background text-primary rounded-full">
+                  {departments.length} Departments
+                </Badge>
+              </div>
+              {/* Button */}
+              <Button
+                onClick={() => {
+                  setOpen(true);
+                  setDepartmentName("");
+                  setDescription("");
+                }}
+                className="whitespace-nowrap"
+              >
+                + New Department
+              </Button>
+            </div>
+            <DataTable columns={columns} data={departments} customSize />
+          </div>
         </div>
       </div>
+      {/* Modals */}
       <DeleteDepartmentDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}

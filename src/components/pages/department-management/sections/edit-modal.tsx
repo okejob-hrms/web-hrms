@@ -35,7 +35,7 @@ export default function DepartmentModal({
 }: DepartmentModalProps) {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="w-full max-w-md sm:max-w-xl bg-white">
+      <AlertDialogContent className="w-full max-w-md sm:max-w-xl bg-white px-4">
         <AlertDialogHeader>
           <AlertDialogTitle>
             {editIndex !== null
@@ -43,6 +43,7 @@ export default function DepartmentModal({
               : "Create New Department"}
           </AlertDialogTitle>
         </AlertDialogHeader>
+
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -62,28 +63,30 @@ export default function DepartmentModal({
               placeholder="Enter department name"
             />
           </div>
+
           <div>
             <label className="block mb-1">
               Description <span className="text-gray-400">(optional)</span>
             </label>
             <Textarea
-              className="resize-none h-[135px]"
+              className="resize-none h-[135px] whitespace-pre-wrap break-all"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={5}
               placeholder="Enter description"
             />
           </div>
-          <AlertDialogFooter className="flex flex-row gap-4">
+
+          <AlertDialogFooter className="flex justify-center gap-4">
             <AlertDialogCancel
-              className="w-1/3 border-2 border-[#18618B] text-[#18618B] bg-white hover:bg-[#e6f1f7] font-medium py-2 rounded-lg"
+              className="min-w-[100px] border-2 border-[#18618B] text-[#18618B] bg-white hover:bg-[#e6f1f7] font-medium py-2 rounded-lg"
               onClick={handleClose}
             >
               Cancel
             </AlertDialogCancel>
             <Button
               type="submit"
-              className="w-1/3 bg-[#18618B] hover:bg-[#14506e] text-white font-medium py-2 rounded-lg"
+              className="min-w-[100px] bg-[#18618B] hover:bg-[#14506e] text-white font-medium py-2 rounded-lg"
               disabled={!departmentName}
             >
               Save
