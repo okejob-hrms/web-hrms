@@ -66,7 +66,7 @@ export default function OrgChartPage() {
 
   // helper convert
   const mapToEmployeeNode = (
-    nodeDatum: EmployeeTreeNodeDatum,
+    nodeDatum: EmployeeTreeNodeDatum
   ): EmployeeNode => {
     return {
       id: nodeDatum.id || "",

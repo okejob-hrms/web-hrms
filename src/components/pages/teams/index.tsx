@@ -1,9 +1,7 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import * as React from "react";
-import { useDepartmentManagement } from "@/components/pages/organization/department-management/hooks/useDepartmentManagement";
 import DepartmentModal from "./sections/edit-modal";
 import { DataTable } from "@/components/tables/data-table";
 import { IDepartment } from "@/lib/types";
@@ -11,16 +9,17 @@ import { ColumnDef } from "@tanstack/react-table";
 import { RowActions } from "@/components/tables/row-actions";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ArrowUp, ArrowDown, ChevronsUpDown } from "lucide-react";
+import { useTeamManagement } from "./hooks/useTeamManagement";
 import { formatDateTime } from "@/lib/helpers";
-import DeleteDialog from "../sections/delete-modal";
+import DeleteTeamDialog from "./sections/delete-modal";
 
-export default function DepartmentManagementList() {
+export default function TeamManagementList() {
   const {
-    setDepartmentName,
+    setTeamName,
     setDescription,
     open,
     setOpen,
-    departments,
+    teams,
     editIndex,
     handleSave,
     handleClose,
@@ -29,12 +28,12 @@ export default function DepartmentManagementList() {
     setDeleteIndex,
     handleDelete,
     handleEdit,
-  } = useDepartmentManagement();
+  } = useTeamManagement();
 
   const columns: ColumnDef<IDepartment>[] = [
     {
-      accessorKey: "departmentName",
-      header: "Department Name",
+      accessorKey: "name",
+      header: "Team Name",
       size: 300,
     },
     {
@@ -113,41 +112,29 @@ export default function DepartmentManagementList() {
             <div className="flex flex-col sm:flex-row justify-between w-full items-start sm:items-center gap-4 sm:gap-0">
               {/* Header Left */}
               <div className="flex gap-2 items-center flex-wrap">
-                <h2 className="font-semibold text-xl">Department List</h2>
-                <Badge className="bg-primary-background text-primary rounded-full">
-                  {departments.length} Departments
-                </Badge>
+                <h2 className="font-semibold text-xl">Teams</h2>
               </div>
               {/* Button */}
               <Button
                 onClick={() => {
                   setOpen(true);
-                  setDepartmentName("");
+                  setTeamName("");
                   setDescription("");
                 }}
                 className="whitespace-nowrap"
               >
-                + New Department
+                + New Team
               </Button>
             </div>
-            <DataTable
-              columns={columns}
-              data={departments}
-              customSize={!isMobile}
-            />
+            <DataTable columns={columns} data={teams} customSize={!isMobile} />
           </div>
         </div>
       </div>
       {/* Modals */}
-      <DeleteDialog
+      <DeleteTeamDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
         onDelete={handleDelete}
-        title="Are you sure you want to delete this department?"
-        description="Deleting this department may affect any existing job position
-            mappings linked to it. If mappings have been set up, you’ll need to
-            reassign affected positions manually."
-        confirmText="Delete Department"
       />
       <DepartmentModal
         open={open}

@@ -1,4 +1,4 @@
-import TeamManagementList from "@/components/pages/organization/teams";
+import TeamManagementList from "@/components/pages/teams";
 
 export default function DepartmentManagementPage() {
   return (
