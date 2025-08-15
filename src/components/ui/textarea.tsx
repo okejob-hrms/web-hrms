@@ -57,9 +57,7 @@ function TextAreaForm({
               placeholder={placeholder}
               className={cn("min-h-32", inputClassName)}
               disabled={props.disabled}
-              value={props.value || field.value}
               autoComplete={props.autoComplete}
-              onChange={props.onChange}
             />
           </FormControl>
           {description && <FormDescription>{description}</FormDescription>}

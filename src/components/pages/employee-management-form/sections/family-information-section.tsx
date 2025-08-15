@@ -2,12 +2,22 @@
 
 import { DataTable } from "@/components/tables/data-table";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import { ColumnDef } from "@tanstack/react-table";
 import { Plus } from "lucide-react";
 import * as React from "react";
 import { IFamily } from "@/lib/types";
-import { Separator } from "@/components/ui/separator";
 
+// Utility functions
+const formatDate = (dateString: string): string => {
+  return new Date(dateString).toLocaleDateString("id-ID", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+};
+
+// Column definitions
 export const columns: ColumnDef<IFamily>[] = [
   {
     accessorKey: "name",
@@ -24,15 +34,7 @@ export const columns: ColumnDef<IFamily>[] = [
   {
     accessorKey: "bornDate",
     header: "Date of Birth",
-    cell: ({ row }) => {
-      const raw = row.getValue("bornDate") as string;
-      const formatted = new Date(raw).toLocaleDateString("id-ID", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      });
-      return <span>{formatted}</span>;
-    },
+    cell: ({ row }) => <span>{formatDate(row.getValue("bornDate"))}</span>,
   },
   {
     accessorKey: "education",
@@ -41,26 +43,12 @@ export const columns: ColumnDef<IFamily>[] = [
   {
     accessorKey: "email",
     header: "Email",
-    cell: ({ row }) => {
-      const value = row.getValue("email") as string;
-      return (
-        <a href={`mailto:${value}`} className="text-blue-600 underline">
-          {value}
-        </a>
-      );
-    },
+    // cell: ({ row }) => createContactLink("email", row.getValue("email")),
   },
   {
     accessorKey: "phoneNumber",
     header: "Phone",
-    cell: ({ row }) => {
-      const value = row.getValue("phoneNumber") as string;
-      return (
-        <a href={`tel:${value}`} className="text-blue-600 underline">
-          {value}
-        </a>
-      );
-    },
+    // cell: ({ row }) => createContactLink("phone", row.getValue("phoneNumber")),
   },
   {
     accessorKey: "occupation",
@@ -72,52 +60,71 @@ export const columns: ColumnDef<IFamily>[] = [
   },
 ];
 
-const familyData: IFamily[] = [
-  // {
-  //   name: "Rina Dewi",
-  //   relationship: "Spouse",
-  //   placeOfBirth: "Bandung",
-  //   bornDate: "1988-05-22",
-  //   education: "Bachelor",
-  //   email: "rina@example.com",
-  //   phoneNumber: "081234567890",
-  //   occupation: "Doctor",
-  //   company: "RS Harapan Bunda",
-  // },
-  // {
-  //   name: "Arka Pratama",
-  //   relationship: "Son",
-  //   placeOfBirth: "Jakarta",
-  //   bornDate: "2015-11-03",
-  //   education: "Elementary",
-  //   email: "arka@example.com",
-  //   phoneNumber: "081234567891",
-  //   occupation: "Student",
-  //   company: "-",
-  // },
+// Mock data
+const FAMILY_DATA: IFamily[] = [
+  {
+    name: "Rina Dewi",
+    relationship: "Spouse",
+    placeOfBirth: "Bandung",
+    bornDate: "1988-05-22",
+    education: "Bachelor",
+    email: "rina@example.com",
+    phoneNumber: "081234567890",
+    occupation: "Doctor",
+    company: "RS Harapan Bunda",
+  },
+  {
+    name: "Arka Pratama",
+    relationship: "Son",
+    placeOfBirth: "Jakarta",
+    bornDate: "2015-11-03",
+    education: "Elementary",
+    email: "arka@example.com",
+    phoneNumber: "081234567891",
+    occupation: "Student",
+    company: "-",
+  },
 ];
 
-export const FamilyInformationSection = React.memo(
-  function FamilyInformationSection() {
+// Shared styles
+const TABLE_CELL_CLASSES =
+  "md:w-1/9 md:text-clip md:text-balance whitespace-nowrap";
+
+interface Props {
+  withAddButton?: boolean;
+}
+
+const SectionHeader = ({ withAddButton }: Pick<Props, "withAddButton">) => (
+  <div
+    className={withAddButton ? "flex justify-between items-center mb-4" : ""}
+  >
+    <h2
+      className={`font-semibold text-lg leading-5 ${withAddButton ? "mb-3" : ""}`}
+    >
+      Family Information
+    </h2>
+    {withAddButton && (
+      <Button>
+        <Plus /> Add Family Information
+      </Button>
+    )}
+  </div>
+);
+
+export const FamilyInformationSection = React.memo<Props>(
+  function FamilyInformationSection({ withAddButton = false }) {
     return (
-      <React.Fragment>
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="font-semibold text-lg leading-5 mb-3">
-            Family Information
-          </h2>
-          <Button>
-            <Plus /> Add Family Information
-          </Button>
-        </div>
+      <>
+        <SectionHeader withAddButton={withAddButton} />
         <DataTable
           columns={columns}
-          data={familyData}
+          data={FAMILY_DATA}
           tableClassName="table-fixed w-full"
-          tableCellClassName="w-1/9 text-clip text-balance"
-          tableHeadClassName="w-1/9 text-clip text-balance"
+          tableCellClassName={TABLE_CELL_CLASSES}
+          tableHeadClassName={TABLE_CELL_CLASSES}
         />
         <Separator className="my-6" />
-      </React.Fragment>
+      </>
     );
   },
 );

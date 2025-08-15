@@ -65,7 +65,7 @@ export const DepartmentListTable = React.memo(function DepartmentListTable({
                       setOpenMenuId(
                         openMenuId === item.departmentId
                           ? null
-                          : item.departmentId
+                          : item.departmentId,
                       )
                     }
                   >

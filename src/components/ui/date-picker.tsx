@@ -20,7 +20,7 @@ import {
 import { CalendarIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
-import { DatePickerProps } from "@/lib/types";
+import { BasicDatePickerProps, DatePickerProps } from "@/lib/types";
 
 export const DatePicker: React.FC<DatePickerProps> = ({
   name,
@@ -65,8 +65,10 @@ export const DatePicker: React.FC<DatePickerProps> = ({
               <PopoverContent className="w-auto p-0">
                 <Calendar
                   mode="single"
-                  selected={props.value || field.value}
-                  onSelect={props.onSelect}
+                  selected={field.value}
+                  onSelect={(date) => {
+                    field.onChange(date);
+                  }}
                 />
               </PopoverContent>
             </Popover>
@@ -76,5 +78,38 @@ export const DatePicker: React.FC<DatePickerProps> = ({
         </FormItem>
       )}
     />
+  );
+};
+
+export const BasicDatePicker: React.FC<BasicDatePickerProps> = (props) => {
+  return (
+    <div>
+      <label></label>
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            data-empty={!props.value}
+            className="data-[empty=true]:text-muted-foreground justify-start text-left font-normal border-input h-10 rounded-sm"
+          >
+            <CalendarIcon />
+            {props.value ? (
+              format(props.value, "PPP")
+            ) : (
+              <span>Pick a date</span>
+            )}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0">
+          <Calendar
+            mode="single"
+            selected={props.value}
+            onSelect={(date) => {
+              props.onSelect(date);
+            }}
+          />
+        </PopoverContent>
+      </Popover>
+    </div>
   );
 };

@@ -16,18 +16,31 @@ export const SalaryInformationSection = React.memo(
         <h2 className="font-semibold text-lg leading-5 mb-3">
           Salary Information
         </h2>
-        <div className="grid grid-cols-2 gap-3 items-end">
-          <FormLabel className="text-base col-span-2 font-normal">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-end">
+          <FormLabel className="text-base md:col-span-2 font-normal">
             Allowance<span className="text-text-disabled">(Optional)</span>
           </FormLabel>
-          <InputForm name="baseSalary" label="Base Salary" disabled required />
-          <InputForm name="nettSalary" label="Salary (Nett)" required />
+          <InputForm
+            name="baseSalary"
+            label="Base Salary"
+            disabled
+            required
+            iconPosition="left"
+            icon={<span className="text-text-disabled text-base">Rp</span>}
+          />
+          <InputForm
+            name="nettSalary"
+            label="Salary (Nett)"
+            required
+            iconPosition="left"
+            icon={<span className="text-text-disabled text-base">Rp</span>}
+          />
 
           {allowanceForm > 0 &&
-            [...Array(allowanceForm)].map((item) => (
+            [...Array(allowanceForm)].map((_, index) => (
               <div
-                key={item}
-                className="col-span-2 grid grid-cols-2 gap-3 w-full"
+                key={index}
+                className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-3 w-full"
               >
                 <SelectForm
                   name="allowanceType"
@@ -48,6 +61,10 @@ export const SalaryInformationSection = React.memo(
                     disabled
                     required
                     className="w-full"
+                    iconPosition="left"
+                    icon={
+                      <span className="text-text-disabled text-base">Rp</span>
+                    }
                   />
                   <Button
                     variant="ghost"
@@ -67,7 +84,7 @@ export const SalaryInformationSection = React.memo(
           >
             <Plus /> Add Allowance
           </Button>
-          <Separator className="col-span-2 my-4" />
+          <Separator className="md:col-span-2 my-4" />
         </div>
       </React.Fragment>
     );

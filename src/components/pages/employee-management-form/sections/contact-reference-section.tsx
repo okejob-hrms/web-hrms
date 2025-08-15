@@ -37,18 +37,32 @@ export const columns: ColumnDef<IContactOfReference>[] = [
 
 const data: IContactOfReference[] = [];
 
-export const ContactOfReferenceSection = React.memo(
-  function ContactOfReferenceSection() {
+interface Props {
+  withAddButton?: boolean;
+}
+
+const SectionHeader = ({ withAddButton }: Pick<Props, "withAddButton">) => (
+  <div
+    className={withAddButton ? "flex justify-between items-center mb-4" : ""}
+  >
+    <h2
+      className={`font-semibold text-lg leading-5 ${withAddButton ? "mb-3" : ""}`}
+    >
+      Contact Reference
+    </h2>
+    {withAddButton && (
+      <Button>
+        <Plus /> Add Contact Reference
+      </Button>
+    )}
+  </div>
+);
+
+export const ContactOfReferenceSection = React.memo<Props>(
+  function ContactOfReferenceSection({ withAddButton }) {
     return (
       <React.Fragment>
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="font-semibold text-lg leading-5 mb-3">
-            Contact Reference
-          </h2>
-          <Button>
-            <Plus /> Add Contact Reference
-          </Button>
-        </div>
+        <SectionHeader withAddButton={withAddButton} />
         <DataTable
           columns={columns}
           data={data}

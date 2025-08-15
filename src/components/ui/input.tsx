@@ -9,12 +9,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { cn } from "@/lib/utils";
-import { InputFormProps } from "@/lib/types";
-
-interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  icon?: React.ReactNode;
-  iconPosition?: "left" | "right";
-}
+import { InputFormProps, InputProps } from "@/lib/types";
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ icon, iconPosition = "left", className, ...props }, ref) => {
@@ -37,6 +32,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             disabled:cursor-not-allowed disabled:opacity-50
             ${icon && iconPosition === "left" ? "pl-10" : ""}
             ${icon && iconPosition === "right" ? "pr-10" : ""}
+            ${props.disabled && "bg-grayscale-30"}
           `}
           {...props}
         />
@@ -88,9 +84,10 @@ const InputForm: React.FC<InputFormProps> = ({
               className={cn("", inputClassName)}
               type={props.type || "text"}
               disabled={props.disabled}
-              value={props.value || field.value}
+              // value={props.value || field.value}
               autoComplete={props.autoComplete}
-              onChange={props.onChange}
+              // onChange={props.onChange}
+              {...props}
             />
           </FormControl>
           {description && <FormDescription>{description}</FormDescription>}

@@ -86,22 +86,38 @@ export interface IDepartment {
 }
 
 //============== Component Props ============== //
-export interface InputFormProps
+export interface InputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {
+  icon?: React.ReactNode;
+  iconPosition?: "left" | "right";
+}
+export interface InputFormProps extends InputProps {
   name: string;
   label?: string;
   description?: string;
   isOptional?: boolean;
   inputClassName?: string;
   labelClassName?: string;
+  formItemClassName?: string;
 }
 
 export interface OptionFormProps extends InputFormProps {
   options: {
     label: string;
     value: string;
+    icon?: React.ReactNode;
   }[];
+  modalChildren?: React.ReactNode;
 }
+
+export type BasicDatePickerProps = DayPickerProps & {
+  label?: string;
+  description?: string;
+  isOptional?: boolean;
+  labelClassName?: string;
+  onSelect: (value?: Date) => void;
+  value: Date;
+};
 
 export type DatePickerProps = DayPickerProps & {
   label?: string;

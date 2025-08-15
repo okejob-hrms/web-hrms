@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { Ellipsis, Pencil, Trash } from "lucide-react";
 
 export function EllipsisMenu() {

@@ -11,7 +11,9 @@ export default function ComingSoon() {
           <Clock className="h-10 w-10 text-indigo-600" />
         </div>
 
-        <h1 className="text-center text-3xl font-semibold text-gray-800">Cooming Soon!</h1>
+        <h1 className="text-center text-3xl font-semibold text-gray-800">
+          Cooming Soon!
+        </h1>
 
         <p className="text-center text-sm text-gray-500">
           We are preparing something cool. Stay tuned for updates.

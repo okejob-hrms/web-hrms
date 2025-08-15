@@ -12,11 +12,17 @@ export const menus: Record<string, MenuItem[]> = {
       name: "Organization",
       value: "employee/organization",
       subItem: [
-        { name: "Org. Structure Chart", value: "employee/organization/structure" },
+        {
+          name: "Org. Structure Chart",
+          value: "employee/organization/structure",
+        },
         { name: "Position", value: "employee/organization/position" },
         { name: "Teams", value: "employee/organization/teams" },
         { name: "Job Levels", value: "employee/organization/job-levels" },
-        { name: "Department", value: "employee/organization/department-management" },
+        {
+          name: "Department",
+          value: "employee/organization/department-management",
+        },
       ],
     },
     { name: "Offboarding", value: "employee/off-boarding" },
