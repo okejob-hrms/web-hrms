@@ -1,5 +1,6 @@
 "use client";
 
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { usePathname } from "next/navigation";
 import {
   Header,
@@ -22,6 +23,7 @@ const breadcrumbs = [
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isAuthPage = pathname.startsWith("/auth");
+  const queryClient = new QueryClient();
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -29,7 +31,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     const timer = setTimeout(() => {
       setLoading(false);
     }, 2000);
-  
+
     return () => clearTimeout(timer);
   }, [pathname]);
 
@@ -37,9 +39,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     return <main className="w-full">{children}</main>;
   }
 
-
   return (
-    <>
+    <QueryClientProvider client={queryClient}>
       <Header />
       <HeaderMenu />
       <HeaderBreadcumb items={breadcrumbs} />
@@ -48,6 +49,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <ModuleSidebar defaultTitle="Employee" />
         <main className="w-full"> {loading ? <AppSkeleton /> : children} </main>
       </SidebarProvider>
-    </>
+    </QueryClientProvider>
   );
 }

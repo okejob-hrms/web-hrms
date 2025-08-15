@@ -120,8 +120,8 @@ export function useDepartmentManagement() {
                 lastUpdateDate: "March 23, 2013",
                 lastUpdateHour: "12:00",
               }
-            : dept
-        )
+            : dept,
+        ),
       );
     } else {
       setDepartments([
@@ -159,7 +159,7 @@ export function useDepartmentManagement() {
   const handleDelete = () => {
     if (deleteIndex !== null) {
       setDepartments((departments) =>
-        departments.filter((_, idx) => idx !== deleteIndex)
+        departments.filter((_, idx) => idx !== deleteIndex),
       );
       setDeleteIndex(null);
       setDeleteDialogOpen(false);

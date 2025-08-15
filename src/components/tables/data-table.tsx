@@ -24,6 +24,7 @@ interface DataTableProps<TData, TValue = unknown> {
   tableClassName?: string;
   tableHeadClassName?: string;
   tableCellClassName?: string;
+  withPagination?: boolean;
 }
 
 export function DataTable<TData, TValue = unknown>({
@@ -32,6 +33,7 @@ export function DataTable<TData, TValue = unknown>({
   tableClassName,
   tableHeadClassName,
   tableCellClassName,
+  withPagination,
 }: DataTableProps<TData, TValue>) {
   const table = useReactTable({
     data,
@@ -42,88 +44,77 @@ export function DataTable<TData, TValue = unknown>({
   });
 
   return (
-    // <div className="rounded-md border border-grayscale-20 max-h-[400px] overflow-y-auto max-w-[980px] overflow-x-scroll">
-   <div>
-     <div className="rounded-md border border-grayscale-20">
-      <Table className={tableClassName}>
-        <TableHeader>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <TableHead
-                  key={header.id}
-                  className={cn(
-                    "bg-gray-50 p-4 sticky top-0 z-10",
-                    tableHeadClassName,
-                  )}
-                >
-                  {flexRender(
-                    header.column.columnDef.header,
-                    header.getContext(),
-                  )}
-                </TableHead>
+    <div className="w-full">
+      <div className="rounded-md border border-grayscale-20 overflow-hidden">
+        {/* Horizontal scroll container */}
+        <div className="overflow-x-auto">
+          <Table className={cn("w-full min-w-[800px]", tableClassName)}>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <TableHead
+                      key={header.id}
+                      className={cn(
+                        "bg-gray-50 p-4 sticky top-0 z-10 text-left font-medium",
+                        "min-w-[120px]", // Minimum width for each column
+                        tableHeadClassName,
+                      )}
+                    >
+                      {flexRender(
+                        header.column.columnDef.header,
+                        header.getContext(),
+                      )}
+                    </TableHead>
+                  ))}
+                </TableRow>
               ))}
-            </TableRow>
-          ))}
-        </TableHeader>
-        <TableBody>
-          {table.getRowModel().rows.length > 0 ? (
-            table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id}>
-                {row.getVisibleCells().map((cell) => (
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows.length > 0 ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow key={row.id} className="hover:bg-gray-50/50">
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell
+                        key={cell.id}
+                        className={cn(
+                          "p-4 text-sm",
+                          "min-w-[120px]", // Minimum width for each cell
+                          "break-words", // Allow text to break if needed
+                          tableCellClassName,
+                        )}
+                      >
+                        <div className="max-w-[200px]">
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext(),
+                          )}
+                        </div>
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
                   <TableCell
-                    key={cell.id}
-                    className={cn("p-4", tableCellClassName)}
+                    colSpan={columns.length}
+                    className="h-20 text-center p-4 bg-transparent"
                   >
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    <p className="text-primary font-semibold text-sm">
+                      No Data Available
+                    </p>
+                    <p className="text-text-secondary text-sm">
+                      There&apos;s currently no data to display in this table.
+                      Please add new entries.
+                    </p>
                   </TableCell>
-                ))}
-              </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell
-                colSpan={columns.length}
-                className="h-20 text-center p-4 bg-transparent"
-              >
-                <p className="text-primary font-semibold text-sm">
-                  No Data Available
-                </p>
-                <p className="text-text-secondary text-sm">
-                  There’s currently no data to display in this table. Please add
-                  new entries.
-                </p>
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
-
-      {/* <div className="flex justify-between items-center py-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage()}
-        >
-          Previous
-        </Button>
-        <span className="text-sm">
-          Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
-        </span>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
-        >
-          Next
-        </Button>
-      </div> */}
-
-
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+      {withPagination && <GeneralPagination />}
     </div>
-    <GeneralPagination />
-   </div>
   );
 }

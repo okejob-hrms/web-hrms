@@ -20,19 +20,21 @@ export default function MailConfirmPage() {
       {/* Title */}
       <h1 className="text-2xl font-bold mb-1">Please Check Your Email</h1>
       <p className="text-muted-foreground mb-6">
-        Reset password request link has been succesfuly sent to your registered email.
+        Reset password request link has been succesfuly sent to your registered
+        email.
       </p>
       <div className="text-gray-500 my-3 text-sm">
-        Didn’t receive an email? <span className="text-primary pl-2 font-bold">Resend Email</span>
+        Didn’t receive an email?{" "}
+        <span className="text-primary pl-2 font-bold">Resend Email</span>
       </div>
 
-        <Button
-            type="button"
-            className="w-full"
-            onClick={() => router.push('/auth/login')}
-        >
-            Continue
-        </Button>
+      <Button
+        type="button"
+        className="w-full"
+        onClick={() => router.push("/auth/login")}
+      >
+        Continue
+      </Button>
     </div>
   );
 }

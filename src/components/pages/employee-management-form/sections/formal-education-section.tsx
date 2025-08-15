@@ -60,18 +60,32 @@ const data: IFormalEducation[] = [
   // },
 ];
 
-export const FormalEducationSection = React.memo(
-  function FormalEducationSection() {
+interface Props {
+  withAddButton?: boolean;
+}
+
+const SectionHeader = ({ withAddButton }: Pick<Props, "withAddButton">) => (
+  <div
+    className={withAddButton ? "flex justify-between items-center mb-4" : ""}
+  >
+    <h2
+      className={`font-semibold text-lg leading-5 ${withAddButton ? "mb-3" : ""}`}
+    >
+      Formal Education
+    </h2>
+    {withAddButton && (
+      <Button>
+        <Plus /> Add Formal Education
+      </Button>
+    )}
+  </div>
+);
+
+export const FormalEducationSection = React.memo<Props>(
+  function FormalEducationSection({ withAddButton = false }) {
     return (
       <React.Fragment>
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="font-semibold text-lg leading-5 mb-3">
-            Formal Education
-          </h2>
-          <Button>
-            <Plus /> Add Formal Education
-          </Button>
-        </div>
+        <SectionHeader withAddButton={withAddButton} />
         <DataTable
           columns={columns}
           data={data}

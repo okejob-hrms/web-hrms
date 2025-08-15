@@ -115,7 +115,7 @@ const HeaderMenu = React.memo(function HeaderMenu() {
     cn(
       "primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground rounded-b-none rounded-t-sm bg-white flex gap-2",
       "data-[state=open]:hover:bg-primary data-[state=open]:text-primary-foreground data-[state=open]:focus:bg-primary data-[state=open]:bg-primary/50",
-      isActive && "bg-primary text-primary-foreground"
+      isActive && "bg-primary text-primary-foreground",
     );
 
   return (
@@ -151,7 +151,7 @@ const HeaderMenu = React.memo(function HeaderMenu() {
                                 className={cn(
                                   "block rounded px-3 py-2 text-sm hover:bg-muted hover:text-foreground",
                                   pathname === child.path &&
-                                    "bg-primary/20 opacity-100 text-primary"
+                                    "bg-primary/20 opacity-100 text-primary",
                                 )}
                               >
                                 <div className="flex flex-row gap-3 items-start">
@@ -204,7 +204,8 @@ const HeaderMenu = React.memo(function HeaderMenu() {
                 href={item.path}
                 className={cn(
                   "flex items-center gap-2 py-2",
-                  pathname.includes(`/${item.name}`) && "text-primary font-bold"
+                  pathname.includes(`/${item.name}`) &&
+                    "text-primary font-bold",
                 )}
               >
                 <Image
@@ -223,7 +224,7 @@ const HeaderMenu = React.memo(function HeaderMenu() {
                       href={child.path}
                       className={cn(
                         "block text-sm text-gray-500",
-                        pathname === child.path && "text-primary font-medium"
+                        pathname === child.path && "text-primary font-medium",
                       )}
                     >
                       {child.label}
@@ -247,9 +248,7 @@ const Header = React.memo(function Header() {
         <div className="relative w-8 h-8 md:w-10 md:h-10">
           <Image src="/logo.png" alt="logo" fill className="object-cover" />
         </div>
-        <span className="font-semibold md:text-lg text-base">
-          KUBIK HRMS
-        </span>
+        <span className="font-semibold md:text-lg text-base">KUBIK HRMS</span>
       </div>
       <div className="items-center justify-end gap-2 md:gap-4 h-10 flex">
         <Status
@@ -300,12 +299,7 @@ const HeaderBreadcumb = React.memo(function BreadcrumbWithCustomSeparator({
         <BreadcrumbItem>
           <BreadcrumbLink asChild>
             <Link href="/">
-              <Image
-                src="/icons/home.svg"
-                alt="Logo"
-                width={16}
-                height={16}
-              />
+              <Image src="/icons/home.svg" alt="Logo" width={16} height={16} />
             </Link>
           </BreadcrumbLink>
         </BreadcrumbItem>

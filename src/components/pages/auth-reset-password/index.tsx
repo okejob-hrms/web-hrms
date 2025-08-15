@@ -53,11 +53,7 @@ export default function ResetPasswordPage() {
           </div>
         </div>
 
-        <Button
-          type="submit"
-          disabled={!isEmailValid}
-          className="w-full"
-        >
+        <Button type="submit" disabled={!isEmailValid} className="w-full">
           Continue
         </Button>
       </form>

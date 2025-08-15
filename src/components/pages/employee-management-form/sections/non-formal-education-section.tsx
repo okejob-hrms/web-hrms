@@ -56,18 +56,32 @@ const data: INonFormalEducation[] = [
   // },
 ];
 
-export const NonFormalEducationSection = React.memo(
-  function NonFormalEducationSection() {
+interface Props {
+  withAddButton?: boolean;
+}
+
+const SectionHeader = ({ withAddButton }: Pick<Props, "withAddButton">) => (
+  <div
+    className={withAddButton ? "flex justify-between items-center mb-4" : ""}
+  >
+    <h2
+      className={`font-semibold text-lg leading-5 ${withAddButton ? "mb-3" : ""}`}
+    >
+      Non Formal Education
+    </h2>
+    {withAddButton && (
+      <Button>
+        <Plus /> Add Non Formal Education
+      </Button>
+    )}
+  </div>
+);
+
+export const NonFormalEducationSection = React.memo<Props>(
+  function NonFormalEducationSection({ withAddButton = false }) {
     return (
       <React.Fragment>
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="font-semibold text-lg leading-5 mb-3">
-            Non Formal Education
-          </h2>
-          <Button>
-            <Plus /> Add Non Formal Education
-          </Button>
-        </div>
+        <SectionHeader withAddButton={withAddButton} />
         <DataTable
           columns={columns}
           data={data}

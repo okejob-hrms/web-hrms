@@ -9,7 +9,7 @@ const nextConfig: NextConfig = {
         pathname: "/**",
       },
     ],
-    domains: ["via.placeholder.com"]
+    domains: ["via.placeholder.com"],
   },
 };
 

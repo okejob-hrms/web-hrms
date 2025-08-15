@@ -26,7 +26,7 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function AuthLogin() {
-  const router = useRouter()
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
 
   const form = useForm<LoginFormValues>({
@@ -39,7 +39,7 @@ export default function AuthLogin() {
 
   const onSubmit = (values: LoginFormValues) => {
     console.log("Login data:", values);
-    router.push('/employee/employee-management')
+    router.push("/employee/employee-management");
   };
 
   return (
@@ -51,7 +51,6 @@ export default function AuthLogin() {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              
               {/* Email */}
               <FormField
                 control={form.control}
@@ -102,7 +101,11 @@ export default function AuthLogin() {
                           onClick={() => setShowPassword(!showPassword)}
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
                         >
-                          {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                          {showPassword ? (
+                            <EyeOff size={18} />
+                          ) : (
+                            <Eye size={18} />
+                          )}
                         </button>
                       </div>
                     </FormControl>
@@ -122,7 +125,11 @@ export default function AuthLogin() {
               </div>
 
               {/* Submit Button */}
-              <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={form.formState.isSubmitting}
+              >
                 {form.formState.isSubmitting ? "Signing in..." : "Sign in"}
               </Button>
             </form>

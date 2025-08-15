@@ -8,9 +8,9 @@ export default function AppSkeleton() {
       <div className="space-y-4">
         {/* Header skeleton */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Skeleton className="h-8" />
-            <div className="h-8" />
-            <Skeleton className="h-8" />
+          <Skeleton className="h-8" />
+          <div className="h-8" />
+          <Skeleton className="h-8" />
         </div>
 
         {/* Grid skeleton */}

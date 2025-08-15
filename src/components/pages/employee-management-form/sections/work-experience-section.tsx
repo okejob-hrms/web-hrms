@@ -67,18 +67,32 @@ export const columns: ColumnDef<IWorkExperience>[] = [
 
 const data: IWorkExperience[] = [];
 
-export const WorkExperienceSection = React.memo(
-  function WorkExperienceSection() {
+interface Props {
+  withAddButton?: boolean;
+}
+
+const SectionHeader = ({ withAddButton }: Pick<Props, "withAddButton">) => (
+  <div
+    className={withAddButton ? "flex justify-between items-center mb-4" : ""}
+  >
+    <h2
+      className={`font-semibold text-lg leading-5 ${withAddButton ? "mb-3" : ""}`}
+    >
+      Work Experience
+    </h2>
+    {withAddButton && (
+      <Button>
+        <Plus /> Add Work Experience
+      </Button>
+    )}
+  </div>
+);
+
+export const WorkExperienceSection = React.memo<Props>(
+  function WorkExperienceSection({ withAddButton }) {
     return (
       <React.Fragment>
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="font-semibold text-lg leading-5 mb-3">
-            Work Experience
-          </h2>
-          <Button>
-            <Plus /> Add Work Experience
-          </Button>
-        </div>
+        <SectionHeader withAddButton={withAddButton} />
         <DataTable
           columns={columns}
           data={data}

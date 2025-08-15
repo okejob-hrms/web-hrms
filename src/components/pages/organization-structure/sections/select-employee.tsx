@@ -1,6 +1,11 @@
 "use client";
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { EmployeeNode } from "../types";
@@ -12,16 +17,30 @@ interface SelectEmployeeModalProps {
   onSelect: (employee: EmployeeNode) => void;
 }
 
-export function SelectEmployeeModal({ open, onClose, onSelect }: SelectEmployeeModalProps) {
+export function SelectEmployeeModal({
+  open,
+  onClose,
+  onSelect,
+}: SelectEmployeeModalProps) {
   const [search, setSearch] = useState("");
 
   const employees: EmployeeNode[] = [
-    { id: "e1", name: "Jane Doe", title: "Engineer", image: "https://via.placeholder.com/40" },
-    { id: "e2", name: "Mark Smith", title: "Designer", image: "https://via.placeholder.com/40" }
+    {
+      id: "e1",
+      name: "Jane Doe",
+      title: "Engineer",
+      image: "https://via.placeholder.com/40",
+    },
+    {
+      id: "e2",
+      name: "Mark Smith",
+      title: "Designer",
+      image: "https://via.placeholder.com/40",
+    },
   ];
 
   const filtered = employees.filter((emp) =>
-    emp.name.toLowerCase().includes(search.toLowerCase())
+    emp.name.toLowerCase().includes(search.toLowerCase()),
   );
 
   return (

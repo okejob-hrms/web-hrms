@@ -17,7 +17,6 @@ import { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/components/tables/data-table";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
-import { GeneralPagination } from "@/components/ui/pagination";
 
 const columns: ColumnDef<ICandidate>[] = [
   {
@@ -165,14 +164,11 @@ export const CandidateListSection = React.memo(function CandidateListSection() {
             className="max-w-lg self-end"
           />
         </DialogHeader>
-        <div className="flex flex-col">
-          <DataTable
-            columns={columns}
-            data={candidates}
-            tableClassName="w-full"
-          />
-          <GeneralPagination />
-        </div>
+        <DataTable
+          columns={columns}
+          data={candidates}
+          tableClassName="w-full"
+        />
         <DialogFooter>
           <Button variant="outline" className="px-5 w-44">
             Cancel

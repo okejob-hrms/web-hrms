@@ -44,9 +44,11 @@ const SelectForm: React.FC<OptionFormProps> = ({
   label,
   isOptional,
   labelClassName,
+  formItemClassName,
   options,
   placeholder,
   className,
+  modalChildren,
 }) => {
   const { control } = useFormContext();
   return (
@@ -54,7 +56,7 @@ const SelectForm: React.FC<OptionFormProps> = ({
       control={control}
       name={name}
       render={({ field }) => (
-        <FormItem>
+        <FormItem className={formItemClassName}>
           {label && (
             <FormLabel className={cn("text-sm font-normal", labelClassName)}>
               {label}
@@ -71,8 +73,10 @@ const SelectForm: React.FC<OptionFormProps> = ({
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
+                {modalChildren && modalChildren}
                 {options.map((item) => (
                   <SelectItem key={item.value} value={item.value}>
+                    {item.icon && item.icon}
                     {item.label}
                   </SelectItem>
                 ))}

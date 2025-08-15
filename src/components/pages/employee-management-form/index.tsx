@@ -16,11 +16,15 @@ import { WorkExperienceSection } from "./sections/work-experience-section";
 import { ContactOfReferenceSection } from "./sections/contact-reference-section";
 import { AttachmentsSection } from "./sections/attachments-section";
 import { Button } from "../../ui/button";
-import { employeeManagementFormScheme } from "./types";
+import {
+  employeeManagementFormDefaultValues,
+  employeeManagementFormScheme,
+} from "./types";
 
 export const AddEmployeeForm = React.memo(function AddEmployee() {
   const form = useForm<z.infer<typeof employeeManagementFormScheme>>({
     resolver: zodResolver(employeeManagementFormScheme),
+    defaultValues: employeeManagementFormDefaultValues,
   });
 
   const onSubmit = (values: z.infer<typeof employeeManagementFormScheme>) => {
@@ -34,11 +38,11 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
           <EmployeeinformationSection />
           <SalaryInformationSection />
           <BankInformationSection />
-          <FamilyInformationSection />
-          <FormalEducationSection />
-          <NonFormalEducationSection />
-          <WorkExperienceSection />
-          <ContactOfReferenceSection />
+          <FamilyInformationSection withAddButton />
+          <FormalEducationSection withAddButton />
+          <NonFormalEducationSection withAddButton />
+          <WorkExperienceSection withAddButton />
+          <ContactOfReferenceSection withAddButton />
           <AttachmentsSection />
           <div className="flex gap-2 my-8">
             <Button variant="outline" className="min-w-36">
