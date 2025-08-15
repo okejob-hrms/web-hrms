@@ -31,14 +31,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     const timer = setTimeout(() => {
       setLoading(false);
     }, 2000);
-  
+
     return () => clearTimeout(timer);
   }, [pathname]);
 
   if (isAuthPage) {
     return <main className="w-full">{children}</main>;
   }
-
 
   return (
     <QueryClientProvider client={queryClient}>

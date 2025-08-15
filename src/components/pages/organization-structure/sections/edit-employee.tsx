@@ -1,6 +1,11 @@
 "use client";
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { EmployeeNode } from "../types";
@@ -13,7 +18,12 @@ interface EditEmployeeModalProps {
   onSave: (updated: EmployeeNode) => void;
 }
 
-export function EditEmployeeModal({ open, onClose, employee, onSave }: EditEmployeeModalProps) {
+export function EditEmployeeModal({
+  open,
+  onClose,
+  employee,
+  onSave,
+}: EditEmployeeModalProps) {
   const [form, setForm] = useState<EmployeeNode>(employee);
 
   const handleChange = (field: keyof EmployeeNode, value: string) => {

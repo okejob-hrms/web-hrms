@@ -23,13 +23,13 @@ export default function ResetSuccessPage() {
         Please signing in using your new password
       </p>
 
-        <Button
-            type="button"
-            className="w-full"
-            onClick={() => router.push('/auth/login')}
-        >
-            Continue
-        </Button>
+      <Button
+        type="button"
+        className="w-full"
+        onClick={() => router.push("/auth/login")}
+      >
+        Continue
+      </Button>
     </div>
   );
 }

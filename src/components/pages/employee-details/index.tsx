@@ -8,6 +8,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Icon } from "@/components/ui/icon";
 import { PersonalInformationDetail } from "./sections/personal-information";
 import { mockEmployeeDetail } from "./mock";
+import { DocumentDetail } from "./sections/document";
+import { PayrollDetail } from "./sections/payroll";
 // interface EmployeeDetailTabProps {
 
 // }
@@ -22,13 +24,13 @@ const tabs = [
   {
     name: "Document",
     value: "document",
-    content: "npx shadcn@latest add tabs",
+    content: <DocumentDetail />,
     icon: <Icon name="documentOutlined" size={18} color="currentColor" />,
   },
   {
     name: "Payroll",
     value: "payroll",
-    content: "npx shadcn@latest add tabs",
+    content: <PayrollDetail />,
     icon: <Icon name="debit" size={18} color="currentColor" />,
   },
   {

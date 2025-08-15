@@ -22,7 +22,9 @@ const formSchema = z
   .object({
     email: z.string().email("Invalid email address"),
     password: z.string().min(6, "Password must be at least 6 characters"),
-    password_confirmation: z.string().min(6, "Password confirmation is required"),
+    password_confirmation: z
+      .string()
+      .min(6, "Password confirmation is required"),
   })
   .refine((data) => data.password === data.password_confirmation, {
     message: "Passwords do not match",
@@ -77,7 +79,12 @@ export default function ChangePasswordPage() {
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input type="email" placeholder="john@gmail.com" disabled {...field} />
+                  <Input
+                    type="email"
+                    placeholder="john@gmail.com"
+                    disabled
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -92,21 +99,21 @@ export default function ChangePasswordPage() {
               <FormItem>
                 <FormLabel>Password</FormLabel>
                 <FormControl>
-                    <div className="relative w-full">
-                        <Input
-                          placeholder="Input your password"
-                          type={showPassword ? "text" : "password"}
-                          className="absolute w-full"
-                          {...field}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
-                        >
-                          {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                        </button>
-                    </div>
+                  <div className="relative w-full">
+                    <Input
+                      placeholder="Input your password"
+                      type={showPassword ? "text" : "password"}
+                      className="absolute w-full"
+                      {...field}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -121,21 +128,27 @@ export default function ChangePasswordPage() {
               <FormItem>
                 <FormLabel>Password Confirmation</FormLabel>
                 <FormControl>
-                    <div className="relative w-full">
-                        <Input
-                          placeholder="Confirm your password"
-                          type={showPasswordConfirm ? "text" : "password"}
-                          className="absolute w-full"
-                          {...field}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPasswordConfirm(!showPasswordConfirm)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
-                        >
-                          {showPasswordConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
-                        </button>
-                    </div>
+                  <div className="relative w-full">
+                    <Input
+                      placeholder="Confirm your password"
+                      type={showPasswordConfirm ? "text" : "password"}
+                      className="absolute w-full"
+                      {...field}
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setShowPasswordConfirm(!showPasswordConfirm)
+                      }
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+                    >
+                      {showPasswordConfirm ? (
+                        <EyeOff size={18} />
+                      ) : (
+                        <Eye size={18} />
+                      )}
+                    </button>
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>
