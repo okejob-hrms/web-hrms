@@ -6,6 +6,7 @@ interface MenuItem {
 }
 
 export const menus: Record<string, MenuItem[]> = {
+  dashboard: [],
   employee: [
     { name: "Employee Management", value: "employee/employee-management" },
     {
