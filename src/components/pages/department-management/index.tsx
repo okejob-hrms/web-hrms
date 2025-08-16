@@ -33,7 +33,7 @@ export default function DepartmentManagementList() {
 
   const columns: ColumnDef<IDepartment>[] = [
     {
-      accessorKey: "departmentName",
+      accessorKey: "name",
       header: "Department Name",
       size: 300,
     },
@@ -88,18 +88,20 @@ export default function DepartmentManagementList() {
       cell: ({ row }) => {
         const item = row.original;
         return (
-          <RowActions
-            onEdit={() => {
-              handleEdit(item.id);
-            }}
-            onDelete={() => {
-              setDeleteIndex(item.id);
-              setDeleteDialogOpen(true);
-            }}
-          />
+          <div className="flex justify-end">
+            <RowActions
+              onEdit={() => {
+                handleEdit(item.id);
+              }}
+              onDelete={() => {
+                setDeleteIndex(item.id);
+                setDeleteDialogOpen(true);
+              }}
+            />
+          </div>
         );
       },
-    },
+    },    
   ];
 
   const isMobile = useIsMobile();

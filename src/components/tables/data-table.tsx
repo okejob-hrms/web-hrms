@@ -19,9 +19,7 @@ import { cn } from "@/lib/utils";
 import { GeneralPagination } from "../ui/pagination";
 
 interface DataTableProps<TData, TValue = unknown> {
-  columns: (ColumnDef<TData, TValue> & {
-    size?: string | number; // allow optional size
-  })[];
+  columns: ColumnDef<TData, TValue>[];
   data: TData[];
   tableClassName?: string;
   tableHeadClassName?: string;
@@ -50,66 +48,72 @@ export function DataTable<TData, TValue = unknown>({
   return (
     <div className="w-full">
       <div className="rounded-md border border-grayscale-20 overflow-hidden">
-        {/* Horizontal scroll container */}
         <div className="overflow-x-auto">
-          <Table className={cn("w-full min-w-[800px]", tableClassName)}>
+          <Table
+            className={cn(
+              "w-full",
+              customSize ? "table-fixed min-w-[800px]" : "min-w-[800px]",
+              tableClassName
+            )}
+          >
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => {
-                    const columnSize =
-                      customSize && header.column.columnDef.size
-                        ? header.column.columnDef.size
-                        : "120px"; // default min width
-
-                    return (
-                      <TableHead
-                        key={header.id}
-                        className={cn(
-                          "bg-gray-50 p-4 sticky top-0 z-10 text-left font-medium",
-                          tableHeadClassName,
-                        )}
-                        style={{ minWidth: columnSize }}
-                      >
-                        {flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
-                      </TableHead>
-                    );
-                  })}
+                  {headerGroup.headers.map((header) => (
+                    <TableHead
+                      key={header.id}
+                      style={
+                        customSize
+                          ? { width: header.getSize(), maxWidth: header.getSize() }
+                          : undefined
+                      }
+                      className={cn(
+                        "bg-gray-50 p-4 sticky top-0 z-10 text-left font-medium",
+                        customSize ? "break-words whitespace-normal" : "min-w-[120px]",
+                        tableHeadClassName
+                      )}
+                    >
+                      {flexRender(
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
+                    </TableHead>
+                  ))}
                 </TableRow>
               ))}
             </TableHeader>
+
             <TableBody>
               {table.getRowModel().rows.length > 0 ? (
                 table.getRowModel().rows.map((row) => (
                   <TableRow key={row.id} className="hover:bg-gray-50/50">
-                    {row.getVisibleCells().map((cell) => {
-                      const columnSize =
-                        customSize && cell.column.columnDef.size
-                          ? cell.column.columnDef.size
-                          : "120px"; // default min width
-
-                      return (
-                        <TableCell
-                          key={cell.id}
-                          className={cn(
-                            "p-4 text-sm",
-                            customSize ? "break-words" : "", // only break when customSize
-                            tableCellClassName,
-                          )}
-                          style={{ minWidth: columnSize }}
-                        >
-                          <div className="max-w-[200px]">
-                            {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext(),
-                            )}
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell
+                        key={cell.id}
+                        style={
+                          customSize
+                            ? { width: cell.column.getSize(), maxWidth: cell.column.getSize() }
+                            : undefined
+                        }
+                        className={cn(
+                          "p-4 text-sm",
+                          customSize
+                            ? "break-words whitespace-normal"
+                            : "min-w-[120px]",
+                          tableCellClassName
+                        )}
+                      >
+                        {customSize ? (
+                          <div className="break-words whitespace-normal">
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
                           </div>
-                        </TableCell>
-                      );
-                    })}
+                        ) : (
+                          <div className="max-w-[200px] break-words whitespace-break-spaces">
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          </div>
+                        )}
+                      </TableCell>
+                    ))}
                   </TableRow>
                 ))
               ) : (
@@ -132,6 +136,7 @@ export function DataTable<TData, TValue = unknown>({
           </Table>
         </div>
       </div>
+
       {withPagination && <GeneralPagination />}
     </div>
   );
