@@ -1,5 +1,4 @@
-import OrgChartPage from "@/components/pages/organization-structure";
-import OrganizationChart from "@/components/pages/organization-structure/org-chart";
+import OrganizationChart from "@/components/pages/organization-structure";
 
 export default function DepartmentManagementPage() {
   return (
