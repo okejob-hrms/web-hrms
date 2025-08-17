@@ -1,10 +1,8 @@
-/* eslint-disable @typescript-eslint/no-this-alias */
-
 "use client";
 
 import Image from "next/image";
 import { AssignEmployeeFormValues, EmployeeNode } from "./types";
-import React, { useLayoutEffect, useRef, useState } from "react";
+import React, { useLayoutEffect, useRef, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { OrgChart } from "d3-org-chart";
 import { NodeCard } from "./sections/node-card";
@@ -22,11 +20,18 @@ function flattenTree(nodes: EmployeeNode[], parentId?: string): EmployeeNode[] {
 export default function OrganizationChart() {
   const chartContainerId = "orgchart-container";
   const chartRef = useRef<OrgChart<EmployeeNode> | null>(null);
-
-  // This ref will hold the latest data and functions for our D3 callbacks
   const dataRef = useRef<{
     openAssignModal: (parentId?: string) => void;
   } | null>(null);
+
+  // Safari detection logic now lives in the parent component
+  const [isSafari, setIsSafari] = useState(false);
+  useEffect(() => {
+    const isSafariBrowser =
+      /^((?!chrome|android).)*safari/i.test(navigator.userAgent) &&
+      !/CriOS/i.test(navigator.userAgent);
+    setIsSafari(isSafariBrowser);
+  }, []);
 
   const [nestedData, setNestedData] = useState<EmployeeNode[]>([]);
   const [assignEmployeeOpen, setAssignEmployeeOpen] = useState(false);
@@ -37,7 +42,6 @@ export default function OrganizationChart() {
     setAssignEmployeeOpen(true);
   };
 
-  // On every render, update the ref with the latest callback
   dataRef.current = { openAssignModal };
 
   function addEmployeeToParent(
@@ -70,14 +74,11 @@ export default function OrganizationChart() {
       image: "/icons/user02.svg",
       children: [],
     };
-
-    setNestedData((prev) => {
-      if (currentParentId) {
-        return addEmployeeToParent(prev, currentParentId, [newEmployee]);
-      }
-      return [...prev, newEmployee];
-    });
-
+    setNestedData((prev) =>
+      currentParentId
+        ? addEmployeeToParent(prev, currentParentId, [newEmployee])
+        : [...prev, newEmployee]
+    );
     setAssignEmployeeOpen(false);
     setCurrentParentId(null);
   };
@@ -85,9 +86,7 @@ export default function OrganizationChart() {
   useLayoutEffect(() => {
     if (nestedData.length === 0) {
       const container = document.getElementById(chartContainerId);
-      if (container) {
-        container.innerHTML = "";
-      }
+      if (container) container.innerHTML = "";
       chartRef.current = null;
       return;
     }
@@ -95,29 +94,25 @@ export default function OrganizationChart() {
     if (!chartRef.current) {
       const chart = new OrgChart<EmployeeNode>()
         .container(`#${chartContainerId}`)
+        // Set fixed node dimensions for layout calculation
         .nodeWidth(() => 220)
-        .nodeHeight(() => 100)
+        .nodeHeight(() => (isSafari ? 140 : 140)) // Increased to account for plus button
         .nodeContent(({ data }) => `<div id="node-${data.id}"></div>`)
         .linkUpdate(function (this: SVGPathElement) {
-          const el = this;
-          el.setAttribute("stroke", "#0F3C56");
-          el.setAttribute("stroke-width", "1");
-          if (el.parentNode) el.parentNode.appendChild(el);
+          this.setAttribute("stroke", "#0F3C56");
+          this.setAttribute("stroke-width", "1");
         })
-        // Use nodeUpdate to mount the React component
         .nodeUpdate(function (this: SVGGElement, node) {
           const el = this.querySelector(
             `#node-${node.data.id}`
           ) as HTMLElement | null;
           if (el && dataRef.current) {
-            // Get the latest callback from the ref to avoid stale closures
             const { openAssignModal } = dataRef.current;
             createRoot(el).render(
               <NodeCard
                 data={node.data}
-                width={220}
-                height={100}
                 onAddChild={openAssignModal}
+                isSafari={isSafari} // Pass the isSafari state as a prop
               />
             );
           }
@@ -126,11 +121,11 @@ export default function OrganizationChart() {
     }
 
     chartRef.current.data(flattenTree(nestedData)).render();
-  }, [nestedData]);
+  }, [nestedData, isSafari]);
 
   return (
     <div className="font-sans min-h-screen">
-      {/* ...header code... */}
+      {/* Your header code here */}
       <div className="flex justify-between w-full items-center mb-3">
         <div className="flex flex-col sm:flex-row justify-between w-full items-start sm:items-center gap-4 sm:gap-0">
           <div className="flex gap-2 items-center flex-wrap">
@@ -163,7 +158,7 @@ export default function OrganizationChart() {
                 width={18}
                 height={18}
                 alt="edit icon"
-              />
+              />{" "}
               Edit Structure
             </Button>
           </div>
@@ -186,8 +181,7 @@ export default function OrganizationChart() {
           <p className="font-medium text-gray-700">No Employees Assigned</p>
           <p className="text-gray-500 text-sm text-center">
             <span className="text-primary cursor-pointer underline">Click</span>{" "}
-            to start building your company’s organization structure by assigning
-            employees.
+            to start building your company’s organization structure.
           </p>
         </div>
       ) : (
