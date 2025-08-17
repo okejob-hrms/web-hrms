@@ -1,23 +1,22 @@
 import { useState } from "react";
-import { DepartmentFormValues } from "../types";
-import { IDepartment } from "@/lib/types";
+import { TeamsFormValues } from "../types";
+import { ITeam } from "@/lib/types";
 
-export function useDepartmentManagement() {
-  const dummyDepartments: IDepartment[] = [];
+export function useTeamManagement() {
+  const dummyTeams: ITeam[] = [];
 
-  const [departmentName, setDepartmentName] = useState("");
+  const [teamName, setTeamName] = useState("");
   const [description, setDescription] = useState("");
   const [open, setOpen] = useState(false);
-  const [departments, setDepartments] =
-    useState<IDepartment[]>(dummyDepartments);
+  const [teams, setTeams] = useState<ITeam[]>(dummyTeams);
   const [editIndex, setEditIndex] = useState<number | null>(null);
   const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-  const handleSave = (data: DepartmentFormValues) => {
+  const handleSave = (data: TeamsFormValues) => {
     if (editIndex !== null) {
-      setDepartments((departments) =>
-        departments.map((dept, idx) =>
+      setTeams((teams) =>
+        teams.map((dept, idx) =>
           idx === editIndex
             ? {
                 name: data.name,
@@ -30,32 +29,32 @@ export function useDepartmentManagement() {
         )
       );
     } else {
-      setDepartments([
-        ...departments,
+      setTeams([
+        ...teams,
         {
           name: data.name,
           description: data.description,
-          id: departments.length,
+          id: teams.length,
           created_at: "2025-08-06T13:18:26.000000Z",
           updated_at: "2025-08-06T13:18:26.000000Z",
         },
       ]);
     }
-    setDepartmentName("");
+    setTeamName("");
     setDescription("");
     setEditIndex(null);
     setOpen(false);
   };
 
   const handleEdit = (idx: number) => {
-    setDepartmentName(departments[idx].name);
-    setDescription(departments[idx].description ?? "");
+    setTeamName(teams[idx].name);
+    setDescription(teams[idx].description ?? "");
     setEditIndex(idx);
     setOpen(true);
   };
 
   const handleClose = () => {
-    setDepartmentName("");
+    setTeamName("");
     setDescription("");
     setEditIndex(null);
     setOpen(false);
@@ -63,23 +62,21 @@ export function useDepartmentManagement() {
 
   const handleDelete = () => {
     if (deleteIndex !== null) {
-      setDepartments((departments) =>
-        departments.filter((_, idx) => idx !== deleteIndex)
-      );
+      setTeams((teams) => teams.filter((_, idx) => idx !== deleteIndex));
       setDeleteIndex(null);
       setDeleteDialogOpen(false);
     }
   };
 
   return {
-    departmentName,
-    setDepartmentName,
+    teamName,
+    setTeamName,
     description,
     setDescription,
     open,
     setOpen,
-    departments,
-    setDepartments,
+    teams,
+    setTeams,
     editIndex,
     setEditIndex,
     deleteIndex,

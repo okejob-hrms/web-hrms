@@ -1,9 +1,9 @@
-import OrganizationChart from "@/components/pages/organization-structure";
+import TeamManagementList from "@/components/pages/teams";
 
 export default function DepartmentManagementPage() {
   return (
     <div className="font-sans min-h-screen">
-      <OrganizationChart />
+      <TeamManagementList />
     </div>
   );
 }

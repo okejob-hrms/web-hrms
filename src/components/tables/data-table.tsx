@@ -25,6 +25,7 @@ interface DataTableProps<TData, TValue = unknown> {
   tableHeadClassName?: string;
   tableCellClassName?: string;
   withPagination?: boolean;
+  customSize?: boolean;
 }
 
 export function DataTable<TData, TValue = unknown>({
@@ -34,6 +35,7 @@ export function DataTable<TData, TValue = unknown>({
   tableHeadClassName,
   tableCellClassName,
   withPagination,
+  customSize = false,
 }: DataTableProps<TData, TValue>) {
   const table = useReactTable({
     data,
@@ -46,30 +48,41 @@ export function DataTable<TData, TValue = unknown>({
   return (
     <div className="w-full">
       <div className="rounded-md border border-grayscale-20 overflow-hidden">
-        {/* Horizontal scroll container */}
         <div className="overflow-x-auto">
-          <Table className={cn("w-full min-w-[800px]", tableClassName)}>
+          <Table
+            className={cn(
+              "w-full",
+              customSize ? "table-fixed min-w-[800px]" : "min-w-[800px]",
+              tableClassName
+            )}
+          >
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => (
                     <TableHead
                       key={header.id}
+                      style={
+                        customSize
+                          ? { width: header.getSize(), maxWidth: header.getSize() }
+                          : undefined
+                      }
                       className={cn(
                         "bg-gray-50 p-4 sticky top-0 z-10 text-left font-medium",
-                        "min-w-[120px]", // Minimum width for each column
-                        tableHeadClassName,
+                        customSize ? "break-words whitespace-normal" : "min-w-[120px]",
+                        tableHeadClassName
                       )}
                     >
                       {flexRender(
                         header.column.columnDef.header,
-                        header.getContext(),
+                        header.getContext()
                       )}
                     </TableHead>
                   ))}
                 </TableRow>
               ))}
             </TableHeader>
+
             <TableBody>
               {table.getRowModel().rows.length > 0 ? (
                 table.getRowModel().rows.map((row) => (
@@ -77,19 +90,28 @@ export function DataTable<TData, TValue = unknown>({
                     {row.getVisibleCells().map((cell) => (
                       <TableCell
                         key={cell.id}
+                        style={
+                          customSize
+                            ? { width: cell.column.getSize(), maxWidth: cell.column.getSize() }
+                            : undefined
+                        }
                         className={cn(
                           "p-4 text-sm",
-                          "min-w-[120px]", // Minimum width for each cell
-                          "break-words", // Allow text to break if needed
-                          tableCellClassName,
+                          customSize
+                            ? "break-words whitespace-normal"
+                            : "min-w-[120px]",
+                          tableCellClassName
                         )}
                       >
-                        <div className="max-w-[200px]">
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext(),
-                          )}
-                        </div>
+                        {customSize ? (
+                          <div className="break-words whitespace-normal">
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          </div>
+                        ) : (
+                          <div className="max-w-[200px] break-words whitespace-break-spaces">
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          </div>
+                        )}
                       </TableCell>
                     ))}
                   </TableRow>
@@ -114,7 +136,10 @@ export function DataTable<TData, TValue = unknown>({
           </Table>
         </div>
       </div>
+
       {withPagination && <GeneralPagination />}
     </div>
   );
 }
+
+export default DataTable;

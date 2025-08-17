@@ -29,11 +29,13 @@ export const menus: Record<string, MenuItem[]> = {
     { name: "Offboarding", value: "employee/off-boarding" },
   ],
 
-  finance: [
-    { name: "Dashboard", value: "finance/dashboard" },
-    { name: "Transactions", value: "finance/transactions" },
-    { name: "Reports", value: "finance/reports" },
+  settings: [
+    { name: "Access Control", value: "settings/access-control" },
+    { name: "Company Profile", value: "settings/company-profile" },
+    { name: "Time & Attendence", value: "settings/time-attendence" },
+    { name: "Leave Management", value: "settings/leave" },
+    { name: "Payroll Management", value: "settings/payroll" },
+    { name: "Performance Management", value: "settings/performance" },
+    { name: "Mobile & ESS", value: "settings/mobile-ess" },
   ],
-
-  // Module lain tinggal tambah di sini...
 };

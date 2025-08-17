@@ -10,4 +10,8 @@ export interface EmployeeNode {
   children?: EmployeeNode[];
 }
 
+export interface Props<TDatum extends EmployeeNode> {
+  data: TDatum[];
+}
+
 export type EmployeeTreeNodeDatum = TreeNodeDatum & EmployeeNode;
