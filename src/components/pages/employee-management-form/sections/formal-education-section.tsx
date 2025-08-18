@@ -1,16 +1,38 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { DataTable } from "@/components/tables/data-table";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import { ColumnDef } from "@tanstack/react-table";
 import { Plus } from "lucide-react";
 import * as React from "react";
-import { IFormalEducation } from "@/lib/types";
-import { Separator } from "@/components/ui/separator";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Form, FormLabel } from "@/components/ui/form";
+import { InputForm } from "@/components/ui/input";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { DatePicker } from "@/components/ui/date-picker";
+import { toast } from "sonner";
+import { postCreateEducation } from "@/services/employees/educations";
+import {
+  educationFormScheme,
+  IEducationForm,
+  IEducationResponse,
+} from "@/services/employees/educations/types";
+import { getProfile } from "@/services/profile";
 
-export const columns: ColumnDef<IFormalEducation>[] = [
+export const columns: ColumnDef<IEducationResponse>[] = [
   {
-    accessorKey: "school",
+    accessorKey: "institution",
     header: "School",
   },
   {
@@ -22,11 +44,11 @@ export const columns: ColumnDef<IFormalEducation>[] = [
     header: "City",
   },
   {
-    accessorKey: "startDate",
+    accessorKey: "start_date",
     header: "Education Start Date",
   },
   {
-    accessorKey: "graduationDate",
+    accessorKey: "graduation_date",
     header: "Graduation Date",
   },
   {
@@ -35,7 +57,7 @@ export const columns: ColumnDef<IFormalEducation>[] = [
   },
 ];
 
-const data: IFormalEducation[] = [
+const data: IEducationResponse[] = [
   // {
   //   name: "Rina Dewi",
   //   relationship: "Spouse",
@@ -64,6 +86,126 @@ interface Props {
   withAddButton?: boolean;
 }
 
+export const AddFormalEducationFormModal: React.FC = () => {
+  const [open, setOpen] = React.useState(false);
+  const queryClient = useQueryClient();
+  const { data: profile } = useQuery({
+    queryKey: ["formal-education"],
+    queryFn: getProfile,
+  });
+
+  const form = useForm<IEducationForm>({
+    resolver: zodResolver(educationFormScheme),
+    defaultValues: {
+      category: "formal",
+      institution: "",
+      major: "",
+      location: "",
+      start_date: "",
+      graduation_date: "",
+      gpa: 0,
+      notes: "",
+    },
+  });
+
+  const addFormalEducation = useMutation({
+    mutationFn: (params: {
+      employee_profile_id: number;
+      payload: IEducationForm;
+    }) => postCreateEducation(params),
+    onSuccess: () => {
+      toast.success("Formal Education added successfully!");
+
+      queryClient.invalidateQueries({ queryKey: ["formal education"] });
+      setOpen(false);
+      form.reset();
+    },
+    onError: (error: any) => {
+      toast.error(
+        `Failed to add formal education information: ${error.message || "Unknown error"}`,
+      );
+    },
+  });
+
+  const onSubmit = (values: IEducationForm) => {
+    if (profile?.data.user.id) {
+      const params = {
+        employee_profile_id: profile?.data.user.id,
+        payload: values,
+      };
+
+      addFormalEducation.mutate(params);
+    }
+  };
+
+  const handleCancel = () => {
+    setOpen(false);
+    form.reset();
+    addFormalEducation.reset();
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button>
+          <Plus /> Add Formal Education
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="bg-white min-w-7xl">
+        <DialogHeader>
+          <DialogTitle>Add Formal Education</DialogTitle>
+        </DialogHeader>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <InputForm name="institution" label="School" required />
+              <InputForm name="location" label="City" required />
+              <InputForm name="major" label="Major" required />
+              <div className="grid grid-cols-2 gap-4 w-full">
+                <DatePicker name="start_date" label="Education Start Date" />
+                <DatePicker name="graduation_date" label="Graduation Date" />
+              </div>
+              <div className="grid gap-2 w-full">
+                <FormLabel className="text-sm font-normal">
+                  GPA
+                  <span className="text-error">*</span>
+                </FormLabel>
+                <div className="flex items-center gap-2 w-full">
+                  <InputForm name="gpa" required />
+                  <span className="text-text-disabled">/</span>
+                  <InputForm name="gpa2" required />
+                </div>
+              </div>
+            </div>
+
+            {addFormalEducation.isError && (
+              <div className="text-error text-sm mt-2">
+                Error:{" "}
+                {addFormalEducation.error?.message ||
+                  "Failed to save formal education information"}
+              </div>
+            )}
+
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCancel}
+                disabled={addFormalEducation.isPending}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={addFormalEducation.isPending}>
+                {addFormalEducation.isPending ? "Saving..." : "Save"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 const SectionHeader = ({ withAddButton }: Pick<Props, "withAddButton">) => (
   <div
     className={withAddButton ? "flex justify-between items-center mb-4" : ""}
@@ -73,11 +215,7 @@ const SectionHeader = ({ withAddButton }: Pick<Props, "withAddButton">) => (
     >
       Formal Education
     </h2>
-    {withAddButton && (
-      <Button>
-        <Plus /> Add Formal Education
-      </Button>
-    )}
+    {withAddButton && <AddFormalEducationFormModal />}
   </div>
 );
 
