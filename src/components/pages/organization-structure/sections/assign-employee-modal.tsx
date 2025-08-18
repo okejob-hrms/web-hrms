@@ -90,8 +90,6 @@ export default function AssignEmployeeModal({
     },
   ];
 
-  console.log("form.formState", form.formState);
-
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent className="w-full max-w-md sm:max-w-xl bg-white flex flex-col">

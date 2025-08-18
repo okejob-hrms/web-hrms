@@ -10,6 +10,7 @@ interface NodeCardProps {
   onAddChild: (parentId: string) => void;
   isSafari: boolean;
   onEdit: () => void;
+  isEditMode?: boolean;
 }
 
 export const NodeCard = ({
@@ -19,6 +20,7 @@ export const NodeCard = ({
   onAddChild,
   isSafari,
   onEdit,
+  isEditMode = false,
 }: NodeCardProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -67,43 +69,44 @@ export const NodeCard = ({
             </div>
 
             {/* CONDITIONAL ACTION BUTTONS */}
-            {isSafari ? (
-              // SAFARI: Simple, flat icon buttons
-              <div className="flex flex-row gap-2">
-                <button onClick={onEdit}>
-                  <Edit className="w-4 h-4" />
-                </button>
-                <button onClick={() => {}}>
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            ) : (
-              // OTHER BROWSERS: Ellipsis popup menu
-              <div className="relative">
-                <button
-                  onClick={handleMenuToggle}
-                  className="p-1 hover:bg-gray-100 rounded-full"
-                >
-                  <Ellipsis className="w-4 h-4" />
-                </button>
-                {isMenuOpen && (
-                  <div
-                    ref={menuRef}
-                    className="absolute top-full right-0 mt-1 w-40 bg-white border border-gray-200 rounded-md shadow-lg z-10"
+            {isEditMode &&
+              (isSafari ? (
+                // SAFARI: Simple, flat icon buttons
+                <div className="flex flex-row gap-2">
+                  <button onClick={onEdit}>
+                    <Edit className="w-4 h-4" />
+                  </button>
+                  <button onClick={() => {}}>
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                // OTHER BROWSERS: Ellipsis popup menu
+                <div className="relative">
+                  <button
+                    onClick={handleMenuToggle}
+                    className="p-1 hover:bg-gray-100 rounded-full"
                   >
-                    <button
-                      className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center gap-2"
-                      onClick={onEdit}
+                    <Ellipsis className="w-4 h-4" />
+                  </button>
+                  {isMenuOpen && (
+                    <div
+                      ref={menuRef}
+                      className="absolute top-full right-0 mt-1 w-40 bg-white border border-gray-200 rounded-md shadow-lg z-10"
                     >
-                      <Edit className="w-4 h-4" /> Edit Structure
-                    </button>
-                    <button className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center gap-2">
-                      <Trash2 className="w-4 h-4" /> Delete
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
+                      <button
+                        className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center gap-2"
+                        onClick={onEdit}
+                      >
+                        <Edit className="w-4 h-4" /> Edit Structure
+                      </button>
+                      <button className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center gap-2">
+                        <Trash2 className="w-4 h-4" /> Delete
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))}
           </div>
 
           {/* Bottom row: icons */}
@@ -133,12 +136,14 @@ export const NodeCard = ({
           </div>
         </div>
       </div>
-      <button
-        onClick={() => onAddChild(data.id)}
-        className="flex items-center justify-center w-5 h-5 rounded-full bg-primary text-white shadow hover:bg-primary/80"
-      >
-        <Plus className="w-3 h-3" />
-      </button>
+      {isEditMode && (
+        <button
+          onClick={() => onAddChild(data.id)}
+          className="flex items-center justify-center w-5 h-5 rounded-full bg-primary text-white shadow hover:bg-primary/80"
+        >
+          <Plus className="w-3 h-3" />
+        </button>
+      )}
     </div>
   );
 };

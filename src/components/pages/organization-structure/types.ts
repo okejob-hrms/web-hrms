@@ -30,12 +30,12 @@ export const assignEmployeeFormScheme = z.object({
 
 export interface EmployeeNode {
   id: string;
+  parentId: string;
   name: string;
   title: string;
   email?: string;
   phone?: string;
   image?: string;
-  children?: EmployeeNode[];
 }
 
 export interface Props<TDatum extends EmployeeNode> {
