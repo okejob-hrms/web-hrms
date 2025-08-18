@@ -101,7 +101,7 @@ export default function DepartmentManagementList() {
           </div>
         );
       },
-    },    
+    },
   ];
 
   const isMobile = useIsMobile();

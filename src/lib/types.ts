@@ -4,6 +4,25 @@ import { DayPickerProps } from "react-day-picker";
 
 //============== Models ============== //
 
+export interface PaginatedResponse<T> {
+  current_page: number;
+  current_page_url: string;
+  data: T[];
+  first_page_url: string;
+  from: number;
+  next_page_url: string | null;
+  path: string;
+  per_page: number;
+  prev_page_url: string | null;
+  to: number;
+}
+
+export interface ApiResponse<T> {
+  status: string;
+  message: string;
+  data: T;
+}
+
 export interface IFamily {
   name: string;
   relationship: string;

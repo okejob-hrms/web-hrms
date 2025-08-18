@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { EmployeeNode } from "../types";
-import { Edit, Plus, Trash2, MoreVertical, Ellipsis } from "lucide-react";
+import { Edit, Plus, Trash2, Ellipsis } from "lucide-react";
 
 interface NodeCardProps {
   data: EmployeeNode;

@@ -1,18 +1,18 @@
 import { api } from "@/lib/api";
-import { IPositionForm } from "./types";
+import { IPositionForm, JobPositionResponse } from "./types";
+import { PaginatedResponse } from "@/lib/types";
 
 export const postJobPosition = async (payload: IPositionForm) => {
-  const response = await api.post(
-    "/api/v1/job-positions",
-    JSON.stringify(payload),
-  );
+  const response = await api.post("job-positions", { json: { payload } });
   return response;
 };
 
-export const getJobPosition = async () => {
-  const response = await api.get(
-    "/api/v1/job-positions",
+export const getJobPosition = async (): Promise<
+  PaginatedResponse<JobPositionResponse>
+> => {
+  const response = await api.get<PaginatedResponse<JobPositionResponse>>(
+    "job-positions",
     // JSON.stringify(payload),
   );
-  return response;
+  return response.json();
 };

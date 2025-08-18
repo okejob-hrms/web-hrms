@@ -3,8 +3,8 @@ import { RolesApiResponse } from "./types";
 
 export const getRoles = async (): Promise<RolesApiResponse> => {
   const response = await api.get<RolesApiResponse>(
-    "/api/v1/roles",
+    "roles",
     // JSON.stringify(payload),
   );
-  return response.data;
+  return response.json();
 };

@@ -6,15 +6,13 @@ import { SelectForm } from "@/components/ui/select-form";
 import { DatePicker } from "@/components/ui/date-picker";
 
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { InputForm } from "@/components/ui/input";
 import { TextAreaForm } from "@/components/ui/textarea";
@@ -30,10 +28,14 @@ import {
   IPositionForm,
   positionFormScheme,
 } from "@/services/job-position/types";
-import { postJobPosition } from "@/services/job-position";
-import { useQuery } from "@tanstack/react-query";
+import { getJobPosition, postJobPosition } from "@/services/job-position";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { getJobLevels } from "@/services/job-levels";
+import { toast } from "sonner";
 
 export const AddNewJobLevelModal: React.FC = () => {
+  const [open, setOpen] = React.useState(false);
+
   const form = useForm<IPositionForm>({
     resolver: zodResolver(positionFormScheme),
     defaultValues: {
@@ -44,38 +46,51 @@ export const AddNewJobLevelModal: React.FC = () => {
   const onSubmit = (values: IPositionForm) => {
     console.log(values);
     postJobPosition(values)
-      .then((res) => console.log("### RESPONSE JOB LEVEL ###", res.data))
+      .then((res) => {
+        console.log("### RESPONSE JOB LEVEL ###", res);
+        setOpen(false);
+        form.reset();
+      })
       .catch((err) => console.log("### ERROR FETCH JOB LEVEL ###", err));
   };
+
+  const handleCancel = () => {
+    setOpen(false);
+    form.reset();
+  };
+
   return (
-    <AlertDialog>
-      <AlertDialogTrigger asChild>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
         <Button
           className="text-primary px-2 justify-start font-semibold text-base bg-primary-focused rounded-none w-full m-0 hover:text-white"
           variant="ghost"
         >
           + Add New Job Level
         </Button>
-      </AlertDialogTrigger>
-      <AlertDialogContent className="bg-white">
-        <AlertDialogHeader>
-          <AlertDialogTitle>Create New Job Level</AlertDialogTitle>
-          <Form {...form}>
+      </DialogTrigger>
+      <DialogContent className="bg-white">
+        <DialogHeader>
+          <DialogTitle>Create New Job Level</DialogTitle>
+        </DialogHeader>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <InputForm name="name" label="Job Level" required />
-          </Form>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={form.handleSubmit(onSubmit)}>
-            Save
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={handleCancel}>
+                Cancel
+              </Button>
+              <Button type="submit">Save</Button>
+            </DialogFooter>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
   );
 };
 
 export const AddNewPositionModal: React.FC = () => {
+  const [open, setOpen] = React.useState(false);
   const form = useForm<IPositionForm>({
     resolver: zodResolver(positionFormScheme),
     defaultValues: {
@@ -86,38 +101,60 @@ export const AddNewPositionModal: React.FC = () => {
   const onSubmit = (values: IPositionForm) => {
     console.log(values);
     postJobPosition(values)
-      .then((res) => console.log("### RESPONSE DEPARTMENT ###", res.data))
-      .catch((err) => console.log("### ERROR FETCH DEPARTMENT ###", err));
+      .then((res) => {
+        console.log("### RESPONSE POSITION ###", res);
+        setOpen(false);
+        form.reset();
+      })
+      .catch((err) => console.log("### ERROR FETCH POSITION ###", err));
   };
+
+  const handleCancel = () => {
+    setOpen(false);
+    form.reset();
+  };
+
   return (
-    <AlertDialog>
-      <AlertDialogTrigger asChild>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
         <Button
           className="text-primary px-2 justify-start font-semibold text-base bg-primary-focused rounded-none w-full m-0 hover:text-white"
           variant="ghost"
         >
           + Add New Position
         </Button>
-      </AlertDialogTrigger>
-      <AlertDialogContent className="bg-white">
-        <AlertDialogHeader>
-          <AlertDialogTitle>Create New Position</AlertDialogTitle>
-          <Form {...form}>
+      </DialogTrigger>
+      <DialogContent className="bg-white">
+        <DialogHeader>
+          <DialogTitle>Create New Position</DialogTitle>
+        </DialogHeader>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <InputForm name="name" label="Position Name" required />
-          </Form>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={form.handleSubmit(onSubmit)}>
-            Save
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={handleCancel}>
+                Cancel
+              </Button>
+              <Button type="submit">Save</Button>
+            </DialogFooter>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
   );
 };
 
 export const AddNewDepartmentModal: React.FC = () => {
+  const [open, setOpen] = React.useState(false);
+  const { mutate } = useMutation({
+    mutationFn: (values: IDepartmentForm) => postDepartment(values),
+    onSuccess: () => {
+      toast.success("Success add new department!");
+    },
+    onError: (err) => {
+      toast.error("Error add new department: " + err.message);
+    },
+  });
   const form = useForm<IDepartmentForm>({
     resolver: zodResolver(departmentFormScheme),
     defaultValues: {
@@ -127,42 +164,48 @@ export const AddNewDepartmentModal: React.FC = () => {
   });
 
   const onSubmit = (values: IDepartmentForm) => {
-    console.log(values);
-    postDepartment(values)
-      .then((res) => console.log("### RESPONSE DEPARTMENT ###", res.data))
-      .catch((err) => console.log("### ERROR FETCH DEPARTMENT ###", err));
+    mutate(values);
+  };
+
+  const handleCancel = () => {
+    setOpen(false);
+    form.reset();
   };
 
   return (
-    <AlertDialog>
-      <AlertDialogTrigger asChild>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
         <Button
           className="text-primary px-2 justify-start font-semibold text-base bg-primary-focused rounded-none w-full m-0 hover:text-white"
           variant="ghost"
         >
           + Add New Department
         </Button>
-      </AlertDialogTrigger>
-      <AlertDialogContent className="bg-white">
-        <AlertDialogHeader>
-          <AlertDialogTitle>Create New Department</AlertDialogTitle>
-          <Form {...form}>
+      </DialogTrigger>
+      <DialogContent className="bg-white">
+        <DialogHeader>
+          <DialogTitle>Create New Department</DialogTitle>
+        </DialogHeader>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <InputForm name="name" label="Department Name" required />
             <TextAreaForm name="description" label="Description" isOptional />
-          </Form>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={form.handleSubmit(onSubmit)}>
-            Save
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={handleCancel}>
+                Cancel
+              </Button>
+              <Button type="submit">Save</Button>
+            </DialogFooter>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
   );
 };
 
 export const AddNewTeamModal: React.FC = () => {
+  const [open, setOpen] = React.useState(false);
+
   const form = useForm<IDepartmentForm>({
     resolver: zodResolver(departmentFormScheme),
     defaultValues: {
@@ -174,36 +217,47 @@ export const AddNewTeamModal: React.FC = () => {
   const onSubmit = (values: IDepartmentForm) => {
     console.log(values);
     postDepartment(values)
-      .then((res) => console.log("### RESPONSE DEPARTMENT ###", res.data))
-      .catch((err) => console.log("### ERROR FETCH DEPARTMENT ###", err));
+      .then((res) => {
+        console.log("### RESPONSE TEAM ###", res);
+        setOpen(false);
+        form.reset();
+      })
+      .catch((err) => console.log("### ERROR FETCH TEAM ###", err));
+  };
+
+  const handleCancel = () => {
+    setOpen(false);
+    form.reset();
   };
 
   return (
-    <AlertDialog>
-      <AlertDialogTrigger asChild>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
         <Button
           className="text-primary px-2 justify-start font-semibold text-base bg-primary-focused rounded-none w-full m-0 hover:text-white"
           variant="ghost"
         >
           + Add New Team
         </Button>
-      </AlertDialogTrigger>
-      <AlertDialogContent className="bg-white">
-        <AlertDialogHeader>
-          <AlertDialogTitle>Create New Team</AlertDialogTitle>
-          <Form {...form}>
-            <InputForm name="name" label="Department Name" required />
+      </DialogTrigger>
+      <DialogContent className="bg-white">
+        <DialogHeader>
+          <DialogTitle>Create New Team</DialogTitle>
+        </DialogHeader>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <InputForm name="name" label="Team Name" required />
             <TextAreaForm name="description" label="Description" isOptional />
-          </Form>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={form.handleSubmit(onSubmit)}>
-            Save
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={handleCancel}>
+                Cancel
+              </Button>
+              <Button type="submit">Save</Button>
+            </DialogFooter>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
   );
 };
 
@@ -213,7 +267,63 @@ export const EmployeeinformationSection = React.memo(
       queryKey: ["departments"],
       queryFn: getDepartment,
     });
-    console.log(departments);
+    const { data: jobLevels } = useQuery({
+      queryKey: ["job-levels"],
+      queryFn: getJobLevels,
+    });
+    const { data: positions } = useQuery({
+      queryKey: ["job-position"],
+      queryFn: getJobPosition,
+    });
+    const { data: teams } = useQuery({
+      queryKey: ["teams"],
+      queryFn: getDepartment,
+    });
+
+    const departmentOptions = React.useMemo(() => {
+      console.log("departments", departments);
+      if (departments?.data) {
+        return departments.data.data?.map((item) => ({
+          label: item.name,
+          value: item.name,
+        }));
+      }
+      return [];
+    }, [departments?.data]);
+
+    const positionOptions = React.useMemo(() => {
+      console.log("positions", positions);
+      if (positions?.data) {
+        return positions.data?.map((item) => ({
+          label: item.name,
+          value: item.name,
+        }));
+      }
+      return [];
+    }, [positions?.data]);
+
+    const jobLevelOptions = React.useMemo(() => {
+      console.log("job-levels", jobLevels);
+      if (jobLevels?.data) {
+        return jobLevels.data?.map((item) => ({
+          label: item.name,
+          value: item.name,
+        }));
+      }
+      return [];
+    }, [jobLevels?.data]);
+
+    const teamOptions = React.useMemo(() => {
+      console.log("teams", teams);
+      if (teams?.data) {
+        return teams.data.data?.map((item) => ({
+          label: item.name,
+          value: item.name,
+        }));
+      }
+      return [];
+    }, [teams?.data]);
+
     return (
       <React.Fragment>
         <h2 className="font-semibold text-lg leading-5 mb-3">
@@ -223,17 +333,7 @@ export const EmployeeinformationSection = React.memo(
           <SelectForm
             name="position"
             label="Position"
-            options={[
-              { label: "CTO", value: "cto" },
-              { label: "COO", value: "coo" },
-              {
-                label: "Head of Product Designer",
-                value: "head_product_designer",
-              },
-              { label: "Product Designer", value: "product_designer" },
-              { label: "Head of Engineer", value: "head_engineer" },
-              { label: "Engineer", value: "engineer" },
-            ]}
+            options={positionOptions}
             required
             className="w-full"
             modalChildren={<AddNewPositionModal />}
@@ -241,22 +341,14 @@ export const EmployeeinformationSection = React.memo(
           <SelectForm
             name="department"
             label="Department"
-            options={[
-              { label: "Engineering", value: "engineering" },
-              { label: "Human Resource", value: "hrd" },
-            ]}
+            options={departmentOptions}
             required
             modalChildren={<AddNewDepartmentModal />}
           />
           <SelectForm
             name="jobLevel"
             label="Job Level"
-            options={[
-              { label: "Junior", value: "junior" },
-              { label: "Middle", value: "middle" },
-              { label: "Senior", value: "senior" },
-              { label: "Supervisor", value: "supervisor" },
-            ]}
+            options={jobLevelOptions}
             required
             modalChildren={<AddNewJobLevelModal />}
           />
@@ -285,12 +377,7 @@ export const EmployeeinformationSection = React.memo(
           <SelectForm
             name="team"
             label="Team"
-            options={[
-              { label: "Junior", value: "junior" },
-              { label: "Middle", value: "middle" },
-              { label: "Senior", value: "senior" },
-              { label: "Supervisor", value: "supervisor" },
-            ]}
+            options={teamOptions}
             required
             modalChildren={<AddNewTeamModal />}
           />

@@ -37,7 +37,6 @@ export const PersonalInformationSection = React.memo(
       }
       return [];
     }, [roles?.data]);
-    console.log(roleOptions);
 
     return (
       <React.Fragment>
