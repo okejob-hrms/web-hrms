@@ -1,3 +1,4 @@
+import { Dayjs } from "dayjs";
 import z from "zod";
 
 export const familyFormScheme = z.object({
@@ -17,7 +18,7 @@ export interface IFamilyResponse {
   employee_profile_id: number;
   name: string;
   relationship: string;
-  date_of_birth: string;
+  date_of_birth: Dayjs;
   place_of_birth: string;
   email: string;
   phone: number;
