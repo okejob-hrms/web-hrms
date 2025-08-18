@@ -8,6 +8,7 @@ import { OrgChart } from "d3-org-chart";
 import { NodeCard } from "./sections/node-card";
 import { createRoot } from "react-dom/client";
 import AssignEmployeeModal from "./sections/assign-employee-modal";
+import EmployeeProfileModal from "./sections/employee-profile-modal";
 
 function flattenTree(nodes: EmployeeNode[], parentId?: string): EmployeeNode[] {
   return nodes.flatMap((node) => {
@@ -35,11 +36,28 @@ export default function OrganizationChart() {
 
   const [nestedData, setNestedData] = useState<EmployeeNode[]>([]);
   const [assignEmployeeOpen, setAssignEmployeeOpen] = useState(false);
+
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState<EmployeeNode | null>(
+    null
+  );
+
   const [currentParentId, setCurrentParentId] = useState<string | null>(null);
 
   const openAssignModal = (parentId?: string) => {
     setCurrentParentId(parentId ?? null);
     setAssignEmployeeOpen(true);
+  };
+
+  const handleOpenProfileModal = (employeeData: EmployeeNode) => {
+    setSelectedEmployee(employeeData);
+    setIsProfileModalOpen(true);
+  };
+
+  const handleEditSave = (data: AssignEmployeeFormValues) => {
+    // Add your logic here to update the employee data in your main `nestedData` state
+    console.log("Saving edited employee data:", data);
+    setIsProfileModalOpen(false); // Close modal on save
   };
 
   dataRef.current = { openAssignModal };
@@ -113,6 +131,7 @@ export default function OrganizationChart() {
                 data={node.data}
                 onAddChild={openAssignModal}
                 isSafari={isSafari} // Pass the isSafari state as a prop
+                onEdit={() => handleOpenProfileModal(node.data)}
               />
             );
           }
@@ -198,6 +217,16 @@ export default function OrganizationChart() {
         handleSave={handleSave}
         onOpenChange={setAssignEmployeeOpen}
       />
+
+      {selectedEmployee && (
+        <EmployeeProfileModal
+          open={isProfileModalOpen}
+          onOpenChange={setIsProfileModalOpen}
+          handleClose={() => setIsProfileModalOpen(false)}
+          employeeData={selectedEmployee}
+          handleSave={handleEditSave}
+        />
+      )}
     </div>
   );
 }
