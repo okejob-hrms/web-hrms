@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { DataTable } from "@/components/tables/data-table";
@@ -6,9 +7,29 @@ import { Separator } from "@/components/ui/separator";
 import { ColumnDef } from "@tanstack/react-table";
 import { Plus } from "lucide-react";
 import * as React from "react";
-import { IFamily } from "@/lib/types";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Form, FormLabel } from "@/components/ui/form";
+import { InputForm } from "@/components/ui/input";
+import { useForm } from "react-hook-form";
+import {
+  familyFormScheme,
+  IFamilyForm,
+  IFamilyResponse,
+} from "@/services/employees/families/types";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { getFamilies, postCreateFamily } from "@/services/employees/families";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { DatePicker } from "@/components/ui/date-picker";
+import { SelectForm } from "@/components/ui/select-form";
+import { toast } from "sonner";
 
-// Utility functions
 const formatDate = (dateString: string): string => {
   return new Date(dateString).toLocaleDateString("id-ID", {
     day: "2-digit",
@@ -17,8 +38,7 @@ const formatDate = (dateString: string): string => {
   });
 };
 
-// Column definitions
-export const columns: ColumnDef<IFamily>[] = [
+export const columns: ColumnDef<IFamilyResponse>[] = [
   {
     accessorKey: "name",
     header: "Name",
@@ -28,27 +48,25 @@ export const columns: ColumnDef<IFamily>[] = [
     header: "Family Relationship",
   },
   {
-    accessorKey: "placeOfBirth",
+    accessorKey: "place_of_birth",
     header: "Place of Birth",
   },
   {
-    accessorKey: "bornDate",
+    accessorKey: "date_of_birth",
     header: "Date of Birth",
-    cell: ({ row }) => <span>{formatDate(row.getValue("bornDate"))}</span>,
+    cell: ({ row }) => <span>{formatDate(row.getValue("date_of_birth"))}</span>,
   },
   {
-    accessorKey: "education",
+    accessorKey: "highest_education",
     header: "Highest Education Level",
   },
   {
     accessorKey: "email",
     header: "Email",
-    // cell: ({ row }) => createContactLink("email", row.getValue("email")),
   },
   {
-    accessorKey: "phoneNumber",
+    accessorKey: "phone",
     header: "Phone",
-    // cell: ({ row }) => createContactLink("phone", row.getValue("phoneNumber")),
   },
   {
     accessorKey: "occupation",
@@ -60,39 +78,179 @@ export const columns: ColumnDef<IFamily>[] = [
   },
 ];
 
-// Mock data
-const FAMILY_DATA: IFamily[] = [
-  {
-    name: "Rina Dewi",
-    relationship: "Spouse",
-    placeOfBirth: "Bandung",
-    bornDate: "1988-05-22",
-    education: "Bachelor",
-    email: "rina@example.com",
-    phoneNumber: "081234567890",
-    occupation: "Doctor",
-    company: "RS Harapan Bunda",
-  },
-  {
-    name: "Arka Pratama",
-    relationship: "Son",
-    placeOfBirth: "Jakarta",
-    bornDate: "2015-11-03",
-    education: "Elementary",
-    email: "arka@example.com",
-    phoneNumber: "081234567891",
-    occupation: "Student",
-    company: "-",
-  },
-];
-
-// Shared styles
 const TABLE_CELL_CLASSES =
   "md:w-1/9 md:text-clip md:text-balance whitespace-nowrap";
 
 interface Props {
   withAddButton?: boolean;
 }
+
+export const AddFamilyFormModal: React.FC = () => {
+  const [open, setOpen] = React.useState(false);
+  const queryClient = useQueryClient();
+
+  const form = useForm<IFamilyForm>({
+    resolver: zodResolver(familyFormScheme),
+    defaultValues: {
+      name: "",
+      place_of_birth: "",
+      date_of_birth: "",
+      relationship: "",
+      highest_education: 1,
+      email: "",
+      phone: "",
+      occupation: "",
+      company: "",
+    },
+  });
+
+  const createFamilyMutation = useMutation({
+    mutationFn: (params: {
+      employee_profile_id: number;
+      payload: IFamilyForm;
+    }) => postCreateFamily(params),
+    onSuccess: (response) => {
+      console.log("### RESPONSE CREATE FAMILY ###", response);
+      toast.success("Family information added successfully!");
+
+      queryClient.invalidateQueries({ queryKey: ["family"] });
+      setOpen(false);
+      form.reset();
+    },
+    onError: (error: any) => {
+      console.log("### ERROR CREATE FAMILY ###", error);
+      toast.error(
+        `Failed to add family information: ${error.message || "Unknown error"}`,
+      );
+    },
+  });
+
+  const onSubmit = (values: IFamilyForm) => {
+    console.log(values);
+    const params = {
+      employee_profile_id: 1,
+      payload: values,
+    };
+
+    createFamilyMutation.mutate(params);
+  };
+
+  const handleCancel = () => {
+    setOpen(false);
+    form.reset();
+    createFamilyMutation.reset();
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button>
+          <Plus /> Add Family Information
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="bg-white min-w-7xl">
+        <DialogHeader>
+          <DialogTitle>Add Family</DialogTitle>
+        </DialogHeader>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <InputForm name="name" label="Name" required />
+              <div className="grid grid-cols-2 gap-4 w-full">
+                <InputForm
+                  name="place_of_birth"
+                  label="Place of Birth"
+                  required
+                />
+                <DatePicker name="date_of_birth" label="Born Date" />
+              </div>
+              <InputForm
+                name="relationship"
+                label="Family Relationship"
+                required
+              />
+              <SelectForm
+                name="highest_education"
+                label="Highest Education Level"
+                options={[
+                  { label: "SD", value: "1" },
+                  { label: "SMP", value: "2" },
+                  { label: "SMA", value: "3" },
+                  { label: "SMK", value: "4" },
+                  { label: "Diploma", value: "5" },
+                  { label: "S1", value: "6" },
+                  { label: "S2", value: "7" },
+                  { label: "S3", value: "8" },
+                ]}
+                disabled={createFamilyMutation.isPending}
+                required
+              />
+              <InputForm name="email" label="Email" required />
+              <div className="grid gap-2 w-full">
+                <FormLabel className="text-sm font-normal">
+                  Phone Number
+                  <span className="text-error">*</span>
+                </FormLabel>
+                <div className="flex items-end gap-2 w-full">
+                  <SelectForm
+                    name="countryCode"
+                    options={[
+                      { label: "+1", value: "+1" },
+                      { label: "+62", value: "+62" },
+                      { label: "+44", value: "+44" },
+                    ]}
+                    disabled={createFamilyMutation.isPending}
+                  />
+                  <InputForm
+                    name="phone"
+                    required
+                    className="w-full"
+                    disabled={createFamilyMutation.isPending}
+                  />
+                </div>
+              </div>
+              <InputForm
+                name="occupation"
+                label="Occupation"
+                required
+                disabled={createFamilyMutation.isPending}
+              />
+              <InputForm
+                name="company"
+                label="Company"
+                required
+                disabled={createFamilyMutation.isPending}
+              />
+            </div>
+
+            {/* Show error message if mutation fails */}
+            {createFamilyMutation.isError && (
+              <div className="text-error text-sm mt-2">
+                Error:{" "}
+                {createFamilyMutation.error?.message ||
+                  "Failed to save family information"}
+              </div>
+            )}
+
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCancel}
+                disabled={createFamilyMutation.isPending}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={createFamilyMutation.isPending}>
+                {createFamilyMutation.isPending ? "Saving..." : "Save"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
+};
 
 const SectionHeader = ({ withAddButton }: Pick<Props, "withAddButton">) => (
   <div
@@ -103,26 +261,44 @@ const SectionHeader = ({ withAddButton }: Pick<Props, "withAddButton">) => (
     >
       Family Information
     </h2>
-    {withAddButton && (
-      <Button>
-        <Plus /> Add Family Information
-      </Button>
-    )}
+    {withAddButton && <AddFamilyFormModal />}
   </div>
 );
 
 export const FamilyInformationSection = React.memo<Props>(
   function FamilyInformationSection({ withAddButton = false }) {
+    const { data, isLoading, error } = useQuery({
+      queryKey: ["family"],
+      queryFn: () => getFamilies({ employee_profile_id: 1 }),
+      retry: (failureCount, error: any) => {
+        if (error?.response?.status >= 400) {
+          return false;
+        }
+        return failureCount < 3;
+      },
+    });
+
+    console.log("### FAMILIES ###", data);
+    if (error) {
+      toast.error("Error fetching families data");
+    }
+
     return (
       <>
         <SectionHeader withAddButton={withAddButton} />
-        <DataTable
-          columns={columns}
-          data={FAMILY_DATA}
-          tableClassName="table-fixed w-full"
-          tableCellClassName={TABLE_CELL_CLASSES}
-          tableHeadClassName={TABLE_CELL_CLASSES}
-        />
+        {isLoading ? (
+          <div className="text-center py-8">
+            <p>Loading family information...</p>
+          </div>
+        ) : (
+          <DataTable
+            columns={columns}
+            data={data?.data?.data || []}
+            tableClassName="table-fixed w-full"
+            tableCellClassName={TABLE_CELL_CLASSES}
+            tableHeadClassName={TABLE_CELL_CLASSES}
+          />
+        )}
         <Separator className="my-6" />
       </>
     );

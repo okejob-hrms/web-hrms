@@ -20,7 +20,7 @@ import { GeneralPagination } from "../ui/pagination";
 
 interface DataTableProps<TData, TValue = unknown> {
   columns: ColumnDef<TData, TValue>[];
-  data: TData[];
+  data?: TData[];
   tableClassName?: string;
   tableHeadClassName?: string;
   tableCellClassName?: string;
@@ -30,7 +30,7 @@ interface DataTableProps<TData, TValue = unknown> {
 
 export function DataTable<TData, TValue = unknown>({
   columns,
-  data,
+  data = [],
   tableClassName,
   tableHeadClassName,
   tableCellClassName,
