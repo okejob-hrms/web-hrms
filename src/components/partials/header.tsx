@@ -204,7 +204,6 @@ const HeaderMenu = React.memo(function HeaderMenu() {
               );
             })}
           </NavigationMenuList>
-
         </NavigationMenu>
       </div>
 
