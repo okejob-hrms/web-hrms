@@ -105,6 +105,13 @@ const menuItems = [
     path: "/document",
     children: [],
   },
+  {
+    name: "settings",
+    label: "Settings",
+    icon: "/icons/gear.svg",
+    path: "/settings",
+    children: [],
+  },
 ];
 
 const HeaderMenu = React.memo(function HeaderMenu() {
@@ -113,7 +120,7 @@ const HeaderMenu = React.memo(function HeaderMenu() {
 
   const navigationMenuTriggerStyle = (isActive: boolean) =>
     cn(
-      "primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground rounded-b-none rounded-t-sm bg-white flex gap-2",
+      "flex flex-row primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground rounded-b-none rounded-t-sm bg-white flex gap-2",
       "data-[state=open]:hover:bg-primary data-[state=open]:text-primary-foreground data-[state=open]:focus:bg-primary data-[state=open]:bg-primary/50",
       isActive && "bg-primary text-primary-foreground",
     );
@@ -128,59 +135,76 @@ const HeaderMenu = React.memo(function HeaderMenu() {
               const isActive = pathname.includes(`/${item.name}`);
               return (
                 <NavigationMenuItem key={item.name}>
-                  <NavigationMenuTrigger
-                    className={navigationMenuTriggerStyle(isActive)}
-                  >
-                    <Image
-                      src={item.icon}
-                      width={20}
-                      height={20}
-                      alt={`icon-${item.name}`}
-                    />
-                    {item.label}
-                  </NavigationMenuTrigger>
-
-                  {item.children.length > 0 && (
-                    <NavigationMenuContent className="bg-white opacity-100">
-                      <ul className="grid gap-2 p-4 md:w-[300px]">
-                        {item.children.map((child) => (
-                          <li key={child.path}>
-                            <NavigationMenuLink asChild>
-                              <Link
-                                href={child.path}
-                                className={cn(
-                                  "block rounded px-3 py-2 text-sm hover:bg-muted hover:text-foreground",
-                                  pathname === child.path &&
-                                    "bg-primary/20 opacity-100 text-primary",
-                                )}
-                              >
-                                <div className="flex flex-row gap-3 items-start">
-                                  <Image
-                                    src={child.icon}
-                                    width={20}
-                                    height={20}
-                                    alt={`icon-${child.label}`}
-                                  />
-                                  <div className="space-y-2">
-                                    <div className="font-bold text-gray-800 text-base">
-                                      {child.label}
-                                    </div>
-                                    <div className="text-gray-400 text-sm">
-                                      {child.desc}
+                  {item.children.length > 0 ? (
+                    <>
+                      <NavigationMenuTrigger
+                        className={navigationMenuTriggerStyle(isActive)}
+                      >
+                        <Image
+                          src={item.icon}
+                          width={20}
+                          height={20}
+                          alt={`icon-${item.name}`}
+                        />
+                        {item.label}
+                      </NavigationMenuTrigger>
+                      <NavigationMenuContent className="bg-white opacity-100 z-[999]">
+                        <ul className="grid gap-2 p-4 md:w-[300px]">
+                          {item.children.map((child) => (
+                            <li key={child.path}>
+                              <NavigationMenuLink asChild>
+                                <Link
+                                  href={child.path}
+                                  className={cn(
+                                    "block rounded px-3 py-2 text-sm hover:bg-muted hover:text-foreground",
+                                    pathname === child.path &&
+                                      "bg-primary/20 opacity-100 text-primary",
+                                  )}
+                                >
+                                  <div className="flex flex-row gap-3 items-start">
+                                    <Image
+                                      src={child.icon}
+                                      width={20}
+                                      height={20}
+                                      alt={`icon-${child.label}`}
+                                    />
+                                    <div className="space-y-2">
+                                      <div className="font-bold text-gray-800 text-base">
+                                        {child.label}
+                                      </div>
+                                      <div className="text-gray-400 text-sm">
+                                        {child.desc}
+                                      </div>
                                     </div>
                                   </div>
-                                </div>
-                              </Link>
-                            </NavigationMenuLink>
-                          </li>
-                        ))}
-                      </ul>
-                    </NavigationMenuContent>
+                                </Link>
+                              </NavigationMenuLink>
+                            </li>
+                          ))}
+                        </ul>
+                      </NavigationMenuContent>
+                    </>
+                  ) : (
+                    <NavigationMenuLink asChild>
+                      <Link
+                        href={item.path}
+                        className={navigationMenuTriggerStyle(isActive)}
+                      >
+                        <Image
+                          src={item.icon}
+                          width={20}
+                          height={20}
+                          alt={`icon-${item.name}`}
+                        />
+                        {item.label}
+                      </Link>
+                    </NavigationMenuLink>
                   )}
                 </NavigationMenuItem>
               );
             })}
           </NavigationMenuList>
+
         </NavigationMenu>
       </div>
 
