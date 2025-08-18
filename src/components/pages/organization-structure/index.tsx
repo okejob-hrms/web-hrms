@@ -25,6 +25,21 @@ export default function OrganizationChart() {
     openAssignModal: (parentId?: string) => void;
   } | null>(null);
 
+  const [zoomLevel, setZoomLevel] = useState(1);
+
+  const handleZoom = (direction: "in" | "out") => {
+    if (chartRef.current) {
+      if (direction === "in") {
+        chartRef.current.zoomIn();
+      } else {
+        chartRef.current.zoomOut();
+      }
+      // Update the state with the new zoom level after the action
+      const newScale = chartRef.current.getChartState().lastTransform.k;
+      setZoomLevel(newScale);
+    }
+  };
+
   // Safari detection logic now lives in the parent component
   const [isSafari, setIsSafari] = useState(false);
   useEffect(() => {
@@ -204,11 +219,45 @@ export default function OrganizationChart() {
           </p>
         </div>
       ) : (
-        <div
-          id={chartContainerId}
-          className="rounded-md bg-grayscale-10 border shadow-sm border-grayscale-20 p-6 flex flex-col gap-4"
-          style={{ width: "100%", height: "80vh" }}
-        />
+        <div className="relative rounded-md bg-grayscale-10 border-grayscale-20">
+          {/* 2. The zoom controls are now inside the wrapper, positioned absolutely */}
+          <div className="absolute top-4 right-4 z-10 flex items-center gap-2 pl-2 pr-2 pt-1 pb-1 bg-white rounded-lg border">
+            <span className="text-sm font-medium">Zoom</span>
+            <span className="text-sm text-gray-500">
+              {Math.round(zoomLevel * 100)}%
+            </span>
+            <button
+              onClick={() => handleZoom("out")}
+              className=""
+              aria-label="Zoom out"
+            >
+              <Image
+                src="/icons/zoomOut.svg"
+                width={16}
+                height={16}
+                alt="zoomOut"
+              />
+            </button>
+            <button
+              onClick={() => handleZoom("in")}
+              className="border-l-1 pl-1.5"
+              aria-label="Zoom in"
+            >
+              <Image
+                src="/icons/zoomIn.svg"
+                width={16}
+                height={16}
+                alt="zoomIn"
+              />
+            </button>
+          </div>
+
+          {/* 3. The chart container itself now sits inside the relative wrapper */}
+          <div
+            id={chartContainerId}
+            style={{ width: "100%", height: "80vh" }}
+          />
+        </div>
       )}
 
       <AssignEmployeeModal
