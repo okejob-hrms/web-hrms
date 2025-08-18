@@ -10,21 +10,12 @@ import { createRoot } from "react-dom/client";
 import AssignEmployeeModal from "./sections/assign-employee-modal";
 import EmployeeProfileModal from "./sections/employee-profile-modal";
 
-function flattenTree(nodes: EmployeeNode[], parentId?: string): EmployeeNode[] {
-  return nodes.flatMap((node) => {
-    const { children, ...rest } = node;
-    const flatNode = { ...rest, parentId };
-    return [flatNode, ...flattenTree(children || [], node.id)];
-  });
-}
-
 export default function OrganizationChart() {
   const chartContainerId = "orgchart-container";
   const chartRef = useRef<OrgChart<EmployeeNode> | null>(null);
   const dataRef = useRef<{
     openAssignModal: (parentId?: string) => void;
   } | null>(null);
-
   const [zoomLevel, setZoomLevel] = useState(1);
 
   const handleZoom = (direction: "in" | "out") => {
@@ -49,7 +40,7 @@ export default function OrganizationChart() {
     setIsSafari(isSafariBrowser);
   }, []);
 
-  const [nestedData, setNestedData] = useState<EmployeeNode[]>([]);
+  const [data, setData] = useState<EmployeeNode[]>([]);
   const [assignEmployeeOpen, setAssignEmployeeOpen] = useState(false);
 
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
@@ -58,6 +49,32 @@ export default function OrganizationChart() {
   );
 
   const [currentParentId, setCurrentParentId] = useState<string | null>(null);
+
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [originalData, setOriginalData] = useState<EmployeeNode[] | null>(null);
+
+  const handleEditClick = () => {
+    // Save a deep copy of the current data as a backup
+    setOriginalData(JSON.parse(JSON.stringify(data)));
+    setIsEditMode(true);
+  };
+
+  const handleSaveClick = () => {
+    // Here you would make your API call with the `data` state
+    console.log("Saving new data to API:", data);
+    // After a successful API call:
+    setIsEditMode(false);
+    setOriginalData(null); // Clear the backup
+  };
+
+  const handleCancelClick = () => {
+    // Restore the data from the backup
+    if (originalData) {
+      setData(originalData);
+    }
+    setIsEditMode(false);
+    setOriginalData(null); // Clear the backup
+  };
 
   const openAssignModal = (parentId?: string) => {
     setCurrentParentId(parentId ?? null);
@@ -70,34 +87,11 @@ export default function OrganizationChart() {
   };
 
   const handleEditSave = (data: AssignEmployeeFormValues) => {
-    // Add your logic here to update the employee data in your main `nestedData` state
     console.log("Saving edited employee data:", data);
     setIsProfileModalOpen(false); // Close modal on save
   };
 
   dataRef.current = { openAssignModal };
-
-  function addEmployeeToParent(
-    nodes: EmployeeNode[],
-    parentId: string,
-    newEmployee: EmployeeNode[]
-  ): EmployeeNode[] {
-    return nodes.map((node) => {
-      if (node.id === parentId) {
-        return {
-          ...node,
-          children: [...(node.children || []), ...newEmployee],
-        };
-      }
-      if (node.children && node.children.length > 0) {
-        return {
-          ...node,
-          children: addEmployeeToParent(node.children, parentId, newEmployee),
-        };
-      }
-      return node;
-    });
-  }
 
   const handleSave = (data: AssignEmployeeFormValues) => {
     const newEmployee: EmployeeNode = {
@@ -105,19 +99,15 @@ export default function OrganizationChart() {
       name: data.name,
       title: "New Hire",
       image: "/icons/user02.svg",
-      children: [],
+      parentId: currentParentId ?? "",
     };
-    setNestedData((prev) =>
-      currentParentId
-        ? addEmployeeToParent(prev, currentParentId, [newEmployee])
-        : [...prev, newEmployee]
-    );
+    setData((prevData) => [...prevData, newEmployee]);
     setAssignEmployeeOpen(false);
     setCurrentParentId(null);
   };
 
   useLayoutEffect(() => {
-    if (nestedData.length === 0) {
+    if (data.length === 0) {
       const container = document.getElementById(chartContainerId);
       if (container) container.innerHTML = "";
       chartRef.current = null;
@@ -129,7 +119,7 @@ export default function OrganizationChart() {
         .container(`#${chartContainerId}`)
         // Set fixed node dimensions for layout calculation
         .nodeWidth(() => 220)
-        .nodeHeight(() => (isSafari ? 140 : 140)) // Increased to account for plus button
+        .nodeHeight(() => 100) // Increased to account for plus button
         .nodeContent(({ data }) => `<div id="node-${data.id}"></div>`)
         .linkUpdate(function (this: SVGPathElement) {
           this.setAttribute("stroke", "#0F3C56");
@@ -154,8 +144,28 @@ export default function OrganizationChart() {
       chartRef.current = chart;
     }
 
-    chartRef.current.data(flattenTree(nestedData)).render();
-  }, [nestedData, isSafari]);
+    chartRef.current
+      .nodeHeight(() => (isEditMode ? 140 : 100))
+      .data(data)
+      .nodeUpdate(function (this: SVGGElement, node) {
+        const el = this.querySelector(
+          `#node-${node.data.id}`
+        ) as HTMLElement | null;
+        if (el && dataRef.current) {
+          const { openAssignModal } = dataRef.current;
+          createRoot(el).render(
+            <NodeCard
+              data={node.data}
+              onAddChild={openAssignModal}
+              isSafari={isSafari} // Pass the isSafari state as a prop
+              onEdit={() => handleOpenProfileModal(node.data)}
+              isEditMode={isEditMode}
+            />
+          );
+        }
+      })
+      .render();
+  }, [data, isSafari, isEditMode]);
 
   return (
     <div className="font-sans min-h-screen">
@@ -166,40 +176,59 @@ export default function OrganizationChart() {
             <h2 className="font-semibold text-xl">Organization Structure</h2>
           </div>
           <div className="flex flex-row gap-2">
-            <div className="flex flex-row text-[10px] align-middle gap-[5px] items-center">
-              <Image
-                src="/icons/update.svg"
-                width={10}
-                height={10}
-                alt="update icon"
-              />
-              <span>Last Update</span>
-              <span className="text-primary">Jul 20, 2025</span>
-              <span className="text-primary">16:00</span>
-            </div>
-            <Button className="bg-white border border-primary text-primary whitespace-nowrap hover:bg-white/90">
-              <Image
-                src="/icons/download.svg"
-                width={18}
-                height={18}
-                alt="download icon"
-              />{" "}
-              Download
-            </Button>
-            <Button className="whitespace-nowrap">
-              <Image
-                src="/icons/edit.svg"
-                width={18}
-                height={18}
-                alt="edit icon"
-              />{" "}
-              Edit Structure
-            </Button>
+            {isEditMode ? (
+              // --- EDIT MODE BUTTONS ---
+              <>
+                <Button
+                  variant="outline"
+                  onClick={handleCancelClick}
+                  className="whitespace-nowrap"
+                >
+                  Cancel
+                </Button>
+                <Button onClick={handleSaveClick} className="whitespace-nowrap">
+                  Save Changes
+                </Button>
+              </>
+            ) : (
+              // --- VIEW MODE BUTTONS ---
+              <>
+                <div className="flex flex-row text-[10px] align-middle gap-[5px] items-center">
+                  <Image
+                    src="/icons/update.svg"
+                    width={10}
+                    height={10}
+                    alt="update icon"
+                  />
+                  <span>Last Update</span>
+                  <span className="text-primary">Jul 20, 2025</span>
+                  <span className="text-primary">16:00</span>
+                </div>
+                <Button className="bg-white border border-primary text-primary whitespace-nowrap hover:bg-white/90">
+                  <Image
+                    src="/icons/download.svg"
+                    width={18}
+                    height={18}
+                    alt="download icon"
+                  />{" "}
+                  Download
+                </Button>
+                <Button onClick={handleEditClick} className="whitespace-nowrap">
+                  <Image
+                    src="/icons/edit.svg"
+                    width={18}
+                    height={18}
+                    alt="edit icon"
+                  />{" "}
+                  Edit Structure
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </div>
 
-      {nestedData.length === 0 ? (
+      {data.length === 0 ? (
         <div
           className="rounded-md bg-grayscale-10 border shadow-sm border-grayscale-20 p-12 flex flex-col items-center justify-center gap-2 cursor-pointer"
           style={{ width: "100%", height: "80vh" }}
