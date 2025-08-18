@@ -9,6 +9,7 @@ interface NodeCardProps {
   height?: number;
   onAddChild: (parentId: string) => void;
   isSafari: boolean;
+  onEdit: () => void;
 }
 
 export const NodeCard = ({
@@ -17,6 +18,7 @@ export const NodeCard = ({
   height = 100,
   onAddChild,
   isSafari,
+  onEdit,
 }: NodeCardProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -68,7 +70,7 @@ export const NodeCard = ({
             {isSafari ? (
               // SAFARI: Simple, flat icon buttons
               <div className="flex flex-row gap-2">
-                <button onClick={() => {}}>
+                <button onClick={onEdit}>
                   <Edit className="w-4 h-4" />
                 </button>
                 <button onClick={() => {}}>
@@ -87,12 +89,15 @@ export const NodeCard = ({
                 {isMenuOpen && (
                   <div
                     ref={menuRef}
-                    className="absolute top-full right-0 mt-1 w-28 bg-white border border-gray-200 rounded-md shadow-lg z-10"
+                    className="absolute top-full right-0 mt-1 w-40 bg-white border border-gray-200 rounded-md shadow-lg z-10"
                   >
-                    <button className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center gap-2">
-                      <Edit className="w-4 h-4" /> Edit
+                    <button
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center gap-2"
+                      onClick={onEdit}
+                    >
+                      <Edit className="w-4 h-4" /> Edit Structure
                     </button>
-                    <button className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center gap-2">
+                    <button className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center gap-2">
                       <Trash2 className="w-4 h-4" /> Delete
                     </button>
                   </div>

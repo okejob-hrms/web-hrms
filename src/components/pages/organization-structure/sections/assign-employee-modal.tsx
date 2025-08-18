@@ -35,7 +35,7 @@ import { cn } from "@/lib/utils";
 import { SelectForm } from "@/components/ui/select-form";
 import { MultiSelect } from "@/components/ui/multi-select";
 
-interface DepartmentModalProps {
+interface AssignEmployeetModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   handleSave: (data: AssignEmployeeFormValues) => void;
@@ -47,7 +47,7 @@ export default function AssignEmployeeModal({
   onOpenChange,
   handleSave,
   handleClose,
-}: DepartmentModalProps) {
+}: AssignEmployeetModalProps) {
   const [selectedEmployee, setSelectedEmployee] = React.useState<
     (typeof employees)[0] | null
   >(null);
@@ -90,6 +90,8 @@ export default function AssignEmployeeModal({
     },
   ];
 
+  console.log("form.formState", form.formState);
+
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent className="w-full max-w-md sm:max-w-xl bg-white flex flex-col">
@@ -108,20 +110,18 @@ export default function AssignEmployeeModal({
                 selectedEmployee ? "max-h-[500px]" : "max-h-[300px]"
               )}
             >
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      Employee Name{" "}
-                      {!selectedEmployee && (
-                        <span className="text-red-500">*</span>
-                      )}
-                    </FormLabel>
-
-                    {!selectedEmployee ? (
-                      // Search mode
+              {!selectedEmployee ? (
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Employee Name{" "}
+                        {!selectedEmployee && (
+                          <span className="text-red-500">*</span>
+                        )}
+                      </FormLabel>
                       <Command className="rounded border-t-0">
                         <div className="flex h-9 items-center gap-2 border rounded px-3">
                           <CommandPrimitive.Input
@@ -161,100 +161,121 @@ export default function AssignEmployeeModal({
                           </CommandGroup>
                         </CommandList>
                       </Command>
-                    ) : (
-                      // Scrollable form content
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-10 w-10">
-                            <AvatarImage src={selectedEmployee.image} />
-                            <AvatarFallback>
-                              {selectedEmployee.name.charAt(0)}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="font-medium">
-                              {selectedEmployee.name}
-                            </p>
-                            <p className="text-xs text-gray-500">
-                              {selectedEmployee.title}
-                            </p>
-                          </div>
-                        </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={selectedEmployee.image} />
+                      <AvatarFallback>
+                        {selectedEmployee.name.charAt(0)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-medium">{selectedEmployee.name}</p>
+                      <p className="text-xs text-gray-500">
+                        {selectedEmployee.title}
+                      </p>
+                    </div>
+                  </div>
 
-                        <div className="flex flex-row items-center justify-between">
-                          <div className="flex flex-col gap-2">
-                            <label className="text-sm text-text-secondary">
-                              Email
-                            </label>
-                            <label className="text-sm text-text-secondary">
-                              test@mail.com
-                            </label>
-                          </div>
-                          <div className="flex flex-col gap-2 pr-30">
-                            <label className="text-sm text-text-secondary">
-                              Phone Number
-                            </label>
-                            <label className="text-sm text-text-secondary">
-                              +62902930190
-                            </label>
-                          </div>
-                        </div>
+                  <div className="flex flex-row items-center justify-between">
+                    <div className="flex flex-col gap-2">
+                      <label className="text-sm text-text-secondary">
+                        Email
+                      </label>
+                      <label className="text-sm text-text-secondary">
+                        test@mail.com
+                      </label>
+                    </div>
+                    <div className="flex flex-col gap-2 pr-30">
+                      <label className="text-sm text-text-secondary">
+                        Phone Number
+                      </label>
+                      <label className="text-sm text-text-secondary">
+                        +62902930190
+                      </label>
+                    </div>
+                  </div>
+                  <FormField
+                    control={form.control}
+                    name="department"
+                    render={({ field }) => (
+                      <FormItem>
+                        <label className="text-sm text-text-secondary">
+                          Department<span className="text-red-500">*</span>
+                        </label>
+                        <SelectForm
+                          options={[
+                            { label: "Managerial", value: "managerial" },
+                            { label: "Engineering", value: "engineering" },
+                            { label: "Marketing", value: "marketing" },
+                          ]}
+                          {...field}
+                          required
+                        />
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="position"
+                    render={({ field }) => (
+                      <FormItem>
+                        <label className="text-sm text-text-secondary">
+                          Position<span className="text-red-500">*</span>
+                        </label>
+                        <SelectForm
+                          options={[
+                            { label: "CEO", value: "ceo" },
+                            { label: "CTO", value: "cto" },
+                            { label: "COO", value: "coo" },
+                          ]}
+                          required
+                          {...field}
+                        />
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="jobLevel"
+                    render={({ field }) => (
+                      <FormItem>
+                        <label className="text-sm text-text-secondary">
+                          Job Level<span className="text-red-500">*</span>
+                        </label>
+                        <SelectForm
+                          options={[
+                            { label: "Founder", value: "founder" },
+                            { label: "Senior", value: "senior" },
+                            { label: "Mid", value: "mid" },
+                          ]}
+                          required
+                          {...field}
+                        />
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                        {/* Department */}
-                        <div className="flex flex-col gap-2">
-                          <label className="text-sm text-text-secondary">
-                            Department<span className="text-red-500">*</span>
-                          </label>
-                          <SelectForm
-                            name="department"
-                            options={[
-                              { label: "Managerial", value: "managerial" },
-                              { label: "Engineering", value: "engineering" },
-                              { label: "Marketing", value: "marketing" },
-                            ]}
-                            required
-                          />
-                        </div>
-
-                        {/* Position */}
-                        <div className="flex flex-col gap-2">
-                          <label className="text-sm text-text-secondary">
-                            Position <span className="text-red-500">*</span>
-                          </label>
-                          <SelectForm
-                            name="position"
-                            options={[
-                              { label: "CEO", value: "ceo" },
-                              { label: "CTO", value: "cto" },
-                              { label: "COO", value: "coo" },
-                            ]}
-                            required
-                          />
-                        </div>
-
-                        {/* Job Level */}
-                        <div className="flex flex-col gap-2">
-                          <label className="text-sm text-text-secondary">
-                            Job Level <span className="text-red-500">*</span>
-                          </label>
-                          <SelectForm
-                            name="jobLevel"
-                            options={[
-                              { label: "Founder", value: "founder" },
-                              { label: "Senior", value: "senior" },
-                              { label: "Mid", value: "mid" },
-                            ]}
-                            required
-                          />
-                        </div>
-
-                        {/* Team Multi-select */}
+                  <FormField
+                    control={form.control}
+                    name="primaryDirectReport"
+                    render={({ field }) => (
+                      <FormItem>
                         <div className="flex flex-col gap-2">
                           <label className="text-sm text-text-secondary">
                             Primary Direct Report{" "}
                             <span className="text-red-500">*</span>
                           </label>
                           <MultiSelect
+                            name="primaryDirectReport"
                             placeholder="All Position"
                             options={[
                               {
@@ -266,17 +287,28 @@ export default function AssignEmployeeModal({
                               { label: "Senior", value: "senior" },
                               { label: "Staff", value: "staff" },
                             ]}
-                            onValueChange={() => {}}
+                            value={field.value}
+                            onValueChange={field.onChange}
                             maxCount={3}
                             variant="inverted"
                           />
                         </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
+                  <FormField
+                    control={form.control}
+                    name="additionalDirectReport"
+                    render={({ field }) => (
+                      <FormItem>
                         <div className="flex flex-col gap-2">
                           <label className="text-sm text-text-secondary">
                             Additional Direct Report
                           </label>
                           <MultiSelect
+                            name="additionalDirectReport"
                             placeholder="All Position"
                             options={[
                               {
@@ -288,17 +320,28 @@ export default function AssignEmployeeModal({
                               { label: "Senior", value: "senior" },
                               { label: "Staff", value: "staff" },
                             ]}
-                            onValueChange={() => {}}
+                            value={field.value}
+                            onValueChange={field.onChange}
                             maxCount={3}
                             variant="inverted"
                           />
                         </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
+                  <FormField
+                    control={form.control}
+                    name="teams"
+                    render={({ field }) => (
+                      <FormItem>
                         <div className="flex flex-col gap-2">
                           <label className="text-sm text-text-secondary">
                             Team
                           </label>
                           <MultiSelect
+                            name="teams"
                             placeholder="All Position"
                             options={[
                               {
@@ -309,30 +352,32 @@ export default function AssignEmployeeModal({
                               { label: "Senior", value: "senior" },
                               { label: "Staff", value: "staff" },
                             ]}
-                            onValueChange={() => {}}
+                            value={field.value}
+                            onValueChange={field.onChange}
                             maxCount={3}
                             variant="inverted"
                           />
                         </div>
-                      </div>
+                        <FormMessage />
+                      </FormItem>
                     )}
-
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                  />
+                </div>
+              )}
             </div>
 
             <AlertDialogFooter className="flex justify-center gap-4 mt-4">
-              <AlertDialogCancel
-                className="min-w-[100px] border-2 border-[#18618B] text-[#18618B] bg-white hover:bg-[#e6f1f7] font-medium py-2 rounded-lg"
+              <Button
+                type="button"
+                variant="outline"
                 onClick={() => {
                   setSelectedEmployee(null);
                   handleClose();
                 }}
+                className="min-w-[100px] text-primary"
               >
                 Cancel
-              </AlertDialogCancel>
+              </Button>
               <Button
                 type="submit"
                 disabled={!form.formState.isValid}
