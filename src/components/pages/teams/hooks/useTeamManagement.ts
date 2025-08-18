@@ -25,8 +25,8 @@ export function useTeamManagement() {
                 created_at: "2025-08-06T13:18:26.000000Z",
                 updated_at: "2025-08-06T13:18:26.000000Z",
               }
-            : dept
-        )
+            : dept,
+        ),
       );
     } else {
       setTeams([

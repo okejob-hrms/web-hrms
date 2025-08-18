@@ -53,7 +53,7 @@ export function DataTable<TData, TValue = unknown>({
             className={cn(
               "w-full",
               customSize ? "table-fixed min-w-[800px]" : "min-w-[800px]",
-              tableClassName
+              tableClassName,
             )}
           >
             <TableHeader>
@@ -64,18 +64,23 @@ export function DataTable<TData, TValue = unknown>({
                       key={header.id}
                       style={
                         customSize
-                          ? { width: header.getSize(), maxWidth: header.getSize() }
+                          ? {
+                              width: header.getSize(),
+                              maxWidth: header.getSize(),
+                            }
                           : undefined
                       }
                       className={cn(
                         "bg-gray-50 p-4 sticky top-0 z-10 text-left font-medium",
-                        customSize ? "break-words whitespace-normal" : "min-w-[120px]",
-                        tableHeadClassName
+                        customSize
+                          ? "break-words whitespace-normal"
+                          : "min-w-[120px]",
+                        tableHeadClassName,
                       )}
                     >
                       {flexRender(
                         header.column.columnDef.header,
-                        header.getContext()
+                        header.getContext(),
                       )}
                     </TableHead>
                   ))}
@@ -92,7 +97,10 @@ export function DataTable<TData, TValue = unknown>({
                         key={cell.id}
                         style={
                           customSize
-                            ? { width: cell.column.getSize(), maxWidth: cell.column.getSize() }
+                            ? {
+                                width: cell.column.getSize(),
+                                maxWidth: cell.column.getSize(),
+                              }
                             : undefined
                         }
                         className={cn(
@@ -100,16 +108,22 @@ export function DataTable<TData, TValue = unknown>({
                           customSize
                             ? "break-words whitespace-normal"
                             : "min-w-[120px]",
-                          tableCellClassName
+                          tableCellClassName,
                         )}
                       >
                         {customSize ? (
                           <div className="break-words whitespace-normal">
-                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext(),
+                            )}
                           </div>
                         ) : (
                           <div className="max-w-[200px] break-words whitespace-break-spaces">
-                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext(),
+                            )}
                           </div>
                         )}
                       </TableCell>

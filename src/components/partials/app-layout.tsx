@@ -12,6 +12,7 @@ import { ModuleSidebar } from "@/components/partials/module-sidebar";
 import AppSkeleton from "./app-skeleton";
 import { useState } from "react";
 import { useEffect } from "react";
+import { Toaster } from "../ui/sonner";
 
 const breadcrumbs = [
   {
@@ -49,6 +50,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <ModuleSidebar defaultTitle="Employee" />
         <main className="w-full"> {loading ? <AppSkeleton /> : children} </main>
       </SidebarProvider>
+      <Toaster />
     </QueryClientProvider>
   );
 }

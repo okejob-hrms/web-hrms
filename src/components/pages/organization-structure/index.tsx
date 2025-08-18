@@ -100,7 +100,7 @@ export default function OrganizationChart() {
       const el = document.getElementById(`node-${node.id}`);
       if (el)
         createRoot(el).render(
-          <NodeCard data={node} width={220} height={100} />
+          <NodeCard data={node} width={220} height={100} />,
         );
     });
 
@@ -110,7 +110,7 @@ export default function OrganizationChart() {
         const el = document.getElementById(`node-${node.id}`);
         if (el && !el.hasChildNodes()) {
           createRoot(el).render(
-            <NodeCard data={node} width={220} height={100} />
+            <NodeCard data={node} width={220} height={100} />,
           );
         }
       });

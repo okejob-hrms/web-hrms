@@ -1,13 +1,13 @@
 import z from "zod";
 
-export const departmentFormScheme = z.object({
+export const teamFormScheme = z.object({
   name: z.string().min(1, "required"),
   description: z.string().optional(),
 });
 
-export type IDepartmentForm = z.infer<typeof departmentFormScheme>;
+export type ITeamForm = z.infer<typeof teamFormScheme>;
 
-export interface DepartmentResponse {
+export interface TeamResponse {
   id: number;
   name: string;
   description: string | null;

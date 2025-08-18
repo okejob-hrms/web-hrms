@@ -1,18 +1,25 @@
 import { api } from "@/lib/api";
-import { IDepartmentForm } from "./types";
+import { DepartmentResponse, IDepartmentForm } from "./types";
+import { ApiResponse, PaginatedResponse } from "@/lib/types";
 
-export const postDepartment = async (payload: IDepartmentForm) => {
-  const response = await api.post(
-    "/api/v1/departments",
-    JSON.stringify(payload),
+export const postDepartment = async (
+  payload: IDepartmentForm,
+): Promise<ApiResponse<DepartmentResponse>> => {
+  const response = await api.post<ApiResponse<DepartmentResponse>>(
+    "departments",
+    { json: payload },
   );
-  return response;
+  return response.json();
 };
 
-export const getDepartment = async () => {
-  const response = await api.get(
-    "/api/v1/departments",
+export const getDepartment = async (): Promise<
+  ApiResponse<PaginatedResponse<DepartmentResponse>>
+> => {
+  const response = await api.get<
+    ApiResponse<PaginatedResponse<DepartmentResponse>>
+  >(
+    "departments",
     // JSON.stringify(payload),
   );
-  return response;
+  return response.json();
 };
