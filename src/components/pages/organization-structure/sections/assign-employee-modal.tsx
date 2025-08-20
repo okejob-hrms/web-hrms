@@ -1,3 +1,4 @@
+// assign-employee-modal.tsx
 "use client";
 
 import React from "react";
@@ -7,12 +8,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogFooter,
-  AlertDialogCancel,
 } from "@/components/ui/alert-dialog";
 import { Command as CommandPrimitive } from "cmdk";
 import {
   Command,
-  CommandInput,
   CommandList,
   CommandEmpty,
   CommandGroup,
@@ -30,7 +29,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { assignEmployeeFormScheme, AssignEmployeeFormValues } from "../types";
-import { Check, SearchIcon } from "lucide-react";
+import { SearchIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SelectForm } from "@/components/ui/select-form";
 import { MultiSelect } from "@/components/ui/multi-select";

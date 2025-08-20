@@ -1,5 +1,4 @@
-// sections/EmployeeProfileModal.tsx
-
+// sections/employee-profile-modal.tsx
 "use client";
 
 import React, { useState, useEffect } from "react";

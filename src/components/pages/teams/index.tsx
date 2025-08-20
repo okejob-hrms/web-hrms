@@ -126,7 +126,12 @@ export default function TeamManagementList() {
                 + New Team
               </Button>
             </div>
-            <DataTable columns={columns} data={teams} customSize={!isMobile} />
+            <DataTable
+              columns={columns}
+              data={teams}
+              customSize={!isMobile}
+              withPagination
+            />
           </div>
         </div>
       </div>

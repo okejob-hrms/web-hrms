@@ -1,31 +1,27 @@
+// FileName: sections/node-card.tsx
+
 import React, { useState, useRef, useEffect } from "react";
 import Image from "next/image";
-import { EmployeeNode } from "../types";
+import { type EmployeeNode } from "../types";
 import { Edit, Plus, Trash2, Ellipsis } from "lucide-react";
+import { type NodeProps } from "@xyflow/react";
 
-interface NodeCardProps {
-  data: EmployeeNode;
-  width?: number;
-  height?: number;
-  onAddChild: (parentId: string) => void;
+type NodeCardData = {
+  employee: EmployeeNode;
+  isEditMode: boolean;
   isSafari: boolean;
+  onAddChild: (id: string) => void;
   onEdit: () => void;
-  isEditMode?: boolean;
-}
-
-export const NodeCard = ({
-  data,
-  width = 220,
-  height = 100,
-  onAddChild,
-  isSafari,
-  onEdit,
-  isEditMode = false,
-}: NodeCardProps) => {
+};
+// Use this new, more specific type in NodeProps.
+export const NodeCard = ({ data }: { data: NodeCardData }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Effect to handle closing the menu when clicking outside of it
+  // Destructure all the properties you need from the `data` object.
+  const { employee, isEditMode, isSafari, onAddChild, onEdit } = data;
+  const { employeeId, name, title, image } = employee;
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -47,24 +43,24 @@ export const NodeCard = ({
     <div className="flex flex-col items-center gap-2 bg-transparent">
       <div
         className="bg-white border-t-6 border-l-2 border-r-2 border-b-2 border-primary-border rounded-lg p-2 shadow cursor-pointer"
-        style={{ width, height }}
+        style={{ width: 220, height: 100 }}
       >
-        <div className="flex flex-col gap-2 justify-between h-full">
+        <div className="flex flex-col gap-2 h-full">
           {/* Top row */}
           <div className="flex justify-between items-start">
             <div className="flex gap-2 items-start">
               <Image
-                src={data.image || "/images/default-avatar.png"}
-                alt={data.name}
+                src={image || "/images/default-avatar.png"}
+                alt={name}
                 width={40}
                 height={40}
                 className={`w-10 h-10 ${!isSafari && "rounded-full"}`}
               />
               <div className="flex flex-col items-start">
                 <div className="font-semibold text-sm text-text-primary">
-                  {data.name}
+                  {name}
                 </div>
-                <div className="text-xs text-text-disabled">{data.title}</div>
+                <div className="text-xs text-text-disabled">{title}</div>
               </div>
             </div>
 
@@ -138,7 +134,7 @@ export const NodeCard = ({
       </div>
       {isEditMode && (
         <button
-          onClick={() => onAddChild(data.id)}
+          onClick={() => onAddChild(employeeId)}
           className="flex items-center justify-center w-5 h-5 rounded-full bg-primary text-white shadow hover:bg-primary/80"
         >
           <Plus className="w-3 h-3" />

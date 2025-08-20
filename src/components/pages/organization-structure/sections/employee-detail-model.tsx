@@ -1,3 +1,4 @@
+//  sections/employee-detail-modal.tsx
 "use client";
 
 import React from "react";
@@ -7,37 +8,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogFooter,
-  AlertDialogCancel,
 } from "@/components/ui/alert-dialog";
-import { Command as CommandPrimitive } from "cmdk";
-import {
-  Command,
-  CommandInput,
-  CommandList,
-  CommandEmpty,
-  CommandGroup,
-  CommandItem,
-} from "@/components/ui/command";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import {
-  assignEmployeeFormScheme,
-  AssignEmployeeFormValues,
-  EmployeeNode,
-} from "../types";
-import { Check, Edit, SearchIcon } from "lucide-react";
+import { EmployeeNode } from "../types";
+import { Edit } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { SelectForm } from "@/components/ui/select-form";
-import { MultiSelect } from "@/components/ui/multi-select";
 
 interface EmployeeDetailModalProps {
   open: boolean;
@@ -50,7 +26,6 @@ export default function EmployeeDetailModal({
   open,
   onOpenChange,
   handleClose,
-  employeeData,
 }: EmployeeDetailModalProps) {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>

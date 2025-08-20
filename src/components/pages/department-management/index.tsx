@@ -136,6 +136,7 @@ export default function DepartmentManagementList() {
               columns={columns}
               data={departments}
               customSize={!isMobile}
+              withPagination
             />
           </div>
         </div>
