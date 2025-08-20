@@ -1,17 +1,11 @@
 export interface Filters {
-  department: string[];
-  position: string[];
-  name: string;
-  startDate: Date;
-  endDate: Date;
+  department?: string[];
+  position?: string[];
+  search?: string;
+  start_date?: string | null;
+  end_date?: string | null;
 }
 
 export interface AdvancedFilterProps {
-  onChangePosition: (val: string[]) => void;
-  onChangeDepartment: (val: string[]) => void;
-  onChangeName: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onReset: () => void;
-  onChangeStartDate: (val: Date) => void;
-  onChangeEndDate: (val: Date) => void;
-  filterData: Filters;
 }

@@ -144,6 +144,7 @@ export type BasicDatePickerProps = DayPickerProps & {
   labelClassName?: string;
   onSelect: (value?: Date) => void;
   value: Date;
+  placeholder?: string;
 };
 
 export type DatePickerProps = DayPickerProps & {
@@ -154,6 +155,8 @@ export type DatePickerProps = DayPickerProps & {
   labelClassName?: string;
   onSelect?: () => void;
   value?: string;
+  required?: boolean;
+  placeholder?: string;
 };
 
 export interface TextareaFormProps
