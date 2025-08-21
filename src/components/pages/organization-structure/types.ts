@@ -21,7 +21,7 @@ export type NodeCardData = {
   employee: EmployeeNode;
   isEditMode: boolean;
   isSafari: boolean;
-  onAddChild: (id: string) => void;
+  onAddChild: (id: string, handle: "top" | "bottom") => void;
   onEdit: (employee: EmployeeNode) => void;
   onDelete: (id: string) => void; // Added for future delete functionality
 };
@@ -29,81 +29,89 @@ export type NodeCardData = {
 // CHANGE: `primary` is now an array of strings
 export interface EmployeeNode {
   employeeId: string;
+  name: string;
+  title: string;
+  jobLevel: number; // Use a number for easy comparison
+  image?: string;
+  // This will be populated when an employee is assigned via the modal
   reportsTo?: {
     primary?: string[];
     additional?: string[];
   };
-  name: string;
-  title: string;
-  email?: string;
-  phone?: string;
-  image?: string;
 }
 
-export const dummyEmployeeData: EmployeeNode[] = [
+// This represents every employee in your company database
+export const allEmployees: EmployeeNode[] = [
   {
     employeeId: "1",
-    name: "Alex Chen",
+    name: "Olivia Rhye",
     title: "CEO",
+    jobLevel: 1,
     image: "/icons/user02.svg",
   },
   {
     employeeId: "2",
-    name: "Ben Carter",
-    title: "VP of Engineering",
+    name: "Phoenix Baker",
+    title: "CTO",
+    jobLevel: 2,
     image: "/icons/user02.svg",
-    reportsTo: {
-      primary: ["1"],
-    },
   },
   {
     employeeId: "3",
-    name: "Chloe Davis",
-    title: "VP of Product",
+    name: "Lana Steiner",
+    title: "COO",
+    jobLevel: 2,
     image: "/icons/user02.svg",
-    reportsTo: {
-      primary: ["1"],
-    },
   },
   {
     employeeId: "4",
-    name: "David Evans",
-    title: "Engineering Manager",
+    name: "Candice Wu",
+    title: "Head of Engineering",
+    jobLevel: 3,
     image: "/icons/user02.svg",
-    reportsTo: {
-      primary: ["2"],
-    },
   },
   {
     employeeId: "5",
-    name: "Eva Foster",
-    title: "Product Manager",
+    name: "Demi Wilkinson",
+    title: "Head of Product Design",
+    jobLevel: 3,
     image: "/icons/user02.svg",
-    reportsTo: {
-      primary: ["3"],
-    },
   },
   {
-    // --- EXAMPLE 1: MULTIPLE PRIMARY REPORTS ---
-    // This employee reports to both the Engineering and Product managers.
     employeeId: "6",
-    name: "Frank Green",
-    title: "Senior UX Engineer",
+    name: "Drew Cano",
+    title: "Head of Production",
+    jobLevel: 3,
     image: "/icons/user02.svg",
-    reportsTo: {
-      primary: ["4", "5"],
-    },
   },
   {
-    // --- EXAMPLE 2: MULTIPLE ADDITIONAL REPORTS ---
-    // This employee has one primary and two additional (dotted-line) managers.
     employeeId: "7",
-    name: "Grace Hall",
-    title: "Data Scientist",
+    name: "Andi Lane",
+    title: "Warehouse Manager",
+    jobLevel: 4,
     image: "/icons/user02.svg",
-    reportsTo: {
-      primary: ["4"],
-      additional: ["3", "5"],
-    },
+  },
+  {
+    employeeId: "8",
+    name: "Natali Craig",
+    title: "Product Manager",
+    jobLevel: 4,
+    image: "/icons/user02.svg",
+  },
+  {
+    employeeId: "9",
+    name: "Orlando Diggs",
+    title: "Frontend Engineer",
+    jobLevel: 5,
+    image: "/icons/user02.svg",
+  },
+  {
+    employeeId: "10",
+    name: "Kate Morrison",
+    title: "Backend Engineer",
+    jobLevel: 5,
+    image: "/icons/user02.svg",
   },
 ];
+
+export const initialChartData: EmployeeNode[] = [];

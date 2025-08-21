@@ -8,10 +8,12 @@ import { type NodeProps } from "@xyflow/react";
 
 type NodeCardData = {
   employee: EmployeeNode;
+  isTopLevel: boolean;
+  isBottomLevel: boolean;
+  onAddChild: (id: string, handle: "top" | "bottom") => void;
+  onEdit: (employee: EmployeeNode) => void;
+  onDelete: (id: string) => void;
   isEditMode: boolean;
-  isSafari: boolean;
-  onAddChild: (id: string) => void;
-  onEdit: () => void;
 };
 // Use this new, more specific type in NodeProps.
 export const NodeCard = ({ data }: { data: NodeCardData }) => {
@@ -19,7 +21,14 @@ export const NodeCard = ({ data }: { data: NodeCardData }) => {
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Destructure all the properties you need from the `data` object.
-  const { employee, isEditMode, isSafari, onAddChild, onEdit } = data;
+  const {
+    employee,
+    isEditMode,
+    onAddChild,
+    onEdit,
+    isBottomLevel,
+    isTopLevel,
+  } = data;
   const { employeeId, name, title, image } = employee;
 
   useEffect(() => {
@@ -41,6 +50,14 @@ export const NodeCard = ({ data }: { data: NodeCardData }) => {
 
   return (
     <div className="flex flex-col items-center gap-2 bg-transparent">
+      {isEditMode && !isTopLevel && (
+        <button
+          onClick={() => onAddChild(employeeId, "top")}
+          className="flex items-center justify-center w-5 h-5 rounded-full bg-primary text-white shadow hover:bg-primary/80"
+        >
+          <Plus className="w-3 h-3" />
+        </button>
+      )}
       <div
         className="bg-white border-t-6 border-l-2 border-r-2 border-b-2 border-primary-border rounded-lg p-2 shadow cursor-pointer"
         style={{ width: 220, height: 100 }}
@@ -54,7 +71,7 @@ export const NodeCard = ({ data }: { data: NodeCardData }) => {
                 alt={name}
                 width={40}
                 height={40}
-                className={`w-10 h-10 ${!isSafari && "rounded-full"}`}
+                className={`w-10 h-10 rounded-full`}
               />
               <div className="flex flex-col items-start">
                 <div className="font-semibold text-sm text-text-primary">
@@ -65,44 +82,33 @@ export const NodeCard = ({ data }: { data: NodeCardData }) => {
             </div>
 
             {/* CONDITIONAL ACTION BUTTONS */}
-            {isEditMode &&
-              (isSafari ? (
-                // SAFARI: Simple, flat icon buttons
-                <div className="flex flex-row gap-2">
-                  <button onClick={onEdit}>
-                    <Edit className="w-4 h-4" />
-                  </button>
-                  <button onClick={() => {}}>
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              ) : (
-                // OTHER BROWSERS: Ellipsis popup menu
-                <div className="relative">
-                  <button
-                    onClick={handleMenuToggle}
-                    className="p-1 hover:bg-gray-100 rounded-full"
+            {isEditMode && (
+              // OTHER BROWSERS: Ellipsis popup menu
+              <div className="relative">
+                <button
+                  onClick={handleMenuToggle}
+                  className="p-1 hover:bg-gray-100 rounded-full"
+                >
+                  <Ellipsis className="w-4 h-4" />
+                </button>
+                {isMenuOpen && (
+                  <div
+                    ref={menuRef}
+                    className="absolute top-full right-0 mt-1 w-40 bg-white border border-gray-200 rounded-md shadow-lg z-10"
                   >
-                    <Ellipsis className="w-4 h-4" />
-                  </button>
-                  {isMenuOpen && (
-                    <div
-                      ref={menuRef}
-                      className="absolute top-full right-0 mt-1 w-40 bg-white border border-gray-200 rounded-md shadow-lg z-10"
+                    <button
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center gap-2"
+                      onClick={() => onEdit(employee)}
                     >
-                      <button
-                        className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center gap-2"
-                        onClick={onEdit}
-                      >
-                        <Edit className="w-4 h-4" /> Edit Structure
-                      </button>
-                      <button className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center gap-2">
-                        <Trash2 className="w-4 h-4" /> Delete
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ))}
+                      <Edit className="w-4 h-4" /> Edit Structure
+                    </button>
+                    <button className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center gap-2">
+                      <Trash2 className="w-4 h-4" /> Delete
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Bottom row: icons */}
@@ -132,9 +138,9 @@ export const NodeCard = ({ data }: { data: NodeCardData }) => {
           </div>
         </div>
       </div>
-      {isEditMode && (
+      {isEditMode && !isBottomLevel && (
         <button
-          onClick={() => onAddChild(employeeId)}
+          onClick={() => onAddChild(employeeId, "bottom")}
           className="flex items-center justify-center w-5 h-5 rounded-full bg-primary text-white shadow hover:bg-primary/80"
         >
           <Plus className="w-3 h-3" />

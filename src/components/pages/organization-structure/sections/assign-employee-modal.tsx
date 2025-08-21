@@ -1,7 +1,7 @@
 // assign-employee-modal.tsx
 "use client";
 
-import React from "react";
+import React, { useMemo, useState } from "react";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -28,66 +28,71 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { assignEmployeeFormScheme, AssignEmployeeFormValues } from "../types";
+import {
+  allEmployees,
+  assignEmployeeFormScheme,
+  AssignEmployeeFormValues,
+  EmployeeNode,
+} from "../types";
 import { SearchIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SelectForm } from "@/components/ui/select-form";
 import { MultiSelect } from "@/components/ui/multi-select";
 
-interface AssignEmployeetModalProps {
+interface AssignEmployeeModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  handleSave: (data: AssignEmployeeFormValues) => void;
-  handleClose: () => void;
+  handleSave: (
+    employee: EmployeeNode,
+    values: AssignEmployeeFormValues
+  ) => void;
+  unassignedEmployees: EmployeeNode[];
+  chartEmployees: EmployeeNode[];
 }
 
 export default function AssignEmployeeModal({
   open,
   onOpenChange,
   handleSave,
-  handleClose,
-}: AssignEmployeetModalProps) {
-  const [selectedEmployee, setSelectedEmployee] = React.useState<
-    (typeof employees)[0] | null
-  >(null);
+  unassignedEmployees,
+  chartEmployees,
+}: AssignEmployeeModalProps) {
+  const [selectedEmployee, setSelectedEmployee] = useState<EmployeeNode | null>(
+    null
+  );
+  const [search, setSearch] = useState("");
   const form = useForm<AssignEmployeeFormValues>({
     resolver: zodResolver(assignEmployeeFormScheme),
-    mode: "onChange", // validate on change so Save button can disable live
-    defaultValues: {
-      name: "",
-    },
+    mode: "onChange",
   });
 
   const onSubmit = (data: AssignEmployeeFormValues) => {
-    handleSave(data);
+    if (selectedEmployee) {
+      handleSave(selectedEmployee, data);
+      // Reset state after saving
+      setSelectedEmployee(null);
+      setSearch("");
+      form.reset();
+    }
   };
 
-  const employees = [
-    {
-      id: 1,
-      name: "Olivia Rhye",
-      title: "CEO",
-      image: "/images/olivia-rhye.png",
-    },
-    {
-      id: 2,
-      name: "OWLWW",
-      title: "Head of Production",
-      image: "/images/olivia-turner.png",
-    },
-    {
-      id: 3,
-      name: "KOKOKO",
-      title: "Head of Production",
-      image: "/images/olivia-turner.png",
-    },
-    {
-      id: 4,
-      name: "TTTTT",
-      title: "Head of Production",
-      image: "/images/olivia-turner.png",
-    },
-  ];
+  const handleClose = () => {
+    setSelectedEmployee(null);
+    setSearch("");
+    form.reset();
+    onOpenChange(false);
+  };
+
+  const employeeOptions = useMemo(
+    () =>
+      allEmployees
+        .filter((e) => e.employeeId !== selectedEmployee?.employeeId)
+        .map((e) => ({
+          label: `${e.name} (${e.title})`,
+          value: e.employeeId,
+        })),
+    [selectedEmployee]
+  );
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -135,26 +140,32 @@ export default function AssignEmployeeModal({
                             No employees found
                           </CommandEmpty>
                           <CommandGroup className="max-h-20 overflow-y-auto">
-                            {employees.map((employee) => (
-                              <CommandItem
-                                key={employee.id}
-                                value={employee.name}
-                                onSelect={() => {
-                                  form.setValue("name", employee.name, {
-                                    shouldValidate: true,
-                                  });
-                                  setSelectedEmployee(employee);
-                                }}
-                              >
-                                <Avatar className="h-8 w-8 mr-2">
-                                  <AvatarImage src={employee.image} />
-                                  <AvatarFallback>
-                                    {employee.name.charAt(0)}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <span>{employee.name}</span>
-                              </CommandItem>
-                            ))}
+                            {unassignedEmployees
+                              .filter((e) =>
+                                e.name
+                                  .toLowerCase()
+                                  .includes(search.toLowerCase())
+                              )
+                              .map((employee) => (
+                                <CommandItem
+                                  key={employee.employeeId}
+                                  onSelect={() => {
+                                    setSelectedEmployee(employee);
+                                    form.setValue("name", employee.name, {
+                                      shouldValidate: true,
+                                    });
+                                  }}
+                                  value={employee.name}
+                                >
+                                  <Avatar className="h-8 w-8 mr-2">
+                                    <AvatarImage src={employee.image} />
+                                    <AvatarFallback>
+                                      {employee.name.charAt(0)}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <span>{employee.name}</span>
+                                </CommandItem>
+                              ))}
                           </CommandGroup>
                         </CommandList>
                       </Command>
@@ -249,9 +260,10 @@ export default function AssignEmployeeModal({
                         </label>
                         <SelectForm
                           options={[
-                            { label: "Founder", value: "founder" },
-                            { label: "Senior", value: "senior" },
-                            { label: "Mid", value: "mid" },
+                            { label: "Founder", value: "1" },
+                            { label: "Senior", value: "2" },
+                            { label: "Mid", value: "3" },
+                            { label: "Junior", value: "4" },
                           ]}
                           required
                           {...field}
@@ -274,16 +286,7 @@ export default function AssignEmployeeModal({
                           <MultiSelect
                             name="primaryDirectReport"
                             placeholder="All Position"
-                            options={[
-                              {
-                                label:
-                                  "Demi Wilkinson (Head of Product Designer)",
-                                value: "Demi Wilkinson",
-                              },
-                              { label: "Team Lead", value: "team lead" },
-                              { label: "Senior", value: "senior" },
-                              { label: "Staff", value: "staff" },
-                            ]}
+                            options={employeeOptions}
                             value={field.value}
                             onValueChange={field.onChange}
                             maxCount={3}
@@ -307,16 +310,7 @@ export default function AssignEmployeeModal({
                           <MultiSelect
                             name="additionalDirectReport"
                             placeholder="All Position"
-                            options={[
-                              {
-                                label:
-                                  "Demi Wilkinson (Head of Product Designer)",
-                                value: "Demi Wilkinson",
-                              },
-                              { label: "Team Lead", value: "team lead" },
-                              { label: "Senior", value: "senior" },
-                              { label: "Staff", value: "staff" },
-                            ]}
+                            options={employeeOptions}
                             value={field.value}
                             onValueChange={field.onChange}
                             maxCount={3}
@@ -367,17 +361,14 @@ export default function AssignEmployeeModal({
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => {
-                  setSelectedEmployee(null);
-                  handleClose();
-                }}
+                onClick={handleClose}
                 className="min-w-[100px] text-primary"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
-                disabled={!form.formState.isValid}
+                disabled={!form.formState.isValid || !selectedEmployee}
                 className="min-w-[100px] bg-[#18618B] hover:bg-[#14506e] text-white font-medium py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Save

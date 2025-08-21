@@ -4,11 +4,12 @@
 import Image from "next/image";
 import {
   AssignEmployeeFormValues,
-  dummyEmployeeData,
+  allEmployees,
   EmployeeNode,
+  initialChartData,
   NodeCardData,
 } from "./types";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import AssignEmployeeModal from "./sections/assign-employee-modal";
 import EmployeeProfileModal from "./sections/employee-profile-modal";
@@ -73,8 +74,8 @@ const nodeTypes = {
 };
 
 export default function OrganizationChart() {
-  const [employeeData, setEmployeeData] =
-    useState<EmployeeNode[]>(dummyEmployeeData);
+  const [chartEmployees, setChartEmployees] =
+    useState<EmployeeNode[]>(initialChartData);
   const [nodes, setNodes, onNodesChange] = useNodesState<Node<NodeCardData>>(
     []
   );
@@ -97,10 +98,15 @@ export default function OrganizationChart() {
     setIsSafari(isSafariBrowser);
   }, []);
 
+  const unassignedEmployees = useMemo(() => {
+    const assignedIds = new Set(chartEmployees.map((e) => e.employeeId));
+    return allEmployees.filter((e) => !assignedIds.has(e.employeeId));
+  }, [chartEmployees]);
+
   useEffect(() => {
-    // Handler functions for the nodes to call
-    const onAddChild = (parentId?: string) => {
-      setCurrentParentId(parentId ?? null);
+    const onAddChild = (employeeId: string, handle: "top" | "bottom") => {
+      console.log(`Add child for ${employeeId} via ${handle} handle`);
+      setCurrentParentId(employeeId);
       setAssignEmployeeOpen(true);
     };
     const onEdit = (employee: EmployeeNode) => {
@@ -108,55 +114,63 @@ export default function OrganizationChart() {
       setIsProfileModalOpen(true);
     };
     const onDelete = (employeeId: string) => {
-      // We will add the full delete logic later
       console.log("Delete employee:", employeeId);
       alert(`Delete employee: ${employeeId}`);
     };
-    if (employeeData.length === 0) {
+
+    if (chartEmployees.length === 0) {
       setNodes([]);
       setEdges([]);
       return;
     }
 
-    const employeeDataWithProps: NodeCardData[] = employeeData.map((emp) => ({
+    // This part correctly enriches the data with handler functions.
+    const dataForNodes: NodeCardData[] = chartEmployees.map((emp) => ({
       employee: emp,
-      onAddChild: onAddChild,
-      onEdit: onEdit,
-      onDelete: onDelete,
+      onAddChild,
+      onEdit,
+      onDelete,
       isEditMode,
       isSafari,
     }));
 
     const { nodes: transformedNodes, edges: transformedEdges } =
-      transformDataForFlow(employeeDataWithProps);
-
+      transformDataForFlow(dataForNodes);
     const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
       transformedNodes,
       transformedEdges
     );
 
-    // Fix: Ensure node and edge types are correct for React Flow
+    // Fix: Ensure layoutedNodes is typed as Node<NodeCardData>[]
     setNodes(layoutedNodes as Node<NodeCardData>[]);
-    setEdges(layoutedEdges as Edge[]);
-  }, [employeeData, isEditMode, isSafari]);
+    setEdges(layoutedEdges);
+  }, [chartEmployees, isEditMode, isSafari]);
+
+  const handleModalSave = (
+    employeeToAdd: EmployeeNode,
+    formValues: AssignEmployeeFormValues
+  ) => {
+    const newEmployeeWithReports: EmployeeNode = {
+      ...employeeToAdd,
+      reportsTo: {
+        primary: formValues.primaryDirectReport,
+        additional: formValues.additionalDirectReport,
+      },
+    };
+    setChartEmployees((prev) => [...prev, newEmployeeWithReports]);
+    setAssignEmployeeOpen(false);
+  };
 
   const handleEditClick = () => {
-    setOriginalData(JSON.parse(JSON.stringify(employeeData)));
     setIsEditMode(true);
   };
 
   const handleSaveClick = () => {
-    console.log("Saving new data to API:", employeeData);
     setIsEditMode(false);
-    setOriginalData(null);
   };
 
   const handleCancelClick = () => {
-    if (originalData) {
-      setEmployeeData(originalData);
-    }
     setIsEditMode(false);
-    setOriginalData(null);
   };
 
   const openAssignModal = (parentId?: string) => {
@@ -164,41 +178,42 @@ export default function OrganizationChart() {
     setAssignEmployeeOpen(true);
   };
 
-  const handleSave = (formValues: AssignEmployeeFormValues) => {
-    // FIX: Use `employeeId` instead of `id` to match your EmployeeNode type
-    const newEmployee: EmployeeNode = {
-      employeeId: Date.now().toString(),
-      name: formValues.name,
-      title: "New Hire",
-      image: "/icons/user02.svg",
-      reportsTo: currentParentId ? { primary: [currentParentId] } : {},
-    };
-    setEmployeeData((prevData) => [...prevData, newEmployee]);
-    setAssignEmployeeOpen(false);
-    setCurrentParentId(null);
-  };
+  // const handleSave = (formValues: AssignEmployeeFormValues) => {
+  //   // FIX: Use `employeeId` instead of `id` to match your EmployeeNode type
+  //   const newEmployee: EmployeeNode = {
+  //     employeeId: Date.now().toString(),
+  //     name: formValues.name,
+  //     title: "New Hire",
+  //     image: "/icons/user02.svg",
+  //     reportsTo: currentParentId ? { primary: [currentParentId] } : {},
+  //   };
+  //   setEmployeeData((prevData) => [...prevData, newEmployee]);
+  //   setAssignEmployeeOpen(false);
+  //   setCurrentParentId(null);
+  // };
 
-  const handleEditSave = (formValues: AssignEmployeeFormValues) => {
-    console.log("Saving edited employee data:", formValues);
-    setEmployeeData((prevData) =>
-      prevData.map((emp) => {
-        // FIX: Use `employeeId` for comparison
-        if (emp.employeeId === selectedEmployee?.employeeId) {
-          return {
-            ...emp,
-            name: formValues.name,
-            reportsTo: {
-              primary: formValues.primaryDirectReport,
-              additional: formValues.additionalDirectReport,
-            },
-          };
-        }
-        return emp;
-      })
-    );
-    setIsProfileModalOpen(false);
-  };
+  // const handleEditSave = (formValues: AssignEmployeeFormValues) => {
+  //   console.log("Saving edited employee data:", formValues);
+  //   setEmployeeData((prevData) =>
+  //     prevData.map((emp) => {
+  //       // FIX: Use `employeeId` for comparison
+  //       if (emp.employeeId === selectedEmployee?.employeeId) {
+  //         return {
+  //           ...emp,
+  //           name: formValues.name,
+  //           reportsTo: {
+  //             primary: formValues.primaryDirectReport,
+  //             additional: formValues.additionalDirectReport,
+  //           },
+  //         };
+  //       }
+  //       return emp;
+  //     })
+  //   );
+  //   setIsProfileModalOpen(false);
+  // };
 
+  const handleModalEditSave = (formValues: AssignEmployeeFormValues) => {};
   return (
     <div className="font-sans min-h-screen">
       <div className="flex justify-between w-full items-center mb-3">
@@ -260,7 +275,7 @@ export default function OrganizationChart() {
       </div>
 
       <div style={{ width: "100%", height: "80vh" }}>
-        {employeeData.length === 0 ? (
+        {chartEmployees.length === 0 ? (
           <div
             className="rounded-md bg-grayscale-10 border shadow-sm border-grayscale-20 p-12 flex flex-col items-center justify-center gap-2 cursor-pointer h-full"
             onClick={() => openAssignModal()}
@@ -301,9 +316,11 @@ export default function OrganizationChart() {
 
       <AssignEmployeeModal
         open={assignEmployeeOpen}
-        handleClose={() => setAssignEmployeeOpen(false)}
-        handleSave={handleSave}
+        // handleClose={() => setAssignEmployeeOpen(false)}
+        handleSave={handleModalSave}
         onOpenChange={setAssignEmployeeOpen}
+        unassignedEmployees={unassignedEmployees} // FIX: Pass the correct props
+        chartEmployees={chartEmployees}
       />
 
       {selectedEmployee && (
@@ -312,7 +329,7 @@ export default function OrganizationChart() {
           onOpenChange={setIsProfileModalOpen}
           handleClose={() => setIsProfileModalOpen(false)}
           employeeData={selectedEmployee}
-          handleSave={handleEditSave}
+          handleSave={handleModalEditSave}
         />
       )}
     </div>
