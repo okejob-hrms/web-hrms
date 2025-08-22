@@ -1,3 +1,7 @@
+"use client";
+
+import React, { useEffect } from "react";
+
 import {
   AlertDialog,
   AlertDialogContent,
@@ -19,11 +23,12 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { DepartmentFormValues, departmentManagementFormScheme } from "../types";
+import { IDepartment } from "@/lib/types";
 
 interface DepartmentModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  editIndex: number | null;
+  initialData: IDepartment | null;
   handleSave: (data: DepartmentFormValues) => void;
   handleClose: () => void;
 }
@@ -31,7 +36,7 @@ interface DepartmentModalProps {
 export default function DepartmentModal({
   open,
   onOpenChange,
-  editIndex,
+  initialData,
   handleSave,
   handleClose,
 }: DepartmentModalProps) {
@@ -44,8 +49,26 @@ export default function DepartmentModal({
     },
   });
 
+  useEffect(() => {
+    if (initialData) {
+      form.reset({
+        name: initialData.name,
+        description: initialData.description || "",
+      });
+    } else {
+      form.reset({
+        name: "",
+        description: "",
+      });
+    }
+  }, [initialData, form]);
+
   const onSubmit = (data: DepartmentFormValues) => {
     handleSave(data);
+    form.reset({
+      name: "",
+      description: "",
+    });
   };
 
   return (
@@ -53,7 +76,7 @@ export default function DepartmentModal({
       <AlertDialogContent className="w-full max-w-md sm:max-w-xl bg-white px-4">
         <AlertDialogHeader>
           <AlertDialogTitle>
-            {editIndex !== null
+            {initialData !== null
               ? "Edit Department Details"
               : "Create New Department"}
           </AlertDialogTitle>
