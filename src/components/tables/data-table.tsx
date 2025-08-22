@@ -17,10 +17,12 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { GeneralPagination } from "../ui/pagination";
+import { Loader2 } from "lucide-react";
 
 interface DataTableProps<TData, TValue = unknown> {
   columns: ColumnDef<TData, TValue>[];
   data?: TData[];
+  isLoading?: boolean;
   tableClassName?: string;
   tableHeadClassName?: string;
   tableCellClassName?: string;
@@ -31,6 +33,7 @@ interface DataTableProps<TData, TValue = unknown> {
 export function DataTable<TData, TValue = unknown>({
   columns,
   data = [],
+  isLoading = false,
   tableClassName,
   tableHeadClassName,
   tableCellClassName,
@@ -53,7 +56,7 @@ export function DataTable<TData, TValue = unknown>({
             className={cn(
               "w-full",
               customSize ? "table-fixed min-w-[800px]" : "min-w-[800px]",
-              tableClassName,
+              tableClassName
             )}
           >
             <TableHeader>
@@ -75,12 +78,12 @@ export function DataTable<TData, TValue = unknown>({
                         customSize
                           ? "break-words whitespace-normal"
                           : "min-w-[120px]",
-                        tableHeadClassName,
+                        tableHeadClassName
                       )}
                     >
                       {flexRender(
                         header.column.columnDef.header,
-                        header.getContext(),
+                        header.getContext()
                       )}
                     </TableHead>
                   ))}
@@ -89,7 +92,19 @@ export function DataTable<TData, TValue = unknown>({
             </TableHeader>
 
             <TableBody>
-              {table.getRowModel().rows.length > 0 ? (
+              {isLoading ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center"
+                  >
+                    <div className="flex justify-center items-center">
+                      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : table.getRowModel().rows.length > 0 ? (
+                // Render data rows
                 table.getRowModel().rows.map((row) => (
                   <TableRow key={row.id} className="hover:bg-gray-50/50">
                     {row.getVisibleCells().map((cell) => (
@@ -108,21 +123,21 @@ export function DataTable<TData, TValue = unknown>({
                           customSize
                             ? "break-words whitespace-normal"
                             : "min-w-[120px]",
-                          tableCellClassName,
+                          tableCellClassName
                         )}
                       >
                         {customSize ? (
                           <div className="break-words whitespace-normal">
                             {flexRender(
                               cell.column.columnDef.cell,
-                              cell.getContext(),
+                              cell.getContext()
                             )}
                           </div>
                         ) : (
                           <div className="max-w-[200px] break-words whitespace-break-spaces">
                             {flexRender(
                               cell.column.columnDef.cell,
-                              cell.getContext(),
+                              cell.getContext()
                             )}
                           </div>
                         )}
@@ -131,6 +146,7 @@ export function DataTable<TData, TValue = unknown>({
                   </TableRow>
                 ))
               ) : (
+                // Render "No Data" message
                 <TableRow>
                   <TableCell
                     colSpan={columns.length}
@@ -140,8 +156,7 @@ export function DataTable<TData, TValue = unknown>({
                       No Data Available
                     </p>
                     <p className="text-text-secondary text-sm">
-                      There&apos;s currently no data to display in this table.
-                      Please add new entries.
+                      {"There's currently no data to display in this table."}
                     </p>
                   </TableCell>
                 </TableRow>

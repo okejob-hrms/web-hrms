@@ -6,32 +6,35 @@ import * as React from "react";
 import { useDepartmentManagement } from "@/components/pages/department-management/hooks/useDepartmentManagement";
 import DepartmentModal from "./sections/edit-modal";
 import { DataTable } from "@/components/tables/data-table";
-import { IDepartment } from "@/lib/types";
 import { ColumnDef } from "@tanstack/react-table";
 import { RowActions } from "@/components/tables/row-actions";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ArrowUp, ArrowDown, ChevronsUpDown } from "lucide-react";
 import { formatDateTime } from "@/lib/helpers";
 import DeleteDepartmentDialog from "./sections/delete-modal";
+import { DepartmentResponse } from "@/services/department/types";
 
 export default function DepartmentManagementList() {
   const {
-    setDepartmentName,
-    setDescription,
-    open,
-    setOpen,
     departments,
-    editIndex,
-    handleSave,
-    handleClose,
-    deleteDialogOpen,
+    isLoading, // <-- Use loading state
+    isEditModalOpen,
+    setEditModalOpen,
+    isDeleteDialogOpen,
     setDeleteDialogOpen,
-    setDeleteIndex,
-    handleDelete,
+    selectedDepartment,
+    handleCreate,
     handleEdit,
+    handleDeleteClick,
+    handleSave,
+    handleDeleteConfirm,
+    handleClose,
+    pageCount,
+    pagination,
+    setPagination,
   } = useDepartmentManagement();
 
-  const columns: ColumnDef<IDepartment>[] = [
+  const columns: ColumnDef<DepartmentResponse>[] = [
     {
       accessorKey: "name",
       header: "Department Name",
@@ -91,11 +94,10 @@ export default function DepartmentManagementList() {
           <div className="flex justify-end">
             <RowActions
               onEdit={() => {
-                handleEdit(item.id);
+                handleEdit(item); // <-- Pass the whole item object
               }}
               onDelete={() => {
-                setDeleteIndex(item.id);
-                setDeleteDialogOpen(true);
+                handleDeleteClick(item); // <-- Pass the whole item object
               }}
             />
           </div>
@@ -108,25 +110,18 @@ export default function DepartmentManagementList() {
 
   return (
     <div className="font-sans min-h-screen bg-gray-50">
-      {/* Outer container: center content, limit max width, add horizontal padding */}
       <div className="max-w-screen-lg mx-auto">
         <div className="flex flex-col justify-between gap-6">
           <div className="rounded-md bg-white border shadow-sm border-grayscale-20 flex flex-col gap-4 p-6">
             <div className="flex flex-col sm:flex-row justify-between w-full items-start sm:items-center gap-4 sm:gap-0">
-              {/* Header Left */}
               <div className="flex gap-2 items-center flex-wrap">
                 <h2 className="font-semibold text-xl">Department List</h2>
                 <Badge className="bg-primary-background text-primary rounded-full">
                   {departments.length} Departments
                 </Badge>
               </div>
-              {/* Button */}
               <Button
-                onClick={() => {
-                  setOpen(true);
-                  setDepartmentName("");
-                  setDescription("");
-                }}
+                onClick={handleCreate} // <-- Use the new handler
                 className="whitespace-nowrap"
               >
                 + New Department
@@ -135,21 +130,23 @@ export default function DepartmentManagementList() {
             <DataTable
               columns={columns}
               data={departments}
+              isLoading={isLoading}
               customSize={!isMobile}
+              withPagination
             />
           </div>
         </div>
       </div>
       {/* Modals */}
       <DeleteDepartmentDialog
-        open={deleteDialogOpen}
+        open={isDeleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
-        onDelete={handleDelete}
+        onDelete={handleDeleteConfirm} // <-- Use new handler
       />
       <DepartmentModal
-        open={open}
-        onOpenChange={setOpen}
-        editIndex={editIndex}
+        open={isEditModalOpen}
+        onOpenChange={setEditModalOpen}
+        initialData={selectedDepartment} // <-- Pass department data instead of index
         handleSave={handleSave}
         handleClose={handleClose}
       />
