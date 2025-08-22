@@ -10,7 +10,7 @@ export type ITeamForm = z.infer<typeof teamFormScheme>;
 export interface TeamResponse {
   id: number;
   name: string;
-  description: string | null;
+  description?: string | null;
   created_at: string;
   updated_at: string;
 }

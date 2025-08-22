@@ -6,7 +6,7 @@ export const api: typeof ky = ky.create({
   hooks: {
     beforeRequest: [
       (request) => {
-        request.headers.set("Accecpt", "application/json");
+        request.headers.set("Accept", "application/json");
         request.headers.set("Content-Type", "application/json");
         request.headers.set("Authorization", "Bearer " + token);
       },

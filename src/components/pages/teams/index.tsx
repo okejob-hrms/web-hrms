@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import * as React from "react";
 import DepartmentModal from "./sections/edit-modal";
 import { DataTable } from "@/components/tables/data-table";
-import { IDepartment } from "@/lib/types";
+import { IDepartment, ITeam } from "@/lib/types";
 import { ColumnDef } from "@tanstack/react-table";
 import { RowActions } from "@/components/tables/row-actions";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -12,25 +12,29 @@ import { ArrowUp, ArrowDown, ChevronsUpDown } from "lucide-react";
 import { useTeamManagement } from "./hooks/useTeamManagement";
 import { formatDateTime } from "@/lib/helpers";
 import DeleteTeamDialog from "./sections/delete-modal";
+import { TeamResponse } from "@/services/team/types";
 
 export default function TeamManagementList() {
   const {
-    setTeamName,
-    setDescription,
-    open,
-    setOpen,
     teams,
-    editIndex,
-    handleSave,
-    handleClose,
-    deleteDialogOpen,
+    isLoading, // <-- Use loading state
+    isEditModalOpen,
+    setEditModalOpen,
+    isDeleteDialogOpen,
     setDeleteDialogOpen,
-    setDeleteIndex,
-    handleDelete,
+    selectedteam,
+    handleCreate,
     handleEdit,
+    handleDeleteClick,
+    handleSave,
+    handleDeleteConfirm,
+    handleClose,
+    pageCount,
+    pagination,
+    setPagination,
   } = useTeamManagement();
 
-  const columns: ColumnDef<IDepartment>[] = [
+  const columns: ColumnDef<TeamResponse>[] = [
     {
       accessorKey: "name",
       header: "Team Name",
@@ -89,11 +93,10 @@ export default function TeamManagementList() {
         return (
           <RowActions
             onEdit={() => {
-              handleEdit(item.id);
+              handleEdit(item);
             }}
             onDelete={() => {
-              setDeleteIndex(item.id);
-              setDeleteDialogOpen(true);
+              handleDeleteClick(item);
             }}
           />
         );
@@ -115,31 +118,29 @@ export default function TeamManagementList() {
                 <h2 className="font-semibold text-xl">Teams</h2>
               </div>
               {/* Button */}
-              <Button
-                onClick={() => {
-                  setOpen(true);
-                  setTeamName("");
-                  setDescription("");
-                }}
-                className="whitespace-nowrap"
-              >
+              <Button onClick={handleCreate} className="whitespace-nowrap">
                 + New Team
               </Button>
             </div>
-            <DataTable columns={columns} data={teams} customSize={!isMobile} />
+            <DataTable
+              columns={columns}
+              data={teams}
+              customSize={!isMobile}
+              withPagination
+            />
           </div>
         </div>
       </div>
       {/* Modals */}
       <DeleteTeamDialog
-        open={deleteDialogOpen}
+        open={isDeleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
-        onDelete={handleDelete}
+        onDelete={handleDeleteConfirm}
       />
       <DepartmentModal
-        open={open}
-        onOpenChange={setOpen}
-        editIndex={editIndex}
+        open={isEditModalOpen}
+        onOpenChange={setEditModalOpen}
+        initialData={selectedteam}
         handleSave={handleSave}
         handleClose={handleClose}
       />
