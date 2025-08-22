@@ -9,37 +9,29 @@ import * as React from "react";
 import { MultiSelectForm } from "@/components/ui/multi-select";
 import { Filters } from "../types";
 import { AdvancedFilter } from "./advanced-filters";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { getDepartment } from "@/services/department";
 import { getJobPosition } from "@/services/job-position";
 import { useForm } from "react-hook-form";
 import { Form } from "@/components/ui/form";
-import dayjs from "dayjs";
 
 interface ToolbarProps {
-  onFiltersChange?: (filters: Filters) => void;
+  onFiltersChange: (filters: Filters) => void;
 }
 
 export const Toolbar = React.memo(function Toolbar({
   onFiltersChange,
 }: ToolbarProps) {
   const initValues = {
-    department: [""],
-    position: [""],
+    department_ids: [],
+    job_position_ids: [],
     search: "",
-    start_date: dayjs().format("DD-MM-YYYY"),
-    end_date: dayjs().format("DD-MM-YYYY"),
   };
   const [isAdvanced, setIsAdvanced] = React.useState(false);
   const form = useForm<Filters>({
     defaultValues: initValues,
   });
-  const queryClient = useQueryClient();
-  const {
-    data: departments,
-    isLoading: isDepartmentsLoading,
-    error: departmentsError,
-  } = useQuery({
+  const { data: departments } = useQuery({
     queryKey: ["departments"],
     queryFn: getDepartment,
     retry: (failureCount, error: any) => {
@@ -50,11 +42,7 @@ export const Toolbar = React.memo(function Toolbar({
     refetchOnWindowFocus: false,
   });
 
-  const {
-    data: positions,
-    isLoading: isPositionsLoading,
-    error: positionsError,
-  } = useQuery({
+  const { data: positions } = useQuery({
     queryKey: ["job-position"],
     queryFn: getJobPosition,
     retry: (failureCount, error: any) => {
@@ -69,7 +57,7 @@ export const Toolbar = React.memo(function Toolbar({
     if (departments?.data?.data) {
       return departments.data.data.map((item) => ({
         label: item.name,
-        value: item.name,
+        value: item.id.toString(),
       }));
     }
     return [];
@@ -79,7 +67,7 @@ export const Toolbar = React.memo(function Toolbar({
     if (positions?.data) {
       return positions.data.map((item) => ({
         label: item.name,
-        value: item.name,
+        value: item.id.toString(),
       }));
     }
     return [];
@@ -87,21 +75,35 @@ export const Toolbar = React.memo(function Toolbar({
 
   const onSubmit = (values: Filters) => {
     console.log("Basic filter submit:", values);
-    onFiltersChange?.(values);
-    queryClient.invalidateQueries({ queryKey: ["employees"] });
+    onFiltersChange({
+      ...values,
+      department_ids: values.department_ids?.flatMap((item) => Number(item)),
+      job_position_ids: values.job_position_ids?.flatMap((item) =>
+        Number(item),
+      ),
+    });
   };
 
   const handleAdvancedFilters = (filters: Filters) => {
     console.log("Advanced filters applied:", filters);
-    onFiltersChange?.(filters);
+    onFiltersChange(filters);
   };
 
   const handleAdvancedReset = () => {
     setIsAdvanced(false);
-    // Reset filters to initial values
-    onFiltersChange?.(initValues);
-    queryClient.invalidateQueries({ queryKey: ["employees"] });
+    onFiltersChange(initValues);
   };
+
+  const handleSearchKeyPress = React.useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Enter") {
+        onSubmit({
+          search: form.watch("search"),
+        });
+      }
+    },
+    [onSubmit],
+  );
 
   if (isAdvanced)
     return (
@@ -109,6 +111,7 @@ export const Toolbar = React.memo(function Toolbar({
         onReset={() => {
           setIsAdvanced(false);
         }}
+        onApplyFilters={handleAdvancedFilters}
       />
     );
 
@@ -121,22 +124,16 @@ export const Toolbar = React.memo(function Toolbar({
             placeholder="Search by Employee Name or ID"
             icon={<Search className="size-5 text-grayscale-20" />}
             iconPosition="right"
+            onKeyDown={handleSearchKeyPress}
           />
           <Separator orientation="vertical" />
           <div className="flex flex-col gap-2">
             <label className="text-sm text-text-secondary">Position</label>
             <MultiSelectForm
               placeholder="All Position"
-              options={[
-                { label: "Head", value: "head" },
-                { label: "Team Lead", value: "team lead" },
-                { label: "Senior", value: "senior" },
-                { label: "Staff", value: "staff" },
-              ]}
-              // options={positionOptions}
+              options={positionOptions}
               name="position"
               maxCount={1}
-              // variant="inverted"
               searchPlaceholder="Search Position"
               allSelectLabel="All Position"
             />
@@ -145,18 +142,10 @@ export const Toolbar = React.memo(function Toolbar({
           <div className="flex flex-col gap-2">
             <label className="text-sm text-text-secondary">Department</label>
             <MultiSelectForm
-              options={[
-                { label: "Managerial", value: "managerial" },
-                { label: "Engineering", value: "engineering" },
-                { label: "Product Design", value: "product" },
-                { label: "Human Resource and Development", value: "hrd" },
-                { label: "Marketing", value: "marketing" },
-              ]}
               placeholder="All Department"
-              // options={departmentOptions}
+              options={departmentOptions}
               name="department"
               maxCount={1}
-              // variant="inverted"
               searchPlaceholder="Search Department"
               allSelectLabel="All Department"
             />
@@ -164,6 +153,7 @@ export const Toolbar = React.memo(function Toolbar({
           <Button
             variant="ghost"
             className="text-primary"
+            type="button"
             onClick={() => setIsAdvanced(true)}
           >
             <Settings /> Advanced Search

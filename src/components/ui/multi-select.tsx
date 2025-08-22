@@ -974,6 +974,7 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
           <PopoverTrigger asChild className="!rounded-sm border-grayscale-30">
             <Button
               ref={buttonRef}
+              type="button"
               {...props}
               onClick={handleTogglePopover}
               disabled={disabled}

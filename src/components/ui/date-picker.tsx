@@ -56,6 +56,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
+                  type="button"
                   data-empty={!(props.value || field.value)}
                   className="data-[empty=true]:text-muted-foreground justify-between text-left font-normal border-input h-10 rounded-sm text-foreground"
                 >
@@ -95,6 +96,7 @@ export const BasicDatePicker: React.FC<BasicDatePickerProps> = (props) => {
         <PopoverTrigger asChild>
           <Button
             variant="outline"
+            type="button"
             data-empty={!props.value}
             className="data-[empty=true]:text-muted-foreground justify-start text-left font-normal border-input h-10 rounded-sm text-foreground"
           >

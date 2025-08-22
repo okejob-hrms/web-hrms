@@ -7,24 +7,23 @@ import { InputForm } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
 import { useForm } from "react-hook-form";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { getDepartment } from "@/services/department";
 import { getJobPosition } from "@/services/job-position";
 import { Form } from "@/components/ui/form";
 import dayjs from "dayjs";
 
 interface ExtendedAdvancedFilterProps extends AdvancedFilterProps {
-  onApplyFilters?: (filters: Filters) => void;
+  onApplyFilters: (filters: Filters) => void;
 }
 
 export const AdvancedFilter = React.memo(function AdvancedFilter({
   onReset,
   onApplyFilters,
 }: ExtendedAdvancedFilterProps) {
-  const queryClient = useQueryClient();
   const initValues: Filters = {
-    department: [""],
-    position: [""],
+    department_ids: [],
+    job_position_ids: [],
     search: "",
     start_date: null,
     end_date: null,
@@ -32,11 +31,7 @@ export const AdvancedFilter = React.memo(function AdvancedFilter({
   const form = useForm<Filters>({
     defaultValues: initValues,
   });
-  const {
-    data: departments,
-    isLoading: isDepartmentsLoading,
-    error: departmentsError,
-  } = useQuery({
+  const { data: departments } = useQuery({
     queryKey: ["departments"],
     queryFn: getDepartment,
     retry: (failureCount, error: any) => {
@@ -47,11 +42,7 @@ export const AdvancedFilter = React.memo(function AdvancedFilter({
     refetchOnWindowFocus: false,
   });
 
-  const {
-    data: positions,
-    isLoading: isPositionsLoading,
-    error: positionsError,
-  } = useQuery({
+  const { data: positions } = useQuery({
     queryKey: ["job-position"],
     queryFn: getJobPosition,
     retry: (failureCount, error: any) => {
@@ -66,7 +57,7 @@ export const AdvancedFilter = React.memo(function AdvancedFilter({
     if (departments?.data?.data) {
       return departments.data.data.map((item) => ({
         label: item.name,
-        value: item.name,
+        value: item.id.toString(),
       }));
     }
     return [];
@@ -76,21 +67,37 @@ export const AdvancedFilter = React.memo(function AdvancedFilter({
     if (positions?.data) {
       return positions.data.map((item) => ({
         label: item.name,
-        value: item.name,
+        value: item.id.toString(),
       }));
     }
     return [];
   }, [positions?.data]);
 
   const onSubmit = (values: Filters) => {
-    console.log("onSubmit ", values);
-    onApplyFilters?.(values);
-    queryClient.invalidateQueries({ queryKey: ["employees"] });
+    try {
+      console.log("onSubmit ", values);
+      const normalized: Filters = {
+        ...values,
+        department_ids:
+          values.department_ids?.map((item) => Number(item)) || [],
+        job_position_ids:
+          values.job_position_ids?.map((item) => Number(item)) || [],
+        start_date: values.start_date
+          ? dayjs(values.start_date as unknown as Date).format("YYYY-MM-DD")
+          : null,
+        end_date: values.end_date
+          ? dayjs(values.end_date as unknown as Date).format("YYYY-MM-DD")
+          : null,
+      };
+      onApplyFilters(normalized);
+    } catch (error) {
+      console.error("Error applying advanced filters:", error);
+    }
   };
 
-  const handleReset = () => {
+  const handleCancel = () => {
     form.reset();
-    onApplyFilters?.(initValues);
+    // onApplyFilters?.(initValues);
     onReset();
   };
 
@@ -105,7 +112,8 @@ export const AdvancedFilter = React.memo(function AdvancedFilter({
             <Button
               variant="ghost"
               className="text-primary content-fit"
-              onClick={handleReset}
+              type="button"
+              onClick={() => form.reset()}
             >
               <RotateCcw /> Reset
             </Button>
@@ -119,7 +127,7 @@ export const AdvancedFilter = React.memo(function AdvancedFilter({
                 placeholder="Employee Name or ID"
                 icon={<Search className="size-5 text-grayscale-20" />}
                 iconPosition="right"
-                name="name"
+                name="search"
               />
             </div>
             <div className="flex flex-col gap-2">
@@ -128,12 +136,7 @@ export const AdvancedFilter = React.memo(function AdvancedFilter({
                 allSelectLabel="All Position"
                 placeholder="All Position"
                 searchPlaceholder="Search Position"
-                options={[
-                  { label: "Head", value: "head" },
-                  { label: "Team Lead", value: "team lead" },
-                  { label: "Senior", value: "senior" },
-                  { label: "Staff", value: "staff" },
-                ]}
+                options={positionOptions}
                 maxCount={1}
                 variant="inverted"
                 name="position"
@@ -144,13 +147,7 @@ export const AdvancedFilter = React.memo(function AdvancedFilter({
               <label className="text-sm text-text-secondary">Department</label>
               <MultiSelectForm
                 allSelectLabel="All Department"
-                options={[
-                  { label: "Managerial", value: "managerial" },
-                  { label: "Engineering", value: "engineering" },
-                  { label: "Product Design", value: "product" },
-                  { label: "Human Resource and Development", value: "hrd" },
-                  { label: "Marketing", value: "marketing" },
-                ]}
+                options={departmentOptions}
                 placeholder="All Department"
                 name="department"
                 searchPlaceholder="Search Department"
@@ -165,7 +162,7 @@ export const AdvancedFilter = React.memo(function AdvancedFilter({
             </div>
           </div>
           <div className="flex gap-4 self-end">
-            <Button variant="outline" onClick={() => form.reset()}>
+            <Button variant="outline" type="button" onClick={handleCancel}>
               Cancel
             </Button>
             <Button variant="default" type="submit">

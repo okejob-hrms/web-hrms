@@ -71,7 +71,7 @@ export function DataTable<TData, TValue = unknown>({
                           : undefined
                       }
                       className={cn(
-                        "bg-gray-50 p-4 sticky top-0 z-10 text-left font-medium",
+                        "bg-gray-50 p-4 sticky top-0 z-10 text-left font-medium text-text-secondary",
                         customSize
                           ? "break-words whitespace-normal"
                           : "min-w-[120px]",
