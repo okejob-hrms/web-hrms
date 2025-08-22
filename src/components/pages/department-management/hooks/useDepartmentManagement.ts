@@ -35,10 +35,10 @@ export function useDepartmentManagement() {
 
   // Calculate pageCount now that we have 'total'
   const pageCount = useMemo(() => {
-    const total = paginatedData?.data?.total ?? 0;
+    const total = paginatedData?.data?.to ?? 0;
     const pageSize = pagination.pageSize;
     return total > 0 ? Math.ceil(total / pageSize) : 0;
-  }, [paginatedData?.data?.total, pagination.pageSize]);
+  }, [paginatedData?.data?.to, pagination.pageSize]);
 
   // MUTATION: Create a new department
   const { mutate: addDepartment } = useMutation({
