@@ -28,7 +28,6 @@ export const PersonalInformationSection = React.memo(
     const [socialMediaForm, setSocialMediaForm] = React.useState(1);
 
     const roleOptions = React.useMemo(() => {
-      console.log("data", roles);
       if (roles?.data) {
         return roles.data?.map((item) => ({
           label: item.name,
@@ -260,7 +259,6 @@ export const PersonalInformationSection = React.memo(
             className="w-fit text-primary"
             type="button"
             onClick={() => {
-              console.log("#clicked");
               setSocialMediaForm((prev) => prev + 1);
             }}
           >
