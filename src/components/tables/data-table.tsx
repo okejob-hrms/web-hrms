@@ -5,6 +5,7 @@ import {
   getSortedRowModel,
   ColumnDef,
   flexRender,
+  PaginationState,
 } from "@tanstack/react-table";
 
 import {
@@ -28,7 +29,14 @@ interface DataTableProps<TData, TValue = unknown> {
   tableHeadClassName?: string;
   tableCellClassName?: string;
   customSize?: boolean;
+<<<<<<< HEAD
   pagination?: PaginatedResponse<TData>;
+=======
+  pagination?: PaginationState;
+  setPagination?: React.Dispatch<React.SetStateAction<PaginationState>>;
+  hasNextPage?: boolean;
+  hasPreviousPage?: boolean;
+>>>>>>> ba79b83 (Integaration Pagination Teams)
 }
 
 export function DataTable<TData, TValue>({
@@ -40,13 +48,28 @@ export function DataTable<TData, TValue>({
   tableCellClassName,
   customSize = false,
   pagination,
+<<<<<<< HEAD
+=======
+  setPagination,
+  hasNextPage,
+  hasPreviousPage,
+>>>>>>> ba79b83 (Integaration Pagination Teams)
 }: DataTableProps<TData, TValue>) {
+  const isPaginated =
+    withPagination && pagination !== undefined && setPagination !== undefined;
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
+    manualSorting: true,
+    ...(isPaginated && {
+      state: {
+        pagination,
+      },
+      onPaginationChange: setPagination,
+      manualPagination: true,
+    }),
   });
 
   return (
@@ -105,7 +128,6 @@ export function DataTable<TData, TValue>({
                   </TableCell>
                 </TableRow>
               ) : table.getRowModel().rows.length > 0 ? (
-                // Render data rows
                 table.getRowModel().rows.map((row) => (
                   <TableRow key={row.id} className="hover:bg-gray-50/50">
                     {row.getVisibleCells().map((cell) => (
@@ -147,7 +169,6 @@ export function DataTable<TData, TValue>({
                   </TableRow>
                 ))
               ) : (
-                // Render "No Data" message
                 <TableRow>
                   <TableCell
                     colSpan={columns.length}
@@ -167,7 +188,18 @@ export function DataTable<TData, TValue>({
         </div>
       </div>
 
+<<<<<<< HEAD
       {pagination && <GeneralPagination pagination={pagination} />}
+=======
+      {isPaginated && (
+        <GeneralPagination
+          table={table}
+          hasNextPage={hasNextPage}
+          hasPreviousPage={hasPreviousPage}
+          isLoading={isLoading}
+        />
+      )}
+>>>>>>> ba79b83 (Integaration Pagination Teams)
     </div>
   );
 }

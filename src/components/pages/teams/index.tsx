@@ -17,7 +17,7 @@ import { TeamResponse } from "@/services/team/types";
 export default function TeamManagementList() {
   const {
     teams,
-    isLoading, // <-- Use loading state
+    isLoading,
     isEditModalOpen,
     setEditModalOpen,
     isDeleteDialogOpen,
@@ -29,7 +29,8 @@ export default function TeamManagementList() {
     handleSave,
     handleDeleteConfirm,
     handleClose,
-    pageCount,
+    hasNextPage,
+    hasPreviousPage,
     pagination,
     setPagination,
   } = useTeamManagement();
@@ -127,6 +128,11 @@ export default function TeamManagementList() {
               data={teams}
               customSize={!isMobile}
               withPagination
+              isLoading={isLoading}
+              pagination={pagination}
+              setPagination={setPagination}
+              hasNextPage={hasNextPage}
+              hasPreviousPage={hasPreviousPage}
             />
           </div>
         </div>

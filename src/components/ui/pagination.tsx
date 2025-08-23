@@ -62,7 +62,7 @@ function PaginationLink({
         }),
         "text-text-disabled font-semibold",
         isActive && "bg-primary-focused text-primary",
-        className,
+        className
       )}
       {...props}
     />
@@ -79,7 +79,7 @@ function PaginationPrevious({
       size="default"
       className={cn(
         "gap-1 px-2.5 sm:pl-2.5 rounded-sm border border-primary",
-        className,
+        className
       )}
       {...props}
     >
@@ -106,7 +106,7 @@ function PaginationNext({
       size="default"
       className={cn(
         "gap-1 px-2.5 sm:pr-2.5 rounded-sm border border-primary",
-        className,
+        className
       )}
       {...props}
     >
@@ -157,7 +157,6 @@ function GeneralPagination<T = unknown>({ pagination }: PaginationProps<T>) {
           <PaginationPrevious href={prev_page_url || "#"} />
         </PaginationItem>
       </PaginationContent>
-
       <PaginationContent>
         {pageNumbers.map((number) => (
           <PaginationItem key={number}>
@@ -184,7 +183,6 @@ function GeneralPagination<T = unknown>({ pagination }: PaginationProps<T>) {
           <PaginationEllipsis />
         </PaginationItem> */}
       </PaginationContent>
-
       <PaginationContent>
         <PaginationItem>
           <PaginationNext href={next_page_url || "#"} />
