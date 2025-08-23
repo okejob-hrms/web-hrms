@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
 import { postLogin } from "@/services/auth";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
