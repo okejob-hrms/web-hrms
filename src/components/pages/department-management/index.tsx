@@ -120,10 +120,7 @@ export default function DepartmentManagementList() {
                   {departments.length} Departments
                 </Badge>
               </div>
-              <Button
-                onClick={handleCreate} // <-- Use the new handler
-                className="whitespace-nowrap"
-              >
+              <Button onClick={handleCreate} className="whitespace-nowrap">
                 + New Department
               </Button>
             </div>
@@ -141,12 +138,12 @@ export default function DepartmentManagementList() {
       <DeleteDepartmentDialog
         open={isDeleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
-        onDelete={handleDeleteConfirm} // <-- Use new handler
+        onDelete={handleDeleteConfirm}
       />
       <DepartmentModal
         open={isEditModalOpen}
         onOpenChange={setEditModalOpen}
-        initialData={selectedDepartment} // <-- Pass department data instead of index
+        initialData={selectedDepartment}
         handleSave={handleSave}
         handleClose={handleClose}
       />

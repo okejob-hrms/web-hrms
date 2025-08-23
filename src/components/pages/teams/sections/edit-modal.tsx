@@ -42,7 +42,7 @@ export default function TeamModal({
 }: TeamModalProps) {
   const form = useForm<TeamsFormValues>({
     resolver: zodResolver(teamsFormScheme),
-    mode: "onChange", // validate on change so Save button can disable live
+    mode: "onChange",
     defaultValues: {
       name: "",
       description: "",

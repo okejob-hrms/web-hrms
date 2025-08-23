@@ -1,6 +1,7 @@
 import { api } from "@/lib/api";
 import { TeamResponse, ITeamForm } from "./types";
 import { ApiResponse, PaginatedResponse } from "@/lib/types";
+import { PaginationState } from "@tanstack/react-table";
 
 export const postTeam = async (
   payload: ITeamForm
@@ -11,13 +12,29 @@ export const postTeam = async (
   return response.json();
 };
 
-export const getTeam = async (): Promise<
-  ApiResponse<PaginatedResponse<TeamResponse>>
-> => {
+export const getTeam = async (
+  // Make the pagination parameter optional by adding a '?'
+  pagination?: PaginationState
+): Promise<ApiResponse<PaginatedResponse<TeamResponse>>> => {
+  let searchParams = {};
+
+  // Conditionally build searchParams only if pagination is provided
+  if (pagination) {
+    const page = pagination.pageIndex + 1;
+    const per_page = pagination.pageSize;
+    searchParams = {
+      page: page.toString(),
+      per_page: per_page.toString(),
+    };
+  }
+
   const response = await api.get<ApiResponse<PaginatedResponse<TeamResponse>>>(
-    "teams"
-    // JSON.stringify(payload),
+    "teams",
+    {
+      searchParams,
+    }
   );
+
   return response.json();
 };
 

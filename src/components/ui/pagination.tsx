@@ -4,6 +4,7 @@ import { MoreHorizontalIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button, buttonVariants } from "@/components/ui/button";
 import Image from "next/image";
+import { Table } from "@tanstack/react-table";
 
 function Pagination({ className, ...props }: React.ComponentProps<"nav">) {
   return (
@@ -55,7 +56,7 @@ function PaginationLink({
           variant: isActive ? "outline" : "ghost",
           size,
         }),
-        className,
+        className
       )}
       {...props}
     />
@@ -72,7 +73,7 @@ function PaginationPrevious({
       size="default"
       className={cn(
         "gap-1 px-2.5 sm:pl-2.5 rounded-sm border border-primary",
-        className,
+        className
       )}
       {...props}
     >
@@ -99,7 +100,7 @@ function PaginationNext({
       size="default"
       className={cn(
         "gap-1 px-2.5 sm:pr-2.5 rounded-sm border border-primary",
-        className,
+        className
       )}
       {...props}
     >
@@ -133,35 +134,70 @@ function PaginationEllipsis({
   );
 }
 
-function GeneralPagination() {
+interface GeneralPaginationProps<TData> {
+  table: Table<TData>;
+  hasNextPage?: boolean;
+  hasPreviousPage?: boolean;
+  isLoading: boolean;
+}
+
+function GeneralPagination<TData>({
+  table,
+  hasNextPage,
+  hasPreviousPage,
+  isLoading,
+}: GeneralPaginationProps<TData>) {
+  const currentPage = table.getState().pagination.pageIndex + 1;
+
   return (
     <Pagination className="justify-between py-4">
       <PaginationContent>
         <PaginationItem>
-          <PaginationPrevious href="#" />
+          <PaginationPrevious
+            onClick={() => {
+              if (!isLoading && hasPreviousPage) table.previousPage();
+            }}
+            aria-disabled={isLoading || !hasPreviousPage}
+            tabIndex={isLoading || !hasPreviousPage ? -1 : 0}
+            className={
+              isLoading || !hasPreviousPage
+                ? "pointer-events-none opacity-50"
+                : ""
+            }
+          />
         </PaginationItem>
       </PaginationContent>
-
       <PaginationContent>
+        {!isLoading && hasPreviousPage && (
+          <PaginationItem>
+            <PaginationLink onClick={table.previousPage}>
+              {currentPage - 1}
+            </PaginationLink>
+          </PaginationItem>
+        )}
         <PaginationItem>
-          <PaginationLink href="#">1</PaginationLink>
+          <PaginationLink isActive>{currentPage}</PaginationLink>
         </PaginationItem>
-        <PaginationItem>
-          <PaginationLink href="#" isActive>
-            2
-          </PaginationLink>
-        </PaginationItem>
-        <PaginationItem>
-          <PaginationLink href="#">3</PaginationLink>
-        </PaginationItem>
-        <PaginationItem>
-          <PaginationEllipsis />
-        </PaginationItem>
+        {!isLoading && hasNextPage && (
+          <PaginationItem>
+            <PaginationLink onClick={table.nextPage}>
+              {currentPage + 1}
+            </PaginationLink>
+          </PaginationItem>
+        )}
       </PaginationContent>
-
       <PaginationContent>
         <PaginationItem>
-          <PaginationNext href="#" />
+          <PaginationNext
+            onClick={() => {
+              if (!isLoading && hasNextPage) table.nextPage();
+            }}
+            aria-disabled={isLoading || !hasNextPage}
+            tabIndex={isLoading || !hasNextPage ? -1 : 0}
+            className={
+              isLoading || !hasNextPage ? "pointer-events-none opacity-50" : ""
+            }
+          />
         </PaginationItem>
       </PaginationContent>
     </Pagination>

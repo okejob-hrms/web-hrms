@@ -5,6 +5,7 @@ import {
   getSortedRowModel,
   ColumnDef,
   flexRender,
+  PaginationState,
 } from "@tanstack/react-table";
 
 import {
@@ -28,6 +29,10 @@ interface DataTableProps<TData, TValue = unknown> {
   tableCellClassName?: string;
   withPagination?: boolean;
   customSize?: boolean;
+  pagination?: PaginationState;
+  setPagination?: React.Dispatch<React.SetStateAction<PaginationState>>;
+  hasNextPage?: boolean;
+  hasPreviousPage?: boolean;
 }
 
 export function DataTable<TData, TValue = unknown>({
@@ -39,13 +44,26 @@ export function DataTable<TData, TValue = unknown>({
   tableCellClassName,
   withPagination,
   customSize = false,
+  pagination,
+  setPagination,
+  hasNextPage,
+  hasPreviousPage,
 }: DataTableProps<TData, TValue>) {
+  const isPaginated =
+    withPagination && pagination !== undefined && setPagination !== undefined;
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
+    manualSorting: true,
+    ...(isPaginated && {
+      state: {
+        pagination,
+      },
+      onPaginationChange: setPagination,
+      manualPagination: true,
+    }),
   });
 
   return (
@@ -104,7 +122,6 @@ export function DataTable<TData, TValue = unknown>({
                   </TableCell>
                 </TableRow>
               ) : table.getRowModel().rows.length > 0 ? (
-                // Render data rows
                 table.getRowModel().rows.map((row) => (
                   <TableRow key={row.id} className="hover:bg-gray-50/50">
                     {row.getVisibleCells().map((cell) => (
@@ -146,7 +163,6 @@ export function DataTable<TData, TValue = unknown>({
                   </TableRow>
                 ))
               ) : (
-                // Render "No Data" message
                 <TableRow>
                   <TableCell
                     colSpan={columns.length}
@@ -166,7 +182,14 @@ export function DataTable<TData, TValue = unknown>({
         </div>
       </div>
 
-      {withPagination && <GeneralPagination />}
+      {isPaginated && (
+        <GeneralPagination
+          table={table}
+          hasNextPage={hasNextPage}
+          hasPreviousPage={hasPreviousPage}
+          isLoading={isLoading}
+        />
+      )}
     </div>
   );
 }
