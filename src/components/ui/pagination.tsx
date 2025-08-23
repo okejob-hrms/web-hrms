@@ -4,6 +4,11 @@ import { MoreHorizontalIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button, buttonVariants } from "@/components/ui/button";
 import Image from "next/image";
+import { PaginatedResponse } from "@/lib/types";
+
+interface PaginationProps<T = unknown> {
+  pagination: PaginatedResponse<T>;
+}
 
 function Pagination({ className, ...props }: React.ComponentProps<"nav">) {
   return (
@@ -52,9 +57,11 @@ function PaginationLink({
       data-active={isActive}
       className={cn(
         buttonVariants({
-          variant: isActive ? "outline" : "ghost",
+          variant: isActive ? "default" : "ghost",
           size,
         }),
+        "text-text-disabled font-semibold",
+        isActive && "bg-primary-focused text-primary",
         className,
       )}
       {...props}
@@ -133,17 +140,36 @@ function PaginationEllipsis({
   );
 }
 
-function GeneralPagination() {
+function GeneralPagination<T = unknown>({ pagination }: PaginationProps<T>) {
+  const {
+    from,
+    to,
+    current_page_url,
+    current_page,
+    next_page_url,
+    prev_page_url,
+  } = pagination;
+  const pageNumbers = Array.from({ length: to }, (_, i) => i + 1);
   return (
     <Pagination className="justify-between py-4">
       <PaginationContent>
         <PaginationItem>
-          <PaginationPrevious href="#" />
+          <PaginationPrevious href={prev_page_url || "#"} />
         </PaginationItem>
       </PaginationContent>
 
       <PaginationContent>
-        <PaginationItem>
+        {pageNumbers.map((number) => (
+          <PaginationItem key={number}>
+            <PaginationLink
+              isActive={current_page == number ? true : false}
+              href={`${current_page_url}`}
+            >
+              {number}
+            </PaginationLink>
+          </PaginationItem>
+        ))}
+        {/* <PaginationItem>
           <PaginationLink href="#">1</PaginationLink>
         </PaginationItem>
         <PaginationItem>
@@ -156,12 +182,12 @@ function GeneralPagination() {
         </PaginationItem>
         <PaginationItem>
           <PaginationEllipsis />
-        </PaginationItem>
+        </PaginationItem> */}
       </PaginationContent>
 
       <PaginationContent>
         <PaginationItem>
-          <PaginationNext href="#" />
+          <PaginationNext href={next_page_url || "#"} />
         </PaginationItem>
       </PaginationContent>
     </Pagination>

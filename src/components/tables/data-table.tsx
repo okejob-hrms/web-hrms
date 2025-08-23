@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { GeneralPagination } from "../ui/pagination";
+import { PaginatedResponse } from "@/lib/types";
 
 interface DataTableProps<TData, TValue = unknown> {
   columns: ColumnDef<TData, TValue>[];
@@ -24,18 +25,18 @@ interface DataTableProps<TData, TValue = unknown> {
   tableClassName?: string;
   tableHeadClassName?: string;
   tableCellClassName?: string;
-  withPagination?: boolean;
   customSize?: boolean;
+  pagination?: PaginatedResponse<TData>;
 }
 
-export function DataTable<TData, TValue = unknown>({
+export function DataTable<TData, TValue>({
   columns,
   data = [],
   tableClassName,
   tableHeadClassName,
   tableCellClassName,
-  withPagination,
   customSize = false,
+  pagination,
 }: DataTableProps<TData, TValue>) {
   const table = useReactTable({
     data,
@@ -71,7 +72,7 @@ export function DataTable<TData, TValue = unknown>({
                           : undefined
                       }
                       className={cn(
-                        "bg-gray-50 p-4 sticky top-0 z-10 text-left font-medium",
+                        "bg-gray-50 p-4 sticky top-0 z-10 text-left font-medium text-text-secondary",
                         customSize
                           ? "break-words whitespace-normal"
                           : "min-w-[120px]",
@@ -151,7 +152,7 @@ export function DataTable<TData, TValue = unknown>({
         </div>
       </div>
 
-      {withPagination && <GeneralPagination />}
+      {pagination && <GeneralPagination pagination={pagination} />}
     </div>
   );
 }

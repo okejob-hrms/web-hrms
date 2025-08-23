@@ -31,7 +31,7 @@ import {
 } from "@/services/job-position/types";
 import { getJobPosition, postJobPosition } from "@/services/job-position";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getJobLevels } from "@/services/job-levels";
+import { getJobLevels, postJobLevel } from "@/services/job-levels";
 import { toast } from "sonner";
 import { getTeam, postTeam } from "@/services/team";
 import { ITeamForm, teamFormScheme } from "@/services/team/types";
@@ -48,7 +48,7 @@ export const AddNewJobLevelModal: React.FC = () => {
   });
 
   const addJobLevel = useMutation({
-    mutationFn: (values: IPositionForm) => postJobPosition(values),
+    mutationFn: (values: IPositionForm) => postJobLevel(values),
     onSuccess: () => {
       toast.success("Job level added successfully!");
       queryClient.invalidateQueries({ queryKey: ["job-levels"] });
