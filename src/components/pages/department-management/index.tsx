@@ -17,7 +17,7 @@ import { DepartmentResponse } from "@/services/department/types";
 export default function DepartmentManagementList() {
   const {
     departments,
-    isLoading, // <-- Use loading state
+    isLoading,
     isEditModalOpen,
     setEditModalOpen,
     isDeleteDialogOpen,
@@ -29,7 +29,8 @@ export default function DepartmentManagementList() {
     handleSave,
     handleDeleteConfirm,
     handleClose,
-    pageCount,
+    hasNextPage,
+    hasPreviousPage,
     pagination,
     setPagination,
   } = useDepartmentManagement();
@@ -94,10 +95,10 @@ export default function DepartmentManagementList() {
           <div className="flex justify-end">
             <RowActions
               onEdit={() => {
-                handleEdit(item); // <-- Pass the whole item object
+                handleEdit(item);
               }}
               onDelete={() => {
-                handleDeleteClick(item); // <-- Pass the whole item object
+                handleDeleteClick(item);
               }}
             />
           </div>
@@ -117,7 +118,9 @@ export default function DepartmentManagementList() {
               <div className="flex gap-2 items-center flex-wrap">
                 <h2 className="font-semibold text-xl">Department List</h2>
                 <Badge className="bg-primary-background text-primary rounded-full">
-                  {departments.length} Departments
+                  {pagination.pageIndex * pagination.pageSize +
+                    departments.length}{" "}
+                  Departments
                 </Badge>
               </div>
               <Button onClick={handleCreate} className="whitespace-nowrap">
@@ -130,6 +133,10 @@ export default function DepartmentManagementList() {
               isLoading={isLoading}
               customSize={!isMobile}
               withPagination
+              pagination={pagination}
+              setPagination={setPagination}
+              hasNextPage={hasNextPage}
+              hasPreviousPage={hasPreviousPage}
             />
           </div>
         </div>

@@ -46,6 +46,7 @@ export function useTeamManagement() {
       handleClose();
     },
     onError: (error) => {
+      handleClose();
       toast.error(`Failed to create team: ${error.message}`);
     },
   });
@@ -58,6 +59,7 @@ export function useTeamManagement() {
       handleClose();
     },
     onError: (error) => {
+      handleClose();
       toast.error(`Failed to update team: ${error.message}`);
     },
   });
@@ -82,6 +84,7 @@ export function useTeamManagement() {
       handleClose();
     },
     onError: (error) => {
+      handleClose();
       toast.error(`Failed to delete team: ${error.message}`);
     },
   });
