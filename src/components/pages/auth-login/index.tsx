@@ -17,6 +17,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
+import { postLogin } from "@/services/auth";
+import { toast } from "sonner";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -37,9 +39,22 @@ export default function AuthLogin() {
     },
   });
 
-  const onSubmit = (values: LoginFormValues) => {
-    console.log("Login data:", values);
-    router.push("/employee/employee-management");
+  const onSubmit = async (values: LoginFormValues) => {
+    try {
+      const res = await postLogin(values);
+
+      if (res.status === "success") {
+        localStorage.setItem("token", res.data.token);
+
+        toast.success("Login successful!");
+        router.push("/employee/employee-management");
+      } else {
+        toast.error(res.message || "Login failed, please try again.");
+      }
+    } catch (err) {
+      console.log(err);
+      toast.error("Server error. Please try again later.");
+    }
   };
 
   return (

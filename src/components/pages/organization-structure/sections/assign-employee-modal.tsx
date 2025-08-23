@@ -7,12 +7,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogFooter,
-  AlertDialogCancel,
 } from "@/components/ui/alert-dialog";
 import { Command as CommandPrimitive } from "cmdk";
 import {
   Command,
-  CommandInput,
   CommandList,
   CommandEmpty,
   CommandGroup,
@@ -30,7 +28,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { assignEmployeeFormScheme, AssignEmployeeFormValues } from "../types";
-import { Check, SearchIcon } from "lucide-react";
+import { SearchIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SelectForm } from "@/components/ui/select-form";
 import { MultiSelect } from "@/components/ui/multi-select";
@@ -105,14 +103,14 @@ export default function AssignEmployeeModal({
             <div
               className={cn(
                 "overflow-y-auto pr-2 mt-4",
-                selectedEmployee ? "max-h-[500px]" : "max-h-[300px]"
+                selectedEmployee ? "max-h-[500px]" : "max-h-[300px]",
               )}
             >
               {!selectedEmployee ? (
                 <FormField
                   control={form.control}
                   name="name"
-                  render={({ field }) => (
+                  render={() => (
                     <FormItem>
                       <FormLabel>
                         Employee Name{" "}
@@ -125,7 +123,7 @@ export default function AssignEmployeeModal({
                           <CommandPrimitive.Input
                             data-slot="command-input"
                             className={cn(
-                              "placeholder:text-muted-foreground flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-hidden disabled:cursor-not-allowed disabled:opacity-50"
+                              "placeholder:text-muted-foreground flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-hidden disabled:cursor-not-allowed disabled:opacity-50",
                             )}
                             placeholder="Enter Employee"
                           />
