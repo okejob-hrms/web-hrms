@@ -5,9 +5,11 @@ import { cn } from "@/lib/utils";
 import { Button, buttonVariants } from "@/components/ui/button";
 import Image from "next/image";
 import { PaginatedResponse } from "@/lib/types";
+import { Table } from "@tanstack/react-table";
 
 interface PaginationProps<T = unknown> {
   pagination: PaginatedResponse<T>;
+  table: Table<T>;
 }
 
 function Pagination({ className, ...props }: React.ComponentProps<"nav">) {
@@ -140,7 +142,10 @@ function PaginationEllipsis({
   );
 }
 
-function GeneralPagination<T = unknown>({ pagination }: PaginationProps<T>) {
+function GeneralPagination<T = unknown>({
+  pagination,
+  table,
+}: PaginationProps<T>) {
   const {
     from,
     to,
@@ -149,25 +154,38 @@ function GeneralPagination<T = unknown>({ pagination }: PaginationProps<T>) {
     next_page_url,
     prev_page_url,
   } = pagination;
-  const pageNumbers = Array.from({ length: to }, (_, i) => i + 1);
   return (
     <Pagination className="justify-between py-4">
       <PaginationContent>
         <PaginationItem>
-          <PaginationPrevious href={prev_page_url || "#"} />
+          <PaginationPrevious
+            onClick={() => {
+              if (prev_page_url) table.previousPage();
+            }}
+            aria-disabled={!prev_page_url}
+            tabIndex={!prev_page_url ? -1 : 0}
+            className={!prev_page_url ? "pointer-events-none opacity-50" : ""}
+          />
         </PaginationItem>
       </PaginationContent>
       <PaginationContent>
-        {pageNumbers.map((number) => (
-          <PaginationItem key={number}>
-            <PaginationLink
-              isActive={current_page == number ? true : false}
-              href={`${current_page_url}`}
-            >
-              {number}
+        {prev_page_url && (
+          <PaginationItem key={current_page - 1}>
+            <PaginationLink onClick={table.previousPage}>
+              {current_page - 1}
             </PaginationLink>
           </PaginationItem>
-        ))}
+        )}
+        <PaginationItem key={current_page}>
+          <PaginationLink isActive>{current_page}</PaginationLink>
+        </PaginationItem>
+        {next_page_url && (
+          <PaginationItem key={current_page + 1}>
+            <PaginationLink onClick={table.nextPage}>
+              {current_page + 1}
+            </PaginationLink>
+          </PaginationItem>
+        )}
         {/* <PaginationItem>
           <PaginationLink href="#">1</PaginationLink>
         </PaginationItem>
@@ -185,7 +203,14 @@ function GeneralPagination<T = unknown>({ pagination }: PaginationProps<T>) {
       </PaginationContent>
       <PaginationContent>
         <PaginationItem>
-          <PaginationNext href={next_page_url || "#"} />
+          <PaginationNext
+            onClick={() => {
+              if (next_page_url) table.nextPage();
+            }}
+            aria-disabled={!next_page_url}
+            tabIndex={!next_page_url ? -1 : 0}
+            className={!next_page_url ? "pointer-events-none opacity-50" : ""}
+          />
         </PaginationItem>
       </PaginationContent>
     </Pagination>

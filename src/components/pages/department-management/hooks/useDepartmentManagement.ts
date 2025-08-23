@@ -80,12 +80,13 @@ export function useDepartmentManagement() {
       const isNotFirstPage = pagination.pageIndex > 0;
 
       if (isLastItemOnPage && isNotFirstPage) {
+        queryClient.invalidateQueries({ queryKey: ["departments"] });
         setPagination((prev) => ({
           ...prev,
           pageIndex: prev.pageIndex - 1,
         }));
       } else {
-        queryClient.invalidateQueries({ queryKey: ["departements"] });
+        queryClient.invalidateQueries({ queryKey: ["departments"] });
       }
 
       handleClose();
@@ -140,7 +141,7 @@ export function useDepartmentManagement() {
   };
 
   return {
-    departments: paginatedData?.data?.data ?? [],
+    departments: paginatedData,
     isLoading:
       isLoading ||
       isFetching ||

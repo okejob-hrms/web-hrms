@@ -1,5 +1,7 @@
 import ky from "ky";
 
+const token = "0";
+
 export const api: typeof ky = ky.create({
   prefixUrl: process.env.NEXT_PUBLIC_BASE_URL || "",
   timeout: 10000,

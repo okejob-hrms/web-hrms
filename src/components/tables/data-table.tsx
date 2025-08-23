@@ -19,44 +19,32 @@ import {
 import { cn } from "@/lib/utils";
 import { GeneralPagination } from "../ui/pagination";
 import { PaginatedResponse } from "@/lib/types";
-import { Loader2 } from "lucide-react";
 
 interface DataTableProps<TData, TValue = unknown> {
   columns: ColumnDef<TData, TValue>[];
   data?: TData[];
-  isLoading?: boolean;
   tableClassName?: string;
   tableHeadClassName?: string;
   tableCellClassName?: string;
   customSize?: boolean;
-<<<<<<< HEAD
   pagination?: PaginatedResponse<TData>;
-=======
-  pagination?: PaginationState;
-  setPagination?: React.Dispatch<React.SetStateAction<PaginationState>>;
-  hasNextPage?: boolean;
-  hasPreviousPage?: boolean;
->>>>>>> ba79b83 (Integaration Pagination Teams)
+  paginationState?: PaginationState;
+  setPaginationState?: React.Dispatch<React.SetStateAction<PaginationState>>;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data = [],
-  isLoading = false,
   tableClassName,
   tableHeadClassName,
   tableCellClassName,
   customSize = false,
   pagination,
-<<<<<<< HEAD
-=======
-  setPagination,
-  hasNextPage,
-  hasPreviousPage,
->>>>>>> ba79b83 (Integaration Pagination Teams)
+  paginationState,
+  setPaginationState,
 }: DataTableProps<TData, TValue>) {
   const isPaginated =
-    withPagination && pagination !== undefined && setPagination !== undefined;
+    paginationState !== undefined && setPaginationState !== undefined;
   const table = useReactTable({
     data,
     columns,
@@ -65,9 +53,9 @@ export function DataTable<TData, TValue>({
     manualSorting: true,
     ...(isPaginated && {
       state: {
-        pagination,
+        pagination: paginationState,
       },
-      onPaginationChange: setPagination,
+      onPaginationChange: setPaginationState,
       manualPagination: true,
     }),
   });
@@ -116,18 +104,7 @@ export function DataTable<TData, TValue>({
             </TableHeader>
 
             <TableBody>
-              {isLoading ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={columns.length}
-                    className="h-24 text-center"
-                  >
-                    <div className="flex justify-center items-center">
-                      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ) : table.getRowModel().rows.length > 0 ? (
+              {table.getRowModel().rows.length > 0 ? (
                 table.getRowModel().rows.map((row) => (
                   <TableRow key={row.id} className="hover:bg-gray-50/50">
                     {row.getVisibleCells().map((cell) => (
@@ -178,7 +155,8 @@ export function DataTable<TData, TValue>({
                       No Data Available
                     </p>
                     <p className="text-text-secondary text-sm">
-                      {"There's currently no data to display in this table."}
+                      There&apos;s currently no data to display in this table.
+                      Please add new entries.
                     </p>
                   </TableCell>
                 </TableRow>
@@ -188,18 +166,9 @@ export function DataTable<TData, TValue>({
         </div>
       </div>
 
-<<<<<<< HEAD
-      {pagination && <GeneralPagination pagination={pagination} />}
-=======
-      {isPaginated && (
-        <GeneralPagination
-          table={table}
-          hasNextPage={hasNextPage}
-          hasPreviousPage={hasPreviousPage}
-          isLoading={isLoading}
-        />
+      {pagination && (
+        <GeneralPagination table={table} pagination={pagination} />
       )}
->>>>>>> ba79b83 (Integaration Pagination Teams)
     </div>
   );
 }
