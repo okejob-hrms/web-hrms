@@ -108,7 +108,7 @@ const menuItems = [
   {
     name: "settings",
     label: "Settings",
-    icon: "/icons/gear.svg",
+    icon: "/icons/gearSolid.svg",
     path: "/settings",
     children: [],
   },
@@ -129,7 +129,7 @@ const HeaderMenu = React.memo(function HeaderMenu() {
     <div className="w-full bg-white border-b">
       {/* Desktop Menu */}
       <div className="hidden md:block">
-        <NavigationMenu viewport={false} className="w-full px-10 py-2">
+        <NavigationMenu viewport={false} className="w-full px-10 pt-2">
           <NavigationMenuList>
             {menuItems.map((item) => {
               const isActive = pathname.includes(`/${item.name}`);
@@ -271,7 +271,7 @@ const Header = React.memo(function Header() {
         <div className="relative w-8 h-8 md:w-10 md:h-10">
           <Image src="/logo.png" alt="logo" fill className="object-cover" />
         </div>
-        <span className="font-semibold md:text-lg text-base">KUBIK HRMS</span>
+        <span className="font-semibold md:text-lg text-base">HRMS</span>
       </div>
       <div className="items-center justify-end gap-2 md:gap-4 h-10 flex">
         <Status
