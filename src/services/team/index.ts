@@ -4,7 +4,7 @@ import { ApiResponse, PaginatedResponse } from "@/lib/types";
 import { PaginationState } from "@tanstack/react-table";
 
 export const postTeam = async (
-  payload: ITeamForm
+  payload: ITeamForm,
 ): Promise<ApiResponse<TeamResponse>> => {
   const response = await api.post<ApiResponse<TeamResponse>>("teams", {
     json: payload,
@@ -13,7 +13,7 @@ export const postTeam = async (
 };
 
 export const getTeam = async (
-  pagination?: PaginationState
+  pagination?: PaginationState,
 ): Promise<ApiResponse<PaginatedResponse<TeamResponse>>> => {
   let searchParams = {};
 
@@ -30,7 +30,7 @@ export const getTeam = async (
     "teams",
     {
       searchParams,
-    }
+    },
   );
 
   return response.json();

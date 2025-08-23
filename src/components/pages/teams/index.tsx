@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import * as React from "react";
 import DepartmentModal from "./sections/edit-modal";
 import { DataTable } from "@/components/tables/data-table";
-import { IDepartment, ITeam } from "@/lib/types";
 import { ColumnDef } from "@tanstack/react-table";
 import { RowActions } from "@/components/tables/row-actions";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -30,8 +29,6 @@ export default function TeamManagementList() {
     handleSave,
     handleDeleteConfirm,
     handleClose,
-    hasNextPage,
-    hasPreviousPage,
     pagination,
     setPagination,
   } = useTeamManagement();

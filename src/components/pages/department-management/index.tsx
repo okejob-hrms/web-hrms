@@ -30,8 +30,6 @@ export default function DepartmentManagementList() {
     handleSave,
     handleDeleteConfirm,
     handleClose,
-    hasNextPage,
-    hasPreviousPage,
     pagination,
     setPagination,
   } = useDepartmentManagement();

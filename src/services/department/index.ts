@@ -4,17 +4,17 @@ import { ApiResponse, PaginatedResponse } from "@/lib/types";
 import { PaginationState } from "@tanstack/react-table";
 
 export const postDepartment = async (
-  payload: IDepartmentForm
+  payload: IDepartmentForm,
 ): Promise<ApiResponse<DepartmentResponse>> => {
   const response = await api.post<ApiResponse<DepartmentResponse>>(
     "departments",
-    { json: payload }
+    { json: payload },
   );
   return response.json();
 };
 
 export const getDepartment = async (
-  pagination?: PaginationState
+  pagination?: PaginationState,
 ): Promise<ApiResponse<PaginatedResponse<DepartmentResponse>>> => {
   let searchParams = {};
 
@@ -43,7 +43,7 @@ export const putDepartment = async ({
 }): Promise<ApiResponse<DepartmentResponse>> => {
   const response = await api.put<ApiResponse<DepartmentResponse>>(
     `departments/${id}`,
-    { json: payload }
+    { json: payload },
   );
   return response.json();
 };

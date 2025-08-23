@@ -146,14 +146,7 @@ function GeneralPagination<T = unknown>({
   pagination,
   table,
 }: PaginationProps<T>) {
-  const {
-    from,
-    to,
-    current_page_url,
-    current_page,
-    next_page_url,
-    prev_page_url,
-  } = pagination;
+  const { current_page, next_page_url, prev_page_url } = pagination;
   return (
     <Pagination className="justify-between py-4">
       <PaginationContent>

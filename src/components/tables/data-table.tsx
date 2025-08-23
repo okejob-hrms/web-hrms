@@ -1,7 +1,6 @@
 import {
   useReactTable,
   getCoreRowModel,
-  getPaginationRowModel,
   getSortedRowModel,
   ColumnDef,
   flexRender,
@@ -23,7 +22,6 @@ import { PaginatedResponse } from "@/lib/types";
 interface DataTableProps<TData, TValue = unknown> {
   columns: ColumnDef<TData, TValue>[];
   data?: TData[];
-  isLoading?: boolean;
   tableClassName?: string;
   tableHeadClassName?: string;
   tableCellClassName?: string;
@@ -36,7 +34,6 @@ interface DataTableProps<TData, TValue = unknown> {
 export function DataTable<TData, TValue>({
   columns,
   data = [],
-  isLoading = false,
   tableClassName,
   tableHeadClassName,
   tableCellClassName,
@@ -106,18 +103,7 @@ export function DataTable<TData, TValue>({
             </TableHeader>
 
             <TableBody>
-              {isLoading ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={columns.length}
-                    className="h-24 text-center"
-                  >
-                    <div className="flex justify-center items-center">
-                      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ) : table.getRowModel().rows.length > 0 ? (
+              {table.getRowModel().rows.length > 0 ? (
                 table.getRowModel().rows.map((row) => (
                   <TableRow key={row.id} className="hover:bg-gray-50/50">
                     {row.getVisibleCells().map((cell) => (
