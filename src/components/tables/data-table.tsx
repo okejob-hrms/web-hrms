@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { GeneralPagination } from "../ui/pagination";
-import { Loader2 } from "lucide-react";
+import { PaginatedResponse } from "@/lib/types";
 
 interface DataTableProps<TData, TValue = unknown> {
   columns: ColumnDef<TData, TValue>[];
@@ -27,30 +27,26 @@ interface DataTableProps<TData, TValue = unknown> {
   tableClassName?: string;
   tableHeadClassName?: string;
   tableCellClassName?: string;
-  withPagination?: boolean;
   customSize?: boolean;
-  pagination?: PaginationState;
-  setPagination?: React.Dispatch<React.SetStateAction<PaginationState>>;
-  hasNextPage?: boolean;
-  hasPreviousPage?: boolean;
+  pagination?: PaginatedResponse<TData>;
+  paginationState?: PaginationState;
+  setPaginationState?: React.Dispatch<React.SetStateAction<PaginationState>>;
 }
 
-export function DataTable<TData, TValue = unknown>({
+export function DataTable<TData, TValue>({
   columns,
   data = [],
   isLoading = false,
   tableClassName,
   tableHeadClassName,
   tableCellClassName,
-  withPagination,
   customSize = false,
   pagination,
-  setPagination,
-  hasNextPage,
-  hasPreviousPage,
+  paginationState,
+  setPaginationState,
 }: DataTableProps<TData, TValue>) {
   const isPaginated =
-    withPagination && pagination !== undefined && setPagination !== undefined;
+    paginationState !== undefined && setPaginationState !== undefined;
   const table = useReactTable({
     data,
     columns,
@@ -59,9 +55,9 @@ export function DataTable<TData, TValue = unknown>({
     manualSorting: true,
     ...(isPaginated && {
       state: {
-        pagination,
+        pagination: paginationState,
       },
-      onPaginationChange: setPagination,
+      onPaginationChange: setPaginationState,
       manualPagination: true,
     }),
   });
@@ -92,7 +88,7 @@ export function DataTable<TData, TValue = unknown>({
                           : undefined
                       }
                       className={cn(
-                        "bg-gray-50 p-4 sticky top-0 z-10 text-left font-medium",
+                        "bg-gray-50 p-4 sticky top-0 z-10 text-left font-medium text-text-secondary",
                         customSize
                           ? "break-words whitespace-normal"
                           : "min-w-[120px]",
@@ -182,13 +178,8 @@ export function DataTable<TData, TValue = unknown>({
         </div>
       </div>
 
-      {isPaginated && (
-        <GeneralPagination
-          table={table}
-          hasNextPage={hasNextPage}
-          hasPreviousPage={hasPreviousPage}
-          isLoading={isLoading}
-        />
+      {pagination && (
+        <GeneralPagination table={table} pagination={pagination} />
       )}
     </div>
   );

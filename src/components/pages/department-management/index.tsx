@@ -13,6 +13,7 @@ import { ArrowUp, ArrowDown, ChevronsUpDown } from "lucide-react";
 import { formatDateTime } from "@/lib/helpers";
 import DeleteDepartmentDialog from "./sections/delete-modal";
 import { DepartmentResponse } from "@/services/department/types";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function DepartmentManagementList() {
   const {
@@ -119,7 +120,7 @@ export default function DepartmentManagementList() {
                 <h2 className="font-semibold text-xl">Department List</h2>
                 <Badge className="bg-primary-background text-primary rounded-full">
                   {pagination.pageIndex * pagination.pageSize +
-                    departments.length}{" "}
+                    (departments?.data?.data?.length ?? 0)}{" "}
                   Departments
                 </Badge>
               </div>
@@ -127,17 +128,23 @@ export default function DepartmentManagementList() {
                 + New Department
               </Button>
             </div>
-            <DataTable
-              columns={columns}
-              data={departments}
-              isLoading={isLoading}
-              customSize={!isMobile}
-              withPagination
-              pagination={pagination}
-              setPagination={setPagination}
-              hasNextPage={hasNextPage}
-              hasPreviousPage={hasPreviousPage}
-            />
+            {isLoading ? (
+              <div className="flex flex-col gap-4 items-center w-full">
+                <Skeleton className="h-12 w-full" />
+                <div className="space-y-2 w-full">
+                  <Skeleton className="h-30 w-full" />
+                </div>
+              </div>
+            ) : (
+              <DataTable
+                columns={columns}
+                data={departments?.data?.data}
+                customSize={!isMobile}
+                pagination={departments?.data}
+                paginationState={pagination}
+                setPaginationState={setPagination}
+              />
+            )}
           </div>
         </div>
       </div>

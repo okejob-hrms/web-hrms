@@ -4,7 +4,13 @@ import { MoreHorizontalIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button, buttonVariants } from "@/components/ui/button";
 import Image from "next/image";
+import { PaginatedResponse } from "@/lib/types";
 import { Table } from "@tanstack/react-table";
+
+interface PaginationProps<T = unknown> {
+  pagination: PaginatedResponse<T>;
+  table: Table<T>;
+}
 
 function Pagination({ className, ...props }: React.ComponentProps<"nav">) {
   return (
@@ -53,9 +59,11 @@ function PaginationLink({
       data-active={isActive}
       className={cn(
         buttonVariants({
-          variant: isActive ? "outline" : "ghost",
+          variant: isActive ? "default" : "ghost",
           size,
         }),
+        "text-text-disabled font-semibold",
+        isActive && "bg-primary-focused text-primary",
         className
       )}
       {...props}
@@ -134,69 +142,74 @@ function PaginationEllipsis({
   );
 }
 
-interface GeneralPaginationProps<TData> {
-  table: Table<TData>;
-  hasNextPage?: boolean;
-  hasPreviousPage?: boolean;
-  isLoading: boolean;
-}
-
-function GeneralPagination<TData>({
+function GeneralPagination<T = unknown>({
+  pagination,
   table,
-  hasNextPage,
-  hasPreviousPage,
-  isLoading,
-}: GeneralPaginationProps<TData>) {
-  const currentPage = table.getState().pagination.pageIndex + 1;
-
+}: PaginationProps<T>) {
+  const {
+    from,
+    to,
+    current_page_url,
+    current_page,
+    next_page_url,
+    prev_page_url,
+  } = pagination;
   return (
     <Pagination className="justify-between py-4">
       <PaginationContent>
         <PaginationItem>
           <PaginationPrevious
             onClick={() => {
-              if (!isLoading && hasPreviousPage) table.previousPage();
+              if (prev_page_url) table.previousPage();
             }}
-            aria-disabled={isLoading || !hasPreviousPage}
-            tabIndex={isLoading || !hasPreviousPage ? -1 : 0}
-            className={
-              isLoading || !hasPreviousPage
-                ? "pointer-events-none opacity-50"
-                : ""
-            }
+            aria-disabled={!prev_page_url}
+            tabIndex={!prev_page_url ? -1 : 0}
+            className={!prev_page_url ? "pointer-events-none opacity-50" : ""}
           />
         </PaginationItem>
       </PaginationContent>
       <PaginationContent>
-        {!isLoading && hasPreviousPage && (
-          <PaginationItem>
+        {prev_page_url && (
+          <PaginationItem key={current_page - 1}>
             <PaginationLink onClick={table.previousPage}>
-              {currentPage - 1}
+              {current_page - 1}
             </PaginationLink>
           </PaginationItem>
         )}
-        <PaginationItem>
-          <PaginationLink isActive>{currentPage}</PaginationLink>
+        <PaginationItem key={current_page}>
+          <PaginationLink isActive>{current_page}</PaginationLink>
         </PaginationItem>
-        {!isLoading && hasNextPage && (
-          <PaginationItem>
+        {next_page_url && (
+          <PaginationItem key={current_page + 1}>
             <PaginationLink onClick={table.nextPage}>
-              {currentPage + 1}
+              {current_page + 1}
             </PaginationLink>
           </PaginationItem>
         )}
+        {/* <PaginationItem>
+          <PaginationLink href="#">1</PaginationLink>
+        </PaginationItem>
+        <PaginationItem>
+          <PaginationLink href="#" isActive>
+            2
+          </PaginationLink>
+        </PaginationItem>
+        <PaginationItem>
+          <PaginationLink href="#">3</PaginationLink>
+        </PaginationItem>
+        <PaginationItem>
+          <PaginationEllipsis />
+        </PaginationItem> */}
       </PaginationContent>
       <PaginationContent>
         <PaginationItem>
           <PaginationNext
             onClick={() => {
-              if (!isLoading && hasNextPage) table.nextPage();
+              if (next_page_url) table.nextPage();
             }}
-            aria-disabled={isLoading || !hasNextPage}
-            tabIndex={isLoading || !hasNextPage ? -1 : 0}
-            className={
-              isLoading || !hasNextPage ? "pointer-events-none opacity-50" : ""
-            }
+            aria-disabled={!next_page_url}
+            tabIndex={!next_page_url ? -1 : 0}
+            className={!next_page_url ? "pointer-events-none opacity-50" : ""}
           />
         </PaginationItem>
       </PaginationContent>

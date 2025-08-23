@@ -13,6 +13,10 @@ import { useTeamManagement } from "./hooks/useTeamManagement";
 import { formatDateTime } from "@/lib/helpers";
 import DeleteTeamDialog from "./sections/delete-modal";
 import { TeamResponse } from "@/services/team/types";
+<<<<<<< HEAD
+=======
+import { Skeleton } from "@/components/ui/skeleton";
+>>>>>>> feat/resolve-merge
 
 export default function TeamManagementList() {
   const {
@@ -123,6 +127,7 @@ export default function TeamManagementList() {
                 + New Team
               </Button>
             </div>
+<<<<<<< HEAD
             <DataTable
               columns={columns}
               data={teams}
@@ -134,6 +139,25 @@ export default function TeamManagementList() {
               hasNextPage={hasNextPage}
               hasPreviousPage={hasPreviousPage}
             />
+=======
+            {isLoading ? (
+              <div className="flex flex-col gap-4 items-center w-full">
+                <Skeleton className="h-12 w-full" />
+                <div className="space-y-2 w-full">
+                  <Skeleton className="h-30 w-full" />
+                </div>
+              </div>
+            ) : (
+              <DataTable
+                columns={columns}
+                data={teams?.data?.data}
+                customSize={!isMobile}
+                pagination={teams?.data}
+                paginationState={pagination}
+                setPaginationState={setPagination}
+              />
+            )}
+>>>>>>> feat/resolve-merge
           </div>
         </div>
       </div>

@@ -77,6 +77,7 @@ export function useTeamManagement() {
           ...prev,
           pageIndex: prev.pageIndex - 1,
         }));
+        queryClient.invalidateQueries({ queryKey: ["teams"] });
       } else {
         queryClient.invalidateQueries({ queryKey: ["teams"] });
       }
@@ -125,7 +126,7 @@ export function useTeamManagement() {
   };
 
   return {
-    teams: paginatedData?.data?.data ?? [],
+    teams: paginatedData,
     isLoading:
       isLoading ||
       isFetching ||

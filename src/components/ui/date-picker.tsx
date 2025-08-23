@@ -19,8 +19,11 @@ import {
 } from "@/components/ui/popover";
 import { CalendarIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
-import { format } from "date-fns";
 import { BasicDatePickerProps, DatePickerProps } from "@/lib/types";
+import dayjs from "dayjs";
+import localizedFormat from "dayjs/plugin/localizedFormat";
+
+dayjs.extend(localizedFormat);
 
 export const DatePicker: React.FC<DatePickerProps> = ({
   name,
@@ -28,6 +31,8 @@ export const DatePicker: React.FC<DatePickerProps> = ({
   description,
   isOptional,
   labelClassName,
+  required,
+  placeholder,
   ...props
 }) => {
   const { control } = useFormContext();
@@ -51,15 +56,17 @@ export const DatePicker: React.FC<DatePickerProps> = ({
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
+                  type="button"
                   data-empty={!(props.value || field.value)}
-                  className="data-[empty=true]:text-muted-foreground justify-start text-left font-normal border-input h-10 rounded-sm"
+                  className="data-[empty=true]:text-muted-foreground justify-between text-left font-normal border-input h-10 rounded-sm text-foreground"
                 >
-                  <CalendarIcon />
                   {props.value || field.value ? (
-                    format(props.value || field.value, "PPP")
+                    // format(props.value || field.value, "PPP")
+                    dayjs(props.value || field.value).format("ll")
                   ) : (
-                    <span>Pick a date</span>
+                    <span>{placeholder ?? "Pick a date"}</span>
                   )}
+                  <CalendarIcon color="#D9D9D9" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0">
@@ -89,15 +96,16 @@ export const BasicDatePicker: React.FC<BasicDatePickerProps> = (props) => {
         <PopoverTrigger asChild>
           <Button
             variant="outline"
+            type="button"
             data-empty={!props.value}
-            className="data-[empty=true]:text-muted-foreground justify-start text-left font-normal border-input h-10 rounded-sm"
+            className="data-[empty=true]:text-muted-foreground justify-start text-left font-normal border-input h-10 rounded-sm text-foreground"
           >
-            <CalendarIcon />
             {props.value ? (
-              format(props.value, "PPP")
+              dayjs(props.value).format("ll")
             ) : (
-              <span>Pick a date</span>
+              <span>{props.placeholder ?? "Pick a date"}</span>
             )}
+            <CalendarIcon color="#D9D9D9" />
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0">
