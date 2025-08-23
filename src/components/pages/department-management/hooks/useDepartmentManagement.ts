@@ -1,7 +1,12 @@
 // hooks/useDepartmentManagement.ts
 
-import { useMemo, useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  keepPreviousData,
+} from "@tanstack/react-query";
 import { DepartmentFormValues } from "../types";
 import { IDepartment } from "@/lib/types";
 import {
@@ -9,8 +14,8 @@ import {
   postDepartment,
   putDepartment,
   deleteDepartment,
-} from "@/services/department"; // Adjust path as needed
-import { toast } from "sonner"; // Using a toast library for feedback is recommended
+} from "@/services/department";
+import { toast } from "sonner";
 import { PaginationState } from "@tanstack/react-table";
 
 export function useDepartmentManagement() {
@@ -27,21 +32,21 @@ export function useDepartmentManagement() {
     pageSize: 10,
   });
 
-  const { data: paginatedData, isLoading } = useQuery({
-    queryKey: ["departments"],
-    queryFn: () => getDepartment(),
-    placeholderData: (prev) => prev,
+  const {
+    data: paginatedData,
+    isLoading,
+    isFetching,
+    isRefetching,
+  } = useQuery({
+    queryKey: ["departments", pagination],
+    queryFn: () => getDepartment(pagination),
+    placeholderData: keepPreviousData,
   });
 
-  // Calculate pageCount now that we have 'total'
-  const pageCount = useMemo(() => {
-    const total = paginatedData?.data?.to ?? 0;
-    const pageSize = pagination.pageSize;
-    return total > 0 ? Math.ceil(total / pageSize) : 0;
-  }, [paginatedData?.data?.to, pagination.pageSize]);
+  const hasNextPage = !!paginatedData?.data?.next_page_url;
+  const hasPreviousPage = !!paginatedData?.data?.prev_page_url;
 
-  // MUTATION: Create a new department
-  const { mutate: addDepartment } = useMutation({
+  const { mutate: addDepartment, isPending: isPendingAdd } = useMutation({
     mutationFn: postDepartment,
     onSuccess: () => {
       toast.success("Department created successfully!");
@@ -49,11 +54,11 @@ export function useDepartmentManagement() {
       handleClose();
     },
     onError: (error) => {
+      handleClose();
       toast.error(`Failed to create department: ${error.message}`);
     },
   });
 
-  // MUTATION: Update an existing department
   const { mutate: editDepartment } = useMutation({
     mutationFn: putDepartment,
     onSuccess: () => {
@@ -62,19 +67,31 @@ export function useDepartmentManagement() {
       handleClose();
     },
     onError: (error) => {
+      handleClose();
       toast.error(`Failed to update department: ${error.message}`);
     },
   });
 
-  // MUTATION: Delete a department
-  const { mutate: removeDepartment } = useMutation({
+  const { mutate: removeDepartment, isPending: isPendingRemove } = useMutation({
     mutationFn: deleteDepartment,
     onSuccess: () => {
       toast.success("Department deleted successfully!");
-      queryClient.invalidateQueries({ queryKey: ["departments"] });
+      const isLastItemOnPage = paginatedData?.data?.data?.length === 1;
+      const isNotFirstPage = pagination.pageIndex > 0;
+
+      if (isLastItemOnPage && isNotFirstPage) {
+        setPagination((prev) => ({
+          ...prev,
+          pageIndex: prev.pageIndex - 1,
+        }));
+      } else {
+        queryClient.invalidateQueries({ queryKey: ["departements"] });
+      }
+
       handleClose();
     },
     onError: (error) => {
+      handleClose();
       toast.error(`Failed to delete department: ${error.message}`);
     },
   });
@@ -124,8 +141,14 @@ export function useDepartmentManagement() {
 
   return {
     departments: paginatedData?.data?.data ?? [],
-    isLoading,
-    pageCount,
+    isLoading:
+      isLoading ||
+      isFetching ||
+      isRefetching ||
+      isPendingAdd ||
+      isPendingRemove,
+    hasNextPage,
+    hasPreviousPage,
     pagination,
     setPagination,
     isEditModalOpen,

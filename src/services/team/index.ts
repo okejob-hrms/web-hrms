@@ -13,12 +13,10 @@ export const postTeam = async (
 };
 
 export const getTeam = async (
-  // Make the pagination parameter optional by adding a '?'
   pagination?: PaginationState
 ): Promise<ApiResponse<PaginatedResponse<TeamResponse>>> => {
   let searchParams = {};
 
-  // Conditionally build searchParams only if pagination is provided
   if (pagination) {
     const page = pagination.pageIndex + 1;
     const per_page = pagination.pageSize;
