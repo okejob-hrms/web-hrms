@@ -1,7 +1,8 @@
 import ky from "ky";
 
 export const apiPublic = ky.create({
-  prefixUrl: process.env.NEXT_PUBLIC_BASE_URL || "https://api.okejobhub.fun/api/v1",
+  prefixUrl:
+    process.env.NEXT_PUBLIC_BASE_URL || "https://api.okejobhub.fun/api/v1",
   timeout: 10000,
   retry: { limit: 0 },
   headers: {
@@ -11,7 +12,8 @@ export const apiPublic = ky.create({
 });
 
 export const api = ky.create({
-  prefixUrl: process.env.NEXT_PUBLIC_BASE_URL || "https://api.okejobhub.fun/api/v1",
+  prefixUrl:
+    process.env.NEXT_PUBLIC_BASE_URL || "https://api.okejobhub.fun/api/v1",
   timeout: 10000,
   retry: { limit: 0 },
   hooks: {

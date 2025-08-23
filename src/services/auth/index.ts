@@ -6,9 +6,8 @@ import { ILoginRequest, ILoginResponse } from "./types";
 export const postLogin = async (
   payload: ILoginRequest,
 ): Promise<ApiResponse<ILoginResponse>> => {
-  const response = await apiPublic.post<ApiResponse<ILoginResponse>>(
-    "login",
-    { json: payload },
-  );
+  const response = await apiPublic.post<ApiResponse<ILoginResponse>>("login", {
+    json: payload,
+  });
   return response.json();
 };

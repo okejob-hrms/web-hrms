@@ -142,7 +142,7 @@ function PaginationEllipsis({
 
 function GeneralPagination<T = unknown>({ pagination }: PaginationProps<T>) {
   const {
-    from,
+    // from,
     to,
     current_page_url,
     current_page,
