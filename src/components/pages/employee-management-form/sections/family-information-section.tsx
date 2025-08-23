@@ -275,7 +275,11 @@ const SectionHeader = ({ withAddButton }: Pick<Props, "withAddButton">) => (
 
 export const FamilyInformationSection = React.memo<Props>(
   function FamilyInformationSection({ withAddButton = false }) {
-    const { data, isLoading, error } = useQuery({
+    const {
+      data: families,
+      isLoading,
+      error,
+    } = useQuery({
       queryKey: ["family"],
       queryFn: () => getFamilies({ employee_profile_id: 1 }),
       retry: (failureCount, error: any) => {
@@ -303,7 +307,7 @@ export const FamilyInformationSection = React.memo<Props>(
         ) : (
           <DataTable
             columns={columns}
-            data={data?.data?.data || []}
+            data={families?.data.data}
             tableClassName="table-fixed w-full"
             tableCellClassName={TABLE_CELL_CLASSES}
             tableHeadClassName={TABLE_CELL_CLASSES}

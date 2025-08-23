@@ -24,13 +24,14 @@ import { useQuery } from "@tanstack/react-query";
 import { getEmployees } from "@/services/employees";
 import { Filters } from "./types";
 import { useDebounce } from "@/hooks/use-debounce";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const columns: ColumnDef<IEmployeeResponse>[] = [
   {
     accessorKey: "name",
     header: "Name",
     cell: ({ row }) => (
-      <div className="flex gap-2 items-center min-w-[150px]">
+      <div className="flex gap-4 items-center min-w-[150px]">
         <Avatar className="h-10 w-10">
           <AvatarImage src={row.original.photo_profile} />
           <AvatarFallback className="text-primary-hover bg-primary-background text-base font-medium">
@@ -177,11 +178,20 @@ export default function EmployeeManagementList() {
             + New Employee
           </Button>
         </div>
-        <DataTable
-          columns={columns}
-          data={employees?.data.data}
-          withPagination
-        />
+        {isLoading ? (
+          <div className="flex flex-col gap-4 items-center w-full">
+            <Skeleton className="h-12 w-full" />
+            <div className="space-y-2 w-full">
+              <Skeleton className="h-30 w-full" />
+            </div>
+          </div>
+        ) : (
+          <DataTable
+            columns={columns}
+            data={employees?.data.data}
+            pagination={employees?.data}
+          />
+        )}
       </div>
     </div>
   );

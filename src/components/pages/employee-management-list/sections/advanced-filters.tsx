@@ -139,7 +139,7 @@ export const AdvancedFilter = React.memo(function AdvancedFilter({
                 options={positionOptions}
                 maxCount={1}
                 variant="inverted"
-                name="position"
+                name="job_position_ids"
               />
             </div>
 
@@ -149,7 +149,7 @@ export const AdvancedFilter = React.memo(function AdvancedFilter({
                 allSelectLabel="All Department"
                 options={departmentOptions}
                 placeholder="All Department"
-                name="department"
+                name="department_ids"
                 searchPlaceholder="Search Department"
               />
             </div>

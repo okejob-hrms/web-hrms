@@ -12,7 +12,7 @@ import { AdvancedFilter } from "./advanced-filters";
 import { useQuery } from "@tanstack/react-query";
 import { getDepartment } from "@/services/department";
 import { getJobPosition } from "@/services/job-position";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { Form } from "@/components/ui/form";
 
 interface ToolbarProps {
@@ -30,7 +30,18 @@ export const Toolbar = React.memo(function Toolbar({
   const [isAdvanced, setIsAdvanced] = React.useState(false);
   const form = useForm<Filters>({
     defaultValues: initValues,
+    mode: "onChange",
   });
+
+  const departmentIds = useWatch({
+    control: form.control,
+    name: "department_ids",
+  });
+  const jobPositionIds = useWatch({
+    control: form.control,
+    name: "job_position_ids",
+  });
+
   const { data: departments } = useQuery({
     queryKey: ["departments"],
     queryFn: getDepartment,
@@ -73,16 +84,39 @@ export const Toolbar = React.memo(function Toolbar({
     return [];
   }, [positions?.data]);
 
-  const onSubmit = (values: Filters) => {
-    console.log("Basic filter submit:", values);
-    onFiltersChange({
-      ...values,
-      department_ids: values.department_ids?.flatMap((item) => Number(item)),
-      job_position_ids: values.job_position_ids?.flatMap((item) =>
-        Number(item),
-      ),
-    });
-  };
+  const debouncedSubmit = React.useRef<NodeJS.Timeout | null>(null);
+
+  const onSubmit = React.useCallback(
+    (values: Filters) => {
+      console.log("Basic filter submit:", values);
+      onFiltersChange({
+        ...values,
+        department_ids: values.department_ids?.flatMap((item) => Number(item)),
+        job_position_ids: values.job_position_ids?.flatMap((item) =>
+          Number(item),
+        ),
+      });
+    },
+    [onFiltersChange],
+  );
+
+  React.useEffect(() => {
+    if (debouncedSubmit.current) {
+      clearTimeout(debouncedSubmit.current);
+    }
+
+    if (form.formState.isDirty) {
+      debouncedSubmit.current = setTimeout(() => {
+        form.handleSubmit(onSubmit)();
+      }, 300);
+    }
+
+    return () => {
+      if (debouncedSubmit.current) {
+        clearTimeout(debouncedSubmit.current);
+      }
+    };
+  }, [departmentIds, jobPositionIds, form, onSubmit]);
 
   const handleAdvancedFilters = (filters: Filters) => {
     console.log("Advanced filters applied:", filters);
@@ -91,26 +125,23 @@ export const Toolbar = React.memo(function Toolbar({
 
   const handleAdvancedReset = () => {
     setIsAdvanced(false);
+    form.reset(initValues);
     onFiltersChange(initValues);
   };
 
   const handleSearchKeyPress = React.useCallback(
     (e: React.KeyboardEvent) => {
       if (e.key === "Enter") {
-        onSubmit({
-          search: form.watch("search"),
-        });
+        form.handleSubmit(onSubmit)();
       }
     },
-    [onSubmit],
+    [form, onSubmit],
   );
 
   if (isAdvanced)
     return (
       <AdvancedFilter
-        onReset={() => {
-          setIsAdvanced(false);
-        }}
+        onReset={handleAdvancedReset}
         onApplyFilters={handleAdvancedFilters}
       />
     );
@@ -132,7 +163,7 @@ export const Toolbar = React.memo(function Toolbar({
             <MultiSelectForm
               placeholder="All Position"
               options={positionOptions}
-              name="position"
+              name="job_position_ids"
               maxCount={1}
               searchPlaceholder="Search Position"
               allSelectLabel="All Position"
@@ -144,7 +175,7 @@ export const Toolbar = React.memo(function Toolbar({
             <MultiSelectForm
               placeholder="All Department"
               options={departmentOptions}
-              name="department"
+              name="department_ids"
               maxCount={1}
               searchPlaceholder="Search Department"
               allSelectLabel="All Department"
