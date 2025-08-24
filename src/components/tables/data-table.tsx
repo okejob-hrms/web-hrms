@@ -1,3 +1,6 @@
+"use client";
+
+import * as React from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -5,6 +8,8 @@ import {
   getSortedRowModel,
   ColumnDef,
   flexRender,
+  RowSelectionState,
+  OnChangeFn,
 } from "@tanstack/react-table";
 
 import {
@@ -27,6 +32,8 @@ interface DataTableProps<TData, TValue = unknown> {
   tableCellClassName?: string;
   customSize?: boolean;
   pagination?: PaginatedResponse<TData>;
+  rowSelection?: RowSelectionState;
+  onRowSelectionChange?: OnChangeFn<RowSelectionState>;
 }
 
 export function DataTable<TData, TValue>({
@@ -37,10 +44,17 @@ export function DataTable<TData, TValue>({
   tableCellClassName,
   customSize = false,
   pagination,
+  rowSelection,
+  onRowSelectionChange,
 }: DataTableProps<TData, TValue>) {
+  const enableRowSelection = !!rowSelection;
+
   const table = useReactTable({
     data,
     columns,
+    state: { rowSelection },
+    enableRowSelection,
+    onRowSelectionChange,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -54,7 +68,7 @@ export function DataTable<TData, TValue>({
             className={cn(
               "w-full",
               customSize ? "table-fixed min-w-[800px]" : "min-w-[800px]",
-              tableClassName,
+              tableClassName
             )}
           >
             <TableHeader>
@@ -76,13 +90,15 @@ export function DataTable<TData, TValue>({
                         customSize
                           ? "break-words whitespace-normal"
                           : "min-w-[120px]",
-                        tableHeadClassName,
+                        tableHeadClassName
                       )}
                     >
-                      {flexRender(
-                        header.column.columnDef.header,
-                        header.getContext(),
-                      )}
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
                     </TableHead>
                   ))}
                 </TableRow>
@@ -92,7 +108,15 @@ export function DataTable<TData, TValue>({
             <TableBody>
               {table.getRowModel().rows.length > 0 ? (
                 table.getRowModel().rows.map((row) => (
-                  <TableRow key={row.id} className="hover:bg-gray-50/50">
+                  <TableRow
+                    key={row.id}
+                    className="hover:bg-gray-50/50"
+                    data-state={
+                      enableRowSelection && row.getIsSelected()
+                        ? "selected"
+                        : undefined
+                    }
+                  >
                     {row.getVisibleCells().map((cell) => (
                       <TableCell
                         key={cell.id}
@@ -109,23 +133,12 @@ export function DataTable<TData, TValue>({
                           customSize
                             ? "break-words whitespace-normal"
                             : "min-w-[120px]",
-                          tableCellClassName,
+                          tableCellClassName
                         )}
                       >
-                        {customSize ? (
-                          <div className="break-words whitespace-normal">
-                            {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext(),
-                            )}
-                          </div>
-                        ) : (
-                          <div className="max-w-[200px] break-words whitespace-break-spaces">
-                            {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext(),
-                            )}
-                          </div>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
                         )}
                       </TableCell>
                     ))}

@@ -265,6 +265,7 @@ const HeaderMenu = React.memo(function HeaderMenu() {
 
 const Header = React.memo(function Header() {
   const { isOnline, setOnline } = useNetworkStatus();
+  
   return (
     <header className="w-full flex flex-row justify-between px-4 md:px-10 py-2 items-center bg-white border-b">
       <div className="flex flex-row items-center gap-2">
@@ -307,7 +308,7 @@ const Header = React.memo(function Header() {
           />
         </Button>
         <Separator orientation="vertical" className="hidden md:block" />
-        <Profile />
+        <Profile/>
       </div>
     </header>
   );

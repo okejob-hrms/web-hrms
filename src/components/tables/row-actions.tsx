@@ -11,9 +11,14 @@ import { MoreHorizontal, Edit3, Trash2 } from "lucide-react";
 interface RowActionsProps {
   onEdit: () => void;
   onDelete: () => void;
+  hideDelete?: boolean;
 }
 
-export function RowActions({ onEdit, onDelete }: RowActionsProps) {
+export function RowActions({ 
+  onEdit,
+  onDelete,
+  hideDelete = false
+}: RowActionsProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -40,13 +45,15 @@ export function RowActions({ onEdit, onDelete }: RowActionsProps) {
             <Edit3 className="w-4 h-4" />
             Edit
           </DropdownMenuItem>
-          <DropdownMenuItem
-            className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 cursor-pointer select-none"
-            onClick={onDelete}
-          >
-            <Trash2 className="w-4 h-4" />
-            Delete
-          </DropdownMenuItem>
+          {!hideDelete && (
+            <DropdownMenuItem
+              className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 cursor-pointer select-none"
+              onClick={onDelete}
+            >
+              <Trash2 className="w-4 h-4" />
+              Delete
+            </DropdownMenuItem>
+          )}
         </DropdownMenuContent>
       </DropdownMenuPortal>
     </DropdownMenu>
