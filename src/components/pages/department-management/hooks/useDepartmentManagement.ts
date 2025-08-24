@@ -80,11 +80,11 @@ export function useDepartmentManagement() {
       const isNotFirstPage = pagination.pageIndex > 0;
 
       if (isLastItemOnPage && isNotFirstPage) {
-        queryClient.invalidateQueries({ queryKey: ["departments"] });
         setPagination((prev) => ({
           ...prev,
           pageIndex: prev.pageIndex - 1,
         }));
+        queryClient.invalidateQueries({ queryKey: ["departments"] });
       } else {
         queryClient.invalidateQueries({ queryKey: ["departments"] });
       }
