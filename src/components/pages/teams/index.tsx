@@ -46,27 +46,27 @@ export default function TeamManagementList() {
     },
     {
       accessorKey: "lastUpdate",
-      header: ({ column }) => {
-        const isSorted = column.getIsSorted();
-        const SortIcon = () =>
-          isSorted === "asc" ? (
-            <ArrowUp className="w-3 h-3" />
-          ) : isSorted === "desc" ? (
-            <ArrowDown className="w-3 h-3" />
-          ) : (
-            <ChevronsUpDown className="w-3 h-3 opacity-50" />
-          );
+      header: ({}) => {
+        // const isSorted = column.getIsSorted();
+        // const SortIcon = () =>
+        //   isSorted === "asc" ? (
+        //     <ArrowUp className="w-3 h-3" />
+        //   ) : isSorted === "desc" ? (
+        //     <ArrowDown className="w-3 h-3" />
+        //   ) : (
+        //     <ChevronsUpDown className="w-3 h-3 opacity-50" />
+        //   );
 
         return (
           <div className="flex flex-row gap-2">
             <span>Last Update</span>
-            <button
+            {/* <button
               type="button"
               onClick={() => column.toggleSorting(isSorted === "asc")}
               className="flex items-center gap-1"
             >
               <SortIcon />
-            </button>
+            </button> */}
           </div>
         );
       },
