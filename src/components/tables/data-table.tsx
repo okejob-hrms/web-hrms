@@ -1,10 +1,10 @@
 import {
   useReactTable,
   getCoreRowModel,
-  getPaginationRowModel,
   getSortedRowModel,
   ColumnDef,
   flexRender,
+  PaginationState,
 } from "@tanstack/react-table";
 
 import {
@@ -27,6 +27,8 @@ interface DataTableProps<TData, TValue = unknown> {
   tableCellClassName?: string;
   customSize?: boolean;
   pagination?: PaginatedResponse<TData>;
+  paginationState?: PaginationState;
+  setPaginationState?: React.Dispatch<React.SetStateAction<PaginationState>>;
 }
 
 export function DataTable<TData, TValue>({
@@ -37,13 +39,24 @@ export function DataTable<TData, TValue>({
   tableCellClassName,
   customSize = false,
   pagination,
+  paginationState,
+  setPaginationState,
 }: DataTableProps<TData, TValue>) {
+  const isPaginated =
+    paginationState !== undefined && setPaginationState !== undefined;
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
+    manualSorting: true,
+    ...(isPaginated && {
+      state: {
+        pagination: paginationState,
+      },
+      onPaginationChange: setPaginationState,
+      manualPagination: true,
+    }),
   });
 
   return (
@@ -54,7 +67,7 @@ export function DataTable<TData, TValue>({
             className={cn(
               "w-full",
               customSize ? "table-fixed min-w-[800px]" : "min-w-[800px]",
-              tableClassName,
+              tableClassName
             )}
           >
             <TableHeader>
@@ -76,12 +89,12 @@ export function DataTable<TData, TValue>({
                         customSize
                           ? "break-words whitespace-normal"
                           : "min-w-[120px]",
-                        tableHeadClassName,
+                        tableHeadClassName
                       )}
                     >
                       {flexRender(
                         header.column.columnDef.header,
-                        header.getContext(),
+                        header.getContext()
                       )}
                     </TableHead>
                   ))}
@@ -109,21 +122,21 @@ export function DataTable<TData, TValue>({
                           customSize
                             ? "break-words whitespace-normal"
                             : "min-w-[120px]",
-                          tableCellClassName,
+                          tableCellClassName
                         )}
                       >
                         {customSize ? (
                           <div className="break-words whitespace-normal">
                             {flexRender(
                               cell.column.columnDef.cell,
-                              cell.getContext(),
+                              cell.getContext()
                             )}
                           </div>
                         ) : (
                           <div className="max-w-[200px] break-words whitespace-break-spaces">
                             {flexRender(
                               cell.column.columnDef.cell,
-                              cell.getContext(),
+                              cell.getContext()
                             )}
                           </div>
                         )}
@@ -141,8 +154,7 @@ export function DataTable<TData, TValue>({
                       No Data Available
                     </p>
                     <p className="text-text-secondary text-sm">
-                      There&apos;s currently no data to display in this table.
-                      Please add new entries.
+                      {"There's currently no data to display in this table."}
                     </p>
                   </TableCell>
                 </TableRow>
@@ -152,7 +164,9 @@ export function DataTable<TData, TValue>({
         </div>
       </div>
 
-      {pagination && <GeneralPagination pagination={pagination} />}
+      {pagination && (
+        <GeneralPagination table={table} pagination={pagination} />
+      )}
     </div>
   );
 }

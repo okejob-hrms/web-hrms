@@ -1,3 +1,7 @@
+"use client";
+
+import React, { useEffect } from "react";
+
 import {
   AlertDialog,
   AlertDialogContent,
@@ -19,11 +23,12 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { TeamsFormValues, teamsFormScheme } from "../types";
+import { ITeam } from "@/lib/types";
 
 interface TeamModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  editIndex: number | null;
+  initialData: ITeam | null;
   handleSave: (data: TeamsFormValues) => void;
   handleClose: () => void;
 }
@@ -31,21 +36,39 @@ interface TeamModalProps {
 export default function TeamModal({
   open,
   onOpenChange,
-  editIndex,
+  initialData,
   handleSave,
   handleClose,
 }: TeamModalProps) {
   const form = useForm<TeamsFormValues>({
     resolver: zodResolver(teamsFormScheme),
-    mode: "onChange", // validate on change so Save button can disable live
+    mode: "onChange",
     defaultValues: {
       name: "",
       description: "",
     },
   });
 
+  useEffect(() => {
+    if (initialData) {
+      form.reset({
+        name: initialData.name,
+        description: initialData.description || "",
+      });
+    } else {
+      form.reset({
+        name: "",
+        description: "",
+      });
+    }
+  }, [initialData, form]);
+
   const onSubmit = (data: TeamsFormValues) => {
     handleSave(data);
+    form.reset({
+      name: "",
+      description: "",
+    });
   };
 
   return (
@@ -53,7 +76,7 @@ export default function TeamModal({
       <AlertDialogContent className="w-full max-w-md sm:max-w-xl bg-white px-4">
         <AlertDialogHeader>
           <AlertDialogTitle>
-            {editIndex !== null ? "Edit Team Details" : "Create New Team"}
+            {initialData !== null ? "Edit Team Details" : "Create New Team"}
           </AlertDialogTitle>
         </AlertDialogHeader>
 
@@ -62,7 +85,7 @@ export default function TeamModal({
             onSubmit={form.handleSubmit(onSubmit)}
             className="flex flex-col gap-4 mt-4"
           >
-            {/* Department Name */}
+            {/* Team Name */}
             <FormField
               control={form.control}
               name="name"
