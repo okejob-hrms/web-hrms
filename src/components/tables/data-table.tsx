@@ -4,12 +4,12 @@ import * as React from "react";
 import {
   useReactTable,
   getCoreRowModel,
-  getPaginationRowModel,
   getSortedRowModel,
   ColumnDef,
   flexRender,
   RowSelectionState,
   OnChangeFn,
+  PaginationState,
 } from "@tanstack/react-table";
 
 import {
@@ -34,6 +34,8 @@ interface DataTableProps<TData, TValue = unknown> {
   pagination?: PaginatedResponse<TData>;
   rowSelection?: RowSelectionState;
   onRowSelectionChange?: OnChangeFn<RowSelectionState>;
+  paginationState?: PaginationState;
+  setPaginationState?: React.Dispatch<React.SetStateAction<PaginationState>>;
 }
 
 export function DataTable<TData, TValue>({
@@ -46,18 +48,29 @@ export function DataTable<TData, TValue>({
   pagination,
   rowSelection,
   onRowSelectionChange,
+  paginationState,
+  setPaginationState,
 }: DataTableProps<TData, TValue>) {
   const enableRowSelection = !!rowSelection;
+  const isPaginated =
+    paginationState !== undefined && setPaginationState !== undefined;
 
   const table = useReactTable({
     data,
     columns,
-    state: { rowSelection },
+    state: {
+      rowSelection,
+      ...(isPaginated && { pagination: paginationState }),
+    },
     enableRowSelection,
     onRowSelectionChange,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
+    manualSorting: true,
+    ...(isPaginated && {
+      onPaginationChange: setPaginationState,
+      manualPagination: true,
+    }),
   });
 
   return (
@@ -136,9 +149,20 @@ export function DataTable<TData, TValue>({
                           tableCellClassName
                         )}
                       >
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
+                        {customSize ? (
+                          <div className="break-words whitespace-normal">
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext()
+                            )}
+                          </div>
+                        ) : (
+                          <div className="max-w-[200px] break-words whitespace-break-spaces">
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext()
+                            )}
+                          </div>
                         )}
                       </TableCell>
                     ))}
@@ -154,8 +178,7 @@ export function DataTable<TData, TValue>({
                       No Data Available
                     </p>
                     <p className="text-text-secondary text-sm">
-                      There&apos;s currently no data to display in this table.
-                      Please add new entries.
+                      {"There's currently no data to display in this table."}
                     </p>
                   </TableCell>
                 </TableRow>
@@ -165,7 +188,9 @@ export function DataTable<TData, TValue>({
         </div>
       </div>
 
-      {pagination && <GeneralPagination pagination={pagination} />}
+      {pagination && (
+        <GeneralPagination table={table} pagination={pagination} />
+      )}
     </div>
   );
 }

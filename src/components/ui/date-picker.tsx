@@ -31,7 +31,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
   description,
   isOptional,
   labelClassName,
-  required,
+  // required,
   placeholder,
   ...props
 }) => {

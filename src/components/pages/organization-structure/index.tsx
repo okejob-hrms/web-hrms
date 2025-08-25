@@ -45,7 +45,7 @@ export default function OrganizationChart() {
 
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<EmployeeNode | null>(
-    null
+    null,
   );
 
   const [currentParentId, setCurrentParentId] = useState<string | null>(null);
@@ -127,7 +127,7 @@ export default function OrganizationChart() {
         })
         .nodeUpdate(function (this: SVGGElement, node) {
           const el = this.querySelector(
-            `#node-${node.data.id}`
+            `#node-${node.data.id}`,
           ) as HTMLElement | null;
           if (el && dataRef.current) {
             const { openAssignModal } = dataRef.current;
@@ -137,7 +137,7 @@ export default function OrganizationChart() {
                 onAddChild={openAssignModal}
                 isSafari={isSafari} // Pass the isSafari state as a prop
                 onEdit={() => handleOpenProfileModal(node.data)}
-              />
+              />,
             );
           }
         });
@@ -149,7 +149,7 @@ export default function OrganizationChart() {
       .data(data)
       .nodeUpdate(function (this: SVGGElement, node) {
         const el = this.querySelector(
-          `#node-${node.data.id}`
+          `#node-${node.data.id}`,
         ) as HTMLElement | null;
         if (el && dataRef.current) {
           const { openAssignModal } = dataRef.current;
@@ -160,7 +160,7 @@ export default function OrganizationChart() {
               isSafari={isSafari} // Pass the isSafari state as a prop
               onEdit={() => handleOpenProfileModal(node.data)}
               isEditMode={isEditMode}
-            />
+            />,
           );
         }
       })
