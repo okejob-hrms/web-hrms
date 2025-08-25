@@ -9,7 +9,7 @@ import { DataTable } from "@/components/tables/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { RowActions } from "@/components/tables/row-actions";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { ArrowUp, ArrowDown, ChevronsUpDown } from "lucide-react";
+// import { ArrowUp, ArrowDown, ChevronsUpDown } from "lucide-react";
 import { formatDateTime } from "@/lib/helpers";
 import DeleteDepartmentDialog from "./sections/delete-modal";
 import { DepartmentResponse } from "@/services/department/types";
@@ -109,42 +109,38 @@ export default function DepartmentManagementList() {
   const isMobile = useIsMobile();
 
   return (
-    <div className="font-sans min-h-screen bg-gray-50">
-      <div className="max-w-screen-lg mx-auto">
-        <div className="flex flex-col justify-between gap-6">
-          <div className="rounded-md bg-white border shadow-sm border-grayscale-20 flex flex-col gap-4 p-6">
-            <div className="flex flex-col sm:flex-row justify-between w-full items-start sm:items-center gap-4 sm:gap-0">
-              <div className="flex gap-2 items-center flex-wrap">
-                <h2 className="font-semibold text-xl">Department List</h2>
-                <Badge className="bg-primary-background text-primary rounded-full">
-                  {pagination.pageIndex * pagination.pageSize +
-                    (departments?.data?.data?.length ?? 0)}{" "}
-                  Departments
-                </Badge>
-              </div>
-              <Button onClick={handleCreate} className="whitespace-nowrap">
-                + New Department
-              </Button>
-            </div>
-            {isLoading ? (
-              <div className="flex flex-col gap-4 items-center w-full">
-                <Skeleton className="h-12 w-full" />
-                <div className="space-y-2 w-full">
-                  <Skeleton className="h-30 w-full" />
-                </div>
-              </div>
-            ) : (
-              <DataTable
-                columns={columns}
-                data={departments?.data?.data}
-                customSize={!isMobile}
-                pagination={departments?.data}
-                paginationState={pagination}
-                setPaginationState={setPagination}
-              />
-            )}
+    <div className="flex flex-col justify-between gap-6">
+      <div className="rounded-md bg-white border shadow-sm border-grayscale-20 flex flex-col gap-4 p-6">
+        <div className="flex flex-col sm:flex-row justify-between w-full items-start sm:items-center gap-4 sm:gap-0">
+          <div className="flex gap-2 items-center flex-wrap">
+            <h2 className="font-semibold text-xl">Department List</h2>
+            <Badge className="bg-primary-background text-primary rounded-full">
+              {pagination.pageIndex * pagination.pageSize +
+                (departments?.data?.data?.length ?? 0)}{" "}
+              Departments
+            </Badge>
           </div>
+          <Button onClick={handleCreate} className="whitespace-nowrap">
+            + New Department
+          </Button>
         </div>
+        {isLoading ? (
+          <div className="flex flex-col gap-4 items-center w-full">
+            <Skeleton className="h-12 w-full" />
+            <div className="space-y-2 w-full">
+              <Skeleton className="h-30 w-full" />
+            </div>
+          </div>
+        ) : (
+          <DataTable
+            columns={columns}
+            data={departments?.data?.data}
+            customSize={!isMobile}
+            pagination={departments?.data}
+            paginationState={pagination}
+            setPaginationState={setPagination}
+          />
+        )}
       </div>
       {/* Modals */}
       <DeleteDepartmentDialog
