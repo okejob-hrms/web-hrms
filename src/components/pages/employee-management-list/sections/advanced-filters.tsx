@@ -33,7 +33,7 @@ export const AdvancedFilter = React.memo(function AdvancedFilter({
   });
   const { data: departments } = useQuery({
     queryKey: ["departments"],
-    queryFn: getDepartment,
+    queryFn: () => getDepartment(),
     retry: (failureCount, error: any) => {
       if (error?.response?.status >= 400) return false;
       return failureCount < 3;

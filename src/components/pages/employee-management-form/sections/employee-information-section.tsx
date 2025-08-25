@@ -403,7 +403,7 @@ export const EmployeeinformationSection = React.memo(
       error: departmentsError,
     } = useQuery({
       queryKey: ["departments"],
-      queryFn: getDepartment,
+      queryFn: () => getDepartment(),
       retry: (failureCount, error: any) => {
         if (error?.response?.status >= 400) return false;
         return failureCount < 3;
@@ -448,7 +448,7 @@ export const EmployeeinformationSection = React.memo(
       error: teamsError,
     } = useQuery({
       queryKey: ["teams"],
-      queryFn: getTeam,
+      queryFn: () => getTeam(),
       retry: (failureCount, error: any) => {
         if (error?.response?.status >= 400) return false;
         return failureCount < 3;
