@@ -132,7 +132,7 @@ export const PersonalInformationDetail = React.memo(
           </div>
           <div className="flex flex-col">
             <p className="text-sm text-text-disabled">ID Number</p>
-            <p>{data.idNumber}</p>
+            <p>{data.id_number}</p>
           </div>
           <div className="flex flex-col">
             <p className="text-sm text-text-disabled">
@@ -152,11 +152,11 @@ export const PersonalInformationDetail = React.memo(
           </div>
           <div className="flex flex-col">
             <p className="text-sm text-text-disabled">Citizen ID Address</p>
-            <p>{data.addressCitizen}</p>
+            <p>{data.citizen_id_address}</p>
           </div>
           <div className="flex flex-col col-start-1">
             <p className="text-sm text-text-disabled">Residental Address</p>
-            <p>{data.residentalAddress}</p>
+            <p>{data.residential_address}</p>
           </div>
           <div className="flex flex-col col-start-1 col-span-3">
             <p className="text-sm text-text-disabled">Achievement</p>

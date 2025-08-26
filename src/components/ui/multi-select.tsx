@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { CheckIcon, ChevronDown, WandSparkles } from "lucide-react";
@@ -480,6 +481,7 @@ interface FormMultiSelectProps
    */
   searchPlaceholder?: string;
   allSelectLabel?: string;
+  valueTransformer?: (value: string) => any;
 }
 
 export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
@@ -1417,6 +1419,7 @@ export const MultiSelectForm: React.FC<FormMultiSelectProps> = ({
   defaultValue = [],
   allSelectLabel,
   searchPlaceholder,
+  valueTransformer,
   ...props
 }) => {
   const form = useFormContext();
@@ -1431,38 +1434,55 @@ export const MultiSelectForm: React.FC<FormMultiSelectProps> = ({
     <FormField
       control={form.control}
       name={name}
-      render={({ field, fieldState }) => (
-        <FormItem className="space-y-2">
-          {label && (
-            <FormLabel className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-              {label}
-            </FormLabel>
-          )}
-          {description && (
-            <FormDescription className="text-sm text-muted-foreground">
-              {description}
-            </FormDescription>
-          )}
-          <FormControl>
-            <MultiSelect
-              options={options}
-              value={field.value || []}
-              defaultValue={defaultValue as string[]}
-              onValueChange={field.onChange}
-              placeholder={placeholder}
-              disabled={disabled || form.formState.isSubmitting}
-              className={cn(
-                fieldState.error && "border-destructive focus:ring-destructive",
-                className,
-              )}
-              allSelectLabel={allSelectLabel}
-              searchPlaceholder={searchPlaceholder}
-              {...props}
-            />
-          </FormControl>
-          <FormMessage />
-        </FormItem>
-      )}
+      render={({ field, fieldState }) => {
+        const displayValue =
+          field.value?.map((v: any) =>
+            typeof v === "number" ? v.toString() : v,
+          ) || [];
+
+        // Transform values back for form
+        const handleValueChange = (values: string[]) => {
+          const transformedValues = valueTransformer
+            ? values.map(valueTransformer)
+            : values;
+          field.onChange(transformedValues);
+        };
+        return (
+          <FormItem className="space-y-2">
+            {label && (
+              <FormLabel className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                {label}
+              </FormLabel>
+            )}
+            {description && (
+              <FormDescription className="text-sm text-muted-foreground">
+                {description}
+              </FormDescription>
+            )}
+            <FormControl>
+              <MultiSelect
+                options={options}
+                // value={field.value || []}
+                value={displayValue}
+                defaultValue={defaultValue as string[]}
+                // onValueChange={field.onChange}
+                onValueChange={handleValueChange}
+                placeholder={placeholder}
+                disabled={disabled || form.formState.isSubmitting}
+                className={cn(
+                  fieldState.error &&
+                    "border-destructive focus:ring-destructive",
+                  className,
+                )}
+                allSelectLabel={allSelectLabel}
+                searchPlaceholder={searchPlaceholder}
+                {...props}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        );
+      }}
     />
   );
 };

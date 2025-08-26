@@ -17,7 +17,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { InputForm } from "@/components/ui/input";
 import { TextAreaForm } from "@/components/ui/textarea";
-import { useForm } from "react-hook-form";
+import { useForm, useFormContext } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form } from "@/components/ui/form";
 import { getDepartment, postDepartment } from "@/services/department";
@@ -35,6 +35,8 @@ import { getJobLevels, postJobLevel } from "@/services/job-levels";
 import { toast } from "sonner";
 import { getTeam, postTeam } from "@/services/team";
 import { ITeamForm, teamFormScheme } from "@/services/team/types";
+import { MultiSelectForm } from "@/components/ui/multi-select";
+import { getEmployees } from "@/services/employees";
 
 export const AddNewJobLevelModal: React.FC = () => {
   const [open, setOpen] = React.useState(false);
@@ -94,8 +96,6 @@ export const AddNewJobLevelModal: React.FC = () => {
               required
               disabled={addJobLevel.isPending}
             />
-
-            {/* Show error message if mutation fails */}
             {addJobLevel.isError && (
               <div className="text-error text-sm mt-2">
                 Error:{" "}
@@ -397,12 +397,17 @@ export const AddNewTeamModal: React.FC = () => {
 
 export const EmployeeinformationSection = React.memo(
   function EmployeeinformationSection() {
+    const { watch, register } = useFormContext();
+    const watchedDepartmentId = watch("department_id");
+    const watchedJobPositionId = watch("job_position_id");
+    const watchedJobLevelId = watch("job_level_id");
+    const watchedDirectReports = watch("direct_reports");
     const {
       data: departments,
       isLoading: isDepartmentsLoading,
       error: departmentsError,
     } = useQuery({
-      queryKey: ["departments"],
+      queryKey: ["department_id"],
       queryFn: () => getDepartment(),
       retry: (failureCount, error: any) => {
         if (error?.response?.status >= 400) return false;
@@ -417,7 +422,7 @@ export const EmployeeinformationSection = React.memo(
       isLoading: isJobLevelsLoading,
       error: jobLevelsError,
     } = useQuery({
-      queryKey: ["job-levels"],
+      queryKey: ["job_level_id"],
       queryFn: getJobLevels,
       retry: (failureCount, error: any) => {
         if (error?.response?.status >= 400) return false;
@@ -432,7 +437,7 @@ export const EmployeeinformationSection = React.memo(
       isLoading: isPositionsLoading,
       error: positionsError,
     } = useQuery({
-      queryKey: ["job-position"],
+      queryKey: ["job_position_id"],
       queryFn: getJobPosition,
       retry: (failureCount, error: any) => {
         if (error?.response?.status >= 400) return false;
@@ -447,7 +452,7 @@ export const EmployeeinformationSection = React.memo(
       isLoading: isTeamsLoading,
       error: teamsError,
     } = useQuery({
-      queryKey: ["teams"],
+      queryKey: ["team_id"],
       queryFn: () => getTeam(),
       retry: (failureCount, error: any) => {
         if (error?.response?.status >= 400) return false;
@@ -457,11 +462,44 @@ export const EmployeeinformationSection = React.memo(
       refetchOnWindowFocus: false,
     });
 
+    const { data: employees, isLoading: isLoadingEmployees } = useQuery({
+      queryKey: [
+        "employees",
+        watchedDepartmentId,
+        watchedJobPositionId,
+        watchedJobLevelId,
+      ],
+      queryFn: () =>
+        getEmployees({
+          department_ids: [watchedDepartmentId],
+          job_position_ids: [watchedJobPositionId],
+          job_level_ids: [watchedJobLevelId],
+        }),
+      staleTime: 5 * 60 * 1000,
+      gcTime: 10 * 60 * 1000,
+      refetchOnWindowFocus: false,
+      enabled: !!(
+        watchedDepartmentId ||
+        watchedJobPositionId ||
+        watchedJobLevelId
+      ),
+    });
+
+    const employeesOptions = React.useMemo(() => {
+      if (employees?.data?.data) {
+        return employees.data.data.map((item) => ({
+          label: item.name,
+          value: item.id.toString(),
+        }));
+      }
+      return [];
+    }, [employees?.data]);
+
     const departmentOptions = React.useMemo(() => {
       if (departments?.data?.data) {
         return departments.data.data.map((item) => ({
           label: item.name,
-          value: item.name,
+          value: item.id.toString(),
         }));
       }
       return [];
@@ -471,7 +509,7 @@ export const EmployeeinformationSection = React.memo(
       if (positions?.data) {
         return positions.data.map((item) => ({
           label: item.name,
-          value: item.name,
+          value: item.id.toString(),
         }));
       }
       return [];
@@ -481,7 +519,7 @@ export const EmployeeinformationSection = React.memo(
       if (jobLevels?.data) {
         return jobLevels.data.map((item) => ({
           label: item.name,
-          value: item.name,
+          value: item.id.toString(),
         }));
       }
       return [];
@@ -491,11 +529,15 @@ export const EmployeeinformationSection = React.memo(
       if (teams?.data?.data) {
         return teams.data.data.map((item) => ({
           label: item.name,
-          value: item.name,
+          value: item.id.toString(),
         }));
       }
       return [];
     }, [teams?.data]);
+
+    React.useEffect(() => {
+      console.log("# Direct Reports ", watchedDirectReports);
+    }, [watchedDirectReports]);
 
     return (
       <React.Fragment>
@@ -504,7 +546,7 @@ export const EmployeeinformationSection = React.memo(
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-end w-full">
           <SelectForm
-            name="position"
+            name="job_position_id"
             label="Position"
             options={positionOptions}
             required
@@ -513,7 +555,7 @@ export const EmployeeinformationSection = React.memo(
             disabled={isPositionsLoading || !!positionsError}
           />
           <SelectForm
-            name="department"
+            name="department_id"
             label="Department"
             options={departmentOptions}
             required
@@ -521,52 +563,67 @@ export const EmployeeinformationSection = React.memo(
             disabled={isDepartmentsLoading || !!departmentsError}
           />
           <SelectForm
-            name="jobLevel"
+            name="job_level_id"
             label="Job Level"
             options={jobLevelOptions}
             required
             modalChildren={<AddNewJobLevelModal />}
             disabled={isJobLevelsLoading || !!jobLevelsError}
           />
+          <div className="flex flex-col gap-2">
+            <label className="text-sm text-text-secondary">
+              Primary Direct Report
+            </label>
+            <MultiSelectForm
+              options={employeesOptions}
+              name="direct_reports.0.direct_report_id"
+              maxCount={2}
+              searchPlaceholder="Search Employee"
+              hideSelectAll
+              disabled={isLoadingEmployees}
+              valueTransformer={(value) => Number(value)}
+            />
+            <input
+              type="hidden"
+              value="primary"
+              {...register("direct_reports.0.relationship_type")}
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <label className="text-sm text-text-secondary">
+              Additional Direct Report
+            </label>
+            <MultiSelectForm
+              options={employeesOptions}
+              name="direct_reports.1.direct_report_id"
+              maxCount={2}
+              searchPlaceholder="Search Employee"
+              hideSelectAll
+              disabled={isLoadingEmployees}
+              valueTransformer={(value) => Number(value)}
+            />
+            <input
+              type="hidden"
+              value="secondary"
+              {...register("direct_reports.1.relationship_type")}
+            />
+          </div>
           <SelectForm
-            name="primaryDirectReport"
-            label="Primary Direct Report"
-            options={[
-              { label: "Junior", value: "junior" },
-              { label: "Middle", value: "middle" },
-              { label: "Senior", value: "senior" },
-              { label: "Supervisor", value: "supervisor" },
-            ]}
-            required
-          />
-          <SelectForm
-            name="additionalDirectReport"
-            label="Additional Direct Report"
-            options={[
-              { label: "Junior", value: "junior" },
-              { label: "Middle", value: "middle" },
-              { label: "Senior", value: "senior" },
-              { label: "Supervisor", value: "supervisor" },
-            ]}
-          />
-          <SelectForm
-            name="team"
+            name="team_members"
             label="Team"
             options={teamOptions}
             required
             modalChildren={<AddNewTeamModal />}
             disabled={isTeamsLoading || !!teamsError}
           />
-          <DatePicker name="startDate" label="Employment Start Date" />
-          <DatePicker name="endDate" label="Employment End Date" />
+          <DatePicker name="start_date" label="Employment Start Date" />
+          <DatePicker name="end_date" label="Employment End Date" />
           <SelectForm
             name="status"
             label="Status"
             options={[
-              { label: "Active", value: "active" },
-              { label: "Inactive", value: "inactive" },
-              { label: "Terminated", value: "terminated" },
-              { label: "On Leave", value: "on-leave" },
+              { label: "Active", value: "1" },
+              { label: "Inactive", value: "0" },
             ]}
             required
           />

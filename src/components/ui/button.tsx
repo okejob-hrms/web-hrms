@@ -1,10 +1,11 @@
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
-
 import { cn } from "@/lib/utils";
 import Image from "next/image";
+import { Trash } from "lucide-react";
 import { UploadButtonProps } from "@/lib/types";
+import { PreviewDoc, useFileUpload } from "@/hooks/use-file-upload";
 
 const buttonVariants = cva(
   "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
@@ -58,24 +59,93 @@ function Button({
   );
 }
 
-function UploadButton({ label, required }: UploadButtonProps) {
+interface FilePreviewProps {
+  preview: PreviewDoc;
+  onRemove: () => void;
+}
+
+function FilePreview({ preview, onRemove }: FilePreviewProps) {
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return "0 Bytes";
+    const k = 1024;
+    const sizes = ["Bytes", "KB", "MB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+  };
+
+  return (
+    <div className="flex flex-row border rounded-xs border-grayscale-10 p-2">
+      <div className="flex flex-col gap-2">
+        <span className="text-text-secondary font-semibold text-sm">
+          {preview.name}
+        </span>
+        <span className="text-text-disabled text-[10px]">
+          {formatFileSize(preview.size)}
+        </span>
+      </div>
+      <Button variant="ghost" className="w-fit" onClick={onRemove}>
+        <Trash />
+      </Button>
+    </div>
+  );
+}
+
+function UploadButton({ label, required, name }: UploadButtonProps) {
+  const ref = React.useRef<HTMLInputElement>(null);
+  const { preview, handleFileUpload, handleRemove, isUploading } =
+    useFileUpload({ name });
+
+  const handleButtonClick = () => {
+    if (ref.current) {
+      ref.current.click();
+    }
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      handleFileUpload(file);
+
+      // Clear the input value to allow re-uploading the same file
+      if (ref.current) {
+        ref.current.value = "";
+      }
+    }
+  };
+
   return (
     <div className="flex flex-col max-w-fit gap-2">
       <span className="text-sm">
         {label}
         {required && <span className="text-error">*</span>}
       </span>
-      <Button variant="outline" className="w-28">
+
+      {preview && <FilePreview preview={preview} onRemove={handleRemove} />}
+
+      <Button
+        variant="outline"
+        className="w-28"
+        onClick={handleButtonClick}
+        disabled={isUploading}
+      >
         <Image
           aria-hidden
-          src="/icons/attachment.svg"
+          src="/icons/attachmentBlue.svg"
           alt="attachment icon"
           width={18}
           height={18}
           className="text-primary"
         />
-        Upload File
+        {isUploading ? "Uploading..." : "Upload File"}
       </Button>
+
+      <input
+        type="file"
+        ref={ref}
+        onChange={handleFileChange}
+        className="hidden"
+        disabled={isUploading}
+      />
     </div>
   );
 }

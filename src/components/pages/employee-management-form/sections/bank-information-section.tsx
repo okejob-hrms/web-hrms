@@ -12,9 +12,9 @@ export const BankInformationSection = React.memo(
         <h2 className="font-semibold text-lg leading-5 mb-3">
           Bank Information
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-start">
           <SelectForm
-            name="bank"
+            name="bank_name"
             label="Bank"
             options={[
               { label: "BCA", value: "bca" },
@@ -26,12 +26,12 @@ export const BankInformationSection = React.memo(
             required
           />
           <InputForm
-            name="accountNumber"
+            name="account_number"
             label="Account Number"
             required
             className="col-start-1 col-end-2"
           />
-          <InputForm name="accountName" label="Account Name" required />
+          <InputForm name="account_name" label="Account Name" required />
           <Separator className="md:col-span-2 my-6" />
         </div>
       </React.Fragment>
