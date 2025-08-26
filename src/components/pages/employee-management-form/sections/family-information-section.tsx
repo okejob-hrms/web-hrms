@@ -15,7 +15,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Form, FormLabel } from "@/components/ui/form";
+import { Form } from "@/components/ui/form";
 import { InputForm } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import {
@@ -31,6 +31,7 @@ import { SelectForm } from "@/components/ui/select-form";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getProfile } from "@/services/profile";
+import { PhoneInput } from "@/components/ui/phone-input";
 
 const formatDate = (dateString: string): string => {
   return new Date(dateString).toLocaleDateString("id-ID", {
@@ -194,29 +195,11 @@ export const AddFamilyFormModal: React.FC = () => {
                 required
               />
               <InputForm name="email" label="Email" required />
-              <div className="grid gap-2 w-full">
-                <FormLabel className="text-sm font-normal">
-                  Phone Number
-                  <span className="text-error">*</span>
-                </FormLabel>
-                <div className="flex items-end gap-2 w-full">
-                  <SelectForm
-                    name="countryCode"
-                    options={[
-                      { label: "+1", value: "+1" },
-                      { label: "+62", value: "+62" },
-                      { label: "+44", value: "+44" },
-                    ]}
-                    disabled={createFamilyMutation.isPending}
-                  />
-                  <InputForm
-                    name="phone"
-                    required
-                    className="w-full"
-                    disabled={createFamilyMutation.isPending}
-                  />
-                </div>
-              </div>
+              <PhoneInput
+                name="phone_number"
+                label="Phone Number"
+                required={true}
+              />
               <InputForm
                 name="occupation"
                 label="Occupation"

@@ -30,3 +30,22 @@ export const api = ky.create({
     ],
   },
 });
+
+export const apiUpload = ky.create({
+  prefixUrl:
+    process.env.NEXT_PUBLIC_BASE_URL || "https://api.okejobhub.fun/api/v1",
+  timeout: 30000,
+  retry: { limit: 0 },
+  hooks: {
+    beforeRequest: [
+      (request) => {
+        const token =
+          typeof window !== "undefined" ? localStorage.getItem("token") : null;
+        if (token) {
+          request.headers.set("Authorization", `Bearer ${token}`);
+        }
+        request.headers.set("Accept", "application/json");
+      },
+    ],
+  },
+});

@@ -1,5 +1,9 @@
 import { ApiResponse, PaginatedResponse } from "@/lib/types";
-import { IEmployeeResponse } from "./types";
+import {
+  ICreateEmployeeRequest,
+  ICreateEmployeeResponse,
+  IEmployeeResponse,
+} from "./types";
 import { api } from "@/lib/api";
 import qs from "qs";
 interface Params {
@@ -44,6 +48,33 @@ export const getEmployees = (
 
   const response = api.get<ApiResponse<PaginatedResponse<IEmployeeResponse>>>(
     `employees${queryString ? `?${queryString}` : ""}`,
+  );
+  return response.json();
+};
+
+export const createEmployee = (
+  params: ICreateEmployeeRequest,
+): Promise<ApiResponse<ICreateEmployeeResponse>> => {
+  const response = api.post<ApiResponse<ICreateEmployeeResponse>>(`employees`, {
+    json: params,
+  });
+  return response.json();
+};
+
+export const updateEmployee = (
+  params: ICreateEmployeeRequest,
+): Promise<ApiResponse<ICreateEmployeeResponse>> => {
+  const response = api.put<ApiResponse<ICreateEmployeeResponse>>(`employees`, {
+    json: params,
+  });
+  return response.json();
+};
+
+export const deleteEmployee = (
+  id: number,
+): Promise<ApiResponse<IEmployeeResponse>> => {
+  const response = api.delete<ApiResponse<IEmployeeResponse>>(
+    `employees/${id}`,
   );
   return response.json();
 };

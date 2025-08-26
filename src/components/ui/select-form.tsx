@@ -7,6 +7,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from "@/components/ui/form";
 import { cn } from "@/lib/utils";
 import {
@@ -30,6 +31,7 @@ const SelectForm: React.FC<OptionFormProps> = ({
   placeholder,
   className,
   modalChildren,
+  type,
 }) => {
   const { control } = useFormContext();
   return (
@@ -47,7 +49,16 @@ const SelectForm: React.FC<OptionFormProps> = ({
             </FormLabel>
           )}
           <FormControl>
-            <Select onValueChange={field.onChange} defaultValue={field.value}>
+            <Select
+              onValueChange={(value) => {
+                if (type === "number") {
+                  field.onChange(Number(value));
+                } else {
+                  field.onChange(value);
+                }
+              }}
+              defaultValue={field.value?.toString()}
+            >
               <FormControl>
                 <SelectTrigger className={className}>
                   <SelectValue placeholder={placeholder ?? "Select"} />
@@ -64,6 +75,7 @@ const SelectForm: React.FC<OptionFormProps> = ({
               </SelectContent>
             </Select>
           </FormControl>
+          <FormMessage />
         </FormItem>
       )}
     />

@@ -135,6 +135,7 @@ export interface OptionFormProps extends InputFormProps {
     icon?: React.ReactNode;
   }[];
   modalChildren?: React.ReactNode;
+  type?: "string" | "number";
 }
 
 export type BasicDatePickerProps = DayPickerProps & {
@@ -231,4 +232,5 @@ export interface MultipleSelectFormProps extends MultipleSelectProps {
 export interface UploadButtonProps extends React.ComponentProps<"button"> {
   label: string;
   required?: boolean;
+  name: string;
 }

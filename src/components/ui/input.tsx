@@ -84,9 +84,20 @@ const InputForm: React.FC<InputFormProps> = ({
               className={cn("", inputClassName)}
               type={props.type || "text"}
               disabled={props.disabled}
-              // value={props.value || field.value}
               autoComplete={props.autoComplete}
-              // onChange={props.onChange}
+              onChange={(e) => {
+                if (
+                  props.type === "number" ||
+                  name === "height" ||
+                  name === "weight"
+                ) {
+                  const value = e.target.value;
+                  field.onChange(value === "" ? "" : Number(value));
+                } else {
+                  field.onChange(e.target.value);
+                }
+              }}
+              value={field.value ?? ""}
               {...props}
             />
           </FormControl>
