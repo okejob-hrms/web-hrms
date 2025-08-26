@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import * as React from "react";
+import * as React from 'react';
 import {
   Table,
   TableBody,
@@ -8,10 +8,10 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Checkbox } from "@/components/ui/checkbox";
-import { IPermissionModule } from "@/services/settings/types";
-import { snakeToTitleCase } from "@/lib/helpers";
+} from '@/components/ui/table';
+import { Checkbox } from '@/components/ui/checkbox';
+import { IPermissionModule } from '@/services/settings/types';
+import { snakeToTitleCase } from '@/lib/helpers';
 
 type PermissionTableProps = {
   data: IPermissionModule[];
@@ -34,7 +34,7 @@ export function PermissionTable({
     <div className="space-y-6">
       <h2 className="font-semibold text-xl">Permissions</h2>
 
-      {data.map((item) => (
+      {data?.map((item) => (
         <div key={item.module} className="space-y-2">
           <h3 className="font-semibold text-lg">
             {snakeToTitleCase(item.module)}
@@ -73,7 +73,7 @@ export function PermissionTable({
                         >
                           <Checkbox
                             aria-label={`${snakeToTitleCase(
-                              row.key
+                              row.key,
                             )} ${snakeToTitleCase(actionKey)}`}
                             checked={selected.includes(actionValue.id)}
                             onCheckedChange={(val) =>
@@ -81,7 +81,7 @@ export function PermissionTable({
                             }
                           />
                         </TableCell>
-                      )
+                      ),
                     )}
                   </TableRow>
                 ))}
