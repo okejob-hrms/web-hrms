@@ -17,7 +17,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Ellipsis } from "lucide-react";
-import { Icon } from "@/components/ui/icon";
 import Link from "next/link";
 import { IEmployeeResponse } from "@/services/employees/types";
 import { useQuery } from "@tanstack/react-query";
@@ -25,6 +24,7 @@ import { getEmployees } from "@/services/employees";
 import { Filters } from "./types";
 import { useDebounce } from "@/hooks/use-debounce";
 import { Skeleton } from "@/components/ui/skeleton";
+import Image from "next/image";
 
 export const columns: ColumnDef<IEmployeeResponse>[] = [
   {
@@ -100,7 +100,7 @@ export const columns: ColumnDef<IEmployeeResponse>[] = [
   {
     accessorKey: "menu",
     header: "",
-    cell: () => {
+    cell: ({ row }) => {
       return (
         <DropdownMenu>
           <DropdownMenuTrigger>
@@ -109,16 +109,29 @@ export const columns: ColumnDef<IEmployeeResponse>[] = [
           <DropdownMenuContent>
             <DropdownMenuItem>
               <Link
-                href="/employee/employee-management/detail"
-                className="flex justify-between items-center"
+                href={`/employee/employee-management/${row.original.id}`}
+                className="flex gap-2 justify-between items-center"
               >
-                <Icon name="eyeVisible" size={24} color="currentColor" />
+                <Image
+                  src="/icons/eyeVisibleGrey.svg"
+                  height={16}
+                  width={16}
+                  alt="icon-eye"
+                />
                 Employee Details
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem>
-              <Link href="#" className="flex justify-between items-center">
-                <Icon name="edit" size={24} color="currentColor" />
+              <Link
+                href="#"
+                className="flex gap-2 justify-between items-center"
+              >
+                <Image
+                  src="/icons/editGrey.svg"
+                  height={16}
+                  width={16}
+                  alt="icon-edit"
+                />
                 Edit
               </Link>
             </DropdownMenuItem>

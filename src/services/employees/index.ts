@@ -2,6 +2,7 @@ import { ApiResponse, PaginatedResponse } from "@/lib/types";
 import {
   ICreateEmployeeRequest,
   ICreateEmployeeResponse,
+  IEmployeeDetailsResponse,
   IEmployeeResponse,
 } from "./types";
 import { api } from "@/lib/api";
@@ -74,6 +75,15 @@ export const deleteEmployee = (
   id: number,
 ): Promise<ApiResponse<IEmployeeResponse>> => {
   const response = api.delete<ApiResponse<IEmployeeResponse>>(
+    `employees/${id}`,
+  );
+  return response.json();
+};
+
+export const getEmployeeDetail = (
+  id: number,
+): Promise<ApiResponse<IEmployeeDetailsResponse>> => {
+  const response = api.get<ApiResponse<IEmployeeDetailsResponse>>(
     `employees/${id}`,
   );
   return response.json();
