@@ -1,10 +1,10 @@
 import { Clock } from "lucide-react";
 import * as React from "react";
 
-export const PayrollDetail = React.memo(function PayrollDetail() {
+export const AttendanceDetail = React.memo(function AttendanceDetail() {
   return (
     <div className="flex flex-col w-full gap-2 p-2">
-      <h1 className="font-semibold text-lg">Payroll</h1>
+      <h1 className="font-semibold text-lg">Attendance</h1>
       <div className="flex flex-col items-center justify-center gap-6 p-10 w-full">
         <div className="flex h-20 w-20 items-center justify-center rounded-full bg-indigo-50">
           <Clock className="h-10 w-10 text-indigo-600" />

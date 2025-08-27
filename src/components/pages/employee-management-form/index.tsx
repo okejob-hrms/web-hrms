@@ -50,7 +50,6 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
 
   const onSubmit = (values: z.infer<typeof employeeManagementFormScheme>) => {
     try {
-      console.log("phone_number", values.phone_number.split("+")[1]);
       const { countryCode: _, ...restValues } = values;
       const filteredSocialMedia = values.social_media_accounts.filter(
         (account) => account.type.trim() !== "" && account.url.trim() !== "",
@@ -78,18 +77,15 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
           allowance_type_id: Number(item.allowance_type_id),
           allowance_value: Number(item.allowance_value),
         })),
-        phone_number: Number(values.phone_number.split("+")[1]),
+        phone_number: Number(values.phone_number),
+        bank_id: Number(values.bank_id),
       };
       mutate(params);
-      console.log("#params ", params);
     } catch (err) {
       console.log("Error submit", err);
     }
   };
 
-  React.useEffect(() => {
-    console.log("# ERRORS ", form.formState.errors);
-  }, [form.formState]);
   return (
     <React.Fragment>
       <Form {...form}>

@@ -3,51 +3,59 @@
 import * as React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import { cn, stringAvatar } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Icon } from "@/components/ui/icon";
 import { PersonalInformationDetail } from "./sections/personal-information";
-import { mockEmployeeDetail } from "./mock";
 import { DocumentDetail } from "./sections/document";
 import { PayrollDetail } from "./sections/payroll";
-// interface EmployeeDetailTabProps {
+import { useQuery } from "@tanstack/react-query";
+import { getEmployeeDetail } from "@/services/employees";
+import { IEmployeeDetailsResponse } from "@/services/employees/types";
+import { AssetsDetail } from "./sections/assets";
+import { AttendanceDetail } from "./sections/attendance";
 
-// }
+interface Props {
+  id: number;
+}
 
-const tabs = [
-  {
-    name: "Personal Information",
-    value: "personal-information",
-    content: <PersonalInformationDetail />,
-    icon: <Icon name="userSolid" size={18} color="currentColor" />,
-  },
-  {
-    name: "Document",
-    value: "document",
-    content: <DocumentDetail />,
-    icon: <Icon name="documentOutlined" size={18} color="currentColor" />,
-  },
-  {
-    name: "Payroll",
-    value: "payroll",
-    content: <PayrollDetail />,
-    icon: <Icon name="debit" size={18} color="currentColor" />,
-  },
-  {
-    name: "Attendance",
-    value: "attendance",
-    content: "bunx --bun shadcn@latest add tabs",
-    icon: <Icon name="clock" size={18} color="currentColor" />,
-  },
-  {
-    name: "Assets",
-    value: "assets",
-    content: "bunx --bun shadcn@latest add tabs",
-    icon: <Icon name="inventory" size={18} color="currentColor" />,
-  },
-];
+interface TabProps {
+  data: IEmployeeDetailsResponse;
+}
 
-export function Tab() {
+export function Tab({ data }: TabProps) {
+  const tabs = [
+    {
+      name: "Personal Information",
+      value: "personal-information",
+      content: <PersonalInformationDetail data={data} />,
+      icon: <Icon name="userSolid" size={18} color="currentColor" />,
+    },
+    {
+      name: "Document",
+      value: "document",
+      content: <DocumentDetail data={data} />,
+      icon: <Icon name="documentOutlined" size={18} color="currentColor" />,
+    },
+    {
+      name: "Payroll",
+      value: "payroll",
+      content: <PayrollDetail />,
+      icon: <Icon name="debit" size={18} color="currentColor" />,
+    },
+    {
+      name: "Attendance",
+      value: "attendance",
+      content: <AttendanceDetail />,
+      icon: <Icon name="clock" size={18} color="currentColor" />,
+    },
+    {
+      name: "Assets",
+      value: "assets",
+      content: <AssetsDetail />,
+      icon: <Icon name="inventory" size={18} color="currentColor" />,
+    },
+  ];
   return (
     <Tabs defaultValue={tabs[0].value} className="w-full mx-auto">
       <TabsList className="p-1 w-full bg-secondary-background min-h-12">
@@ -75,44 +83,60 @@ export function Tab() {
   );
 }
 
-export const EmployeeDetail = React.memo(function EmployeeDetail() {
-  const data = mockEmployeeDetail;
-  return (
-    <div className="w-full flex flex-col gap-4">
-      <div className="flex flex-col items-center">
-        <Avatar className="size-20">
-          <AvatarImage className="size-20" src={data.photo} alt="@shadcn" />
-          <AvatarFallback className="size-10">CN</AvatarFallback>
-        </Avatar>
-        <h3 className="text-lg font-semibold">{data.name}</h3>
-        <p className="text-sm">
-          Employee ID <span className="font-semibold">{data.employeeId}</span>
-        </p>
-        <Badge
-          variant="default"
-          className={cn(
-            "rounded-full",
-            data.status === "active"
-              ? "bg-success-focused "
-              : "bg-error-focused ",
-          )}
-        >
-          <div
+export const EmployeeDetail = React.memo(function EmployeeDetail({
+  id,
+}: Props) {
+  // const data = mockEmployeeDetail;
+  const { data: employeeDetails } = useQuery({
+    queryKey: ["employee-detail", id],
+    queryFn: () => getEmployeeDetail(id),
+  });
+  const data = employeeDetails?.data;
+  console.log("# details", data);
+  if (data) {
+    return (
+      <div className="w-full flex flex-col gap-4">
+        <div className="flex flex-col items-center">
+          <Avatar className="h-20 w-20">
+            <AvatarImage
+              className="size-20"
+              src={`${process.env.NEXT_PUBLIC_FILE_URL}/${data.photo_profile}`}
+              alt={data.user.name}
+            />
+            <AvatarFallback className="text-base font-medium">
+              {stringAvatar(data.user.name)}
+            </AvatarFallback>
+          </Avatar>
+          <h3 className="text-lg font-semibold">{data.user.name}</h3>
+          <p className="text-sm">
+            Employee ID <span className="font-semibold">{data.id}</span>
+          </p>
+          <Badge
+            variant="default"
             className={cn(
-              "size-2 rounded-full",
-              data.status === "active" ? "bg-success" : "bg-error",
-            )}
-          />
-          <span
-            className={cn(
-              data.status === "active" ? "text-success" : "text-error",
+              "rounded-full",
+              data.employment.status === 1
+                ? "bg-success-focused "
+                : "bg-error-focused ",
             )}
           >
-            {data.status === "active" ? "Active" : "Inactive"}
-          </span>
-        </Badge>
+            <div
+              className={cn(
+                "size-2 rounded-full",
+                data.employment.status === 1 ? "bg-success" : "bg-error",
+              )}
+            />
+            <span
+              className={cn(
+                data.employment.status === 1 ? "text-success" : "text-error",
+              )}
+            >
+              {data.employment.status === 1 ? "Active" : "Inactive"}
+            </span>
+          </Badge>
+        </div>
+        <Tab data={data} />
       </div>
-      <Tab />
-    </div>
-  );
+    );
+  }
 });

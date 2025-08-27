@@ -69,7 +69,7 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({
       }
     }
 
-    const cleanNumber = inputValue.replace(/^\+\d+\s*/, ""); // Remove any country code prefix
+    const cleanNumber = inputValue.replace(/^\+\d+\s*/, "");
     const fullPhoneNumber = cleanNumber
       ? `${countryCode}${cleanNumber}`
       : countryCode;

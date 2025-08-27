@@ -69,7 +69,7 @@ export const employeeManagementFormScheme = z.object({
     }),
   ),
 
-  bank_name: z.string().min(1, "required"),
+  bank_id: z.string().min(1, "required"),
   account_number: z.string().min(1, "required"),
   account_name: z.string().min(1, "required"),
 
@@ -196,7 +196,7 @@ export const employeeManagementFormDefaultValues = {
   //   },
   // ],
 
-  // bank_name: "",
+  // bank_id: "",
   // account_number: "",
   // account_name: "",
 

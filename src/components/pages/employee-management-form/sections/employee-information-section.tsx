@@ -535,10 +535,6 @@ export const EmployeeinformationSection = React.memo(
       return [];
     }, [teams?.data]);
 
-    React.useEffect(() => {
-      console.log("# Direct Reports ", watchedDirectReports);
-    }, [watchedDirectReports]);
-
     return (
       <React.Fragment>
         <h2 className="font-semibold text-lg leading-5 mb-3">
