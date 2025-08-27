@@ -28,8 +28,18 @@ export const api = ky.create({
         request.headers.set("Content-Type", "application/json");
       },
     ],
+    afterResponse: [
+      (_request, _options, response) => {
+        if (response.status === 401 && typeof window !== "undefined") {
+          localStorage.removeItem("token");
+          window.location.href = "/auth/login";
+        }
+        return response;
+      },
+    ],
   },
 });
+
 
 export const apiUpload = ky.create({
   prefixUrl:

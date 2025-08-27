@@ -14,16 +14,16 @@ export function useRoleManagement() {
 
   const fetchRoles = useCallback(async () => {
     try {
-        setLoading(true);
-        setError(null);
+      setLoading(true);
+      setError(null);
 
-        const res = await getRoles();
-        setRoles(res.data ?? []);
+      const res = await getRoles();
+      setRoles(res.data ?? []);
     } catch (err: unknown) {
-        console.error("Failed to fetch roles:", err);
-        setError(err instanceof Error ? err.message : "Unexpected error");
+      console.error("Failed to fetch roles:", err);
+      setError(err instanceof Error ? err.message : "Unexpected error");
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
   }, []);
 
@@ -33,7 +33,7 @@ export function useRoleManagement() {
   };
 
   const handleEdit = (id: number | string) => {
-    router.push(`/settings/access-control/${id}/edit`);
+    router.push(`/settings/access-control/${id}`);
   };
 
   useEffect(() => {
