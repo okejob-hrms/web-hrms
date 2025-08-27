@@ -76,6 +76,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
                   onSelect={(date) => {
                     field.onChange(date);
                   }}
+                  captionLayout="dropdown"
                 />
               </PopoverContent>
             </Popover>

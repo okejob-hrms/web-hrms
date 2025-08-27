@@ -52,6 +52,21 @@ export interface ITeam {
   updated_at: string;
 }
 
+export interface IDocument {
+  id: number;
+  employee_profile_id: number;
+  type: string;
+  filename: string;
+  mime_type: string;
+  size: number;
+  path: string;
+  disk: string;
+  uploaded_by: number;
+  uploaded_at: string;
+  created_at: string;
+  updated_at: string;
+}
+
 //============== Component Props ============== //
 export interface InputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {

@@ -8,6 +8,10 @@ export const formalEducationFormScheme = z.object({
   start_date: z.date().min(1, "required"),
   graduation_date: z.date().min(1, "required"),
   gpa: z.number().min(1, "required").max(4.0, "The GPA must not exceed 4.00"),
+  max_gpa: z
+    .number()
+    .min(1, "required")
+    .max(4.0, "The GPA must not exceed 4.00"),
 });
 export const nonFormalEducationFormScheme = z.object({
   category: z.string().min(1, "required"),

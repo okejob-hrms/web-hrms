@@ -33,7 +33,9 @@ export const columns: ColumnDef<IEmployeeResponse>[] = [
     cell: ({ row }) => (
       <div className="flex gap-4 items-center min-w-[150px]">
         <Avatar className="h-10 w-10">
-          <AvatarImage src={row.original.photo_profile} />
+          <AvatarImage
+            src={`${process.env.NEXT_PUBLIC_FILE_URL}/${row.original.photo_profile}`}
+          />
           <AvatarFallback className="text-primary-hover bg-primary-background text-base font-medium">
             {stringAvatar(row.original.name)}
           </AvatarFallback>

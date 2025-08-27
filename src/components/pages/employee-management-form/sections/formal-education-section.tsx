@@ -91,6 +91,7 @@ export const AddFormalEducationFormModal = ({
       start_date: new Date(),
       graduation_date: new Date(),
       gpa: 0,
+      max_gpa: 0,
     },
   });
 
@@ -176,7 +177,7 @@ export const AddFormalEducationFormModal = ({
                 <div className="flex items-center gap-2 w-full">
                   <InputForm name="gpa" required type="number" />
                   <span className="text-text-disabled">/</span>
-                  <InputForm name="gpa2" type="number" required />
+                  <InputForm name="max_gpa" type="number" required />
                 </div>
               </div>
             </div>

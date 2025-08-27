@@ -2,6 +2,7 @@ import { IEducationResponse } from "./educations/types";
 import { IFamilyResponse } from "./families/types";
 import { IResponseWorkExperience } from "./work-experiences/types";
 import { IContactReferenceResponse } from "./contact-references/types";
+import { IDocument } from "@/lib/types";
 
 export interface IEmployeeResponse {
   id: number;
@@ -228,18 +229,5 @@ export interface IEmployeeDetailsResponse {
   educations: IEducationResponse[];
   families: IFamilyResponse[];
   contact_refferences: IContactReferenceResponse[];
-  employee_documents: {
-    id: number;
-    employee_profile_id: number;
-    type: string;
-    filename: string;
-    mime_type: string;
-    size: number;
-    path: string;
-    disk: string;
-    uploaded_by: number;
-    uploaded_at: string;
-    created_at: string;
-    updated_at: string;
-  }[];
+  employee_documents: IDocument[];
 }

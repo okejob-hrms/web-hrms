@@ -12,6 +12,8 @@ import { PayrollDetail } from "./sections/payroll";
 import { useQuery } from "@tanstack/react-query";
 import { getEmployeeDetail } from "@/services/employees";
 import { IEmployeeDetailsResponse } from "@/services/employees/types";
+import { AssetsDetail } from "./sections/assets";
+import { AttendanceDetail } from "./sections/attendance";
 
 interface Props {
   id: number;
@@ -32,7 +34,7 @@ export function Tab({ data }: TabProps) {
     {
       name: "Document",
       value: "document",
-      content: <DocumentDetail />,
+      content: <DocumentDetail data={data} />,
       icon: <Icon name="documentOutlined" size={18} color="currentColor" />,
     },
     {
@@ -44,13 +46,13 @@ export function Tab({ data }: TabProps) {
     {
       name: "Attendance",
       value: "attendance",
-      content: "bunx --bun shadcn@latest add tabs",
+      content: <AttendanceDetail />,
       icon: <Icon name="clock" size={18} color="currentColor" />,
     },
     {
       name: "Assets",
       value: "assets",
-      content: "bunx --bun shadcn@latest add tabs",
+      content: <AssetsDetail />,
       icon: <Icon name="inventory" size={18} color="currentColor" />,
     },
   ];
@@ -98,8 +100,8 @@ export const EmployeeDetail = React.memo(function EmployeeDetail({
           <Avatar className="h-20 w-20">
             <AvatarImage
               className="size-20"
-              src={data.photo_profile}
-              alt="@shadcn"
+              src={`${process.env.NEXT_PUBLIC_FILE_URL}/${data.photo_profile}`}
+              alt={data.user.name}
             />
             <AvatarFallback className="text-base font-medium">
               {stringAvatar(data.user.name)}
