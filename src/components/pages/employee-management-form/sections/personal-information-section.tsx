@@ -18,7 +18,7 @@ import { getRoles } from "@/services/roles";
 import { uploadAttachment } from "@/services/attachments";
 import { toast } from "sonner";
 import { PhoneInput } from "@/components/ui/phone-input";
-import { cn } from "@/lib/utils";
+import { cn, stringAvatar } from "@/lib/utils";
 
 export const PersonalInformationSection = React.memo(
   function PersonalInformationSection() {
@@ -31,6 +31,22 @@ export const PersonalInformationSection = React.memo(
     const [socialMediaCount, setSocialMediaCount] = React.useState(1);
     const [previewPhotoProfile, setPreviewPhotoProfile] = React.useState("");
     const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+    React.useEffect(() => {
+      const photoUrl = watch("photo_profile");
+      if (photoUrl) {
+        setPreviewPhotoProfile(
+          `${process.env.NEXT_PUBLIC_FILE_URL}/${photoUrl}`,
+        );
+      }
+    }, [watch("photo_profile")]);
+
+    React.useEffect(() => {
+      const accounts = watch("social_media_accounts");
+      if (accounts) {
+        setSocialMediaCount(accounts.length);
+      }
+    }, [watch("social_media_accounts")]);
 
     const { mutate: uploadPhotoProfile } = useMutation({
       mutationFn: uploadAttachment,
@@ -118,7 +134,7 @@ export const PersonalInformationSection = React.memo(
               <span className="text-sm text-text-disabled">(optional)</span>
             </label>
             <div className="flex items-center gap-4">
-              <Avatar className="size-20 bg-grayscale-10">
+              <Avatar className="size-20 bg-grayscale-10 items-center justify-center">
                 <AvatarImage
                   src={previewPhotoProfile || "/icons/userPlaceholder.svg"}
                   alt="Profile photo"
@@ -127,8 +143,8 @@ export const PersonalInformationSection = React.memo(
                     !previewPhotoProfile && "h-10 w-10",
                   )}
                 />
-                <AvatarFallback className="size-10">
-                  {getValues("name")?.charAt(0) || "U"}
+                <AvatarFallback className="size-10 font-semibold">
+                  {stringAvatar(watch("name"))}
                 </AvatarFallback>
               </Avatar>
               <Button

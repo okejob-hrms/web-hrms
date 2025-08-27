@@ -1435,12 +1435,10 @@ export const MultiSelectForm: React.FC<FormMultiSelectProps> = ({
       control={form.control}
       name={name}
       render={({ field, fieldState }) => {
-        const displayValue =
-          field.value?.map((v: any) =>
-            typeof v === "number" ? v.toString() : v,
-          ) || [];
-
-        // Transform values back for form
+        const fieldValue = Array.isArray(field.value) ? field.value : [];
+        const displayValue = fieldValue.map((v: any) =>
+          typeof v === "number" ? v.toString() : v,
+        );
         const handleValueChange = (values: string[]) => {
           const transformedValues = valueTransformer
             ? values.map(valueTransformer)
@@ -1462,10 +1460,8 @@ export const MultiSelectForm: React.FC<FormMultiSelectProps> = ({
             <FormControl>
               <MultiSelect
                 options={options}
-                // value={field.value || []}
                 value={displayValue}
                 defaultValue={defaultValue as string[]}
-                // onValueChange={field.onChange}
                 onValueChange={handleValueChange}
                 placeholder={placeholder}
                 disabled={disabled || form.formState.isSubmitting}
