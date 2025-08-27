@@ -1,11 +1,15 @@
 import { api } from "@/lib/api";
 import { ApiResponse, PaginatedResponse } from "@/lib/types";
 import qs from "qs";
-import { IEducationForm, IEducationResponse } from "./types";
+import {
+  IFormalEducationForm,
+  IEducationResponse,
+  INonFormalEducationForm,
+} from "./types";
 
 interface Params {
   employee_profile_id: number;
-  payload?: IEducationForm;
+  payload?: IFormalEducationForm | INonFormalEducationForm;
   search?: string;
 }
 

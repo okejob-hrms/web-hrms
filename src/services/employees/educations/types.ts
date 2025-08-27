@@ -1,16 +1,26 @@
 import z from "zod";
 
-export const educationFormScheme = z.object({
+export const formalEducationFormScheme = z.object({
   category: z.string().min(1, "required"),
   institution: z.string().min(1, "required"),
   major: z.string().min(1, "required"),
   location: z.string().min(1, "required"),
-  start_date: z.string().min(1, "required"),
-  graduation_date: z.string().min(1, "required"),
-  gpa: z.number().min(1, "required"),
+  start_date: z.date().min(1, "required"),
+  graduation_date: z.date().min(1, "required"),
+  gpa: z.number().min(1, "required").max(4.0, "The GPA must not exceed 4.00"),
+});
+export const nonFormalEducationFormScheme = z.object({
+  category: z.string().min(1, "required"),
+  institution: z.string().min(1, "required"),
+  location: z.string().min(1, "required"),
+  start_date: z.date().min(1, "required"),
+  graduation_date: z.date().min(1, "required"),
   notes: z.string().min(1, "required"),
 });
-export type IEducationForm = z.infer<typeof educationFormScheme>;
+export type IFormalEducationForm = z.infer<typeof formalEducationFormScheme>;
+export type INonFormalEducationForm = z.infer<
+  typeof nonFormalEducationFormScheme
+>;
 
 export interface IEducationResponse {
   category: string;

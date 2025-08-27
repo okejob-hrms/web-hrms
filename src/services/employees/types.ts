@@ -1,6 +1,7 @@
-import { IContactOfReference, IWorkExperience } from "@/lib/types";
 import { IEducationResponse } from "./educations/types";
 import { IFamilyResponse } from "./families/types";
+import { IResponseWorkExperience } from "./work-experiences/types";
+import { IContactReferenceResponse } from "./contact-references/types";
 
 export interface IEmployeeResponse {
   id: number;
@@ -223,10 +224,10 @@ export interface IEmployeeDetailsResponse {
     created_at: string;
     updated_at: string;
   }[];
-  work_experiences: IWorkExperience[];
+  work_experiences: IResponseWorkExperience[];
   educations: IEducationResponse[];
   families: IFamilyResponse[];
-  contact_refferences: IContactOfReference[];
+  contact_refferences: IContactReferenceResponse[];
   employee_documents: {
     id: number;
     employee_profile_id: number;

@@ -11,7 +11,7 @@ import { getBankList } from "@/services/bank";
 export const BankInformationSection = React.memo(
   function BankInformationSection() {
     const { data, isLoading, error } = useQuery({
-      queryKey: ["department_id"],
+      queryKey: ["bank"],
       queryFn: getBankList,
       retry: (failureCount, error: any) => {
         if (error?.response?.status >= 400) return false;

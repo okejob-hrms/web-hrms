@@ -30,7 +30,6 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { SelectForm } from "@/components/ui/select-form";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getProfile } from "@/services/profile";
 import { PhoneInput } from "@/components/ui/phone-input";
 
 const formatDate = (dateString: string): string => {
@@ -86,16 +85,12 @@ const TABLE_CELL_CLASSES =
 
 interface Props {
   withAddButton?: boolean;
+  employee_profile_id?: number;
 }
 
-export const AddFamilyFormModal: React.FC = () => {
+export const AddFamilyFormModal = ({ employee_profile_id = 1 }: Props) => {
   const [open, setOpen] = React.useState(false);
   const queryClient = useQueryClient();
-  const { data: profile } = useQuery({
-    queryKey: ["profile"],
-    queryFn: getProfile,
-  });
-
   const form = useForm<IFamilyForm>({
     resolver: zodResolver(familyFormScheme),
     defaultValues: {
@@ -103,7 +98,7 @@ export const AddFamilyFormModal: React.FC = () => {
       place_of_birth: "",
       date_of_birth: "",
       relationship: "",
-      highest_education: 1,
+      highest_education: "1",
       email: "",
       phone: "",
       occupation: "",
@@ -131,18 +126,26 @@ export const AddFamilyFormModal: React.FC = () => {
   });
 
   const onSubmit = (values: IFamilyForm) => {
-    if (profile?.data.user.id) {
+    try {
       const params = {
-        employee_profile_id: profile?.data.user.id,
+        employee_profile_id,
         payload: {
           ...values,
           highest_education: Number(values.highest_education),
         },
       };
-
+      console.log(params);
       createFamilyMutation.mutate(params);
+    } catch (err) {
+      console.log(err);
     }
   };
+
+  React.useEffect(() => {
+    if (Object.keys(form.formState.errors).length > 0) {
+      console.log("Form errors:", form.formState.errors);
+    }
+  }, [form.formState.errors]);
 
   const handleCancel = () => {
     setOpen(false);
@@ -243,7 +246,7 @@ export const AddFamilyFormModal: React.FC = () => {
   );
 };
 
-const SectionHeader = ({ withAddButton }: Pick<Props, "withAddButton">) => (
+const SectionHeader = ({ withAddButton, employee_profile_id = 1 }: Props) => (
   <div
     className={withAddButton ? "flex justify-between items-center mb-4" : ""}
   >
@@ -252,19 +255,24 @@ const SectionHeader = ({ withAddButton }: Pick<Props, "withAddButton">) => (
     >
       Family Information
     </h2>
-    {withAddButton && <AddFamilyFormModal />}
+    {withAddButton && (
+      <AddFamilyFormModal employee_profile_id={employee_profile_id} />
+    )}
   </div>
 );
 
 export const FamilyInformationSection = React.memo<Props>(
-  function FamilyInformationSection({ withAddButton = false }) {
+  function FamilyInformationSection({
+    withAddButton = false,
+    employee_profile_id = 1,
+  }) {
     const {
       data: families,
       isLoading,
       error,
     } = useQuery({
-      queryKey: ["family"],
-      queryFn: () => getFamilies({ employee_profile_id: 1 }),
+      queryKey: ["family", employee_profile_id],
+      queryFn: () => getFamilies({ employee_profile_id }),
       retry: (failureCount, error: any) => {
         if (error?.response?.status >= 400) {
           return false;
@@ -279,7 +287,10 @@ export const FamilyInformationSection = React.memo<Props>(
 
     return (
       <>
-        <SectionHeader withAddButton={withAddButton} />
+        <SectionHeader
+          withAddButton={withAddButton}
+          employee_profile_id={employee_profile_id}
+        />
         {isLoading ? (
           <div className="flex flex-col gap-4 items-center w-full">
             <Skeleton className="h-12 w-full" />

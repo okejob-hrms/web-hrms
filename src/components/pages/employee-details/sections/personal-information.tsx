@@ -1,11 +1,8 @@
 import * as React from "react";
-import { mockEmployeeDetail } from "../mock";
 import { Separator } from "@/components/ui/separator";
 import dayjs from "dayjs";
 import localizedFormat from "dayjs/plugin/localizedFormat";
 import { rupiahFormatter } from "@/lib/helpers";
-import { IFamily } from "@/lib/types";
-import { ColumnDef } from "@tanstack/react-table";
 import { FamilyInformationSection } from "../../employee-management-form/sections/family-information-section";
 import { FormalEducationSection } from "../../employee-management-form/sections/formal-education-section";
 import { NonFormalEducationSection } from "../../employee-management-form/sections/non-formal-education-section";
@@ -26,70 +23,6 @@ interface DirectReportEmployee {
   position: string;
   department: string;
 }
-
-export const columns: ColumnDef<IFamily>[] = [
-  {
-    accessorKey: "name",
-    header: "Name",
-  },
-  {
-    accessorKey: "relationship",
-    header: "Family Relationship",
-  },
-  {
-    accessorKey: "placeOfBirth",
-    header: "Place of Birth",
-  },
-  {
-    accessorKey: "bornDate",
-    header: "Date of Birth",
-    cell: ({ row }) => {
-      const raw = row.getValue("bornDate") as string;
-      const formatted = new Date(raw).toLocaleDateString("id-ID", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      });
-      return <span>{formatted}</span>;
-    },
-  },
-  {
-    accessorKey: "education",
-    header: "Highest Education Level",
-  },
-  {
-    accessorKey: "email",
-    header: "Email",
-    cell: ({ row }) => {
-      const value = row.getValue("email") as string;
-      return (
-        <a href={`mailto:${value}`} className="text-blue-600 underline">
-          {value}
-        </a>
-      );
-    },
-  },
-  {
-    accessorKey: "phoneNumber",
-    header: "Phone",
-    cell: ({ row }) => {
-      const value = row.getValue("phoneNumber") as string;
-      return (
-        <a href={`tel:${value}`} className="text-blue-600 underline">
-          {value}
-        </a>
-      );
-    },
-  },
-  {
-    accessorKey: "occupation",
-    header: "Occupation",
-  },
-  {
-    accessorKey: "company",
-    header: "Company",
-  },
-];
 
 export const PersonalInformationDetail = React.memo(
   function PersonalInformationDetail({ data }: Props) {
@@ -394,9 +327,15 @@ export const PersonalInformationDetail = React.memo(
           </div>
           <Separator className="md:col-span-3" />
         </div>
-        <FamilyInformationSection />
-        <FormalEducationSection />
-        <NonFormalEducationSection />
+        <FamilyInformationSection
+          employee_profile_id={data.employment.employee_profile_id}
+        />
+        <FormalEducationSection
+          employee_profile_id={data.employment.employee_profile_id}
+        />
+        <NonFormalEducationSection
+          employee_profile_id={data.employment.employee_profile_id}
+        />
         <WorkExperienceSection />
         <ContactOfReferenceSection />
       </div>

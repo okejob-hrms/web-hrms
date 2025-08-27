@@ -23,28 +23,6 @@ export interface ApiResponse<T> {
   data: T;
 }
 
-export interface IFamily {
-  name: string;
-  relationship: string;
-  placeOfBirth: string;
-  bornDate: string;
-  education: string;
-  email: string;
-  phoneNumber: string;
-  occupation: string;
-  company: string;
-}
-
-export interface ICandidate {
-  id: string;
-  firstName: string;
-  lastName: string;
-  jobApplied: string;
-  phoneNumber: string;
-  email: string;
-  image: string;
-}
-
 export interface IEmployee {
   firstName: string;
   lastName: string;
@@ -58,44 +36,6 @@ export interface IEmployee {
   image: string;
 }
 
-export interface IFormalEducation {
-  school: string;
-  major: string;
-  city: string;
-  startDate: string;
-  graduateDate: string;
-  gpa: number;
-}
-
-export interface INonFormalEducation {
-  instution: string;
-  location: string;
-  notes: string;
-  startDate: string;
-  graduateDate: string;
-}
-
-export interface IWorkExperience {
-  company: string;
-  initialPosition: string;
-  finalPosition: string;
-  supervision: string;
-  supervisorContact: string;
-  companyAddress: string;
-  joinDate: Date;
-  resignDate: Date;
-  lastSalary: number;
-  reasonOfResign: string;
-}
-
-export interface IContactOfReference {
-  name: string;
-  relationship: string;
-  email: string;
-  phoneNumber: string;
-  occupation: string;
-  company: string;
-}
 export interface IDepartment {
   id: number;
   name: string;
