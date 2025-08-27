@@ -1,12 +1,11 @@
-"use client";
-
-import React from "react";
 import { Clock } from "lucide-react";
+import * as React from "react";
 
-export default function ComingSoon() {
+export const AssetsDetail = React.memo(function AssetsDetail() {
   return (
-    <main className="flex items-center justify-center px-6 w-full bg-white/90 rounded-md border shadow-sm border-grayscale-20">
-      <div className="flex flex-col items-center justify-center gap-6 p-10 max-w-sm w-full">
+    <div className="flex flex-col w-full gap-2 p-2">
+      <h1 className="font-semibold text-lg">Assets</h1>
+      <div className="flex flex-col items-center justify-center gap-6 p-10 w-full">
         <div className="flex h-20 w-20 items-center justify-center rounded-full bg-indigo-50">
           <Clock className="h-10 w-10 text-indigo-600" />
         </div>
@@ -23,6 +22,6 @@ export default function ComingSoon() {
           <div className="h-1 w-24 rounded-full bg-indigo-100" />
         </div>
       </div>
-    </main>
+    </div>
   );
-}
+});

@@ -4,6 +4,13 @@ import { MoreHorizontalIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button, buttonVariants } from "@/components/ui/button";
 import Image from "next/image";
+import { PaginatedResponse } from "@/lib/types";
+import { Table } from "@tanstack/react-table";
+
+interface PaginationProps<T = unknown> {
+  pagination: PaginatedResponse<T>;
+  table: Table<T>;
+}
 
 function Pagination({ className, ...props }: React.ComponentProps<"nav">) {
   return (
@@ -52,10 +59,12 @@ function PaginationLink({
       data-active={isActive}
       className={cn(
         buttonVariants({
-          variant: isActive ? "outline" : "ghost",
+          variant: isActive ? "default" : "ghost",
           size,
         }),
-        className,
+        "text-text-disabled font-semibold",
+        isActive && "bg-primary-focused text-primary",
+        className
       )}
       {...props}
     />
@@ -72,7 +81,7 @@ function PaginationPrevious({
       size="default"
       className={cn(
         "gap-1 px-2.5 sm:pl-2.5 rounded-sm border border-primary",
-        className,
+        className
       )}
       {...props}
     >
@@ -99,7 +108,7 @@ function PaginationNext({
       size="default"
       className={cn(
         "gap-1 px-2.5 sm:pr-2.5 rounded-sm border border-primary",
-        className,
+        className
       )}
       {...props}
     >
@@ -133,17 +142,44 @@ function PaginationEllipsis({
   );
 }
 
-function GeneralPagination() {
+function GeneralPagination<T = unknown>({
+  pagination,
+  table,
+}: PaginationProps<T>) {
+  const { current_page, next_page_url, prev_page_url } = pagination;
   return (
     <Pagination className="justify-between py-4">
       <PaginationContent>
         <PaginationItem>
-          <PaginationPrevious href="#" />
+          <PaginationPrevious
+            onClick={() => {
+              if (prev_page_url) table.previousPage();
+            }}
+            aria-disabled={!prev_page_url}
+            tabIndex={!prev_page_url ? -1 : 0}
+            className={!prev_page_url ? "pointer-events-none opacity-50" : ""}
+          />
         </PaginationItem>
       </PaginationContent>
-
       <PaginationContent>
-        <PaginationItem>
+        {prev_page_url && (
+          <PaginationItem key={current_page - 1}>
+            <PaginationLink onClick={table.previousPage}>
+              {current_page - 1}
+            </PaginationLink>
+          </PaginationItem>
+        )}
+        <PaginationItem key={current_page}>
+          <PaginationLink isActive>{current_page}</PaginationLink>
+        </PaginationItem>
+        {next_page_url && (
+          <PaginationItem key={current_page + 1}>
+            <PaginationLink onClick={table.nextPage}>
+              {current_page + 1}
+            </PaginationLink>
+          </PaginationItem>
+        )}
+        {/* <PaginationItem>
           <PaginationLink href="#">1</PaginationLink>
         </PaginationItem>
         <PaginationItem>
@@ -156,12 +192,18 @@ function GeneralPagination() {
         </PaginationItem>
         <PaginationItem>
           <PaginationEllipsis />
-        </PaginationItem>
+        </PaginationItem> */}
       </PaginationContent>
-
       <PaginationContent>
         <PaginationItem>
-          <PaginationNext href="#" />
+          <PaginationNext
+            onClick={() => {
+              if (next_page_url) table.nextPage();
+            }}
+            aria-disabled={!next_page_url}
+            tabIndex={!next_page_url ? -1 : 0}
+            className={!next_page_url ? "pointer-events-none opacity-50" : ""}
+          />
         </PaginationItem>
       </PaginationContent>
     </Pagination>

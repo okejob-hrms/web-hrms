@@ -7,32 +7,55 @@ import { SelectForm } from "@/components/ui/select-form";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash } from "lucide-react";
 import { FormLabel } from "@/components/ui/form";
+import { useQuery } from "@tanstack/react-query";
+import { getAllowanceTypes } from "@/services/allowance-types";
+import { useFormContext } from "react-hook-form";
 
 export const SalaryInformationSection = React.memo(
   function SalaryInformation() {
+    const { watch } = useFormContext();
     const [allowanceForm, setAllowanceForm] = React.useState(1);
+    const watchedAllowances = watch("allowances");
+    const { data: allowanceTypes } = useQuery({
+      queryKey: ["allowances"],
+      queryFn: getAllowanceTypes,
+      staleTime: 5 * 60 * 1000,
+      refetchOnWindowFocus: false,
+    });
+
+    const allowanceTypesOptions = React.useMemo(() => {
+      if (allowanceTypes?.data.data) {
+        return allowanceTypes.data.data.map((item) => ({
+          label: item.name,
+          value: item.id.toString(),
+        }));
+      }
+      return [];
+    }, [allowanceTypes?.data]);
     return (
       <React.Fragment>
         <h2 className="font-semibold text-lg leading-5 mb-3">
           Salary Information
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-end">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-start">
           <FormLabel className="text-base md:col-span-2 font-normal">
             Allowance<span className="text-text-disabled">(Optional)</span>
           </FormLabel>
           <InputForm
-            name="baseSalary"
+            name="base_salary"
             label="Base Salary"
             disabled
             required
             iconPosition="left"
+            type="number"
             icon={<span className="text-text-disabled text-base">Rp</span>}
           />
           <InputForm
-            name="nettSalary"
+            name="salary_nett"
             label="Salary (Nett)"
             required
             iconPosition="left"
+            type="number"
             icon={<span className="text-text-disabled text-base">Rp</span>}
           />
 
@@ -43,25 +66,23 @@ export const SalaryInformationSection = React.memo(
                 className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-3 w-full"
               >
                 <SelectForm
-                  name="allowanceType"
+                  name={`allowances.${index}.allowance_type_id`}
                   label="Allowance Type"
-                  options={[
-                    { label: "Single", value: "single" },
-                    { label: "Married", value: "married" },
-                    { label: "Divorced", value: "divorced" },
-                    { label: "Widowed", value: "widowed" },
-                    { label: "Separated", value: "separated" },
-                  ]}
+                  options={allowanceTypesOptions}
                   required
                 />
                 <div className="flex gap-2 items-end">
                   <InputForm
-                    name="allowanceValue"
+                    name={`allowances.${index}.allowance_value`}
                     label="Allowance Value"
-                    disabled
+                    disabled={
+                      watchedAllowances &&
+                      !watchedAllowances[index]?.allowance_type_id
+                    }
                     required
                     className="w-full"
                     iconPosition="left"
+                    type="number"
                     icon={
                       <span className="text-text-disabled text-base">Rp</span>
                     }

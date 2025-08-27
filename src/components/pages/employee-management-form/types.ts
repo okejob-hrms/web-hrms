@@ -1,207 +1,268 @@
 import z from "zod";
 
 export const employeeManagementFormScheme = z.object({
-  photo: z.string(),
+  photo_profile: z.string().min(1, "required"),
   name: z.string().min(1, "required"),
-  email: z.email().min(1, "required"),
-  role: z.string().min(1, "required"),
+  email: z.string().email("Invalid email").min(1, "required"),
+  // role_id: z.number().int().min(1, "required"),
+  role_id: z.string().min(1, "required"),
   countryCode: z.string().min(1, "required"),
-  phoneNumber: z.string().min(1, "required"),
-  gender: z.enum(["male", "female"]),
-  placeOfBirth: z.string().min(1, "required"),
-  bornDate: z.date(),
-  maritalStatus: z.enum([
-    "single",
-    "married",
-    "divorced",
-    "widowed",
-    "separated",
-  ]),
-  bloodType: z.string().min(1, "required"),
+  phone_number: z.string().min(1, "required").max(13),
+  gender: z.string(),
+  place_of_birth: z.string().min(1, "required"),
+  date_of_birth: z.date(),
+  marital_status: z.string(),
+  // marital_status: z.enum(["single", "married", "divorced", "widowed", "separated"]),
+  // blood_type: z.enum(["A", "B", "AB", "O"]).nullable(),
+  blood_type: z.string().min(1, "required"),
   height: z.number().min(1, "required"),
   weight: z.number().min(1, "required"),
-  idNumber: z.string().min(16, "required"),
+  id_number: z.string().min(16, "ID Number must be 16 digits."),
   npwp: z.string().min(1, "required"),
   bpjs: z.string(),
-  addressCitizen: z.string().min(1, "required"),
-  residentalAddress: z.string().min(1, "required"),
+  citizen_id_address: z.string().min(1, "required"),
+  residential_address: z.string().min(1, "required"),
   hobby: z.string().min(1, "required"),
-  achievement: z.string().min(1, "required"),
-  personalDescription: z.string().min(1, "required"),
-  socialMediaOption: z.string().min(1, "required"),
-  instagram: z.string().optional(),
-  x: z.string().optional(),
-  facebook: z.string().optional(),
-  linkedin: z.string().optional(),
-  other: z.string().optional(),
-  position: z.string().min(1, "required"),
-  department: z.string().min(1, "required"),
-  jobLevel: z.string().min(1, "required"),
-  primaryDirectReport: z.string().min(1, "required"),
-  additionalDirectReport: z.string(),
-  team: z.string(),
-  startDate: z.date().min(1, "required"),
-  endDate: z.date().min(1, "required"),
-  status: z.string().min(1, "required"),
-  baseSalary: z.number().min(1, "required"),
-  nettSalary: z.number().min(1, "required"),
-  allowanceType: z.string().min(1, "required"),
-  allowanceValue: z.number().min(1, "required"),
-  bank: z.string().min(1, "required"),
-  bankAccountNumber: z.string().min(1, "required"),
-  bankAccountName: z.string().min(1, "required"),
-  families: {
-    name: z.string().min(1, "required"),
-    relationship: z.string().min(1, "required"),
-    placeOfBirth: z.string().min(1, "required"),
-    bornDate: z.date(),
-    education: z.string().min(1, "required"),
-    email: z.email(),
-    phoneNumber: z.string(),
-    occupation: z.string(),
-    company: z.string(),
-  },
-  formalEducations: {
-    school: z.string().min(1, "required"),
-    city: z.string().min(1, "required"),
-    major: z.string().min(1, "required"),
-    startDate: z.date().min(1, "required"),
-    graduateDate: z.date().min(1, "required"),
-    gpa: z.number().min(1, "required"),
-  },
-  nonFormalEducations: {
-    institution: z.string().min(1, "required"),
-    location: z.string().min(1, "required"),
-    notes: z.string().min(1, "required"),
-    startDate: z.date().min(1, "required"),
-    graduateDate: z.date().min(1, "required"),
-  },
-  experiences: {
-    company: z.string().min(1, "required"),
-    initialPosition: z.string().min(1, "required"),
-    finalPosition: z.string().min(1, "required"),
-    supervision: z.string().min(1, "required"),
-    supervisorContact: z.string().min(1, "required"),
-    companyAddress: z.string().min(1, "required"),
-    joinDate: z.date().min(1, "required"),
-    resignDate: z.date().min(1, "required"),
-    lastSalary: z.number().min(1, "required"),
-    reasonOfResign: z.string().min(1, "required"),
-  },
-  contactOfReference: {
-    name: z.string().min(1, "required"),
-    relationship: z.string().min(1, "required"),
-    email: z.email(),
-    phoneNumber: z.string(),
-    occupation: z.string(),
-    company: z.string(),
-  },
-  attachments: {
-    cv: z.string().min(1, "required"),
-    idCard: z.string().min(1, "required"),
-    bankAccount: z.string().min(1, "required"),
-    graduationCertificate: z.string().min(1, "required"),
-    healthInsurance: z.string().min(1, "required"),
-    others: z.string().min(1, "required"),
-  },
+  achievement: z
+    .string()
+    .min(1, "required")
+    .max(255, "The achievement field must not be greater than 255 characters."),
+  personal_description: z.string().min(1, "required"),
+
+  social_media_accounts: z.array(
+    z.object({
+      type: z.string().min(1, "required"),
+      url: z.string(),
+    }),
+  ),
+
+  job_position_id: z.string().min(1, "required"),
+  department_id: z.string().min(1, "required"),
+  job_level_id: z.string().min(1, "required"),
+
+  direct_reports: z.array(
+    z.object({
+      direct_report_id: z.array(z.number().int().min(1, "required")),
+      relationship_type: z.enum(["primary", "secondary"]),
+    }),
+  ),
+
+  // team_members: z.array(
+  //   z.object({
+  //     team_id: z.number().int().min(1, "required"),
+  //   }),
+  // ),
+  team_members: z.string(),
+
+  start_date: z.date(),
+  end_date: z.date().nullable(),
+
+  // // status: z.enum(["0", "1"]), // active/inactive flag
+  status: z.string(),
+  base_salary: z.number(),
+  salary_nett: z.number().min(1, "required"),
+
+  allowances: z.array(
+    z.object({
+      allowance_type_id: z.string().min(1, "required"),
+      allowance_value: z.number().min(1, "required"),
+    }),
+  ),
+
+  bank_id: z.string().min(1, "required"),
+  account_number: z.string().min(1, "required"),
+  account_name: z.string().min(1, "required"),
+
+  attachments: z.array(
+    z.object({
+      type: z.string().min(1, "required"),
+      path: z.string().min(1, "required"),
+    }),
+  ),
+
+  // families: z.array(
+  //   z.object({
+  //     name: z.string().min(1, "required"),
+  //     relationship: z.string().min(1, "required"),
+  //     placeOfBirth: z.string().min(1, "required"),
+  //     bornDate: z.date(),
+  //     education: z.string().min(1, "required"),
+  //     email: z.string().email().optional(),
+  //     phoneNumber: z.string().optional(),
+  //     occupation: z.string().optional(),
+  //     company: z.string().optional(),
+  //   })
+  // ),
+
+  // formalEducations: z.array(
+  //   z.object({
+  //     school: z.string().min(1, "required"),
+  //     city: z.string().min(1, "required"),
+  //     major: z.string().min(1, "required"),
+  //     startDate: z.date(),
+  //     graduateDate: z.date(),
+  //     gpa: z.number().min(1, "required"),
+  //   })
+  // ),
+
+  // nonFormalEducations: z.array(
+  //   z.object({
+  //     institution: z.string().min(1, "required"),
+  //     location: z.string().min(1, "required"),
+  //     notes: z.string().min(1, "required"),
+  //     startDate: z.date(),
+  //     graduateDate: z.date(),
+  //   })
+  // ),
+
+  // experiences: z.array(
+  //   z.object({
+  //     company: z.string().min(1, "required"),
+  //     initialPosition: z.string().min(1, "required"),
+  //     finalPosition: z.string().min(1, "required"),
+  //     supervision: z.string().min(1, "required"),
+  //     supervisorContact: z.string().min(1, "required"),
+  //     companyAddress: z.string().min(1, "required"),
+  //     joinDate: z.date(),
+  //     resignDate: z.date(),
+  //     lastSalary: z.number().min(1, "required"),
+  //     reasonOfResign: z.string().min(1, "required"),
+  //   })
+  // ),
+
+  // contactOfReference: z.object({
+  //   name: z.string().min(1, "required"),
+  //   relationship: z.string().min(1, "required"),
+  //   email: z.string().email().optional(),
+  //   phoneNumber: z.string().optional(),
+  //   occupation: z.string().optional(),
+  //   company: z.string().optional(),
+  // }),
 });
 
 export const employeeManagementFormDefaultValues = {
-  photo: "",
+  photo_profile: "",
   name: "",
-  role: "",
   email: "",
+  role_id: "",
   countryCode: "+62",
-  phoneNumber: "",
-  gender: "male" as const,
-  placeOfBirth: "",
-  bornDate: new Date(),
-  maritalStatus: "single" as const,
-  bloodType: "",
+  phone_number: "",
+  gender: "male",
+  place_of_birth: "",
+  date_of_birth: new Date(),
+  marital_status: "single",
+  blood_type: "",
   height: 0,
   weight: 0,
-  idNumber: "",
+  id_number: "",
   npwp: "",
   bpjs: "",
-  addressCitizen: "",
-  residentalAddress: "",
+  citizen_id_address: "",
+  residential_address: "",
   hobby: "",
   achievement: "",
-  personalDescription: "",
-  instagram: "",
-  twitter: "",
-  x: "",
-  other: "",
-  facebook: "",
-  socialMediaOption: "instagram",
-  position: "",
-  department: "",
-  jobLevel: "",
-  primaryDirectReport: "",
-  additionalDirectReport: "",
-  team: "",
-  startDate: new Date(),
-  endDate: new Date(),
-  status: "",
-  baseSalary: 0,
-  nettSalary: 0,
-  allowanceType: "",
-  allowanceValue: 0,
-  bank: "",
-  bankAccountNumber: "",
-  bankAccountName: "",
-  families: {
-    name: "",
-    relationship: "",
-    placeOfBirth: "",
-    bornDate: new Date(),
-    education: "",
-    email: "",
-    phoneNumber: "",
-    occupation: "",
-    company: "",
-  },
-  formalEducations: {
-    school: "",
-    city: "",
-    major: "",
-    startDate: new Date(),
-    graduateDate: new Date(),
-    gpa: 0,
-  },
-  nonFormalEducations: {
-    institution: "",
-    location: "",
-    notes: "",
-    startDate: new Date(),
-    graduateDate: new Date(),
-  },
-  experiences: {
-    company: "",
-    initialPosition: "",
-    finalPosition: "",
-    supervision: "",
-    supervisorContact: "",
-    companyAddress: "",
-    joinDate: new Date(),
-    resignDate: new Date(),
-    lastSalary: 0,
-    reasonOfResign: "",
-  },
-  contactOfReference: {
-    name: "",
-    relationship: "",
-    email: "",
-    phoneNumber: "",
-    occupation: "",
-    company: "",
-  },
-  attachments: {
-    cv: "",
-    idCard: "",
-    bankAccount: "",
-    graduationCertificate: "",
-    healthInsurance: "",
-    others: "",
-  },
-} as const;
+  personal_description: "",
+
+  social_media_accounts: [
+    {
+      type: "",
+      url: "",
+    },
+  ],
+
+  // job_position_id: 0,
+  // department_id: 0,
+  // job_level_id: 0,
+
+  direct_reports: [],
+
+  // team_members: [
+  //   {
+  //     team_id: 0,
+  //   },
+  // ],
+
+  // start_date: new Date(),
+  end_date: null,
+
+  // status: "1",
+  base_salary: 0,
+  salary_nett: 0,
+
+  // allowances: [
+  //   {
+  //     allowance_type_id: 0,
+  //     allowance_value: 0,
+  //   },
+  // ],
+
+  // bank_id: "",
+  // account_number: "",
+  // account_name: "",
+
+  // attachments: [
+  //   {
+  //     type: "",
+  //     path: "",
+  //   },
+  // ],
+
+  // families: [
+  //   {
+  //     name: "",
+  //     relationship: "",
+  //     placeOfBirth: "",
+  //     bornDate: new Date(),
+  //     education: "",
+  //     email: "",
+  //     phoneNumber: "",
+  //     occupation: "",
+  //     company: "",
+  //   },
+  // ],
+
+  // formalEducations: [
+  //   {
+  //     school: "",
+  //     city: "",
+  //     major: "",
+  //     startDate: new Date(),
+  //     graduateDate: new Date(),
+  //     gpa: 0,
+  //   },
+  // ],
+
+  // nonFormalEducations: [
+  //   {
+  //     institution: "",
+  //     location: "",
+  //     notes: "",
+  //     startDate: new Date(),
+  //     graduateDate: new Date(),
+  //   },
+  // ],
+
+  // experiences: [
+  //   {
+  //     company: "",
+  //     initialPosition: "",
+  //     finalPosition: "",
+  //     supervision: "",
+  //     supervisorContact: "",
+  //     companyAddress: "",
+  //     joinDate: new Date(),
+  //     resignDate: new Date(),
+  //     lastSalary: 0,
+  //     reasonOfResign: "",
+  //   },
+  // ],
+
+  // contactOfReference: {
+  //   name: "",
+  //   relationship: "",
+  //   email: "",
+  //   phoneNumber: "",
+  //   occupation: "",
+  //   company: "",
+  // },
+};

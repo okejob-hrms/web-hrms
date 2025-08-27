@@ -102,7 +102,6 @@ export default function EmployeeDetailModal({
             <div className="flex flex-col gap-2">
               <label className="text-sm text-gray-500">Teams</label>
               <div className="flex flex-row gap-2">
-                {/* Use px-3 for horizontal padding, py-1 for vertical, and rounded-full for the pill shape */}
                 <div className="px-3 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded-full">
                   Team Creative
                 </div>

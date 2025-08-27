@@ -15,7 +15,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Form, FormLabel } from "@/components/ui/form";
+import { Form } from "@/components/ui/form";
 import { InputForm } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import {
@@ -29,6 +29,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { DatePicker } from "@/components/ui/date-picker";
 import { SelectForm } from "@/components/ui/select-form";
 import { toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton";
+import { PhoneInput } from "@/components/ui/phone-input";
 
 const formatDate = (dateString: string): string => {
   return new Date(dateString).toLocaleDateString("id-ID", {
@@ -83,12 +85,12 @@ const TABLE_CELL_CLASSES =
 
 interface Props {
   withAddButton?: boolean;
+  employee_profile_id?: number;
 }
 
-export const AddFamilyFormModal: React.FC = () => {
+export const AddFamilyFormModal = ({ employee_profile_id = 1 }: Props) => {
   const [open, setOpen] = React.useState(false);
   const queryClient = useQueryClient();
-
   const form = useForm<IFamilyForm>({
     resolver: zodResolver(familyFormScheme),
     defaultValues: {
@@ -96,7 +98,7 @@ export const AddFamilyFormModal: React.FC = () => {
       place_of_birth: "",
       date_of_birth: "",
       relationship: "",
-      highest_education: 1,
+      highest_education: "1",
       email: "",
       phone: "",
       occupation: "",
@@ -109,8 +111,7 @@ export const AddFamilyFormModal: React.FC = () => {
       employee_profile_id: number;
       payload: IFamilyForm;
     }) => postCreateFamily(params),
-    onSuccess: (response) => {
-      console.log("### RESPONSE CREATE FAMILY ###", response);
+    onSuccess: () => {
       toast.success("Family information added successfully!");
 
       queryClient.invalidateQueries({ queryKey: ["family"] });
@@ -118,7 +119,6 @@ export const AddFamilyFormModal: React.FC = () => {
       form.reset();
     },
     onError: (error: any) => {
-      console.log("### ERROR CREATE FAMILY ###", error);
       toast.error(
         `Failed to add family information: ${error.message || "Unknown error"}`,
       );
@@ -126,14 +126,26 @@ export const AddFamilyFormModal: React.FC = () => {
   });
 
   const onSubmit = (values: IFamilyForm) => {
-    console.log(values);
-    const params = {
-      employee_profile_id: 1,
-      payload: values,
-    };
-
-    createFamilyMutation.mutate(params);
+    try {
+      const params = {
+        employee_profile_id,
+        payload: {
+          ...values,
+          highest_education: Number(values.highest_education),
+        },
+      };
+      console.log(params);
+      createFamilyMutation.mutate(params);
+    } catch (err) {
+      console.log(err);
+    }
   };
+
+  React.useEffect(() => {
+    if (Object.keys(form.formState.errors).length > 0) {
+      console.log("Form errors:", form.formState.errors);
+    }
+  }, [form.formState.errors]);
 
   const handleCancel = () => {
     setOpen(false);
@@ -173,42 +185,24 @@ export const AddFamilyFormModal: React.FC = () => {
                 name="highest_education"
                 label="Highest Education Level"
                 options={[
-                  { label: "SD", value: "1" },
-                  { label: "SMP", value: "2" },
-                  { label: "SMA", value: "3" },
-                  { label: "SMK", value: "4" },
-                  { label: "Diploma", value: "5" },
-                  { label: "S1", value: "6" },
-                  { label: "S2", value: "7" },
-                  { label: "S3", value: "8" },
+                  { label: "Primary School", value: "1" },
+                  { label: "Junior High School", value: "2" },
+                  { label: "Senior High School", value: "3" },
+                  { label: "Vocational High School", value: "4" },
+                  { label: "Diploma (D1/D2/D3)", value: "5" },
+                  { label: "Bachelor's Degree (S1)", value: "6" },
+                  { label: "Master's Degree (S2)", value: "7" },
+                  { label: "Doctorate (S3)", value: "8" },
                 ]}
                 disabled={createFamilyMutation.isPending}
                 required
               />
               <InputForm name="email" label="Email" required />
-              <div className="grid gap-2 w-full">
-                <FormLabel className="text-sm font-normal">
-                  Phone Number
-                  <span className="text-error">*</span>
-                </FormLabel>
-                <div className="flex items-end gap-2 w-full">
-                  <SelectForm
-                    name="countryCode"
-                    options={[
-                      { label: "+1", value: "+1" },
-                      { label: "+62", value: "+62" },
-                      { label: "+44", value: "+44" },
-                    ]}
-                    disabled={createFamilyMutation.isPending}
-                  />
-                  <InputForm
-                    name="phone"
-                    required
-                    className="w-full"
-                    disabled={createFamilyMutation.isPending}
-                  />
-                </div>
-              </div>
+              <PhoneInput
+                name="phone_number"
+                label="Phone Number"
+                required={true}
+              />
               <InputForm
                 name="occupation"
                 label="Occupation"
@@ -252,7 +246,7 @@ export const AddFamilyFormModal: React.FC = () => {
   );
 };
 
-const SectionHeader = ({ withAddButton }: Pick<Props, "withAddButton">) => (
+const SectionHeader = ({ withAddButton, employee_profile_id = 1 }: Props) => (
   <div
     className={withAddButton ? "flex justify-between items-center mb-4" : ""}
   >
@@ -261,15 +255,24 @@ const SectionHeader = ({ withAddButton }: Pick<Props, "withAddButton">) => (
     >
       Family Information
     </h2>
-    {withAddButton && <AddFamilyFormModal />}
+    {withAddButton && (
+      <AddFamilyFormModal employee_profile_id={employee_profile_id} />
+    )}
   </div>
 );
 
 export const FamilyInformationSection = React.memo<Props>(
-  function FamilyInformationSection({ withAddButton = false }) {
-    const { data, isLoading, error } = useQuery({
-      queryKey: ["family"],
-      queryFn: () => getFamilies({ employee_profile_id: 1 }),
+  function FamilyInformationSection({
+    withAddButton = false,
+    employee_profile_id = 1,
+  }) {
+    const {
+      data: families,
+      isLoading,
+      error,
+    } = useQuery({
+      queryKey: ["family", employee_profile_id],
+      queryFn: () => getFamilies({ employee_profile_id }),
       retry: (failureCount, error: any) => {
         if (error?.response?.status >= 400) {
           return false;
@@ -278,27 +281,33 @@ export const FamilyInformationSection = React.memo<Props>(
       },
     });
 
-    console.log("### FAMILIES ###", data);
     if (error) {
       toast.error("Error fetching families data");
     }
 
     return (
       <>
-        <SectionHeader withAddButton={withAddButton} />
+        <SectionHeader
+          withAddButton={withAddButton}
+          employee_profile_id={employee_profile_id}
+        />
         {isLoading ? (
-          <div className="text-center py-8">
-            <p>Loading family information...</p>
+          <div className="flex flex-col gap-4 items-center w-full">
+            <Skeleton className="h-12 w-full" />
+            <div className="space-y-2 w-full">
+              <Skeleton className="h-30 w-full" />
+            </div>
           </div>
         ) : (
           <DataTable
             columns={columns}
-            data={data?.data?.data || []}
+            data={families?.data.data}
             tableClassName="table-fixed w-full"
             tableCellClassName={TABLE_CELL_CLASSES}
             tableHeadClassName={TABLE_CELL_CLASSES}
           />
         )}
+
         <Separator className="my-6" />
       </>
     );

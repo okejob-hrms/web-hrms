@@ -2,15 +2,24 @@
 
 import * as React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, LogOut } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { cn } from "@/lib/utils";
+import { Button } from "./button";
+import { useRouter } from "next/navigation";
 
 interface Props {
   className?: string;
 }
 
 const Profile = React.memo(function Profile({ className }: Props) {
+  const router = useRouter();
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    router.push("/auth/login");
+  }
+
   return (
     <div className={cn("flex gap-3 items-center", className)}>
       <Avatar>
@@ -31,7 +40,16 @@ const Profile = React.memo(function Profile({ className }: Props) {
         <PopoverTrigger>
           <ChevronDown />
         </PopoverTrigger>
-        <PopoverContent>Place content for the popover here.</PopoverContent>
+        <PopoverContent>
+          <Button
+            variant="ghost"
+            className="w-full justify-start text-red-600 hover:bg-red-50"
+            onClick={handleLogout}
+          >
+            <LogOut className="mr-2 h-4 w-4" />
+            Logout
+          </Button>
+        </PopoverContent>
       </Popover>
     </div>
   );

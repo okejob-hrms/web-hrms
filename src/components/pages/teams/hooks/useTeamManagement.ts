@@ -1,91 +1,152 @@
+// hooks/useTeamManagement.ts
+
 import { useState } from "react";
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  keepPreviousData,
+} from "@tanstack/react-query";
 import { TeamsFormValues } from "../types";
 import { ITeam } from "@/lib/types";
+import { getTeam, postTeam, putTeam, deleteTeam } from "@/services/team";
+import { toast } from "sonner";
+import { PaginationState } from "@tanstack/react-table";
 
 export function useTeamManagement() {
-  const dummyTeams: ITeam[] = [];
+  const queryClient = useQueryClient();
 
-  const [teamName, setTeamName] = useState("");
-  const [description, setDescription] = useState("");
-  const [open, setOpen] = useState(false);
-  const [teams, setTeams] = useState<ITeam[]>(dummyTeams);
-  const [editIndex, setEditIndex] = useState<number | null>(null);
-  const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [isEditModalOpen, setEditModalOpen] = useState(false);
+  const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedteam, setSelectedteam] = useState<ITeam | null>(null);
 
-  const handleSave = (data: TeamsFormValues) => {
-    if (editIndex !== null) {
-      setTeams((teams) =>
-        teams.map((dept, idx) =>
-          idx === editIndex
-            ? {
-                name: data.name,
-                description: data.description,
-                id: idx,
-                created_at: "2025-08-06T13:18:26.000000Z",
-                updated_at: "2025-08-06T13:18:26.000000Z",
-              }
-            : dept,
-        ),
-      );
-    } else {
-      setTeams([
-        ...teams,
-        {
-          name: data.name,
-          description: data.description,
-          id: teams.length,
-          created_at: "2025-08-06T13:18:26.000000Z",
-          updated_at: "2025-08-06T13:18:26.000000Z",
-        },
-      ]);
-    }
-    setTeamName("");
-    setDescription("");
-    setEditIndex(null);
-    setOpen(false);
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 10,
+  });
+
+  const {
+    data: paginatedData,
+    isLoading,
+    isFetching,
+    isRefetching,
+  } = useQuery({
+    queryKey: ["teams", pagination],
+    queryFn: () => getTeam(pagination),
+    placeholderData: keepPreviousData,
+  });
+  const hasNextPage = !!paginatedData?.data?.next_page_url;
+  const hasPreviousPage = !!paginatedData?.data?.prev_page_url;
+
+  const { mutate: addTeam, isPending: isPendingAdd } = useMutation({
+    mutationFn: postTeam,
+    onSuccess: () => {
+      toast.success("Team created successfully!");
+      queryClient.invalidateQueries({ queryKey: ["teams"] });
+      handleClose();
+    },
+    onError: (error) => {
+      handleClose();
+      toast.error(`Failed to create team: ${error.message}`);
+    },
+  });
+
+  const { mutate: editTeam } = useMutation({
+    mutationFn: putTeam,
+    onSuccess: () => {
+      toast.success("team updated successfully!");
+      queryClient.invalidateQueries({ queryKey: ["teams"] });
+      handleClose();
+    },
+    onError: (error) => {
+      handleClose();
+      toast.error(`Failed to update team: ${error.message}`);
+    },
+  });
+
+  const { mutate: removeTeam, isPending: isPendingRemove } = useMutation({
+    mutationFn: deleteTeam,
+    onSuccess: () => {
+      toast.success("Team deleted successfully!");
+
+      const isLastItemOnPage = paginatedData?.data?.data?.length === 1;
+      const isNotFirstPage = pagination.pageIndex > 0;
+
+      if (isLastItemOnPage && isNotFirstPage) {
+        setPagination((prev) => ({
+          ...prev,
+          pageIndex: prev.pageIndex - 1,
+        }));
+        queryClient.invalidateQueries({ queryKey: ["teams"] });
+      } else {
+        queryClient.invalidateQueries({ queryKey: ["teams"] });
+      }
+
+      handleClose();
+    },
+    onError: (error) => {
+      handleClose();
+      toast.error(`Failed to delete team: ${error.message}`);
+    },
+  });
+
+  const handleCreate = () => {
+    setSelectedteam(null);
+    setEditModalOpen(true);
   };
 
-  const handleEdit = (idx: number) => {
-    setTeamName(teams[idx].name);
-    setDescription(teams[idx].description ?? "");
-    setEditIndex(idx);
-    setOpen(true);
+  const handleEdit = (team: ITeam) => {
+    setSelectedteam(team);
+    setEditModalOpen(true);
+  };
+
+  const handleDeleteClick = (team: ITeam) => {
+    setSelectedteam(team);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleSave = (data: TeamsFormValues) => {
+    if (selectedteam) {
+      editTeam({ id: selectedteam.id, payload: data });
+    } else {
+      addTeam(data);
+    }
+  };
+
+  const handleDeleteConfirm = () => {
+    if (selectedteam) {
+      removeTeam({ id: selectedteam.id });
+    }
   };
 
   const handleClose = () => {
-    setTeamName("");
-    setDescription("");
-    setEditIndex(null);
-    setOpen(false);
-  };
-
-  const handleDelete = () => {
-    if (deleteIndex !== null) {
-      setTeams((teams) => teams.filter((_, idx) => idx !== deleteIndex));
-      setDeleteIndex(null);
-      setDeleteDialogOpen(false);
-    }
+    setEditModalOpen(false);
+    setDeleteDialogOpen(false);
+    setSelectedteam(null);
   };
 
   return {
-    teamName,
-    setTeamName,
-    description,
-    setDescription,
-    open,
-    setOpen,
-    teams,
-    setTeams,
-    editIndex,
-    setEditIndex,
-    deleteIndex,
-    setDeleteIndex,
-    deleteDialogOpen,
+    teams: paginatedData,
+    isLoading:
+      isLoading ||
+      isFetching ||
+      isRefetching ||
+      isPendingAdd ||
+      isPendingRemove,
+    hasNextPage,
+    hasPreviousPage,
+    pagination,
+    setPagination,
+    isEditModalOpen,
+    isDeleteDialogOpen,
+    selectedteam,
+    setEditModalOpen,
     setDeleteDialogOpen,
-    handleSave,
+    handleCreate,
     handleEdit,
+    handleDeleteClick,
+    handleSave,
+    handleDeleteConfirm,
     handleClose,
-    handleDelete,
   };
 }

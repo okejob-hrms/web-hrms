@@ -23,28 +23,6 @@ export interface ApiResponse<T> {
   data: T;
 }
 
-export interface IFamily {
-  name: string;
-  relationship: string;
-  placeOfBirth: string;
-  bornDate: string;
-  education: string;
-  email: string;
-  phoneNumber: string;
-  occupation: string;
-  company: string;
-}
-
-export interface ICandidate {
-  id: string;
-  firstName: string;
-  lastName: string;
-  jobApplied: string;
-  phoneNumber: string;
-  email: string;
-  image: string;
-}
-
 export interface IEmployee {
   firstName: string;
   lastName: string;
@@ -58,48 +36,10 @@ export interface IEmployee {
   image: string;
 }
 
-export interface IFormalEducation {
-  school: string;
-  major: string;
-  city: string;
-  startDate: string;
-  graduateDate: string;
-  gpa: number;
-}
-
-export interface INonFormalEducation {
-  instution: string;
-  location: string;
-  notes: string;
-  startDate: string;
-  graduateDate: string;
-}
-
-export interface IWorkExperience {
-  company: string;
-  initialPosition: string;
-  finalPosition: string;
-  supervision: string;
-  supervisorContact: string;
-  companyAddress: string;
-  joinDate: Date;
-  resignDate: Date;
-  lastSalary: number;
-  reasonOfResign: string;
-}
-
-export interface IContactOfReference {
-  name: string;
-  relationship: string;
-  email: string;
-  phoneNumber: string;
-  occupation: string;
-  company: string;
-}
 export interface IDepartment {
   id: number;
   name: string;
-  description?: string;
+  description?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -107,7 +47,22 @@ export interface IDepartment {
 export interface ITeam {
   id: number;
   name: string;
-  description: string;
+  description?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface IDocument {
+  id: number;
+  employee_profile_id: number;
+  type: string;
+  filename: string;
+  mime_type: string;
+  size: number;
+  path: string;
+  disk: string;
+  uploaded_by: number;
+  uploaded_at: string;
   created_at: string;
   updated_at: string;
 }
@@ -135,6 +90,7 @@ export interface OptionFormProps extends InputFormProps {
     icon?: React.ReactNode;
   }[];
   modalChildren?: React.ReactNode;
+  type?: "string" | "number";
 }
 
 export type BasicDatePickerProps = DayPickerProps & {
@@ -144,6 +100,7 @@ export type BasicDatePickerProps = DayPickerProps & {
   labelClassName?: string;
   onSelect: (value?: Date) => void;
   value: Date;
+  placeholder?: string;
 };
 
 export type DatePickerProps = DayPickerProps & {
@@ -154,6 +111,8 @@ export type DatePickerProps = DayPickerProps & {
   labelClassName?: string;
   onSelect?: () => void;
   value?: string;
+  required?: boolean;
+  placeholder?: string;
 };
 
 export interface TextareaFormProps
@@ -228,4 +187,5 @@ export interface MultipleSelectFormProps extends MultipleSelectProps {
 export interface UploadButtonProps extends React.ComponentProps<"button"> {
   label: string;
   required?: boolean;
+  name: string;
 }

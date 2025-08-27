@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { Form } from "@/components/ui/form";
@@ -20,16 +21,71 @@ import {
   employeeManagementFormDefaultValues,
   employeeManagementFormScheme,
 } from "./types";
+import { ICreateEmployeeRequest } from "@/services/employees/types";
+import dayjs from "dayjs";
+import { useMutation } from "@tanstack/react-query";
+import { createEmployee } from "@/services/employees";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 export const AddEmployeeForm = React.memo(function AddEmployee() {
+  const router = useRouter();
+  const { mutate } = useMutation({
+    mutationFn: (params: ICreateEmployeeRequest) => createEmployee(params),
+    onSuccess: () => {
+      toast.success("Employee added successfully!");
+      router.push("/employee/employee-management");
+      form.reset();
+    },
+    onError: (error: any) => {
+      toast.error(
+        `Failed to add employee: ${error.message || "Unknown error"}`,
+      );
+    },
+  });
   const form = useForm<z.infer<typeof employeeManagementFormScheme>>({
     resolver: zodResolver(employeeManagementFormScheme),
     defaultValues: employeeManagementFormDefaultValues,
   });
 
   const onSubmit = (values: z.infer<typeof employeeManagementFormScheme>) => {
-    console.log(values);
+    try {
+      const { countryCode: _, ...restValues } = values;
+      const filteredSocialMedia = values.social_media_accounts.filter(
+        (account) => account.type.trim() !== "" && account.url.trim() !== "",
+      );
+      const filteredDirectReports = values.direct_reports.flatMap((item) =>
+        item.direct_report_id.map((subItem: number) => ({
+          direct_report_id: subItem,
+          relationship_type: item.relationship_type as "primary" | "secondary",
+        })),
+      );
+
+      const params: ICreateEmployeeRequest = {
+        ...restValues,
+        role_id: Number(values.role_id),
+        department_id: Number(values.department_id),
+        job_level_id: Number(values.job_level_id),
+        job_position_id: Number(values.job_position_id),
+        social_media_accounts: filteredSocialMedia,
+        team_members: [{ team_id: Number(values.team_members) }],
+        date_of_birth: dayjs(values.date_of_birth).format("YYYY-MM-DD"),
+        start_date: dayjs(values.start_date).format("YYYY-MM-DD"),
+        end_date: dayjs(values.end_date).format("YYYY-MM-DD"),
+        direct_reports: filteredDirectReports,
+        allowances: values.allowances.map((item) => ({
+          allowance_type_id: Number(item.allowance_type_id),
+          allowance_value: Number(item.allowance_value),
+        })),
+        phone_number: Number(values.phone_number),
+        bank_id: Number(values.bank_id),
+      };
+      mutate(params);
+    } catch (err) {
+      console.log("Error submit", err);
+    }
   };
+
   return (
     <React.Fragment>
       <Form {...form}>

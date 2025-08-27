@@ -1,10 +1,15 @@
+"use client";
+
+import * as React from "react";
 import {
   useReactTable,
   getCoreRowModel,
-  getPaginationRowModel,
   getSortedRowModel,
   ColumnDef,
   flexRender,
+  RowSelectionState,
+  OnChangeFn,
+  PaginationState,
 } from "@tanstack/react-table";
 
 import {
@@ -17,6 +22,7 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { GeneralPagination } from "../ui/pagination";
+import { PaginatedResponse } from "@/lib/types";
 
 interface DataTableProps<TData, TValue = unknown> {
   columns: ColumnDef<TData, TValue>[];
@@ -24,25 +30,47 @@ interface DataTableProps<TData, TValue = unknown> {
   tableClassName?: string;
   tableHeadClassName?: string;
   tableCellClassName?: string;
-  withPagination?: boolean;
   customSize?: boolean;
+  pagination?: PaginatedResponse<TData>;
+  rowSelection?: RowSelectionState;
+  onRowSelectionChange?: OnChangeFn<RowSelectionState>;
+  paginationState?: PaginationState;
+  setPaginationState?: React.Dispatch<React.SetStateAction<PaginationState>>;
 }
 
-export function DataTable<TData, TValue = unknown>({
+export function DataTable<TData, TValue>({
   columns,
   data = [],
   tableClassName,
   tableHeadClassName,
   tableCellClassName,
-  withPagination,
   customSize = false,
+  pagination,
+  rowSelection,
+  onRowSelectionChange,
+  paginationState,
+  setPaginationState,
 }: DataTableProps<TData, TValue>) {
+  const enableRowSelection = !!rowSelection;
+  const isPaginated =
+    paginationState !== undefined && setPaginationState !== undefined;
+
   const table = useReactTable({
     data,
     columns,
+    state: {
+      rowSelection,
+      ...(isPaginated && { pagination: paginationState }),
+    },
+    enableRowSelection,
+    onRowSelectionChange,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
+    manualSorting: true,
+    ...(isPaginated && {
+      onPaginationChange: setPaginationState,
+      manualPagination: true,
+    }),
   });
 
   return (
@@ -53,7 +81,7 @@ export function DataTable<TData, TValue = unknown>({
             className={cn(
               "w-full",
               customSize ? "table-fixed min-w-[800px]" : "min-w-[800px]",
-              tableClassName,
+              tableClassName
             )}
           >
             <TableHeader>
@@ -71,17 +99,19 @@ export function DataTable<TData, TValue = unknown>({
                           : undefined
                       }
                       className={cn(
-                        "bg-gray-50 p-4 sticky top-0 z-10 text-left font-medium",
+                        "bg-gray-50 p-4 sticky top-0 z-10 text-left font-medium text-text-secondary",
                         customSize
                           ? "break-words whitespace-normal"
                           : "min-w-[120px]",
-                        tableHeadClassName,
+                        tableHeadClassName
                       )}
                     >
-                      {flexRender(
-                        header.column.columnDef.header,
-                        header.getContext(),
-                      )}
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
                     </TableHead>
                   ))}
                 </TableRow>
@@ -91,7 +121,15 @@ export function DataTable<TData, TValue = unknown>({
             <TableBody>
               {table.getRowModel().rows.length > 0 ? (
                 table.getRowModel().rows.map((row) => (
-                  <TableRow key={row.id} className="hover:bg-gray-50/50">
+                  <TableRow
+                    key={row.id}
+                    className="hover:bg-gray-50/50"
+                    data-state={
+                      enableRowSelection && row.getIsSelected()
+                        ? "selected"
+                        : undefined
+                    }
+                  >
                     {row.getVisibleCells().map((cell) => (
                       <TableCell
                         key={cell.id}
@@ -108,21 +146,21 @@ export function DataTable<TData, TValue = unknown>({
                           customSize
                             ? "break-words whitespace-normal"
                             : "min-w-[120px]",
-                          tableCellClassName,
+                          tableCellClassName
                         )}
                       >
                         {customSize ? (
                           <div className="break-words whitespace-normal">
                             {flexRender(
                               cell.column.columnDef.cell,
-                              cell.getContext(),
+                              cell.getContext()
                             )}
                           </div>
                         ) : (
                           <div className="max-w-[200px] break-words whitespace-break-spaces">
                             {flexRender(
                               cell.column.columnDef.cell,
-                              cell.getContext(),
+                              cell.getContext()
                             )}
                           </div>
                         )}
@@ -140,8 +178,7 @@ export function DataTable<TData, TValue = unknown>({
                       No Data Available
                     </p>
                     <p className="text-text-secondary text-sm">
-                      There&apos;s currently no data to display in this table.
-                      Please add new entries.
+                      {"There's currently no data to display in this table."}
                     </p>
                   </TableCell>
                 </TableRow>
@@ -151,7 +188,9 @@ export function DataTable<TData, TValue = unknown>({
         </div>
       </div>
 
-      {withPagination && <GeneralPagination />}
+      {pagination && (
+        <GeneralPagination table={table} pagination={pagination} />
+      )}
     </div>
   );
 }
