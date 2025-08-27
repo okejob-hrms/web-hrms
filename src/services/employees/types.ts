@@ -197,12 +197,19 @@ export interface IEmployeeDetailsResponse {
   bank_account: {
     id: number;
     employee_profile_id: number;
-    bank_name: string;
+    bank_id: number;
     account_number: string;
     account_name: string;
     deleted_at: string | null;
     created_at: string;
     updated_at: string;
+    bank: {
+      id: number;
+      bank_name: string;
+      code: string;
+      created_at: string;
+      updated_at: string;
+    };
   };
   team_members: {
     id: number;

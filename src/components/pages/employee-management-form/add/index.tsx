@@ -6,21 +6,21 @@ import * as React from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { EmployeeinformationSection } from "./sections/employee-information-section";
-import { PersonalInformationSection } from "./sections/personal-information-section";
-import { SalaryInformationSection } from "./sections/salary-information-section";
-import { BankInformationSection } from "./sections/bank-information-section";
-import { FamilyInformationSection } from "./sections/family-information-section";
-import { FormalEducationSection } from "./sections/formal-education-section";
-import { NonFormalEducationSection } from "./sections/non-formal-education-section";
-import { WorkExperienceSection } from "./sections/work-experience-section";
-import { ContactOfReferenceSection } from "./sections/contact-reference-section";
-import { AttachmentsSection } from "./sections/attachments-section";
-import { Button } from "../../ui/button";
+import { EmployeeinformationSection } from "../sections/employee-information-section";
+import { PersonalInformationSection } from "../sections/personal-information-section";
+import { SalaryInformationSection } from "../sections/salary-information-section";
+import { BankInformationSection } from "../sections/bank-information-section";
+import { FamilyInformationSection } from "../sections/family-information-section";
+import { FormalEducationSection } from "../sections/formal-education-section";
+import { NonFormalEducationSection } from "../sections/non-formal-education-section";
+import { WorkExperienceSection } from "../sections/work-experience-section";
+import { ContactOfReferenceSection } from "../sections/contact-reference-section";
+import { AttachmentsSection } from "../sections/attachments-section";
+import { Button } from "../../../ui/button";
 import {
   employeeManagementFormDefaultValues,
   employeeManagementFormScheme,
-} from "./types";
+} from "../types";
 import { ICreateEmployeeRequest } from "@/services/employees/types";
 import dayjs from "dayjs";
 import { useMutation } from "@tanstack/react-query";

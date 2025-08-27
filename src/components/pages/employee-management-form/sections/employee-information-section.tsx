@@ -397,11 +397,14 @@ export const AddNewTeamModal: React.FC = () => {
 
 export const EmployeeinformationSection = React.memo(
   function EmployeeinformationSection() {
-    const { watch, register } = useFormContext();
+    const { watch, register, setValue } = useFormContext();
     const watchedDepartmentId = watch("department_id");
     const watchedJobPositionId = watch("job_position_id");
     const watchedJobLevelId = watch("job_level_id");
-    const watchedDirectReports = watch("direct_reports");
+    const watchedDirectReports = watch("direct_reports") || [
+      { relationship_type: "primary", direct_report_id: [] },
+      { relationship_type: "secondary", direct_report_id: [] },
+    ];
     const {
       data: departments,
       isLoading: isDepartmentsLoading,
@@ -534,6 +537,14 @@ export const EmployeeinformationSection = React.memo(
       }
       return [];
     }, [teams?.data]);
+    React.useEffect(() => {
+      if (!watchedDirectReports || watchedDirectReports.length === 0) {
+        setValue("direct_reports", [
+          { relationship_type: "primary", direct_report_id: [] },
+          { relationship_type: "secondary", direct_report_id: [] },
+        ]);
+      }
+    }, [watch, setValue]);
 
     return (
       <React.Fragment>
@@ -578,6 +589,11 @@ export const EmployeeinformationSection = React.memo(
               hideSelectAll
               disabled={isLoadingEmployees}
               valueTransformer={(value) => Number(value)}
+              defaultValue={
+                watchedDirectReports[0]?.direct_report_id?.map((id: any) =>
+                  id.toString(),
+                ) || []
+              }
             />
             <input
               type="hidden"
@@ -597,6 +613,11 @@ export const EmployeeinformationSection = React.memo(
               hideSelectAll
               disabled={isLoadingEmployees}
               valueTransformer={(value) => Number(value)}
+              defaultValue={
+                watchedDirectReports[1]?.direct_report_id?.map((id: any) =>
+                  id.toString(),
+                ) || []
+              }
             />
             <input
               type="hidden"
