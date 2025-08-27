@@ -487,7 +487,7 @@ export const PersonalInformationDetail = React.memo(
           </h2>
           <div className="flex flex-col">
             <p className="text-sm text-text-disabled">Bank</p>
-            <p>{safeGet(data.bank_account?.bank_name)}</p>
+            <p>{safeGet(data.bank_account?.bank.bank_name)}</p>
           </div>
           <div className="flex flex-col">
             <p className="text-sm text-text-disabled">Account Number</p>

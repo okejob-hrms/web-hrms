@@ -38,46 +38,53 @@ const SelectForm: React.FC<OptionFormProps> = ({
     <FormField
       control={control}
       name={name}
-      render={({ field }) => (
-        <FormItem className={formItemClassName}>
-          {label && (
-            <FormLabel className={cn("text-sm font-normal", labelClassName)}>
-              {label}
-              {isOptional && (
-                <span className="text-text-disabled"> (optional)</span>
-              )}
-            </FormLabel>
-          )}
-          <FormControl>
-            <Select
-              onValueChange={(value) => {
-                if (type === "number") {
-                  field.onChange(Number(value));
-                } else {
-                  field.onChange(value);
-                }
-              }}
-              defaultValue={field.value?.toString()}
-            >
-              <FormControl>
-                <SelectTrigger className={className}>
-                  <SelectValue placeholder={placeholder ?? "Select"} />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                {modalChildren && modalChildren}
-                {options.map((item) => (
-                  <SelectItem key={item.value} value={item.value}>
-                    {item.icon && item.icon}
-                    {item.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </FormControl>
-          <FormMessage />
-        </FormItem>
-      )}
+      render={({ field }) => {
+        const value =
+          field.value !== undefined && field.value !== null
+            ? field.value.toString()
+            : "";
+        return (
+          <FormItem className={formItemClassName}>
+            {label && (
+              <FormLabel className={cn("text-sm font-normal", labelClassName)}>
+                {label}
+                {isOptional && (
+                  <span className="text-text-disabled"> (optional)</span>
+                )}
+              </FormLabel>
+            )}
+            <FormControl>
+              <Select
+                onValueChange={(value) => {
+                  if (type === "number") {
+                    field.onChange(Number(value));
+                  } else {
+                    field.onChange(value);
+                  }
+                }}
+                defaultValue={field.value?.toString()}
+                value={value}
+              >
+                <FormControl>
+                  <SelectTrigger className={className}>
+                    <SelectValue placeholder={placeholder ?? "Select"} />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {modalChildren && modalChildren}
+                  {options.map((item) => (
+                    <SelectItem key={item.value} value={item.value}>
+                      {item.icon && item.icon}
+                      {item.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        );
+      }}
     />
   );
 };
