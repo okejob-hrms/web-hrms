@@ -2,7 +2,7 @@
 // sections/employee-profile-modal.tsx
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   AlertDialog,
   AlertDialogContent,

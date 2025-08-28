@@ -33,7 +33,6 @@ import { getOrgChart } from "@/services/employees/organization-structure";
 import { IEmployeeResponse } from "@/services/employees/types";
 import { getEmployeeDetail } from "@/services/employees";
 import { IEmployeeDetailsResponse } from "@/services/employees/types";
-import { se } from "date-fns/locale";
 
 const dagreGraph = new dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
 const nodeWidth = 220;
@@ -89,14 +88,9 @@ export default function OrganizationChart() {
 
   const [assignEmployeeOpen, setAssignEmployeeOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-  const [selectedEmployee, setSelectedEmployee] = useState<EmployeeNode | null>(
-    null
-  );
   const [selectedEmployeeDetails, setSelectedEmployeeDetails] =
     useState<IEmployeeDetailsResponse | null>(null);
-  const [currentParentId, setCurrentParentId] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [originalData, setOriginalData] = useState<EmployeeNode[] | null>(null);
 
   const [isSafari, setIsSafari] = useState(false);
   useEffect(() => {
@@ -126,7 +120,6 @@ export default function OrganizationChart() {
 
   useEffect(() => {
     const onAddChild = (employeeId: string, handle: "top" | "bottom") => {
-      setCurrentParentId(employeeId);
       setAssignEmployeeOpen(true);
     };
     const onEdit = async (employee: EmployeeNode) => {
@@ -203,7 +196,6 @@ export default function OrganizationChart() {
   };
 
   const openAssignModal = (parentId?: string) => {
-    setCurrentParentId(parentId ?? null);
     setAssignEmployeeOpen(true);
   };
 
