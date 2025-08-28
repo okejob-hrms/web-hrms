@@ -1,6 +1,6 @@
 import { ApiResponse, PaginatedResponse } from "@/lib/types";
 import {
-  ICreateEmployeeRequest,
+  IMutateEmployeeRequests,
   ICreateEmployeeResponse,
   IEmployeeDetailsResponse,
   IEmployeeResponse,
@@ -54,7 +54,7 @@ export const getEmployees = (
 };
 
 export const createEmployee = (
-  params: ICreateEmployeeRequest,
+  params: IMutateEmployeeRequests,
 ): Promise<ApiResponse<ICreateEmployeeResponse>> => {
   const response = api.post<ApiResponse<ICreateEmployeeResponse>>(`employees`, {
     json: params,
@@ -63,7 +63,7 @@ export const createEmployee = (
 };
 
 export const updateEmployee = (
-  params: ICreateEmployeeRequest,
+  params: IMutateEmployeeRequests,
 ): Promise<ApiResponse<ICreateEmployeeResponse>> => {
   const response = api.put<ApiResponse<ICreateEmployeeResponse>>(`employees`, {
     json: params,

@@ -229,7 +229,9 @@ export const NonFormalEducationSection = React.memo<Props>(
         ) : (
           <DataTable
             columns={columns}
-            data={data?.data.data}
+            data={data?.data.data.filter(
+              (item) => item.category === "non_formal",
+            )}
             tableClassName="table-fixed w-full"
             tableCellClassName="w-1/9 text-clip text-balance"
             tableHeadClassName="w-1/9 text-clip text-balance"

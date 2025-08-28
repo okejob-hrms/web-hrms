@@ -22,12 +22,17 @@ import {
   employeeManagementFormDefaultValues,
   employeeManagementFormScheme,
 } from "../types";
-import { ICreateEmployeeRequest } from "@/services/employees/types";
+import { IMutateEmployeeRequests } from "@/services/employees/types";
 import dayjs from "dayjs";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { createEmployee, getEmployeeDetail } from "@/services/employees";
+import {
+  updateEmployee,
+  getEmployeeDetail,
+  deleteEmployee,
+} from "@/services/employees";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 interface Props {
   employee_profile_id: number;
@@ -42,16 +47,29 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
     queryFn: () => getEmployeeDetail(employee_profile_id),
   });
   const employeeDetails = data?.data;
-  const { mutate } = useMutation({
-    mutationFn: (params: ICreateEmployeeRequest) => createEmployee(params),
+  const { mutate: editEmployee } = useMutation({
+    mutationFn: (params: IMutateEmployeeRequests) => updateEmployee(params),
     onSuccess: () => {
-      toast.success("Employee added successfully!");
+      toast.success("Edit employee successfully!");
       router.push("/employee/employee-management");
       form.reset();
     },
     onError: (error: any) => {
       toast.error(
-        `Failed to add employee: ${error.message || "Unknown error"}`,
+        `Failed to edit employee: ${error.message || "Unknown error"}`,
+      );
+    },
+  });
+  const { mutate: archieveEmployee } = useMutation({
+    mutationFn: () => deleteEmployee(employee_profile_id),
+    onSuccess: () => {
+      toast.success("Archieve employee successfully!");
+      router.push("/employee/employee-management");
+      form.reset();
+    },
+    onError: (error: any) => {
+      toast.error(
+        `Failed to archieve employee: ${error.message || "Unknown error"}`,
       );
     },
   });
@@ -104,6 +122,8 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
             direct_report_id: secondaryDirectReports,
           },
         ],
+        account_number: employeeDetails.bank_account.account_number.toString(),
+        account_name: employeeDetails.bank_account.account_name,
       };
 
       form.reset(formValues);
@@ -122,8 +142,7 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
           relationship_type: item.relationship_type as "primary" | "secondary",
         })),
       );
-
-      const params: ICreateEmployeeRequest = {
+      const params: IMutateEmployeeRequests = {
         ...restValues,
         role_id: Number(values.role_id),
         department_id: Number(values.department_id),
@@ -142,7 +161,7 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
         phone_number: Number(values.phone_number),
         bank_id: Number(values.bank_id),
       };
-      mutate(params);
+      editEmployee(params);
     } catch (err) {
       console.log("Error submit", err);
     }
@@ -156,17 +175,59 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
           <EmployeeinformationSection />
           <SalaryInformationSection />
           <BankInformationSection />
-          <FamilyInformationSection withAddButton />
-          <FormalEducationSection withAddButton />
-          <NonFormalEducationSection withAddButton />
-          <WorkExperienceSection withAddButton />
-          <ContactOfReferenceSection withAddButton />
-          <AttachmentsSection />
-          <div className="flex gap-2 my-8">
-            <Button variant="outline" className="min-w-36">
-              Cancel
+          <FamilyInformationSection
+            withAddButton
+            employee_profile_id={
+              employeeDetails?.employment.employee_profile_id
+            }
+          />
+          <FormalEducationSection
+            withAddButton
+            employee_profile_id={
+              employeeDetails?.employment.employee_profile_id
+            }
+          />
+          <NonFormalEducationSection
+            withAddButton
+            employee_profile_id={
+              employeeDetails?.employment.employee_profile_id
+            }
+          />
+          <WorkExperienceSection
+            withAddButton
+            employee_profile_id={
+              employeeDetails?.employment.employee_profile_id
+            }
+          />
+          <ContactOfReferenceSection
+            withAddButton
+            employee_profile_id={
+              employeeDetails?.employment.employee_profile_id
+            }
+          />
+          <AttachmentsSection
+            employee_documents={employeeDetails?.employee_documents}
+          />
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <div className="flex gap-2 my-8 justify-between md:justify-start w-full">
+              <Button variant="outline" className="md:max-w-36 w-[50%]">
+                Cancel
+              </Button>
+              <Button className="md:max-w-36 w-[50%]">Update</Button>
+            </div>
+            <Button
+              className="min-w-36 text-error font-semibold text-base"
+              variant="ghost"
+              onClick={() => archieveEmployee}
+            >
+              <Image
+                src="/icons/deleteOutlined.svg"
+                width={20}
+                height={20}
+                alt="delete"
+              />{" "}
+              Archieve Employee
             </Button>
-            <Button className="min-w-36">Add Employee</Button>
           </div>
         </form>
       </Form>

@@ -90,9 +90,14 @@ function FilePreview({ preview, onRemove }: FilePreviewProps) {
   );
 }
 
-function UploadButton({ label, required, name }: UploadButtonProps) {
+function UploadButton({
+  label,
+  required,
+  name,
+  defaultFile,
+}: UploadButtonProps) {
   const ref = React.useRef<HTMLInputElement>(null);
-  const { preview, handleFileUpload, handleRemove, isUploading } =
+  const { preview, handleFileUpload, handleRemove, isUploading, setPreview } =
     useFileUpload({ name });
 
   const handleButtonClick = () => {
@@ -112,6 +117,17 @@ function UploadButton({ label, required, name }: UploadButtonProps) {
       }
     }
   };
+
+  React.useEffect(() => {
+    if (defaultFile && !preview) {
+      setPreview({
+        name: defaultFile.filename,
+        size: defaultFile.size,
+        url: defaultFile.path,
+        type: defaultFile.mime_type,
+      });
+    }
+  }, [defaultFile, preview, setPreview]);
 
   return (
     <div className="flex flex-col max-w-fit gap-2">
