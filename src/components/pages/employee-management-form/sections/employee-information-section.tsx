@@ -37,6 +37,7 @@ import { getTeam, postTeam } from "@/services/team";
 import { ITeamForm, teamFormScheme } from "@/services/team/types";
 import { MultiSelectForm } from "@/components/ui/multi-select";
 import { getEmployees } from "@/services/employees";
+import { useDebounce } from "@/hooks/use-debounce";
 
 export const AddNewJobLevelModal: React.FC = () => {
   const [open, setOpen] = React.useState(false);
@@ -405,6 +406,10 @@ export const EmployeeinformationSection = React.memo(
       { relationship_type: "primary", direct_report_id: [] },
       { relationship_type: "secondary", direct_report_id: [] },
     ];
+    const [primarySearch, setPrimarySearch] = React.useState("");
+    const [secondarySearch, setSecondarySearch] = React.useState("");
+    const debouncedPrimarySearch = useDebounce(primarySearch, 300);
+    const debouncedSecondarySearch = useDebounce(secondarySearch, 300);
     const {
       data: departments,
       isLoading: isDepartmentsLoading,
@@ -465,30 +470,64 @@ export const EmployeeinformationSection = React.memo(
       refetchOnWindowFocus: false,
     });
 
-    const { data: employees, isLoading: isLoadingEmployees } = useQuery({
+    const { data: allEmployees, isLoading: isLoadingAllEmployees } = useQuery({
       queryKey: [
-        "employees",
-        watchedDepartmentId,
-        watchedJobPositionId,
-        watchedJobLevelId,
+        "all-employees",
+        debouncedPrimarySearch || debouncedSecondarySearch,
       ],
       queryFn: () =>
-        getEmployees({
-          department_ids: [watchedDepartmentId],
-          job_position_ids: [watchedJobPositionId],
-          job_level_ids: [watchedJobLevelId],
-        }),
+        getEmployees(
+          debouncedPrimarySearch || debouncedSecondarySearch
+            ? { search: debouncedPrimarySearch || debouncedSecondarySearch }
+            : {},
+        ),
       staleTime: 5 * 60 * 1000,
       gcTime: 10 * 60 * 1000,
       refetchOnWindowFocus: false,
-      enabled: !!(
-        watchedDepartmentId ||
-        watchedJobPositionId ||
-        watchedJobLevelId
-      ),
     });
 
+    const { data: filteredEmployees, isLoading: isLoadingFilteredEmployees } =
+      useQuery({
+        queryKey: [
+          "filtered-employees",
+          watchedDepartmentId,
+          watchedJobPositionId,
+          watchedJobLevelId,
+        ],
+        queryFn: () =>
+          getEmployees({
+            department_ids: watchedDepartmentId
+              ? [watchedDepartmentId]
+              : undefined,
+            job_position_ids: watchedJobPositionId
+              ? [watchedJobPositionId]
+              : undefined,
+            job_level_ids: watchedJobLevelId ? [watchedJobLevelId] : undefined,
+          }),
+        staleTime: 5 * 60 * 1000,
+        gcTime: 10 * 60 * 1000,
+        refetchOnWindowFocus: false,
+        enabled: !!(
+          watchedDepartmentId ||
+          watchedJobPositionId ||
+          watchedJobLevelId
+        ),
+      });
+
+    const employees =
+      watchedDepartmentId || watchedJobPositionId || watchedJobLevelId
+        ? filteredEmployees
+        : allEmployees;
+
+    const isLoadingEmployees =
+      watchedDepartmentId || watchedJobPositionId || watchedJobLevelId
+        ? isLoadingFilteredEmployees
+        : isLoadingAllEmployees;
+
     const employeesOptions = React.useMemo(() => {
+      console.log(debouncedPrimarySearch);
+      console.log(debouncedSecondarySearch);
+      console.log("# employees", employees);
       if (employees?.data?.data) {
         return employees.data.data.map((item) => ({
           label: item.name,
@@ -589,6 +628,8 @@ export const EmployeeinformationSection = React.memo(
               hideSelectAll
               disabled={isLoadingEmployees}
               valueTransformer={(value) => Number(value)}
+              searchValue={primarySearch}
+              onSearchChange={setPrimarySearch}
               defaultValue={
                 watchedDirectReports[0]?.direct_report_id?.map((id: any) =>
                   id.toString(),
@@ -613,6 +654,8 @@ export const EmployeeinformationSection = React.memo(
               hideSelectAll
               disabled={isLoadingEmployees}
               valueTransformer={(value) => Number(value)}
+              searchValue={secondarySearch}
+              onSearchChange={setSecondarySearch}
               defaultValue={
                 watchedDirectReports[1]?.direct_report_id?.map((id: any) =>
                   id.toString(),

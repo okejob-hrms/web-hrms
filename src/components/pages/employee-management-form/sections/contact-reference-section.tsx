@@ -126,7 +126,7 @@ export const AddContactReferenceModal = ({
           <Plus /> Add Contact Reference
         </Button>
       </DialogTrigger>
-      <DialogContent className="bg-white min-w-7xl">
+      <DialogContent className="bg-white md:min-w-5xl overflow-y-scroll max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>Add Contact Reference</DialogTitle>
         </DialogHeader>

@@ -160,7 +160,7 @@ export const AddFamilyFormModal = ({ employee_profile_id = 1 }: Props) => {
           <Plus /> Add Family Information
         </Button>
       </DialogTrigger>
-      <DialogContent className="bg-white min-w-7xl">
+      <DialogContent className="bg-white md:min-w-5xl overflow-y-scroll max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>Add Family</DialogTitle>
         </DialogHeader>
@@ -217,7 +217,6 @@ export const AddFamilyFormModal = ({ employee_profile_id = 1 }: Props) => {
               />
             </div>
 
-            {/* Show error message if mutation fails */}
             {createFamilyMutation.isError && (
               <div className="text-error text-sm mt-2">
                 Error:{" "}
