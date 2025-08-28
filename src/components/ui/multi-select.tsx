@@ -282,6 +282,8 @@ interface MultiSelectProps
   closeOnSelect?: boolean;
   searchPlaceholder?: string;
   allSelectLabel?: string;
+  searchValue?: string;
+  onSearchChange?: (value: string) => void;
 }
 
 /**
@@ -482,6 +484,8 @@ interface FormMultiSelectProps
   searchPlaceholder?: string;
   allSelectLabel?: string;
   valueTransformer?: (value: string) => any;
+  searchValue?: string;
+  onSearchChange?: (value: string) => void;
 }
 
 export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
@@ -512,6 +516,8 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
       closeOnSelect = false,
       searchPlaceholder,
       allSelectLabel,
+      searchValue: externalSearchValue,
+      onSearchChange,
       ...props
     },
     ref,
@@ -520,14 +526,17 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
       React.useState<string[]>(defaultValue);
     const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
     const [isAnimating, setIsAnimating] = React.useState(false);
-    const [searchValue, setSearchValue] = React.useState("");
+    const [internalSearchValue, setInternalSearchValue] = React.useState("");
+    const searchValue =
+      externalSearchValue !== undefined
+        ? externalSearchValue
+        : internalSearchValue;
 
     const [politeMessage, setPoliteMessage] = React.useState("");
     const [assertiveMessage, setAssertiveMessage] = React.useState("");
     const prevSelectedCount = React.useRef(selectedValues.length);
     const prevIsOpen = React.useRef(isPopoverOpen);
     const prevSearchValue = React.useRef(searchValue);
-
     const announce = React.useCallback(
       (message: string, priority: "polite" | "assertive" = "polite") => {
         if (priority === "assertive") {
@@ -570,7 +579,7 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
     const resetToDefault = React.useCallback(() => {
       setSelectedValues(defaultValue);
       setIsPopoverOpen(false);
-      setSearchValue("");
+      setInternalSearchValue("");
       onValueChange(defaultValue);
     }, [defaultValue, onValueChange]);
 
@@ -798,6 +807,14 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
       }
     };
 
+    const handleSearchChange = (value: string) => {
+      if (onSearchChange) {
+        onSearchChange(value);
+      } else {
+        setInternalSearchValue(value);
+      }
+    };
+
     const toggleOption = (optionValue: string) => {
       if (disabled) return;
       const option = getOptionByValue(optionValue);
@@ -875,7 +892,7 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
 
     React.useEffect(() => {
       if (!isPopoverOpen) {
-        setSearchValue("");
+        setInternalSearchValue("");
       }
     }, [isPopoverOpen]);
 
@@ -1219,7 +1236,7 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
                     placeholder={searchPlaceholder || "Search options..."}
                     onKeyDown={handleInputKeyDown}
                     value={searchValue}
-                    onValueChange={setSearchValue}
+                    onValueChange={handleSearchChange}
                     aria-label="Search through available options"
                     aria-describedby={`${multiSelectId}-search-help`}
                     className="bg-white border border-grayscale-20"
@@ -1420,6 +1437,8 @@ export const MultiSelectForm: React.FC<FormMultiSelectProps> = ({
   allSelectLabel,
   searchPlaceholder,
   valueTransformer,
+  searchValue,
+  onSearchChange,
   ...props
 }) => {
   const form = useFormContext();
@@ -1472,6 +1491,8 @@ export const MultiSelectForm: React.FC<FormMultiSelectProps> = ({
                 )}
                 allSelectLabel={allSelectLabel}
                 searchPlaceholder={searchPlaceholder}
+                searchValue={searchValue}
+                onSearchChange={onSearchChange}
                 {...props}
               />
             </FormControl>

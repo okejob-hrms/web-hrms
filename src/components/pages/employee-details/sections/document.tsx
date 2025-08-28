@@ -305,7 +305,7 @@ const UploadDocumentModal = React.memo(function UploadDocumentModal() {
       <DialogTrigger asChild>
         <Button>+ Upload Document</Button>
       </DialogTrigger>
-      <DialogContent className="bg-white min-w-7xl">
+      <DialogContent className="bg-white md:min-w-5xl overflow-y-scroll max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>Upload Document</DialogTitle>
         </DialogHeader>

@@ -108,7 +108,7 @@ export const AddWorkExperienceModal: React.FC = ({
           <Plus /> Add Work Experience
         </Button>
       </DialogTrigger>
-      <DialogContent className="bg-white min-w-7xl">
+      <DialogContent className="bg-white md:min-w-5xl overflow-y-scroll max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>Add Work Experience</DialogTitle>
         </DialogHeader>
