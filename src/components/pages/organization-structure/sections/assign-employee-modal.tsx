@@ -1,6 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// assign-employee-modal.tsx
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -27,66 +29,209 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { assignEmployeeFormScheme, AssignEmployeeFormValues } from "../types";
-import { SearchIcon } from "lucide-react";
+import {
+  assignEmployeeFormScheme,
+  AssignEmployeeFormValues,
+  EmployeeNode,
+} from "../types";
+import { Loader2, SearchIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SelectForm } from "@/components/ui/select-form";
 import { MultiSelect } from "@/components/ui/multi-select";
+import { useQuery } from "@tanstack/react-query";
+import { useDebounce } from "@/components/pages/organization-structure/hooks";
+import { getEmployees } from "@/services/employees/index";
+import { IEmployeeResponse } from "@/services/employees/types";
+import { getDepartment } from "@/services/department";
+import { getJobLevels } from "@/services/job-levels";
+import { getJobPosition } from "@/services/job-position";
+import { getTeam } from "@/services/team";
 
-interface AssignEmployeetModalProps {
+interface AssignEmployeeModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  handleSave: (data: AssignEmployeeFormValues) => void;
-  handleClose: () => void;
+  handleSave: (
+    employee: IEmployeeResponse,
+    values: AssignEmployeeFormValues
+  ) => void;
+  unassignedEmployees?: EmployeeNode[];
+  chartEmployees: EmployeeNode[];
 }
 
 export default function AssignEmployeeModal({
   open,
   onOpenChange,
-  handleSave,
-  handleClose,
-}: AssignEmployeetModalProps) {
-  const [selectedEmployee, setSelectedEmployee] = React.useState<
-    (typeof employees)[0] | null
-  >(null);
+}: AssignEmployeeModalProps) {
+  const [selectedEmployee, setSelectedEmployee] =
+    useState<IEmployeeResponse | null>(null);
+  const [search, setSearch] = useState("");
   const form = useForm<AssignEmployeeFormValues>({
     resolver: zodResolver(assignEmployeeFormScheme),
-    mode: "onChange", // validate on change so Save button can disable live
-    defaultValues: {
-      name: "",
-    },
+    mode: "onChange",
   });
 
+  // const watchedDepartmentId = form.watch("department");
+  // const watchedJobPositionId = form.watch("position");
+  // const watchedJobLevelId = form.watch("jobLevel");
+  const {
+    data: departments,
+    isLoading: isDepartmentsLoading,
+    error: departmentsError,
+  } = useQuery({
+    queryKey: ["departments"],
+    queryFn: () => getDepartment(),
+    retry: (failureCount, error: any) => {
+      if (error?.response?.status >= 400) return false;
+      return failureCount < 3;
+    },
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
+  const {
+    data: jobLevels,
+    isLoading: isJobLevelsLoading,
+    error: jobLevelsError,
+  } = useQuery({
+    queryKey: ["jobLevels"],
+    queryFn: getJobLevels,
+    retry: (failureCount, error: any) => {
+      if (error?.response?.status >= 400) return false;
+      return failureCount < 3;
+    },
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
+  const {
+    data: positions,
+    isLoading: isPositionsLoading,
+    error: positionsError,
+  } = useQuery({
+    queryKey: ["jobPositions"],
+    queryFn: getJobPosition,
+    retry: (failureCount, error: any) => {
+      if (error?.response?.status >= 400) return false;
+      return failureCount < 3;
+    },
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
+  const {
+    data: teams,
+    isLoading: isTeamsLoading,
+    error: teamsError,
+  } = useQuery({
+    queryKey: ["teams"],
+    queryFn: () => getTeam(),
+    retry: (failureCount, error: any) => {
+      if (error?.response?.status >= 400) return false;
+      return failureCount < 3;
+    },
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
+  const { data: employeesOptionsForm, isLoading: isLoadingEmployees } =
+    useQuery({
+      queryKey: [
+        "employees",
+        // watchedDepartmentId,
+        // watchedJobPositionId,
+        // watchedJobLevelId,
+      ],
+      queryFn: () => getEmployees({}),
+      //   {
+      //   department_ids: [Number(watchedDepartmentId)],
+      //   job_position_ids: [Number(watchedJobPositionId)],
+      //   job_level_ids: [Number(watchedJobLevelId)],
+      // }
+      staleTime: 5 * 60 * 1000,
+      gcTime: 10 * 60 * 1000,
+      refetchOnWindowFocus: false,
+      // enabled: !!(
+      //   watchedDepartmentId ||
+      //   watchedJobPositionId ||
+      //   watchedJobLevelId
+      // ),
+    });
+
+  const employeesOptions = React.useMemo(() => {
+    if (employeesOptionsForm?.data?.data) {
+      return employeesOptionsForm.data.data.map((item) => ({
+        label: item.name,
+        value: item.id.toString(),
+      }));
+    }
+    return [];
+  }, [employeesOptionsForm?.data]);
+
+  const departmentOptions = React.useMemo(() => {
+    if (departments?.data?.data) {
+      return departments.data.data.map((item) => ({
+        label: item.name,
+        value: item.id.toString(),
+      }));
+    }
+    return [];
+  }, [departments?.data]);
+
+  const positionOptions = React.useMemo(() => {
+    if (positions?.data) {
+      return positions.data.map((item) => ({
+        label: item.name,
+        value: item.id.toString(),
+      }));
+    }
+    return [];
+  }, [positions?.data]);
+
+  const jobLevelOptions = React.useMemo(() => {
+    if (jobLevels?.data) {
+      return jobLevels.data.map((item) => ({
+        label: item.name,
+        value: item.id.toString(),
+      }));
+    }
+    return [];
+  }, [jobLevels?.data]);
+
+  const teamOptions = React.useMemo(() => {
+    if (teams?.data?.data) {
+      return teams.data.data.map((item) => ({
+        label: item.name,
+        value: item.id.toString(),
+      }));
+    }
+    return [];
+  }, [teams?.data]);
+
+  const debouncedSearch = useDebounce(search, 500);
+  const { data: employeeResponse, isLoading } = useQuery({
+    queryKey: ["unassignedEmployees", debouncedSearch],
+    queryFn: () => getEmployees({ search: debouncedSearch }),
+    enabled: debouncedSearch.length > 0,
+  });
+
+  const employees = employeeResponse?.data?.data || [];
+
   const onSubmit = (data: AssignEmployeeFormValues) => {
-    handleSave(data);
+    if (selectedEmployee) {
+      // Will implemented after api Ready
+      // handleSave(selectedEmployee, data);
+      setSelectedEmployee(null);
+      setSearch("");
+      form.reset();
+    }
   };
 
-  const employees = [
-    {
-      id: 1,
-      name: "Olivia Rhye",
-      title: "CEO",
-      image: "/images/olivia-rhye.png",
-    },
-    {
-      id: 2,
-      name: "OWLWW",
-      title: "Head of Production",
-      image: "/images/olivia-turner.png",
-    },
-    {
-      id: 3,
-      name: "KOKOKO",
-      title: "Head of Production",
-      image: "/images/olivia-turner.png",
-    },
-    {
-      id: 4,
-      name: "TTTTT",
-      title: "Head of Production",
-      image: "/images/olivia-turner.png",
-    },
-  ];
+  const handleClose = () => {
+    setSelectedEmployee(null);
+    setSearch("");
+    form.reset();
+    onOpenChange(false);
+  };
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -103,7 +248,7 @@ export default function AssignEmployeeModal({
             <div
               className={cn(
                 "overflow-y-auto pr-2 mt-4",
-                selectedEmployee ? "max-h-[500px]" : "max-h-[300px]",
+                selectedEmployee ? "max-h-[500px]" : "max-h-[300px]"
               )}
             >
               {!selectedEmployee ? (
@@ -121,32 +266,54 @@ export default function AssignEmployeeModal({
                       <Command className="rounded border-t-0">
                         <div className="flex h-9 items-center gap-2 border rounded px-3">
                           <CommandPrimitive.Input
+                            value={search}
+                            onValueChange={setSearch}
                             data-slot="command-input"
                             className={cn(
-                              "placeholder:text-muted-foreground flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-hidden disabled:cursor-not-allowed disabled:opacity-50",
+                              "placeholder:text-muted-foreground flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-hidden disabled:cursor-not-allowed disabled:opacity-50"
                             )}
                             placeholder="Enter Employee"
                           />
                           <SearchIcon className="size-4 opacity-50" />
                         </div>
                         <CommandList>
-                          <CommandEmpty className="py-4 text-center text-sm text-gray-400">
-                            No employees found
-                          </CommandEmpty>
+                          {isLoading && (
+                            <div className="p-4 flex justify-center items-center">
+                              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                            </div>
+                          )}
+                          {!isLoading && (
+                            <CommandEmpty className="py-4 text-center text-sm text-gray-400" />
+                          )}
                           <CommandGroup className="max-h-20 overflow-y-auto">
                             {employees.map((employee) => (
                               <CommandItem
                                 key={employee.id}
                                 value={employee.name}
                                 onSelect={() => {
-                                  form.setValue("name", employee.name, {
-                                    shouldValidate: true,
-                                  });
                                   setSelectedEmployee(employee);
+                                  form.setValue("name", employee.name);
+                                  form.setValue(
+                                    "department",
+                                    String(employee.department_id)
+                                  );
+                                  form.setValue(
+                                    "position",
+                                    String(employee.job_position_id)
+                                  );
+                                  form.setValue(
+                                    "jobLevel",
+                                    String(employee.job_level_id),
+                                    {
+                                      shouldValidate: true,
+                                    }
+                                  );
                                 }}
                               >
                                 <Avatar className="h-8 w-8 mr-2">
-                                  <AvatarImage src={employee.image} />
+                                  <AvatarImage
+                                    src={employee.photo_profile_url ?? ""}
+                                  />
                                   <AvatarFallback>
                                     {employee.name.charAt(0)}
                                   </AvatarFallback>
@@ -165,7 +332,9 @@ export default function AssignEmployeeModal({
                 <div className="space-y-4">
                   <div className="flex items-center gap-3">
                     <Avatar className="h-10 w-10">
-                      <AvatarImage src={selectedEmployee.image} />
+                      <AvatarImage
+                        src={selectedEmployee.photo_profile_url ?? ""}
+                      />
                       <AvatarFallback>
                         {selectedEmployee.name.charAt(0)}
                       </AvatarFallback>
@@ -173,7 +342,7 @@ export default function AssignEmployeeModal({
                     <div>
                       <p className="font-medium">{selectedEmployee.name}</p>
                       <p className="text-xs text-gray-500">
-                        {selectedEmployee.title}
+                        {selectedEmployee.job_position}
                       </p>
                     </div>
                   </div>
@@ -184,7 +353,7 @@ export default function AssignEmployeeModal({
                         Email
                       </label>
                       <label className="text-sm text-text-secondary">
-                        test@mail.com
+                        {selectedEmployee.email}
                       </label>
                     </div>
                     <div className="flex flex-col gap-2 pr-30">
@@ -192,7 +361,7 @@ export default function AssignEmployeeModal({
                         Phone Number
                       </label>
                       <label className="text-sm text-text-secondary">
-                        +62902930190
+                        {selectedEmployee.phone_number}
                       </label>
                     </div>
                   </div>
@@ -205,13 +374,10 @@ export default function AssignEmployeeModal({
                           Department<span className="text-red-500">*</span>
                         </label>
                         <SelectForm
-                          options={[
-                            { label: "Managerial", value: "managerial" },
-                            { label: "Engineering", value: "engineering" },
-                            { label: "Marketing", value: "marketing" },
-                          ]}
+                          options={departmentOptions}
                           {...field}
                           required
+                          disabled={isDepartmentsLoading || !!departmentsError}
                         />
                         <FormMessage />
                       </FormItem>
@@ -226,12 +392,9 @@ export default function AssignEmployeeModal({
                           Position<span className="text-red-500">*</span>
                         </label>
                         <SelectForm
-                          options={[
-                            { label: "CEO", value: "ceo" },
-                            { label: "CTO", value: "cto" },
-                            { label: "COO", value: "coo" },
-                          ]}
+                          options={positionOptions}
                           required
+                          disabled={isPositionsLoading || !!positionsError}
                           {...field}
                         />
                         <FormMessage />
@@ -247,12 +410,9 @@ export default function AssignEmployeeModal({
                           Job Level<span className="text-red-500">*</span>
                         </label>
                         <SelectForm
-                          options={[
-                            { label: "Founder", value: "founder" },
-                            { label: "Senior", value: "senior" },
-                            { label: "Mid", value: "mid" },
-                          ]}
+                          options={jobLevelOptions}
                           required
+                          disabled={isJobLevelsLoading || !!jobLevelsError}
                           {...field}
                         />
                         <FormMessage />
@@ -272,21 +432,12 @@ export default function AssignEmployeeModal({
                           </label>
                           <MultiSelect
                             name="primaryDirectReport"
-                            placeholder="All Position"
-                            options={[
-                              {
-                                label:
-                                  "Demi Wilkinson (Head of Product Designer)",
-                                value: "Demi Wilkinson",
-                              },
-                              { label: "Team Lead", value: "team lead" },
-                              { label: "Senior", value: "senior" },
-                              { label: "Staff", value: "staff" },
-                            ]}
+                            options={employeesOptions}
                             value={field.value}
                             onValueChange={field.onChange}
                             maxCount={3}
                             variant="inverted"
+                            disabled={isLoadingEmployees}
                           />
                         </div>
                         <FormMessage />
@@ -305,21 +456,12 @@ export default function AssignEmployeeModal({
                           </label>
                           <MultiSelect
                             name="additionalDirectReport"
-                            placeholder="All Position"
-                            options={[
-                              {
-                                label:
-                                  "Demi Wilkinson (Head of Product Designer)",
-                                value: "Demi Wilkinson",
-                              },
-                              { label: "Team Lead", value: "team lead" },
-                              { label: "Senior", value: "senior" },
-                              { label: "Staff", value: "staff" },
-                            ]}
+                            options={employeesOptions}
                             value={field.value}
                             onValueChange={field.onChange}
                             maxCount={3}
                             variant="inverted"
+                            disabled={isLoadingEmployees}
                           />
                         </div>
                         <FormMessage />
@@ -338,20 +480,13 @@ export default function AssignEmployeeModal({
                           </label>
                           <MultiSelect
                             name="teams"
-                            placeholder="All Position"
-                            options={[
-                              {
-                                label: "Team Creative",
-                                value: "team creative",
-                              },
-                              { label: "Team Lead", value: "team lead" },
-                              { label: "Senior", value: "senior" },
-                              { label: "Staff", value: "staff" },
-                            ]}
+                            placeholder="All Teams"
+                            options={teamOptions}
                             value={field.value}
                             onValueChange={field.onChange}
                             maxCount={3}
                             variant="inverted"
+                            disabled={isTeamsLoading || !!teamsError}
                           />
                         </div>
                         <FormMessage />
@@ -366,17 +501,14 @@ export default function AssignEmployeeModal({
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => {
-                  setSelectedEmployee(null);
-                  handleClose();
-                }}
+                onClick={handleClose}
                 className="min-w-[100px] text-primary"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
-                disabled={!form.formState.isValid}
+                disabled={!form.formState.isValid || !selectedEmployee}
                 className="min-w-[100px] bg-[#18618B] hover:bg-[#14506e] text-white font-medium py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Save

@@ -1,31 +1,25 @@
+// FileName: sections/node-card.tsx
+
 import React, { useState, useRef, useEffect } from "react";
 import Image from "next/image";
-import { EmployeeNode } from "../types";
+import { type EmployeeNode } from "../types";
 import { Edit, Plus, Trash2, Ellipsis } from "lucide-react";
 
-interface NodeCardProps {
-  data: EmployeeNode;
-  width?: number;
-  height?: number;
-  onAddChild: (parentId: string) => void;
-  isSafari: boolean;
-  onEdit: () => void;
-  isEditMode?: boolean;
-}
+type NodeCardData = {
+  employee: EmployeeNode;
+  onAddChild: (id: string, handle: "top" | "bottom") => void;
+  onEdit: (employee: EmployeeNode) => void;
+  onDelete: (id: string) => void;
+  isEditMode: boolean;
+};
 
-export const NodeCard = ({
-  data,
-  width = 220,
-  height = 100,
-  onAddChild,
-  isSafari,
-  onEdit,
-  isEditMode = false,
-}: NodeCardProps) => {
+export const NodeCard = ({ data }: { data: NodeCardData }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Effect to handle closing the menu when clicking outside of it
+  const { employee, isEditMode, onAddChild, onEdit, onDelete } = data;
+  const { employeeId, name, title, image } = employee;
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -45,68 +39,75 @@ export const NodeCard = ({
 
   return (
     <div className="flex flex-col items-center gap-2 bg-transparent">
+      {isEditMode && (
+        <button
+          onClick={() => onEdit(employee)}
+          className="flex items-center justify-center w-5 h-5 rounded-full bg-primary text-white shadow hover:bg-primary/80"
+        >
+          <Plus className="w-3 h-3" />
+        </button>
+      )}
       <div
         className="bg-white border-t-6 border-l-2 border-r-2 border-b-2 border-primary-border rounded-lg p-2 shadow cursor-pointer"
-        style={{ width, height }}
+        style={{ width: 220, height: 100 }}
       >
-        <div className="flex flex-col gap-2 justify-between h-full">
+        <div className="flex flex-col gap-2 h-full">
           {/* Top row */}
-          <div className="flex justify-between items-start">
-            <div className="flex gap-2 items-start">
+          <div className="flex justify-between items-start gap-2">
+            {/* Column 1: Avatar and Text */}
+            <div className="flex gap-2 items-start flex-1 min-w-0">
               <Image
-                src={data.image || "/images/default-avatar.png"}
-                alt={data.name}
+                src={image || "/images/default-avatar.png"}
+                alt={name}
                 width={40}
                 height={40}
-                className={`w-10 h-10 ${!isSafari && "rounded-full"}`}
+                className="rounded-full flex-shrink-0"
               />
-              <div className="flex flex-col items-start">
-                <div className="font-semibold text-sm text-text-primary">
-                  {data.name}
-                </div>
-                <div className="text-xs text-text-disabled">{data.title}</div>
+              <div className="flex flex-col items-start pt-1 max-w-[120px]">
+                <span
+                  title={name}
+                  className="font-semibold text-sm text-gray-800 w-full truncate"
+                >
+                  {name}
+                </span>
+                <span
+                  title={title}
+                  className="text-xs text-gray-500 w-full truncate"
+                >
+                  {title}
+                </span>
               </div>
             </div>
 
-            {/* CONDITIONAL ACTION BUTTONS */}
-            {isEditMode &&
-              (isSafari ? (
-                // SAFARI: Simple, flat icon buttons
-                <div className="flex flex-row gap-2">
-                  <button onClick={onEdit}>
-                    <Edit className="w-4 h-4" />
-                  </button>
-                  <button onClick={() => {}}>
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              ) : (
-                // OTHER BROWSERS: Ellipsis popup menu
-                <div className="relative">
-                  <button
-                    onClick={handleMenuToggle}
-                    className="p-1 hover:bg-gray-100 rounded-full"
+            {isEditMode && (
+              <div className="relative">
+                <button
+                  onClick={handleMenuToggle}
+                  className="p-1 hover:bg-gray-100 rounded-full"
+                >
+                  <Ellipsis className="w-4 h-4" />
+                </button>
+                {isMenuOpen && (
+                  <div
+                    ref={menuRef}
+                    className="absolute top-full right-0 mt-1 w-32 bg-white border rounded-md shadow-lg z-10"
                   >
-                    <Ellipsis className="w-4 h-4" />
-                  </button>
-                  {isMenuOpen && (
-                    <div
-                      ref={menuRef}
-                      className="absolute top-full right-0 mt-1 w-40 bg-white border border-gray-200 rounded-md shadow-lg z-10"
+                    <button
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center gap-2"
+                      onClick={() => onEdit(employee)}
                     >
-                      <button
-                        className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center gap-2"
-                        onClick={onEdit}
-                      >
-                        <Edit className="w-4 h-4" /> Edit Structure
-                      </button>
-                      <button className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 flex items-center gap-2">
-                        <Trash2 className="w-4 h-4" /> Delete
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ))}
+                      <Edit className="w-4 h-4" /> Edit
+                    </button>
+                    <button
+                      className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center gap-2"
+                      onClick={() => onDelete(employeeId)}
+                    >
+                      <Trash2 className="w-4 h-4" /> Delete
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Bottom row: icons */}
@@ -138,7 +139,7 @@ export const NodeCard = ({
       </div>
       {isEditMode && (
         <button
-          onClick={() => onAddChild(data.id)}
+          onClick={() => onAddChild(employeeId, "bottom")}
           className="flex items-center justify-center w-5 h-5 rounded-full bg-primary text-white shadow hover:bg-primary/80"
         >
           <Plus className="w-3 h-3" />
