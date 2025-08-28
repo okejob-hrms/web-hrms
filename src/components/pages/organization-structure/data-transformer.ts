@@ -18,37 +18,23 @@ export function transformDataForFlow(dataForNodes: NodeCardData[]): {
   const edges: Edge[] = [];
   const createdEdges = new Set<string>();
 
-  // 3. Create the lookup map from the nested employee objects
   const employeeMap = new Map(
     dataForNodes.map((d) => [d.employee.employeeId, d.employee])
   );
 
-  // 4. Calculate job levels from the nested employee objects
-  const topLevel = 1;
-  const bottomLevel = 4;
-
-  console.log("top level", topLevel);
-  console.log("bot level", bottomLevel);
-
   dataForNodes.forEach((nodeData) => {
-    // 5. Destructure the employee object from the wrapper
     const { employee } = nodeData;
-    console.log("test", employee.jobLevel === topLevel);
 
     // --- Node Creation ---
     nodes.push({
       id: employee.employeeId,
       position: { x: 0, y: 0 },
-      // 6. Pass the enriched data through, now including level info
       data: {
         ...nodeData,
-        isTopLevel: employee.jobLevel === topLevel,
-        isBottomLevel: employee.jobLevel === bottomLevel,
       },
       type: "custom",
     });
 
-    // --- Intelligent Edge Creation (this logic was already mostly correct) ---
     const allReports = [
       ...(employee.reportsTo?.primary?.map((id) => ({ id, type: "primary" })) ||
         []),
@@ -62,17 +48,16 @@ export function transformDataForFlow(dataForNodes: NodeCardData[]): {
       const manager = employeeMap.get(report.id);
       if (!manager) return;
 
-      const senior = employee.jobLevel < manager.jobLevel ? employee : manager;
-      const junior = employee.jobLevel < manager.jobLevel ? manager : employee;
-
-      const edgeKey = [senior.employeeId, junior.employeeId].sort().join("-");
+      const edgeKey = [employee.employeeId, manager.employeeId]
+        .sort()
+        .join("-");
       if (createdEdges.has(edgeKey)) return;
 
       createdEdges.add(edgeKey);
       edges.push({
         id: `e-${edgeKey}`,
-        source: senior.employeeId,
-        target: junior.employeeId,
+        source: employee.employeeId,
+        target: manager.employeeId,
         type: "smoothstep",
         animated: report.type === "additional",
         style:

@@ -4,12 +4,11 @@
 import Image from "next/image";
 import {
   AssignEmployeeFormValues,
-  allEmployees,
   EmployeeNode,
   initialChartData,
   NodeCardData,
 } from "./types";
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import AssignEmployeeModal from "./sections/assign-employee-modal";
 import EmployeeProfileModal from "./sections/employee-profile-modal";
@@ -28,6 +27,13 @@ import "@xyflow/react/dist/style.css";
 import { transformDataForFlow } from "./data-transformer";
 import { CustomNode } from "./sections/custom-node";
 import { CustomControls } from "./sections/custom-controls";
+import { flattenOrgData } from "./utis";
+
+import { getOrgChart } from "@/services/employees/organization-structure";
+import { IEmployeeResponse } from "@/services/employees/types";
+import { getEmployeeDetail } from "@/services/employees";
+import { IEmployeeDetailsResponse } from "@/services/employees/types";
+import { se } from "date-fns/locale";
 
 const dagreGraph = new dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
 const nodeWidth = 220;
@@ -86,6 +92,8 @@ export default function OrganizationChart() {
   const [selectedEmployee, setSelectedEmployee] = useState<EmployeeNode | null>(
     null
   );
+  const [selectedEmployeeDetails, setSelectedEmployeeDetails] =
+    useState<IEmployeeDetailsResponse | null>(null);
   const [currentParentId, setCurrentParentId] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [originalData, setOriginalData] = useState<EmployeeNode[] | null>(null);
@@ -98,20 +106,39 @@ export default function OrganizationChart() {
     setIsSafari(isSafariBrowser);
   }, []);
 
-  const unassignedEmployees = useMemo(() => {
-    const assignedIds = new Set(chartEmployees.map((e) => e.employeeId));
-    return allEmployees.filter((e) => !assignedIds.has(e.employeeId));
-  }, [chartEmployees]);
+  // const unassignedEmployees = useMemo(() => {
+  //   const assignedIds = new Set(chartEmployees.map((e) => e.employeeId));
+  //   return allEmployees.filter((e) => !assignedIds.has(e.employeeId));
+  // }, [chartEmployees]);
+
+  useEffect(() => {
+    const fetchAndSetInitialChart = async () => {
+      try {
+        const response = await getOrgChart();
+        const flattenedData = flattenOrgData(response.data);
+        setChartEmployees(flattenedData);
+      } catch (error) {
+        console.error("Failed to fetch organization chart:", error);
+      }
+    };
+    fetchAndSetInitialChart();
+  }, []);
 
   useEffect(() => {
     const onAddChild = (employeeId: string, handle: "top" | "bottom") => {
-      console.log(`Add child for ${employeeId} via ${handle} handle`);
       setCurrentParentId(employeeId);
       setAssignEmployeeOpen(true);
     };
-    const onEdit = (employee: EmployeeNode) => {
-      setSelectedEmployee(employee);
+    const onEdit = async (employee: EmployeeNode) => {
       setIsProfileModalOpen(true);
+      setSelectedEmployeeDetails(null);
+      try {
+        const response = await getEmployeeDetail(Number(employee.employeeId));
+        setSelectedEmployeeDetails(response.data);
+      } catch (error) {
+        console.error("Failed to fetch employee details:", error);
+        setIsProfileModalOpen(false);
+      }
     };
     const onDelete = (employeeId: string) => {
       console.log("Delete employee:", employeeId);
@@ -124,7 +151,6 @@ export default function OrganizationChart() {
       return;
     }
 
-    // This part correctly enriches the data with handler functions.
     const dataForNodes: NodeCardData[] = chartEmployees.map((emp) => ({
       employee: emp,
       onAddChild,
@@ -141,23 +167,26 @@ export default function OrganizationChart() {
       transformedEdges
     );
 
-    // Fix: Ensure layoutedNodes is typed as Node<NodeCardData>[]
     setNodes(layoutedNodes as Node<NodeCardData>[]);
     setEdges(layoutedEdges);
   }, [chartEmployees, isEditMode, isSafari]);
 
   const handleModalSave = (
-    employeeToAdd: EmployeeNode,
+    employeeToAdd: IEmployeeResponse,
     formValues: AssignEmployeeFormValues
   ) => {
-    const newEmployeeWithReports: EmployeeNode = {
-      ...employeeToAdd,
+    const newEmployee: EmployeeNode = {
+      employeeId: String(employeeToAdd.id),
+      name: employeeToAdd.name,
+      title: employeeToAdd.job_position,
+      image: employeeToAdd.photo_profile_url || "/icons/user02.svg",
       reportsTo: {
         primary: formValues.primaryDirectReport,
         additional: formValues.additionalDirectReport,
       },
     };
-    setChartEmployees((prev) => [...prev, newEmployeeWithReports]);
+
+    setChartEmployees((prev) => [...prev, newEmployee]);
     setAssignEmployeeOpen(false);
   };
 
@@ -177,41 +206,6 @@ export default function OrganizationChart() {
     setCurrentParentId(parentId ?? null);
     setAssignEmployeeOpen(true);
   };
-
-  // const handleSave = (formValues: AssignEmployeeFormValues) => {
-  //   // FIX: Use `employeeId` instead of `id` to match your EmployeeNode type
-  //   const newEmployee: EmployeeNode = {
-  //     employeeId: Date.now().toString(),
-  //     name: formValues.name,
-  //     title: "New Hire",
-  //     image: "/icons/user02.svg",
-  //     reportsTo: currentParentId ? { primary: [currentParentId] } : {},
-  //   };
-  //   setEmployeeData((prevData) => [...prevData, newEmployee]);
-  //   setAssignEmployeeOpen(false);
-  //   setCurrentParentId(null);
-  // };
-
-  // const handleEditSave = (formValues: AssignEmployeeFormValues) => {
-  //   console.log("Saving edited employee data:", formValues);
-  //   setEmployeeData((prevData) =>
-  //     prevData.map((emp) => {
-  //       // FIX: Use `employeeId` for comparison
-  //       if (emp.employeeId === selectedEmployee?.employeeId) {
-  //         return {
-  //           ...emp,
-  //           name: formValues.name,
-  //           reportsTo: {
-  //             primary: formValues.primaryDirectReport,
-  //             additional: formValues.additionalDirectReport,
-  //           },
-  //         };
-  //       }
-  //       return emp;
-  //     })
-  //   );
-  //   setIsProfileModalOpen(false);
-  // };
 
   const handleModalEditSave = (formValues: AssignEmployeeFormValues) => {};
   return (
@@ -319,17 +313,18 @@ export default function OrganizationChart() {
         // handleClose={() => setAssignEmployeeOpen(false)}
         handleSave={handleModalSave}
         onOpenChange={setAssignEmployeeOpen}
-        unassignedEmployees={unassignedEmployees} // FIX: Pass the correct props
+        // unassignedEmployees={unassignedEmployees}
         chartEmployees={chartEmployees}
       />
 
-      {selectedEmployee && (
+      {selectedEmployeeDetails && (
         <EmployeeProfileModal
           open={isProfileModalOpen}
           onOpenChange={setIsProfileModalOpen}
           handleClose={() => setIsProfileModalOpen(false)}
-          employeeData={selectedEmployee}
+          employeeData={selectedEmployeeDetails}
           handleSave={handleModalEditSave}
+          chartEmployees={chartEmployees}
         />
       )}
     </div>
