@@ -7,6 +7,8 @@ import { uploadAttachment } from "@/services/attachments";
 export interface PreviewDoc {
   name: string;
   size: number;
+  url: string;
+  type: string;
 }
 
 export interface UseFileUploadProps {
@@ -41,6 +43,8 @@ export const useFileUpload = ({
       setPreview({
         name: res.data.filename,
         size: res.data.size,
+        url: res.data.url,
+        type: res.data.mime_type,
       });
     },
     onError: (error) => {
@@ -73,5 +77,6 @@ export const useFileUpload = ({
     handleFileUpload,
     handleRemove,
     isUploading: isPending,
+    setPreview,
   };
 };

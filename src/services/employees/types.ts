@@ -49,7 +49,7 @@ export interface ICreateEmployeeResponse {
   marital_status_label: string;
 }
 
-export interface ICreateEmployeeRequest {
+export interface IMutateEmployeeRequests {
   name: string;
   email: string;
   role_id: number;

@@ -47,7 +47,7 @@ export const columns: ColumnDef<IEducationResponse>[] = [
     header: "Major",
   },
   {
-    accessorKey: "city",
+    accessorKey: "location",
     header: "City",
   },
   {
@@ -260,7 +260,7 @@ export const FormalEducationSection = React.memo<Props>(
         ) : (
           <DataTable
             columns={columns}
-            data={data?.data.data}
+            data={data?.data.data.filter((item) => item.category === "formal")}
             tableClassName="table-fixed w-full"
             tableCellClassName="w-1/9 text-clip text-balance"
             tableHeadClassName="w-1/9 text-clip text-balance"

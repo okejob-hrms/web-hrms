@@ -20,19 +20,43 @@ const attachmentTypes = [
   { name: "other", label: "Others", required: false },
 ];
 
-export const AttachmentsSection = React.memo(function AttachmentsSection() {
+interface AttachmentsSectionProps {
+  employee_documents?: Array<{
+    id: number;
+    type: string;
+    filename: string;
+    mime_type: string;
+    size: number;
+    path: string;
+    disk: string;
+    uploaded_by: number;
+    uploaded_at: string;
+    created_at: string;
+    updated_at: string;
+  }>;
+}
+
+export const AttachmentsSection = React.memo(function AttachmentsSection({
+  employee_documents,
+}: AttachmentsSectionProps) {
   return (
     <React.Fragment>
       <h2 className="font-semibold text-lg leading-5 mb-3">Attachments</h2>
       <div className="grid grid-cols-2 gap-4">
-        {attachmentTypes.map((attachment) => (
-          <UploadButton
-            key={attachment.name}
-            name={attachment.name}
-            label={attachment.label}
-            required={attachment.required}
-          />
-        ))}
+        {attachmentTypes.map((attachment) => {
+          const document = employee_documents?.find(
+            (doc) => doc.type === attachment.name,
+          );
+          return (
+            <UploadButton
+              key={attachment.name}
+              name={attachment.name}
+              label={attachment.label}
+              required={attachment.required}
+              defaultFile={document || undefined}
+            />
+          );
+        })}
       </div>
     </React.Fragment>
   );

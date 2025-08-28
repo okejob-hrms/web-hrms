@@ -186,6 +186,12 @@ export interface MultipleSelectFormProps extends MultipleSelectProps {
 
 export interface UploadButtonProps extends React.ComponentProps<"button"> {
   label: string;
-  required?: boolean;
+  required: boolean;
   name: string;
+  defaultFile?: {
+    filename: string;
+    size: number;
+    path: string;
+    mime_type: string;
+  };
 }

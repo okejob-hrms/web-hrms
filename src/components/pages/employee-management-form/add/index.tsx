@@ -21,7 +21,7 @@ import {
   employeeManagementFormDefaultValues,
   employeeManagementFormScheme,
 } from "../types";
-import { ICreateEmployeeRequest } from "@/services/employees/types";
+import { IMutateEmployeeRequests } from "@/services/employees/types";
 import dayjs from "dayjs";
 import { useMutation } from "@tanstack/react-query";
 import { createEmployee } from "@/services/employees";
@@ -31,7 +31,7 @@ import { useRouter } from "next/navigation";
 export const AddEmployeeForm = React.memo(function AddEmployee() {
   const router = useRouter();
   const { mutate } = useMutation({
-    mutationFn: (params: ICreateEmployeeRequest) => createEmployee(params),
+    mutationFn: (params: IMutateEmployeeRequests) => createEmployee(params),
     onSuccess: () => {
       toast.success("Employee added successfully!");
       router.push("/employee/employee-management");
@@ -61,7 +61,7 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
         })),
       );
 
-      const params: ICreateEmployeeRequest = {
+      const params: IMutateEmployeeRequests = {
         ...restValues,
         role_id: Number(values.role_id),
         department_id: Number(values.department_id),
@@ -100,11 +100,11 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
           <WorkExperienceSection withAddButton />
           <ContactOfReferenceSection withAddButton />
           <AttachmentsSection />
-          <div className="flex gap-2 my-8">
-            <Button variant="outline" className="min-w-36">
+          <div className="flex gap-2 my-8 justify-between md:justify-start w-full">
+            <Button variant="outline" className="md:max-w-36 w-[50%]">
               Cancel
             </Button>
-            <Button className="min-w-36">Add Employee</Button>
+            <Button className="md:max-w-36 w-[50%]">Add Employee</Button>
           </div>
         </form>
       </Form>
