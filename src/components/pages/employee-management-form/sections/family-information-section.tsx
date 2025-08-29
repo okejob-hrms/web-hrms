@@ -31,6 +31,7 @@ import { SelectForm } from "@/components/ui/select-form";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PhoneInput } from "@/components/ui/phone-input";
+import { convertPhoneToNumber } from "@/lib/helpers";
 
 const formatDate = (dateString: string): string => {
   return new Date(dateString).toLocaleDateString("id-ID", {
@@ -132,6 +133,7 @@ export const AddFamilyFormModal = ({ employee_profile_id = 1 }: Props) => {
         payload: {
           ...values,
           highest_education: Number(values.highest_education),
+          phone: convertPhoneToNumber(values.phone)
         },
       };
       console.log(params);
