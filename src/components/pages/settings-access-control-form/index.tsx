@@ -125,7 +125,7 @@ export default function SettingsAccessControlAdd({
   ];
 
   return (
-    <div className="font-sans p-4">
+    <div className="font-sans md:px-[125px] px-4">
       <div className="flex flex-col justify-between gap-6">
         <h2 className="font-semibold text-xl">Role Information</h2>
 

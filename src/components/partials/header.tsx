@@ -5,7 +5,7 @@ import * as React from 'react';
 import { Status, StatusIndicator, StatusLabel } from '../ui/shadcn-io/status';
 import { Separator } from '../ui/separator';
 import Link from 'next/link';
-import { Cloud, Menu, X } from 'lucide-react';
+import { ChevronLeft, Cloud, Menu, X } from 'lucide-react';
 
 import {
   NavigationMenu,
@@ -34,6 +34,10 @@ interface BreadcrumbProps {
     label: string;
     link: string;
   }[];
+}
+
+interface HeaderProps {
+  showBackNavigate: boolean;
 }
 
 const menuItems = [
@@ -263,7 +267,7 @@ const HeaderMenu = React.memo(function HeaderMenu() {
   );
 });
 
-const Header = React.memo(function Header() {
+const Header = React.memo(function Header({ showBackNavigate }: HeaderProps) {
   const { isOnline, setOnline } = useNetworkStatus();
 
   return (
@@ -273,6 +277,22 @@ const Header = React.memo(function Header() {
           <Image src="/logo.png" alt="logo" fill className="object-cover" />
         </div>
         <span className="font-semibold md:text-lg text-base">HRMS</span>
+
+        {showBackNavigate && (
+          <>
+            <Button
+              variant="link"
+              onClick={() => window.history.back()}
+              className="flex items-center gap-2 text-dark"
+            >
+              <ChevronLeft
+                style={{ height: '28px', width: '28px' }}
+                className="text-blue-600"
+              />
+              <div className="text-xl">Back</div>
+            </Button>
+          </>
+        )}
       </div>
       <div className="items-center justify-end gap-2 md:gap-4 h-10 flex">
         <Status

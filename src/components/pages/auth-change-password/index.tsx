@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { useRouter } from "next/navigation";
-import { z } from "zod";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { ArrowLeft, Eye, EyeOff } from "lucide-react";
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { z } from 'zod';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import {
   Form,
   FormField,
@@ -14,42 +14,79 @@ import {
   FormLabel,
   FormControl,
   FormMessage,
-} from "@/components/ui/form";
-import { useState } from "react";
+} from '@/components/ui/form';
+import { useState, useEffect } from 'react';
+import { useMutation } from '@tanstack/react-query';
+import { postChangePassword } from '@/services/auth';
+import { toast } from 'sonner';
 
-// Validasi pakai Zod
+// -----------------------------
+// Zod Schema
+// -----------------------------
 const formSchema = z
   .object({
-    email: z.string().email("Invalid email address"),
-    password: z.string().min(6, "Password must be at least 6 characters"),
+    email: z.string().email('Invalid email address'),
+    password: z.string().min(6, 'Password must be at least 6 characters'),
     password_confirmation: z
       .string()
-      .min(6, "Password confirmation is required"),
+      .min(6, 'Password confirmation is required'),
+    token: z.string().min(1, 'Token is required'),
   })
   .refine((data) => data.password === data.password_confirmation, {
-    message: "Passwords do not match",
-    path: ["password_confirmation"],
+    message: 'Passwords do not match',
+    path: ['password_confirmation'],
   });
 
 export default function ChangePasswordPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const emailParam = searchParams.get('email') ?? '';
+  const tokenParam = searchParams.get('token') ?? '';
+
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
 
+  // -----------------------------
+  // Form
+  // -----------------------------
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: "mail@example.com",
-      password: "",
-      password_confirmation: "",
+      email: emailParam,
+      password: '',
+      password_confirmation: '',
+      token: tokenParam,
     },
-    mode: "onChange", // Supaya validasi realtime
+    mode: 'onChange',
+  });
+
+  // Kalau email/token di URL berubah, update default values
+  useEffect(() => {
+    form.reset({
+      email: emailParam,
+      password: '',
+      password_confirmation: '',
+      token: tokenParam,
+    });
+  }, [emailParam, tokenParam, form]);
+
+  // -----------------------------
+  // Mutation
+  // -----------------------------
+  const mutation = useMutation({
+    mutationFn: postChangePassword,
+    onSuccess: () => {
+      toast.success('Success to change password');
+      router.push('/auth/success-change-password');
+    },
+    onError: () => {
+      toast.error('Failed to change password');
+    },
   });
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    console.log(values);
-    // Proses request reset password
-    router.push("/auth/success-change-password");
+    mutation.mutate(values);
   };
 
   return (
@@ -71,7 +108,7 @@ export default function ChangePasswordPage() {
       {/* Form */}
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          {/* Email */}
+          {/* Email (disabled) */}
           <FormField
             control={form.control}
             name="email"
@@ -79,17 +116,15 @@ export default function ChangePasswordPage() {
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input
-                    type="email"
-                    placeholder="john@gmail.com"
-                    disabled
-                    {...field}
-                  />
+                  <Input type="email" disabled {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
+
+          {/* Hidden Token */}
+          <input type="hidden" {...form.register('token')} />
 
           {/* Password */}
           <FormField
@@ -102,8 +137,8 @@ export default function ChangePasswordPage() {
                   <div className="relative w-full">
                     <Input
                       placeholder="Input your password"
-                      type={showPassword ? "text" : "password"}
-                      className="absolute w-full"
+                      type={showPassword ? 'text' : 'password'}
+                      className="w-full"
                       {...field}
                     />
                     <button
@@ -131,8 +166,8 @@ export default function ChangePasswordPage() {
                   <div className="relative w-full">
                     <Input
                       placeholder="Confirm your password"
-                      type={showPasswordConfirm ? "text" : "password"}
-                      className="absolute w-full"
+                      type={showPasswordConfirm ? 'text' : 'password'}
+                      className="w-full"
                       {...field}
                     />
                     <button
@@ -158,9 +193,9 @@ export default function ChangePasswordPage() {
           <Button
             type="submit"
             className="w-full"
-            disabled={!form.formState.isValid || form.formState.isSubmitting}
+            disabled={!form.formState.isValid || mutation.isPending}
           >
-            Continue
+            {mutation.isPending ? 'Processing...' : 'Continue'}
           </Button>
         </form>
       </Form>

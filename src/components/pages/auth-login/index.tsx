@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff } from "lucide-react";
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Eye, EyeOff } from 'lucide-react';
 import {
   Form,
   FormControl,
@@ -12,17 +12,17 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { useRouter } from "next/navigation";
-import { postLogin } from "@/services/auth";
-import { toast } from "sonner";
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { useRouter } from 'next/navigation';
+import { postLogin } from '@/services/auth';
+import { toast } from 'sonner';
 
 const loginSchema = z.object({
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  email: z.string().email('Invalid email address'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
@@ -34,8 +34,8 @@ export default function AuthLogin() {
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: "",
-      password: "",
+      email: '',
+      password: '',
     },
   });
 
@@ -43,17 +43,22 @@ export default function AuthLogin() {
     try {
       const res = await postLogin(values);
 
-      if (res.status === "success") {
-        localStorage.setItem("token", res.data.token);
+      if (res.status === 'success') {
+        localStorage.setItem('token', res.data.token);
 
-        toast.success("Login successful!");
-        router.push("/employee/employee-management");
+        if (res.data.user.is_first_login) {
+          toast.success('Login successful. This is your first login.');
+          router.push('/auth/change-password');
+        } else {
+          toast.success('Login successful!');
+          router.push('/dashboard');
+        }
       } else {
-        toast.error(res.message || "Login failed, please try again.");
+        toast.error(res.message || 'Login failed, please try again.');
       }
     } catch (err) {
       console.log(err);
-      toast.error("Server error. Please try again later.");
+      toast.error('Server error. Please try again later.');
     }
   };
 
@@ -107,7 +112,7 @@ export default function AuthLogin() {
                         /> */}
                         <Input
                           placeholder="Input your password"
-                          type={showPassword ? "text" : "password"}
+                          type={showPassword ? 'text' : 'password'}
                           className="absolute w-full"
                           {...field}
                         />
@@ -145,7 +150,7 @@ export default function AuthLogin() {
                 className="w-full"
                 disabled={form.formState.isSubmitting}
               >
-                {form.formState.isSubmitting ? "Signing in..." : "Sign in"}
+                {form.formState.isSubmitting ? 'Signing in...' : 'Sign in'}
               </Button>
             </form>
           </Form>
