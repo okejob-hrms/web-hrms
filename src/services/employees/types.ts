@@ -70,9 +70,9 @@ export interface IMutateEmployeeRequests {
   hobby: string;
   achievement: string;
   personal_description: string;
-  photo_profile: string;
+  photo_profile?: string;
 
-  social_media_accounts: {
+  social_media_accounts?: {
     type: string;
     url: string;
   }[];
@@ -81,7 +81,7 @@ export interface IMutateEmployeeRequests {
   job_level_id: number;
   department_id: number;
 
-  direct_reports: {
+  direct_reports?: {
     direct_report_id: number;
     relationship_type: string;
   }[];
@@ -91,7 +91,7 @@ export interface IMutateEmployeeRequests {
   }[];
 
   start_date: string;
-  end_date: string | null;
+  end_date?: string;
 
   status: string;
 
