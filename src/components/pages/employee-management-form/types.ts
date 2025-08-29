@@ -80,65 +80,10 @@ export const employeeManagementFormScheme = z.object({
       path: z.string().min(1, "required"),
     }),
   ),
-
-  // families: z.array(
-  //   z.object({
-  //     name: z.string().min(1, "required"),
-  //     relationship: z.string().min(1, "required"),
-  //     placeOfBirth: z.string().min(1, "required"),
-  //     bornDate: z.date(),
-  //     education: z.string().min(1, "required"),
-  //     email: z.string().email().optional(),
-  //     phoneNumber: z.string().optional(),
-  //     occupation: z.string().optional(),
-  //     company: z.string().optional(),
-  //   })
-  // ),
-
-  // formalEducations: z.array(
-  //   z.object({
-  //     school: z.string().min(1, "required"),
-  //     city: z.string().min(1, "required"),
-  //     major: z.string().min(1, "required"),
-  //     startDate: z.date(),
-  //     graduateDate: z.date(),
-  //     gpa: z.number().min(1, "required"),
-  //   })
-  // ),
-
-  // nonFormalEducations: z.array(
-  //   z.object({
-  //     institution: z.string().min(1, "required"),
-  //     location: z.string().min(1, "required"),
-  //     notes: z.string().min(1, "required"),
-  //     startDate: z.date(),
-  //     graduateDate: z.date(),
-  //   })
-  // ),
-
-  // experiences: z.array(
-  //   z.object({
-  //     company: z.string().min(1, "required"),
-  //     initialPosition: z.string().min(1, "required"),
-  //     finalPosition: z.string().min(1, "required"),
-  //     supervision: z.string().min(1, "required"),
-  //     supervisorContact: z.string().min(1, "required"),
-  //     companyAddress: z.string().min(1, "required"),
-  //     joinDate: z.date(),
-  //     resignDate: z.date(),
-  //     lastSalary: z.number().min(1, "required"),
-  //     reasonOfResign: z.string().min(1, "required"),
-  //   })
-  // ),
-
-  // contactOfReference: z.object({
-  //   name: z.string().min(1, "required"),
-  //   relationship: z.string().min(1, "required"),
-  //   email: z.string().email().optional(),
-  //   phoneNumber: z.string().optional(),
-  //   occupation: z.string().optional(),
-  //   company: z.string().optional(),
-  // }),
+  families: z.array(z.object({ id: z.number() })).optional(),
+  educations: z.array(z.object({ id: z.number() })).optional(),
+  work_experiences: z.array(z.object({ id: z.number() })).optional(),
+  contact_refferences: z.array(z.object({ id: z.number() })).optional(),
 });
 
 export const employeeManagementFormDefaultValues = {

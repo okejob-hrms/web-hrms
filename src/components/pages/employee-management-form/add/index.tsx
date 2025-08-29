@@ -80,6 +80,10 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
         })),
         phone_number: Number(convertPhoneToNumber(values.phone_number)),
         bank_id: Number(values.bank_id),
+        work_experiences: values.work_experiences,
+        contact_refferences: values.contact_refferences,
+        families: values.families,
+        educations: values.educations,
       };
       mutate(params);
     } catch (err) {

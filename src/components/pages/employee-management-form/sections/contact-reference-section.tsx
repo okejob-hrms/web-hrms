@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { Form } from "@/components/ui/form";
 import { InputForm } from "@/components/ui/input";
-import { useForm } from "react-hook-form";
+import { useForm, useFormContext } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -71,6 +71,8 @@ export const AddContactReferenceModal = ({
 }: Props) => {
   const [open, setOpen] = React.useState(false);
   const queryClient = useQueryClient();
+  const { setValue, watch } = useFormContext();
+  const watchedContactReferences = watch("contact_refferences");
 
   const form = useForm<IContactReferenceForm>({
     resolver: zodResolver(ContactReferenceFormSchema),
@@ -80,7 +82,7 @@ export const AddContactReferenceModal = ({
       email: "",
       occupation: "",
       company: "",
-      phone: ""
+      phone: "",
     },
   });
 
@@ -89,9 +91,14 @@ export const AddContactReferenceModal = ({
       employee_profile_id: number;
       payload: IContactReferenceForm;
     }) => postCreateContactReference(params),
-    onSuccess: () => {
+    onSuccess: (res) => {
       toast.success("Contact reference added successfully!");
-
+      setValue(
+        "contact_refferences",
+        watchedContactReferences
+          ? [...watchedContactReferences, { id: res.data.id }]
+          : { id: res.data.id },
+      );
       queryClient.invalidateQueries({ queryKey: ["contact-references"] });
       setOpen(false);
       form.reset();
