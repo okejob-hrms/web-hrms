@@ -1,25 +1,39 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { ArrowLeft } from "lucide-react";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useMutation } from '@tanstack/react-query';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { ArrowLeft } from 'lucide-react';
+import { postRequestReset } from '@/services/auth'; // sesuaikan path
+import { toast } from 'sonner';
 
 export default function ResetPasswordPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState('');
+
+  // useMutation untuk handle submit
+  const { mutate, isPending } = useMutation({
+    mutationFn: async () => {
+      return postRequestReset({ email }); // payload
+    },
+    onSuccess: () => {
+      toast.success('Success send mail');
+      router.push('/auth/mail-confirm');
+    },
+    onError: () => {
+      toast.error(`Failed send mail: The selected email is invalid`);
+    },
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Proses request reset password
-    console.log("Reset password for:", email);
-    // Misalnya redirect ke halaman success
-    router.push("/auth/change-password");
+    mutate();
   };
 
-  const isEmailValid = email.trim() !== "" && /\S+@\S+\.\S+/.test(email);
+  const isEmailValid = email.trim() !== '' && /\S+@\S+\.\S+/.test(email);
 
   return (
     <div className="max-w-md mx-auto min-h-screen flex flex-col justify-center px-6">
@@ -53,8 +67,12 @@ export default function ResetPasswordPage() {
           </div>
         </div>
 
-        <Button type="submit" disabled={!isEmailValid} className="w-full">
-          Continue
+        <Button
+          type="submit"
+          disabled={!isEmailValid || isPending}
+          className="w-full"
+        >
+          {isPending ? 'Processing...' : 'Continue'}
         </Button>
       </form>
     </div>

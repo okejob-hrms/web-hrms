@@ -1,27 +1,27 @@
-"use client";
+'use client';
 
-import { Button } from "@/components/ui/button";
-import * as React from "react";
-import { useRoleManagement } from "@/components/pages/settings-access-control-list/hook";
-import { DataTable } from "@/components/tables/data-table";
-import { IRole } from "@/services/settings/types";
-import { ColumnDef } from "@tanstack/react-table";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { ArrowUp, ArrowDown, ChevronsUpDown, Edit3 } from "lucide-react";
-import { formatDateTime } from "@/lib/helpers";
+import { Button } from '@/components/ui/button';
+import * as React from 'react';
+import { useRoleManagement } from '@/components/pages/settings-access-control-list/hook';
+import { DataTable } from '@/components/tables/data-table';
+import { IRole } from '@/services/settings/types';
+import { ColumnDef } from '@tanstack/react-table';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { ArrowUp, ArrowDown, ChevronsUpDown, Edit3 } from 'lucide-react';
+import { formatDateTime } from '@/lib/helpers';
 
 export default function SettingsAccessControl() {
   const { roles, handleEdit, handleNew } = useRoleManagement();
 
   const columns: ColumnDef<IRole>[] = [
     {
-      accessorKey: "name",
+      accessorKey: 'name',
       header: ({ column }) => {
         const isSorted = column.getIsSorted();
         const SortIcon = () =>
-          isSorted === "asc" ? (
+          isSorted === 'asc' ? (
             <ArrowUp className="w-3 h-3" />
-          ) : isSorted === "desc" ? (
+          ) : isSorted === 'desc' ? (
             <ArrowDown className="w-3 h-3" />
           ) : (
             <ChevronsUpDown className="w-3 h-3 opacity-50" />
@@ -32,7 +32,7 @@ export default function SettingsAccessControl() {
             <span>Role Name</span>
             <button
               type="button"
-              onClick={() => column.toggleSorting(isSorted === "asc")}
+              onClick={() => column.toggleSorting(isSorted === 'asc')}
               className="flex items-center gap-1"
             >
               <SortIcon />
@@ -43,23 +43,23 @@ export default function SettingsAccessControl() {
       size: 300,
     },
     {
-      accessorKey: "lastUpdate",
-      header: "Last Update",
-      size: 160,
+      accessorKey: 'lastUpdate',
+      header: 'Last Update',
+      size: 300,
       cell: ({ row }) => {
         const { date, hour } = formatDateTime(row.original.updated_at);
         return (
           <div>
-            <span>{date}</span>
-            <br />
-            <span>{hour}</span>
+            <span>
+              {date} {hour}
+            </span>
           </div>
         );
       },
     },
     {
-      id: "actions",
-      header: "",
+      id: 'actions',
+      header: '',
       size: 80,
       cell: ({ row }) => {
         const item = row.original;

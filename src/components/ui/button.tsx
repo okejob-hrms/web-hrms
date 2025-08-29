@@ -8,7 +8,7 @@ import { UploadButtonProps } from "@/lib/types";
 import { PreviewDoc, useFileUpload } from "@/hooks/use-file-upload";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive cursor-pointer",
   {
     variants: {
       variant: {
@@ -90,9 +90,14 @@ function FilePreview({ preview, onRemove }: FilePreviewProps) {
   );
 }
 
-function UploadButton({ label, required, name }: UploadButtonProps) {
+function UploadButton({
+  label,
+  required,
+  name,
+  defaultFile,
+}: UploadButtonProps) {
   const ref = React.useRef<HTMLInputElement>(null);
-  const { preview, handleFileUpload, handleRemove, isUploading } =
+  const { preview, handleFileUpload, handleRemove, isUploading, setPreview } =
     useFileUpload({ name });
 
   const handleButtonClick = () => {
@@ -112,6 +117,17 @@ function UploadButton({ label, required, name }: UploadButtonProps) {
       }
     }
   };
+
+  React.useEffect(() => {
+    if (defaultFile && !preview) {
+      setPreview({
+        name: defaultFile.filename,
+        size: defaultFile.size,
+        url: defaultFile.path,
+        type: defaultFile.mime_type,
+      });
+    }
+  }, [defaultFile, preview, setPreview]);
 
   return (
     <div className="flex flex-col max-w-fit gap-2">

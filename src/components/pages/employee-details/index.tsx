@@ -14,6 +14,9 @@ import { getEmployeeDetail } from "@/services/employees";
 import { IEmployeeDetailsResponse } from "@/services/employees/types";
 import { AssetsDetail } from "./sections/assets";
 import { AttendanceDetail } from "./sections/attendance";
+import { Button } from "@/components/ui/button";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 interface Props {
   id: number;
@@ -86,7 +89,7 @@ export function Tab({ data }: TabProps) {
 export const EmployeeDetail = React.memo(function EmployeeDetail({
   id,
 }: Props) {
-  // const data = mockEmployeeDetail;
+  const router = useRouter();
   const { data: employeeDetails } = useQuery({
     queryKey: ["employee-detail", id],
     queryFn: () => getEmployeeDetail(id),
@@ -96,44 +99,61 @@ export const EmployeeDetail = React.memo(function EmployeeDetail({
   if (data) {
     return (
       <div className="w-full flex flex-col gap-4">
-        <div className="flex flex-col items-center">
-          <Avatar className="h-20 w-20">
-            <AvatarImage
-              className="size-20"
-              src={`${process.env.NEXT_PUBLIC_FILE_URL}/${data.photo_profile}`}
-              alt={data.user.name}
-            />
-            <AvatarFallback className="text-base font-medium">
-              {stringAvatar(data.user.name)}
-            </AvatarFallback>
-          </Avatar>
-          <h3 className="text-lg font-semibold">{data.user.name}</h3>
-          <p className="text-sm">
-            Employee ID <span className="font-semibold">{data.id}</span>
-          </p>
-          <Badge
-            variant="default"
-            className={cn(
-              "rounded-full",
-              data.employment.status === 1
-                ? "bg-success-focused "
-                : "bg-error-focused ",
-            )}
-          >
-            <div
+        <div className="grid grid-cols-3 items-start">
+          <div className="flex flex-col items-center col-start-2">
+            <Avatar className="h-20 w-20">
+              <AvatarImage
+                className="size-20"
+                src={`${process.env.NEXT_PUBLIC_FILE_URL}/${data.photo_profile}`}
+                alt={data.user.name}
+              />
+              <AvatarFallback className="text-base font-medium">
+                {stringAvatar(data.user.name)}
+              </AvatarFallback>
+            </Avatar>
+            <h3 className="text-lg font-semibold">{data.user.name}</h3>
+            <p className="text-sm">
+              Employee ID <span className="font-semibold">{data.id}</span>
+            </p>
+            <Badge
+              variant="default"
               className={cn(
-                "size-2 rounded-full",
-                data.employment.status === 1 ? "bg-success" : "bg-error",
-              )}
-            />
-            <span
-              className={cn(
-                data.employment.status === 1 ? "text-success" : "text-error",
+                "rounded-full",
+                data.employment.status === 1
+                  ? "bg-success-focused "
+                  : "bg-error-focused ",
               )}
             >
-              {data.employment.status === 1 ? "Active" : "Inactive"}
-            </span>
-          </Badge>
+              <div
+                className={cn(
+                  "size-2 rounded-full",
+                  data.employment.status === 1 ? "bg-success" : "bg-error",
+                )}
+              />
+              <span
+                className={cn(
+                  data.employment.status === 1 ? "text-success" : "text-error",
+                )}
+              >
+                {data.employment.status === 1 ? "Active" : "Inactive"}
+              </span>
+            </Badge>
+          </div>
+          <Button
+            variant="ghost"
+            className="text-primary font-semibold text-base w-fit justify-self-end"
+            onClick={() =>
+              router.push(`/employee/employee-management/edit/${id}`)
+            }
+          >
+            <Image
+              src="/icons/editBlue.svg"
+              width={24}
+              height={24}
+              alt="edit"
+            />
+            Edit Employee Data
+          </Button>
         </div>
         <Tab data={data} />
       </div>

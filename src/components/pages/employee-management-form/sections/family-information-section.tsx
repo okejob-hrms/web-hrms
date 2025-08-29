@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { Form } from "@/components/ui/form";
 import { InputForm } from "@/components/ui/input";
-import { useForm } from "react-hook-form";
+import { useForm, useFormContext } from "react-hook-form";
 import {
   familyFormScheme,
   IFamilyForm,
@@ -31,6 +31,7 @@ import { SelectForm } from "@/components/ui/select-form";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PhoneInput } from "@/components/ui/phone-input";
+import { convertPhoneToNumber } from "@/lib/helpers";
 
 const formatDate = (dateString: string): string => {
   return new Date(dateString).toLocaleDateString("id-ID", {
@@ -91,6 +92,8 @@ interface Props {
 export const AddFamilyFormModal = ({ employee_profile_id = 1 }: Props) => {
   const [open, setOpen] = React.useState(false);
   const queryClient = useQueryClient();
+  const { setValue, watch } = useFormContext();
+  const watchedFamilies = watch("families");
   const form = useForm<IFamilyForm>({
     resolver: zodResolver(familyFormScheme),
     defaultValues: {
@@ -111,7 +114,13 @@ export const AddFamilyFormModal = ({ employee_profile_id = 1 }: Props) => {
       employee_profile_id: number;
       payload: IFamilyForm;
     }) => postCreateFamily(params),
-    onSuccess: () => {
+    onSuccess: (res) => {
+      setValue(
+        "families",
+        watchedFamilies
+          ? [...watchedFamilies, { id: res.data.id }]
+          : { id: res.data.id },
+      );
       toast.success("Family information added successfully!");
 
       queryClient.invalidateQueries({ queryKey: ["family"] });
@@ -132,6 +141,7 @@ export const AddFamilyFormModal = ({ employee_profile_id = 1 }: Props) => {
         payload: {
           ...values,
           highest_education: Number(values.highest_education),
+          phone: convertPhoneToNumber(values.phone),
         },
       };
       console.log(params);
@@ -160,7 +170,7 @@ export const AddFamilyFormModal = ({ employee_profile_id = 1 }: Props) => {
           <Plus /> Add Family Information
         </Button>
       </DialogTrigger>
-      <DialogContent className="bg-white min-w-7xl">
+      <DialogContent className="bg-white md:min-w-5xl overflow-y-scroll max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>Add Family</DialogTitle>
         </DialogHeader>
@@ -217,7 +227,6 @@ export const AddFamilyFormModal = ({ employee_profile_id = 1 }: Props) => {
               />
             </div>
 
-            {/* Show error message if mutation fails */}
             {createFamilyMutation.isError && (
               <div className="text-error text-sm mt-2">
                 Error:{" "}

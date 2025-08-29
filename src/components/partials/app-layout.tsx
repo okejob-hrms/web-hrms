@@ -1,47 +1,48 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-"use client";
+'use client';
 
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { usePathname } from "next/navigation";
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { usePathname } from 'next/navigation';
 import {
   Header,
   HeaderBreadcumb,
   HeaderMenu,
-} from "@/components/partials/header";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { ModuleSidebar } from "@/components/partials/module-sidebar";
-import AppSkeleton from "./app-skeleton";
-import { useState } from "react";
-import { useEffect } from "react";
-import { Toaster } from "../ui/sonner";
-
-const breadcrumbs = [
-  {
-    label: "Employee",
-    link: "/employee",
-  },
-];
+} from '@/components/partials/header';
+import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import { ModuleSidebar } from '@/components/partials/module-sidebar';
+import AppSkeleton from './app-skeleton';
+import { useState, useEffect } from 'react';
+import { Toaster } from '../ui/sonner';
+import { getBreadcrumbs, getGenerateTitle, getHideSidebar } from '@/lib/menu';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isAuthPage = pathname.startsWith("/auth");
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: {
-        retry: (failureCount, error: any) => {
-          if (error?.response?.status >= 500) {
-            return false;
-          }
-          return failureCount < 3;
+  const hideSidebar = getHideSidebar(pathname) || false;
+  const isAuthPage = pathname.startsWith('/auth');
+  const breadcrumbs = getBreadcrumbs(pathname);
+
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            retry: (failureCount, error: any) => {
+              if (error?.response?.status >= 500) {
+                return false;
+              }
+              return failureCount < 3;
+            },
+            retryDelay: (attemptIndex) =>
+              Math.min(1000 * 2 ** attemptIndex, 30000),
+            staleTime: 5 * 60 * 1000,
+            gcTime: 10 * 60 * 1000,
+            refetchOnWindowFocus: false,
+            refetchOnReconnect: 'always',
+          },
         },
-        retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-        staleTime: 5 * 60 * 1000,
-        gcTime: 10 * 60 * 1000,
-        refetchOnWindowFocus: false,
-        refetchOnReconnect: "always",
-      },
-    },
-  });
+      }),
+  );
+
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -53,21 +54,42 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     return () => clearTimeout(timer);
   }, [pathname]);
 
-  if (isAuthPage) {
-    return <main className="w-full">{children}</main>;
-  }
-
   return (
     <QueryClientProvider client={queryClient}>
-      <Header />
-      <HeaderMenu />
-      <HeaderBreadcumb items={breadcrumbs} />
-      <SidebarProvider className="mx-auto w-full container md:py-10 flex flex-col md:flex-row md:gap-4">
-        <SidebarTrigger className="md:hidden" />
-        <ModuleSidebar defaultTitle="Employee" />
-        <main className="w-full"> {loading ? <AppSkeleton /> : children} </main>
-      </SidebarProvider>
-      <Toaster />
+      {isAuthPage ? (
+        <main className="w-full">
+          {children}
+          <Toaster closeButton richColors position="top-center" />
+        </main>
+      ) : (
+        <>
+          <Header showBackNavigate={hideSidebar} />
+          <HeaderMenu />
+          <HeaderBreadcumb items={breadcrumbs} />
+          {hideSidebar ? (
+            <div className="md:py-10 py-4 flex justify-center bg-white min-h-screen">
+              <main className="w-full">
+                {loading ? (
+                  <div className="md:px-10 px-4">
+                    <AppSkeleton />
+                  </div>
+                ) : (
+                  children
+                )}
+              </main>
+            </div>
+          ) : (
+            <SidebarProvider className="mx-auto w-full container md:py-10 flex flex-col md:flex-row md:gap-4">
+              <SidebarTrigger className="md:hidden" />
+              <ModuleSidebar defaultTitle={getGenerateTitle(pathname)} />
+              <main className="w-full">
+                {loading ? <AppSkeleton /> : children}
+              </main>
+            </SidebarProvider>
+          )}
+          <Toaster closeButton richColors position="top-center" />
+        </>
+      )}
     </QueryClientProvider>
   );
 }

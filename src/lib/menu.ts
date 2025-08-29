@@ -39,3 +39,49 @@ export const menus: Record<string, MenuItem[]> = {
     { name: "Mobile & ESS", value: "settings/mobile-ess" },
   ],
 };
+
+export const getGenerateTitle = (title: string) => {
+  if (!title) return "";
+
+  const segments = title.split("/").filter(Boolean); // buang string kosong
+
+  if (segments.length === 0) return "";
+
+  const firstSegment = segments[0];
+
+  return firstSegment.charAt(0).toUpperCase() + firstSegment.slice(1);
+};
+
+export const getHideSidebar = (path: string) => {
+  const hidePath = ['/auth', '/dashboard', '/settings/access-control/add'];
+
+  return hidePath.some((p) => path.startsWith(p));
+};
+
+
+export const getBreadcrumbs = (pathname: string) => {
+  const segments = pathname.split('/').filter(Boolean);
+
+  return segments.map((segment, index) => {
+    const link = '/' + segments.slice(0, index + 1).join('/');
+
+    return {
+      label: segment
+        .replace(/-/g, ' ')
+        .replace(/\b\w/g, (c) => c.toUpperCase()),
+      link,
+    };
+  });
+};
+
+export const getLastPath = (pathname: string) => {
+  const segments = pathname.split('/').filter(Boolean);
+  return segments.length > 0 ? segments[segments.length - 1] : '';
+};
+
+export const toTitleCase = (str: string) => {
+  return str
+    .replace(/-/g, " ")
+    .toLowerCase()
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+};

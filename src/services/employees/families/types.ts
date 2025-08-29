@@ -1,3 +1,4 @@
+import { phoneNumberSchema } from "@/lib/helpers";
 import { Dayjs } from "dayjs";
 import z from "zod";
 
@@ -7,7 +8,7 @@ export const familyFormScheme = z.object({
   date_of_birth: z.string().min(1, "required").or(z.date()),
   place_of_birth: z.string().min(1, "required"),
   email: z.string().min(1, "required"),
-  phone: z.string().min(1, "required"),
+  phone: phoneNumberSchema,
   occupation: z.string().min(1, "required"),
   company: z.string().min(1, "required"),
   highest_education: z

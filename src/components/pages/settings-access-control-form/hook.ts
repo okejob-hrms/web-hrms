@@ -1,71 +1,166 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { getEmployee, getPermission } from "@/services/settings";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { getEmployee, getPermission, createRole, getRoleById, getUserWithRole, updateRole } from "@/services/settings";
 import {
   IPermissionResponse,
   IPermissionModule,
   IEmployee,
+  ICreateRolePayload,
 } from "@/services/settings/types";
 import { PaginatedResponse } from "@/lib/types";
+import * as React from "react";
+import { RowSelectionState } from "@tanstack/react-table";
+import { z } from "zod";
+import { toast } from "sonner";
+
+// schema form
+const formSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  description: z.string().min(5, "Description must be at least 5 characters"),
+});
+
+export type RoleFormSchema = z.infer<typeof formSchema>;
 
 export function useRoleManagementForm() {
-  const [permission, setPermission] = useState<IPermissionModule[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [employees, setEmployees] = useState<IEmployee[]>([]);
-  const [pagination, setPagination] = useState<PaginatedResponse<IEmployee> | null>(null);
-
   const router = useRouter();
 
-  const fetchRoles = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
+  // local states
+  const [selectedPermissions, setSelectedPermissions] = React.useState<number[]>([]);
+  const [selectedEmployees, setSelectedEmployees] = React.useState<IEmployee[]>([]);
+  const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
+  const [selectedId, setSelectedId] = React.useState<number | null>(null);
 
-      const res: IPermissionResponse = await getPermission();
-      setPermission(res.data);
-    } catch (err: unknown) {
-      console.error("Failed to fetch roles:", err);
-      setError(err instanceof Error ? err.message : "Unexpected error");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  // fetch permissions
+  const {
+    data: permissionData,
+    isLoading: isPermissionLoading,
+    error: permissionError,
+  } = useQuery<IPermissionResponse>({
+    queryKey: ["permissions"],
+    queryFn: getPermission,
+  });
 
-  const fetchEmployee = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
+  // fetch employees
+  const {
+    data: employeeData,
+    isLoading: isEmployeeLoading,
+    error: employeeError,
+  } = useQuery<PaginatedResponse<IEmployee>>({
+    queryKey: ["employees"],
+    queryFn: getEmployee,
+  });
 
-      const res = await getEmployee();
+  // fetch detail roles
+  const {
+    data: roleDetail,
+    isLoading: isRoleLoading,
+    error: roleError,
+  } = useQuery({
+    queryKey: ["role", selectedId],
+    queryFn: () => getRoleById(selectedId!),
+    enabled: !!selectedId,
+  });
 
-      setEmployees(res.data.data);
-      setPagination(res.data);
-    } catch (err: unknown) {
-      console.error("Failed to fetch employees:", err);
-      setError(err instanceof Error ? err.message : "Unexpected error");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  // fetch user list
+    const {
+    data: userWithRole,
+    isLoading: isUserRoleLoading,
+    error: userWithRoleError,
+  } = useQuery({
+    queryKey: ["userWithRole", selectedId],
+    queryFn: () => getUserWithRole(selectedId!),
+    enabled: !!selectedId,
+  });
 
+  // mutation create role
+  const createRoleMutation = useMutation({
+    mutationFn: createRole,
+    onSuccess: () => {
+      router.push("/settings/access-control");
+      toast.success("Create role successful!");
+    },
+    onError: (error) => {
+      toast.error(`Failed to create role: ${error.message}`);
+    },
+  });
+
+  // mutation update role
+  const updateRoleMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: ICreateRolePayload }) => updateRole(id, data),
+    onSuccess: () => {
+      router.push("/settings/access-control");
+      toast.success("Update role successful!");
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to update role: ${error.message}`);
+    },
+  });
+
+  // toggle permission
+  const handleTogglePermission = (id: number, checked: boolean) => {
+    setSelectedPermissions((prev) =>
+      checked ? [...prev, id] : prev.filter((x) => x !== id)
+    );
+  };
+
+  // back button
   const handleBack = () => {
     router.push("/settings/access-control");
   };
 
-  useEffect(() => {
-    fetchRoles();
-    fetchEmployee();
-  }, [fetchRoles, fetchEmployee]);
+  // submit
+  const handleSubmit = (values: RoleFormSchema) => {
+    if (selectedEmployees.length === 0) {
+      toast.error("Please select at least one employee.");
+      return;
+    }
+
+    const payload = {
+      ...values,
+      guard_name: "web",
+      permissions: selectedPermissions,
+      users: selectedEmployees.map((e) => e.id),
+    };
+
+    if (selectedId) {
+      updateRoleMutation.mutate({ id: selectedId, data: payload });
+    } else {
+      createRoleMutation.mutate(payload);
+    }
+  };
+
+  const handleDetailData = (id: number) => {
+    setSelectedId(id)
+  }
 
   return {
-    loading,
-    error,
-    permission,
-    employees,
-    pagination,
+    loading: isPermissionLoading || isEmployeeLoading,
+    error: permissionError?.message || employeeError?.message || null,
+    permission: permissionData?.data ?? ([] as IPermissionModule[]),
+    employees: employeeData?.data ?? ([] as IEmployee[]),
+    pagination: employeeData ?? null,
+    selectedPermissions,
+    selectedEmployees,
+    rowSelection,
+    setSelectedPermissions,
+    setSelectedEmployees,
+    setRowSelection,
+    handleTogglePermission,
+    handleSubmit,
     handleBack,
+    handleDetailData,
+    formSchema,
+    isSubmitting: createRoleMutation.isPending,
+    isSuccess: createRoleMutation.isSuccess,
+    isError: createRoleMutation.isError,
+    errorMessage: (createRoleMutation.error as Error)?.message ?? null,
+    roleDetail,
+    isRoleLoading,
+    roleError,
+    userWithRole,
+    isUserRoleLoading,
+    userWithRoleError,
   };
 }

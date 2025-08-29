@@ -125,7 +125,7 @@ export const columns: ColumnDef<IEmployeeResponse>[] = [
             </DropdownMenuItem>
             <DropdownMenuItem>
               <Link
-                href="#"
+                href={`/employee/employee-management/edit/${row.original.id}`}
                 className="flex gap-2 justify-between items-center"
               >
                 <Image

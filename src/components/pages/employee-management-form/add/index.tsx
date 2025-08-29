@@ -6,38 +6,39 @@ import * as React from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { EmployeeinformationSection } from "./sections/employee-information-section";
-import { PersonalInformationSection } from "./sections/personal-information-section";
-import { SalaryInformationSection } from "./sections/salary-information-section";
-import { BankInformationSection } from "./sections/bank-information-section";
-import { FamilyInformationSection } from "./sections/family-information-section";
-import { FormalEducationSection } from "./sections/formal-education-section";
-import { NonFormalEducationSection } from "./sections/non-formal-education-section";
-import { WorkExperienceSection } from "./sections/work-experience-section";
-import { ContactOfReferenceSection } from "./sections/contact-reference-section";
-import { AttachmentsSection } from "./sections/attachments-section";
-import { Button } from "../../ui/button";
+import { EmployeeinformationSection } from "../sections/employee-information-section";
+import { PersonalInformationSection } from "../sections/personal-information-section";
+import { SalaryInformationSection } from "../sections/salary-information-section";
+import { BankInformationSection } from "../sections/bank-information-section";
+import { FamilyInformationSection } from "../sections/family-information-section";
+import { FormalEducationSection } from "../sections/formal-education-section";
+import { NonFormalEducationSection } from "../sections/non-formal-education-section";
+import { WorkExperienceSection } from "../sections/work-experience-section";
+import { ContactOfReferenceSection } from "../sections/contact-reference-section";
+import { AttachmentsSection } from "../sections/attachments-section";
+import { Button } from "../../../ui/button";
 import {
   employeeManagementFormDefaultValues,
   employeeManagementFormScheme,
-} from "./types";
-import { ICreateEmployeeRequest } from "@/services/employees/types";
+} from "../types";
+import { IMutateEmployeeRequests } from "@/services/employees/types";
 import dayjs from "dayjs";
 import { useMutation } from "@tanstack/react-query";
 import { createEmployee } from "@/services/employees";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { convertPhoneToNumber } from "@/lib/helpers";
 
 export const AddEmployeeForm = React.memo(function AddEmployee() {
   const router = useRouter();
   const { mutate } = useMutation({
-    mutationFn: (params: ICreateEmployeeRequest) => createEmployee(params),
+    mutationFn: (params: IMutateEmployeeRequests) => createEmployee(params),
     onSuccess: () => {
       toast.success("Employee added successfully!");
       router.push("/employee/employee-management");
       form.reset();
     },
-    onError: (error: any) => {
+    onError: (error: any, _, context) => {
       toast.error(
         `Failed to add employee: ${error.message || "Unknown error"}`,
       );
@@ -51,23 +52,25 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
   const onSubmit = (values: z.infer<typeof employeeManagementFormScheme>) => {
     try {
       const { countryCode: _, ...restValues } = values;
-      const filteredSocialMedia = values.social_media_accounts.filter(
-        (account) => account.type.trim() !== "" && account.url.trim() !== "",
+      const filteredSocialMedia = values.social_media_accounts?.filter(
+        (account) => account?.type.trim() !== "" && account?.url.trim() !== "",
       );
-      const filteredDirectReports = values.direct_reports.flatMap((item) =>
+      const filteredDirectReports = values.direct_reports?.flatMap((item) =>
         item.direct_report_id.map((subItem: number) => ({
           direct_report_id: subItem,
           relationship_type: item.relationship_type as "primary" | "secondary",
         })),
       );
 
-      const params: ICreateEmployeeRequest = {
+      const params: IMutateEmployeeRequests = {
         ...restValues,
         role_id: Number(values.role_id),
         department_id: Number(values.department_id),
         job_level_id: Number(values.job_level_id),
         job_position_id: Number(values.job_position_id),
-        social_media_accounts: filteredSocialMedia,
+        ...(filteredSocialMedia && {
+          social_media_accounts: filteredSocialMedia,
+        }),
         team_members: [{ team_id: Number(values.team_members) }],
         date_of_birth: dayjs(values.date_of_birth).format("YYYY-MM-DD"),
         start_date: dayjs(values.start_date).format("YYYY-MM-DD"),
@@ -77,14 +80,22 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
           allowance_type_id: Number(item.allowance_type_id),
           allowance_value: Number(item.allowance_value),
         })),
-        phone_number: Number(values.phone_number),
+        phone_number: Number(convertPhoneToNumber(values.phone_number)),
         bank_id: Number(values.bank_id),
+        work_experiences: values.work_experiences,
+        contact_refferences: values.contact_refferences,
+        families: values.families,
+        educations: values.educations,
       };
       mutate(params);
     } catch (err) {
       console.log("Error submit", err);
     }
   };
+
+  React.useEffect(() => {
+    console.log("# ERRORS ", form.formState.errors);
+  }, [form.formState.errors]);
 
   return (
     <React.Fragment>
@@ -100,11 +111,11 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
           <WorkExperienceSection withAddButton />
           <ContactOfReferenceSection withAddButton />
           <AttachmentsSection />
-          <div className="flex gap-2 my-8">
-            <Button variant="outline" className="min-w-36">
+          <div className="flex gap-2 my-8 justify-between md:justify-start w-full">
+            <Button variant="outline" className="md:max-w-36 w-[50%]">
               Cancel
             </Button>
-            <Button className="min-w-36">Add Employee</Button>
+            <Button className="md:max-w-36 w-[50%]">Add Employee</Button>
           </div>
         </form>
       </Form>

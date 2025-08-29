@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { Form } from "@/components/ui/form";
 import { InputForm } from "@/components/ui/input";
-import { useForm } from "react-hook-form";
+import { useForm, useFormContext } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -77,6 +77,8 @@ export const AddNonFormalEducationFormModal = ({
 }: Props) => {
   const [open, setOpen] = React.useState(false);
   const queryClient = useQueryClient();
+  const { setValue, watch } = useFormContext();
+  const watchedEducations = watch("educations");
 
   const form = useForm<INonFormalEducationForm>({
     resolver: zodResolver(nonFormalEducationFormScheme),
@@ -95,7 +97,13 @@ export const AddNonFormalEducationFormModal = ({
       employee_profile_id: number;
       payload: INonFormalEducationForm;
     }) => postCreateEducation(params),
-    onSuccess: () => {
+    onSuccess: (res) => {
+      setValue(
+        "educations",
+        watchedEducations
+          ? [...watchedEducations, { id: res.data.id }]
+          : [{ id: res.data.id }],
+      );
       toast.success("Non formal Education added successfully!");
 
       queryClient.invalidateQueries({ queryKey: ["non-formal-educations"] });
@@ -131,7 +139,7 @@ export const AddNonFormalEducationFormModal = ({
           <Plus /> Add Non Formal Education
         </Button>
       </DialogTrigger>
-      <DialogContent className="bg-white min-w-7xl">
+      <DialogContent className="bg-white md:min-w-5xl overflow-y-scroll max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>Add Non Formal Education</DialogTitle>
         </DialogHeader>
@@ -229,7 +237,9 @@ export const NonFormalEducationSection = React.memo<Props>(
         ) : (
           <DataTable
             columns={columns}
-            data={data?.data.data}
+            data={data?.data.data.filter(
+              (item) => item.category === "non_formal",
+            )}
             tableClassName="table-fixed w-full"
             tableCellClassName="w-1/9 text-clip text-balance"
             tableHeadClassName="w-1/9 text-clip text-balance"

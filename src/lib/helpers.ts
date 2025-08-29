@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 export const rupiahFormatter = (number: number) => {
   return new Intl.NumberFormat("id-ID", {
     style: "currency",
@@ -16,7 +18,7 @@ export function formatDateTime(isoString: string) {
   const hour = dateObj.toLocaleTimeString("en-US", {
     hour: "2-digit",
     minute: "2-digit",
-    hour12: false, // change to true if you want AM/PM
+    hour12: false,
   });
 
   return { date, hour };
@@ -28,5 +30,159 @@ export function snakeToTitleCase(str: string): string {
   return str
     .split("_")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(" "); 
+    .join(" ");
 }
+
+export const cleanPhoneNumber = (phone: string): string => {
+  return phone.replace(/[^\d+]/g, "").replace(/\+(?!^)/g, "");
+};
+
+export const convertPhoneToNumber = (phoneInput: string): string => {
+  if (!phoneInput) return "";
+  const cleaned = cleanPhoneNumber(phoneInput);
+  const numbersOnly = cleaned.replace(/^\+/, "");
+
+  return numbersOnly;
+};
+
+export const formatPhoneNumber = (phone: string): string => {
+  const cleaned = convertPhoneToNumber(phone);
+
+  if (cleaned.length === 10) {
+    return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
+  }
+
+  if (cleaned.length === 11 && cleaned.startsWith("1")) {
+    return `+1 (${cleaned.slice(1, 4)}) ${cleaned.slice(4, 7)}-${cleaned.slice(7)}`;
+  }
+
+  if (cleaned.length > 10) {
+    return `+${cleaned}`;
+  }
+
+  return phone;
+};
+
+export const phoneNumberSchema = z
+  .string()
+  .min(1, "Phone number is required")
+  .refine(
+    (phone) => {
+      const cleaned = cleanPhoneNumber(phone);
+      return /^\+?\d{10,15}$/.test(cleaned);
+    },
+    {
+      message: "Please enter a valid phone number (10-15 digits)",
+    },
+  );
+
+export const usPhoneNumberSchema = z
+  .string()
+  .min(1, "Phone number is required")
+  .refine(
+    (phone) => {
+      const cleaned = cleanPhoneNumber(phone);
+      return /^(\+?1)?[2-9]\d{2}[2-9]\d{2}\d{4}$/.test(cleaned);
+    },
+    {
+      message: "Please enter a valid US phone number",
+    },
+  );
+
+export const internationalPhoneSchema = z
+  .string()
+  .min(1, "Phone number is required")
+  .refine(
+    (phone) => {
+      const cleaned = cleanPhoneNumber(phone);
+      return /^\+\d{8,15}$/.test(cleaned);
+    },
+    {
+      message:
+        "Please enter a valid international phone number starting with +",
+    },
+  );
+
+export const flexiblePhoneSchema = z
+  .string()
+  .min(1, "Phone number is required")
+  .transform((phone) => cleanPhoneNumber(phone))
+  .refine(
+    (cleaned) => {
+      return /^\+?\d{10,15}$/.test(cleaned);
+    },
+    {
+      message: "Please enter a valid phone number (10-15 digits)",
+    },
+  )
+  .transform((cleaned) => {
+    return cleaned.startsWith("+") ? cleaned : `+${cleaned}`;
+  });
+
+export const optionalPhoneSchema = z
+  .string()
+  .optional()
+  .refine(
+    (phone) => {
+      if (!phone || phone.trim() === "") return true;
+      const cleaned = cleanPhoneNumber(phone);
+      return /^\+?\d{10,15}$/.test(cleaned);
+    },
+    {
+      message: "Please enter a valid phone number or leave empty",
+    },
+  );
+
+export const detailedPhoneSchema = z
+  .string()
+  .min(1, "Phone number is required")
+  .refine(
+    (phone) => {
+      const cleaned = cleanPhoneNumber(phone);
+      return cleaned.length >= 10;
+    },
+    {
+      message: "Phone number must be at least 10 digits",
+    },
+  )
+  .refine(
+    (phone) => {
+      const cleaned = cleanPhoneNumber(phone);
+      return cleaned.length <= 15;
+    },
+    {
+      message: "Phone number cannot exceed 15 digits",
+    },
+  )
+  .refine(
+    (phone) => {
+      const cleaned = cleanPhoneNumber(phone);
+      return /^\+?\d+$/.test(cleaned);
+    },
+    {
+      message:
+        "Phone number can only contain digits and optional + at the beginning",
+    },
+  );
+
+export const validatePhoneNumber = (phone: string) => {
+  try {
+    phoneNumberSchema.parse(phone);
+    return { isValid: true, error: null };
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return { isValid: false, error: error.message || "Invalid phone number" };
+    }
+    return { isValid: false, error: "Validation error" };
+  }
+};
+
+export const usePhoneValidation = () => {
+  const validate = (phone: string) => validatePhoneNumber(phone);
+
+  const format = (phone: string) => formatPhoneNumber(phone);
+
+  const convert = (phone: string) => convertPhoneToNumber(phone);
+
+  return { validate, format, convert };
+};

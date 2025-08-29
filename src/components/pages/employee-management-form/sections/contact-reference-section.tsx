@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { Form } from "@/components/ui/form";
 import { InputForm } from "@/components/ui/input";
-import { useForm } from "react-hook-form";
+import { useForm, useFormContext } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -32,6 +32,7 @@ import {
   IContactReferenceResponse,
 } from "@/services/employees/contact-references/types";
 import { PhoneInput } from "@/components/ui/phone-input";
+import { convertPhoneToNumber } from "@/lib/helpers";
 
 export const columns: ColumnDef<IContactReferenceResponse>[] = [
   {
@@ -70,6 +71,8 @@ export const AddContactReferenceModal = ({
 }: Props) => {
   const [open, setOpen] = React.useState(false);
   const queryClient = useQueryClient();
+  const { setValue, watch } = useFormContext();
+  const watchedContactReferences = watch("contact_refferences");
 
   const form = useForm<IContactReferenceForm>({
     resolver: zodResolver(ContactReferenceFormSchema),
@@ -79,6 +82,7 @@ export const AddContactReferenceModal = ({
       email: "",
       occupation: "",
       company: "",
+      phone: "",
     },
   });
 
@@ -87,9 +91,14 @@ export const AddContactReferenceModal = ({
       employee_profile_id: number;
       payload: IContactReferenceForm;
     }) => postCreateContactReference(params),
-    onSuccess: () => {
+    onSuccess: (res) => {
       toast.success("Contact reference added successfully!");
-
+      setValue(
+        "contact_refferences",
+        watchedContactReferences
+          ? [...watchedContactReferences, { id: res.data.id }]
+          : { id: res.data.id },
+      );
       queryClient.invalidateQueries({ queryKey: ["contact-references"] });
       setOpen(false);
       form.reset();
@@ -106,7 +115,7 @@ export const AddContactReferenceModal = ({
       employee_profile_id,
       payload: {
         ...values,
-        phone: Number(values.phone),
+        phone: convertPhoneToNumber(values.phone),
       },
     };
 
@@ -126,7 +135,7 @@ export const AddContactReferenceModal = ({
           <Plus /> Add Contact Reference
         </Button>
       </DialogTrigger>
-      <DialogContent className="bg-white min-w-7xl">
+      <DialogContent className="bg-white md:min-w-5xl overflow-y-scroll max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>Add Contact Reference</DialogTitle>
         </DialogHeader>

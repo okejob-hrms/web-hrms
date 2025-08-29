@@ -50,7 +50,7 @@ export interface ICreateEmployeeResponse {
   marital_status_label: string;
 }
 
-export interface ICreateEmployeeRequest {
+export interface IMutateEmployeeRequests {
   name: string;
   email: string;
   role_id: number;
@@ -70,9 +70,9 @@ export interface ICreateEmployeeRequest {
   hobby: string;
   achievement: string;
   personal_description: string;
-  photo_profile: string;
+  photo_profile?: string;
 
-  social_media_accounts: {
+  social_media_accounts?: {
     type: string;
     url: string;
   }[];
@@ -81,7 +81,7 @@ export interface ICreateEmployeeRequest {
   job_level_id: number;
   department_id: number;
 
-  direct_reports: {
+  direct_reports?: {
     direct_report_id: number;
     relationship_type: string;
   }[];
@@ -91,7 +91,7 @@ export interface ICreateEmployeeRequest {
   }[];
 
   start_date: string;
-  end_date: string | null;
+  end_date?: string;
 
   status: string;
 
@@ -110,6 +110,21 @@ export interface ICreateEmployeeRequest {
   attachments: {
     type: string;
     path: string;
+  }[];
+  work_experiences?: {
+    id: number;
+  }[];
+  educations?: {
+    id: number;
+  }[];
+  families?: {
+    id: number;
+  }[];
+  contact_refferences?: {
+    id: number;
+  }[];
+  employee_documents?: {
+    id: number;
   }[];
 }
 
@@ -198,12 +213,19 @@ export interface IEmployeeDetailsResponse {
   bank_account: {
     id: number;
     employee_profile_id: number;
-    bank_name: string;
+    bank_id: number;
     account_number: string;
     account_name: string;
     deleted_at: string | null;
     created_at: string;
     updated_at: string;
+    bank: {
+      id: number;
+      bank_name: string;
+      code: string;
+      created_at: string;
+      updated_at: string;
+    };
   };
   team_members: {
     id: number;

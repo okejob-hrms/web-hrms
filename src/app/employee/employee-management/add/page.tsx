@@ -1,6 +1,6 @@
 "use client";
 
-import { AddEmployeeForm } from "@/components/pages/employee-management-form";
+import { AddEmployeeForm } from "@/components/pages/employee-management-form/add";
 
 export default function AddEmployeePage() {
   return (
