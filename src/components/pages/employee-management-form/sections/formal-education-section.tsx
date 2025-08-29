@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { Form, FormLabel } from "@/components/ui/form";
 import { InputForm } from "@/components/ui/input";
-import { useForm } from "react-hook-form";
+import { useForm, useFormContext } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -80,6 +80,8 @@ export const AddFormalEducationFormModal = ({
 }: Props) => {
   const [open, setOpen] = React.useState(false);
   const queryClient = useQueryClient();
+  const { setValue, watch } = useFormContext();
+  const watchedEducations = watch("educations");
 
   const form = useForm<IFormalEducationForm>({
     resolver: zodResolver(formalEducationFormScheme),
@@ -100,7 +102,14 @@ export const AddFormalEducationFormModal = ({
       employee_profile_id: number;
       payload: IFormalEducationForm;
     }) => postCreateEducation(params),
-    onSuccess: () => {
+    onSuccess: (res) => {
+      console.log("watched ", watchedEducations);
+      setValue(
+        "educations",
+        watchedEducations
+          ? [...watchedEducations, { id: res.data.id }]
+          : [{ id: res.data.id }],
+      );
       toast.success("Formal Education added successfully!");
 
       queryClient.invalidateQueries({ queryKey: ["formal-educations"] });

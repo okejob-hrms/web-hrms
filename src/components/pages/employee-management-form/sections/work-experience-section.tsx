@@ -29,7 +29,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useForm } from "react-hook-form";
+import { useForm, useFormContext } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form } from "@/components/ui/form";
 import { InputForm } from "@/components/ui/input";
@@ -49,6 +49,8 @@ export const AddWorkExperienceModal: React.FC = ({
 }: Props) => {
   const [open, setOpen] = React.useState(false);
   const queryClient = useQueryClient();
+  const { setValue, watch } = useFormContext();
+  const watchedWorkExperiences = watch("work_experiences");
   const form = useForm<IWorkExperienceForm>({
     resolver: zodResolver(WorkExperienceFormSchema),
     defaultValues: {
@@ -70,7 +72,13 @@ export const AddWorkExperienceModal: React.FC = ({
       employee_profile_id: number;
       payload: IWorkExperienceForm;
     }) => postCreateWorkExperience(params),
-    onSuccess: () => {
+    onSuccess: (res) => {
+      setValue(
+        "work_experiences",
+        watchedWorkExperiences
+          ? [...watchedWorkExperiences, { id: res.data.id }]
+          : { id: res.data.id },
+      );
       toast.success("Work experience added successfully!");
 
       queryClient.invalidateQueries({ queryKey: ["work-experiences"] });
