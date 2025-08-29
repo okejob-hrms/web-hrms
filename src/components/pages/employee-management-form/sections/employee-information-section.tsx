@@ -525,9 +525,6 @@ export const EmployeeinformationSection = React.memo(
         : isLoadingAllEmployees;
 
     const employeesOptions = React.useMemo(() => {
-      console.log(debouncedPrimarySearch);
-      console.log(debouncedSecondarySearch);
-      console.log("# employees", employees);
       if (employees?.data?.data) {
         return employees.data.data.map((item) => ({
           label: item.name,
@@ -590,7 +587,7 @@ export const EmployeeinformationSection = React.memo(
         <h2 className="font-semibold text-lg leading-5 mb-3">
           Employment Information
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-end w-full">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-start w-full">
           <SelectForm
             name="job_position_id"
             label="Position"

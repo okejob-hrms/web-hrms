@@ -38,7 +38,7 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
       router.push("/employee/employee-management");
       form.reset();
     },
-    onError: (error: any) => {
+    onError: (error: any, _, context) => {
       toast.error(
         `Failed to add employee: ${error.message || "Unknown error"}`,
       );
@@ -52,10 +52,10 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
   const onSubmit = (values: z.infer<typeof employeeManagementFormScheme>) => {
     try {
       const { countryCode: _, ...restValues } = values;
-      const filteredSocialMedia = values.social_media_accounts.filter(
-        (account) => account.type.trim() !== "" && account.url.trim() !== "",
+      const filteredSocialMedia = values.social_media_accounts?.filter(
+        (account) => account?.type.trim() !== "" && account?.url.trim() !== "",
       );
-      const filteredDirectReports = values.direct_reports.flatMap((item) =>
+      const filteredDirectReports = values.direct_reports?.flatMap((item) =>
         item.direct_report_id.map((subItem: number) => ({
           direct_report_id: subItem,
           relationship_type: item.relationship_type as "primary" | "secondary",
@@ -68,7 +68,9 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
         department_id: Number(values.department_id),
         job_level_id: Number(values.job_level_id),
         job_position_id: Number(values.job_position_id),
-        social_media_accounts: filteredSocialMedia,
+        ...(filteredSocialMedia && {
+          social_media_accounts: filteredSocialMedia,
+        }),
         team_members: [{ team_id: Number(values.team_members) }],
         date_of_birth: dayjs(values.date_of_birth).format("YYYY-MM-DD"),
         start_date: dayjs(values.start_date).format("YYYY-MM-DD"),
@@ -90,6 +92,10 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
       console.log("Error submit", err);
     }
   };
+
+  React.useEffect(() => {
+    console.log("# ERRORS ", form.formState.errors);
+  }, [form.formState.errors]);
 
   return (
     <React.Fragment>
