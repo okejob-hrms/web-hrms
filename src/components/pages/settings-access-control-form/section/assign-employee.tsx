@@ -1,28 +1,33 @@
-"use client";
+'use client';
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import * as React from "react";
-import { DataTable } from "@/components/tables/data-table";
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import * as React from 'react';
+import { DataTable } from '@/components/tables/data-table';
 import {
   ColumnDef,
   OnChangeFn,
   RowSelectionState,
-} from "@tanstack/react-table";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { IEmployee, IEmployeePagination } from "@/services/settings/types";
+} from '@tanstack/react-table';
+import { useIsMobile } from '@/hooks/use-mobile';
+import {
+  IEmployee,
+  IEmployeePagination,
+  IEmployeeModule,
+} from '@/services/settings/types';
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Trash } from "lucide-react";
-import { Checkbox } from "@/components/ui/checkbox";
+} from '@/components/ui/dialog';
+import { Trash } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 
 type AssignEmployeeProps = {
-  pagination: IEmployeePagination;
+  // terima kedua bentuk: inner pagination atau full module response
+  pagination: IEmployeePagination | IEmployeeModule | null;
   rowSelection: RowSelectionState;
   onRowSelectionChange: OnChangeFn<RowSelectionState>;
   selectedEmployees: IEmployee[];
@@ -39,14 +44,38 @@ export default function AssignEmployee({
   const [open, setOpen] = React.useState(false);
   const isMobile = useIsMobile();
 
+  // --- ambil array employee terlepas dari bentuk pagination yang dikirim
+  const employees = React.useMemo<IEmployee[]>(() => {
+    if (!pagination) return [];
+
+    // jika pagination adalah API module wrapper: { status, message, data: IEmployeePagination }
+    if (typeof pagination === 'object' && 'status' in pagination) {
+      const maybeInner = (pagination as IEmployeeModule).data;
+      return Array.isArray(maybeInner?.data) ? maybeInner.data : [];
+    }
+
+    // jika pagination adalah IEmployeePagination langsung
+    const pag = pagination as IEmployeePagination;
+    return Array.isArray(pag?.data) ? pag.data : [];
+  }, [pagination]);
+
+  // --- untuk mengirim object pagination yang sesuai ke DataTable
+  const tablePagination = React.useMemo<IEmployeePagination | undefined>(() => {
+    if (!pagination) return undefined;
+    if (typeof pagination === 'object' && 'status' in pagination) {
+      return (pagination as IEmployeeModule).data;
+    }
+    return pagination as IEmployeePagination;
+  }, [pagination]);
+
   const columns: ColumnDef<IEmployee>[] = [
-    { accessorKey: "name", header: "Name", size: 300 },
-    { accessorKey: "job_position", header: "Position", size: 200 },
-    { accessorKey: "department", header: "Department", size: 200 },
-    { accessorKey: "job_level", header: "Job Level", size: 200 },
+    { accessorKey: 'name', header: 'Name', size: 300 },
+    { accessorKey: 'job_position', header: 'Position', size: 200 },
+    { accessorKey: 'department', header: 'Department', size: 200 },
+    { accessorKey: 'job_level', header: 'Job Level', size: 200 },
     {
-      id: "actions",
-      header: "",
+      id: 'actions',
+      header: '',
       size: 80,
       cell: ({ row }) => {
         const item = row.original;
@@ -57,7 +86,7 @@ export default function AssignEmployee({
               className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 cursor-pointer select-none"
               onClick={() =>
                 setSelectedEmployees((prev) =>
-                  prev.filter((emp) => emp.id !== item.id)
+                  prev.filter((emp) => emp.id !== item.id),
                 )
               }
             >
@@ -71,7 +100,7 @@ export default function AssignEmployee({
 
   const candidateColumns: ColumnDef<IEmployee>[] = [
     {
-      id: "select",
+      id: 'select',
       header: ({ table }) => (
         <Checkbox
           checked={table.getIsAllPageRowsSelected()}
@@ -90,27 +119,29 @@ export default function AssignEmployee({
       enableSorting: false,
       enableHiding: false,
     },
-    { accessorKey: "name", header: "Name", size: 250 },
-    { accessorKey: "job_position", header: "Position", size: 180 },
-    { accessorKey: "department", header: "Department", size: 180 },
-    { accessorKey: "job_level", header: "Job Level", size: 180 },
+    { accessorKey: 'name', header: 'Name', size: 250 },
+    { accessorKey: 'job_position', header: 'Position', size: 180 },
+    { accessorKey: 'department', header: 'Department', size: 180 },
+    { accessorKey: 'job_level', header: 'Job Level', size: 180 },
   ];
 
+  // ketika modal dibuka, set initial selection berdasarkan selectedEmployees
   React.useEffect(() => {
     if (open) {
       const initialSelection: RowSelectionState = {};
-      pagination.data.forEach((emp, idx) => {
+      employees.forEach((emp, idx) => {
         if (selectedEmployees.some((sel) => sel.id === emp.id)) {
           initialSelection[idx] = true;
         }
       });
       onRowSelectionChange(initialSelection);
     }
-  }, [open, selectedEmployees, pagination.data, onRowSelectionChange]);
+  }, [open, selectedEmployees, employees, onRowSelectionChange]);
 
+  // ambil kandidat yang ter-select dari current page employees
   const candidateSelection = React.useMemo(() => {
-    return pagination.data.filter((_, index) => rowSelection[index]);
-  }, [rowSelection, pagination.data]);
+    return employees.filter((_, index) => rowSelection[index]);
+  }, [rowSelection, employees]);
 
   return (
     <div className="font-sans my-6">
@@ -145,9 +176,9 @@ export default function AssignEmployee({
 
           <DataTable
             columns={candidateColumns}
-            data={pagination.data}
+            data={employees}
             customSize={!isMobile}
-            pagination={pagination}
+            pagination={tablePagination}
             rowSelection={rowSelection}
             onRowSelectionChange={onRowSelectionChange}
           />
@@ -161,7 +192,7 @@ export default function AssignEmployee({
                 setSelectedEmployees((prev) => [
                   ...prev,
                   ...candidateSelection.filter(
-                    (c) => !prev.some((p) => p.id === c.id)
+                    (c) => !prev.some((p) => p.id === c.id),
                   ),
                 ]);
                 setOpen(false);

@@ -4,6 +4,7 @@ export interface IRole {
   guard_name: string;
   created_at: string;
   updated_at: string;
+  permissions: IPermissionModule[]
 }
 
 export interface IRolesResponse {
@@ -19,9 +20,16 @@ export interface IRolesResponse {
   to: number;
 }
 
+export interface IRoleDetailResponse {
+  status: string;
+  message: string;
+  data: IRole;
+}
+
 export interface IPermissionAction {
-  id: number
-  name: string
+  id: number;
+  name: string;
+  granted: boolean;
 }
 
 export type IPermissionActionKey =
@@ -90,3 +98,19 @@ export interface IEmployeeModule {
   data: IEmployeePagination;
 }
 
+export interface ICreateRolePayload {
+  name: string;
+  guard_name: string;
+  permissions: number[];
+  users: number[];
+}
+
+export interface ICreateRoleResponse {
+  status: string;
+  message: string;
+  data: {
+    id: number;
+    guard_name: string;
+    name: string;
+  };
+}

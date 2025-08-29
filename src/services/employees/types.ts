@@ -20,6 +20,7 @@ export interface IEmployeeResponse {
   start_date: string;
   end_date: string | null;
   photo_profile: string;
+  photo_profile_url: string | null;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
@@ -252,4 +253,12 @@ export interface IEmployeeDetailsResponse {
   families: IFamilyResponse[];
   contact_refferences: IContactReferenceResponse[];
   employee_documents: IDocument[];
+}
+
+export interface IEmployeeOrganizationStructure {
+  id: number;
+  name: string;
+  title: string;
+  relationship_type: string | null;
+  children: IEmployeeOrganizationStructure[];
 }
