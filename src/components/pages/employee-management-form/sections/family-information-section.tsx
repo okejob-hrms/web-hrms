@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { Form } from "@/components/ui/form";
 import { InputForm } from "@/components/ui/input";
-import { useForm } from "react-hook-form";
+import { useForm, useFormContext } from "react-hook-form";
 import {
   familyFormScheme,
   IFamilyForm,
@@ -92,6 +92,8 @@ interface Props {
 export const AddFamilyFormModal = ({ employee_profile_id = 1 }: Props) => {
   const [open, setOpen] = React.useState(false);
   const queryClient = useQueryClient();
+  const { setValue, watch } = useFormContext();
+  const watchedFamilies = watch("families");
   const form = useForm<IFamilyForm>({
     resolver: zodResolver(familyFormScheme),
     defaultValues: {
@@ -112,7 +114,13 @@ export const AddFamilyFormModal = ({ employee_profile_id = 1 }: Props) => {
       employee_profile_id: number;
       payload: IFamilyForm;
     }) => postCreateFamily(params),
-    onSuccess: () => {
+    onSuccess: (res) => {
+      setValue(
+        "families",
+        watchedFamilies
+          ? [...watchedFamilies, { id: res.data.id }]
+          : { id: res.data.id },
+      );
       toast.success("Family information added successfully!");
 
       queryClient.invalidateQueries({ queryKey: ["family"] });
@@ -133,7 +141,7 @@ export const AddFamilyFormModal = ({ employee_profile_id = 1 }: Props) => {
         payload: {
           ...values,
           highest_education: Number(values.highest_education),
-          phone: convertPhoneToNumber(values.phone)
+          phone: convertPhoneToNumber(values.phone),
         },
       };
       console.log(params);

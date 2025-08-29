@@ -111,6 +111,21 @@ export interface IMutateEmployeeRequests {
     type: string;
     path: string;
   }[];
+  work_experiences?: {
+    id: number;
+  }[];
+  educations?: {
+    id: number;
+  }[];
+  families?: {
+    id: number;
+  }[];
+  contact_refferences?: {
+    id: number;
+  }[];
+  employee_documents?: {
+    id: number;
+  }[];
 }
 
 export interface IEmployeeDetailsResponse {
