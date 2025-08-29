@@ -32,6 +32,7 @@ import {
   IContactReferenceResponse,
 } from "@/services/employees/contact-references/types";
 import { PhoneInput } from "@/components/ui/phone-input";
+import { convertPhoneToNumber } from "@/lib/helpers";
 
 export const columns: ColumnDef<IContactReferenceResponse>[] = [
   {
@@ -79,6 +80,7 @@ export const AddContactReferenceModal = ({
       email: "",
       occupation: "",
       company: "",
+      phone: ""
     },
   });
 
@@ -106,7 +108,7 @@ export const AddContactReferenceModal = ({
       employee_profile_id,
       payload: {
         ...values,
-        phone: Number(values.phone),
+        phone: convertPhoneToNumber(values.phone),
       },
     };
 

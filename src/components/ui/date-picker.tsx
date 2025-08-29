@@ -36,6 +36,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
   ...props
 }) => {
   const { control } = useFormContext();
+  const [isOpen, setIsOpen] = React.useState(false);
 
   return (
     <FormField
@@ -52,7 +53,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
             </FormLabel>
           )}
           <FormControl>
-            <Popover>
+            <Popover open={isOpen} onOpenChange={setIsOpen}>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
@@ -61,7 +62,6 @@ export const DatePicker: React.FC<DatePickerProps> = ({
                   className="data-[empty=true]:text-muted-foreground justify-between text-left font-normal border-input h-10 rounded-sm text-foreground"
                 >
                   {props.value || field.value ? (
-                    // format(props.value || field.value, "PPP")
                     dayjs(props.value || field.value).format("ll")
                   ) : (
                     <span>{placeholder ?? "Pick a date"}</span>
@@ -75,6 +75,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
                   selected={field.value}
                   onSelect={(date) => {
                     field.onChange(date);
+                    setIsOpen(false);
                   }}
                   captionLayout="dropdown"
                 />
@@ -90,10 +91,12 @@ export const DatePicker: React.FC<DatePickerProps> = ({
 };
 
 export const BasicDatePicker: React.FC<BasicDatePickerProps> = (props) => {
+  const [isOpen, setIsOpen] = React.useState(false);
+
   return (
     <div>
       <label></label>
-      <Popover>
+      <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger asChild>
           <Button
             variant="outline"
@@ -115,6 +118,7 @@ export const BasicDatePicker: React.FC<BasicDatePickerProps> = (props) => {
             selected={props.value}
             onSelect={(date) => {
               props.onSelect(date);
+              setIsOpen(false);
             }}
           />
         </PopoverContent>

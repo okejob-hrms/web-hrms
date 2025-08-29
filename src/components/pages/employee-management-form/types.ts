@@ -1,3 +1,4 @@
+import { phoneNumberSchema } from "@/lib/helpers";
 import z from "zod";
 
 export const employeeManagementFormScheme = z.object({
@@ -7,7 +8,7 @@ export const employeeManagementFormScheme = z.object({
   // role_id: z.number().int().min(1, "required"),
   role_id: z.string().min(1, "required"),
   countryCode: z.string().min(1, "required"),
-  phone_number: z.string().min(1, "required").max(13),
+  phone_number: phoneNumberSchema,
   gender: z.string(),
   place_of_birth: z.string().min(1, "required"),
   date_of_birth: z.date(),

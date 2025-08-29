@@ -27,6 +27,7 @@ import { useMutation } from "@tanstack/react-query";
 import { createEmployee } from "@/services/employees";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { convertPhoneToNumber } from "@/lib/helpers";
 
 export const AddEmployeeForm = React.memo(function AddEmployee() {
   const router = useRouter();
@@ -77,7 +78,7 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
           allowance_type_id: Number(item.allowance_type_id),
           allowance_value: Number(item.allowance_value),
         })),
-        phone_number: Number(values.phone_number),
+        phone_number: Number(convertPhoneToNumber(values.phone_number)),
         bank_id: Number(values.bank_id),
       };
       mutate(params);
