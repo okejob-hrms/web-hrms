@@ -2,16 +2,9 @@
 "use client";
 
 import Image from "next/image";
-import {
-  AssignEmployeeFormValues,
-  EmployeeNode,
-  initialChartData,
-  NodeCardData,
-} from "./types";
+import { EmployeeNode, initialChartData, NodeCardData } from "./types";
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import AssignEmployeeModal from "./sections/assign-employee-modal";
-import EmployeeProfileModal from "./sections/employee-profile-modal";
 
 import {
   ReactFlow,
@@ -30,9 +23,7 @@ import { CustomControls } from "./sections/custom-controls";
 import { flattenOrgData } from "./utis";
 
 import { getOrgChart } from "@/services/employees/organization-structure";
-import { IEmployeeResponse } from "@/services/employees/types";
-import { getEmployeeDetail } from "@/services/employees";
-import { IEmployeeDetailsResponse } from "@/services/employees/types";
+import { useRouter } from "next/navigation";
 
 const dagreGraph = new dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
 const nodeWidth = 220;
@@ -79,31 +70,13 @@ const nodeTypes = {
 };
 
 export default function OrganizationChart() {
+  const router = useRouter();
   const [chartEmployees, setChartEmployees] =
     useState<EmployeeNode[]>(initialChartData);
   const [nodes, setNodes, onNodesChange] = useNodesState<Node<NodeCardData>>(
     []
   );
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
-
-  const [assignEmployeeOpen, setAssignEmployeeOpen] = useState(false);
-  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-  const [selectedEmployeeDetails, setSelectedEmployeeDetails] =
-    useState<IEmployeeDetailsResponse | null>(null);
-  const [isEditMode, setIsEditMode] = useState(false);
-
-  const [isSafari, setIsSafari] = useState(false);
-  useEffect(() => {
-    const isSafariBrowser =
-      /^((?!chrome|android).)*safari/i.test(navigator.userAgent) &&
-      !/CriOS/i.test(navigator.userAgent);
-    setIsSafari(isSafariBrowser);
-  }, []);
-
-  // const unassignedEmployees = useMemo(() => {
-  //   const assignedIds = new Set(chartEmployees.map((e) => e.employeeId));
-  //   return allEmployees.filter((e) => !assignedIds.has(e.employeeId));
-  // }, [chartEmployees]);
 
   useEffect(() => {
     const fetchAndSetInitialChart = async () => {
@@ -119,25 +92,6 @@ export default function OrganizationChart() {
   }, []);
 
   useEffect(() => {
-    const onAddChild = (employeeId: string, handle: "top" | "bottom") => {
-      setAssignEmployeeOpen(true);
-    };
-    const onEdit = async (employee: EmployeeNode) => {
-      setIsProfileModalOpen(true);
-      setSelectedEmployeeDetails(null);
-      try {
-        const response = await getEmployeeDetail(Number(employee.employeeId));
-        setSelectedEmployeeDetails(response.data);
-      } catch (error) {
-        console.error("Failed to fetch employee details:", error);
-        setIsProfileModalOpen(false);
-      }
-    };
-    const onDelete = (employeeId: string) => {
-      console.log("Delete employee:", employeeId);
-      alert(`Delete employee: ${employeeId}`);
-    };
-
     if (chartEmployees.length === 0) {
       setNodes([]);
       setEdges([]);
@@ -146,11 +100,6 @@ export default function OrganizationChart() {
 
     const dataForNodes: NodeCardData[] = chartEmployees.map((emp) => ({
       employee: emp,
-      onAddChild,
-      onEdit,
-      onDelete,
-      isEditMode,
-      isSafari,
     }));
 
     const { nodes: transformedNodes, edges: transformedEdges } =
@@ -162,44 +111,11 @@ export default function OrganizationChart() {
 
     setNodes(layoutedNodes as Node<NodeCardData>[]);
     setEdges(layoutedEdges);
-  }, [chartEmployees, isEditMode, isSafari]);
-
-  const handleModalSave = (
-    employeeToAdd: IEmployeeResponse,
-    formValues: AssignEmployeeFormValues
-  ) => {
-    const newEmployee: EmployeeNode = {
-      employeeId: String(employeeToAdd.id),
-      name: employeeToAdd.name,
-      title: employeeToAdd.job_position,
-      image: employeeToAdd.photo_profile_url || "/icons/user02.svg",
-      reportsTo: {
-        primary: formValues.primaryDirectReport,
-        additional: formValues.additionalDirectReport,
-      },
-    };
-
-    setChartEmployees((prev) => [...prev, newEmployee]);
-    setAssignEmployeeOpen(false);
-  };
+  }, [chartEmployees]);
 
   const handleEditClick = () => {
-    setIsEditMode(true);
+    router.push("structure/edit");
   };
-
-  const handleSaveClick = () => {
-    setIsEditMode(false);
-  };
-
-  const handleCancelClick = () => {
-    setIsEditMode(false);
-  };
-
-  const openAssignModal = (parentId?: string) => {
-    setAssignEmployeeOpen(true);
-  };
-
-  const handleModalEditSave = (formValues: AssignEmployeeFormValues) => {};
   return (
     <div className="font-sans min-h-screen">
       <div className="flex justify-between w-full items-center mb-3">
@@ -208,117 +124,58 @@ export default function OrganizationChart() {
             <h2 className="font-semibold text-xl">Organization Structure</h2>
           </div>
           <div className="flex flex-row gap-2">
-            {isEditMode ? (
-              // --- EDIT MODE BUTTONS ---
-              <>
-                <Button
-                  variant="outline"
-                  onClick={handleCancelClick}
-                  className="whitespace-nowrap"
-                >
-                  Cancel
-                </Button>
-                <Button onClick={handleSaveClick} className="whitespace-nowrap">
-                  Save Changes
-                </Button>
-              </>
-            ) : (
-              // --- VIEW MODE BUTTONS ---
-              <>
-                <div className="flex flex-row text-[10px] align-middle gap-[5px] items-center">
-                  <Image
-                    src="/icons/update.svg"
-                    width={10}
-                    height={10}
-                    alt="update icon"
-                  />
-                  <span>Last Update</span>
-                  <span className="text-primary">Jul 20, 2025</span>
-                  <span className="text-primary">16:00</span>
-                </div>
-                <Button className="bg-white border border-primary text-primary whitespace-nowrap hover:bg-white/90">
-                  <Image
-                    src="/icons/download.svg"
-                    width={18}
-                    height={18}
-                    alt="download icon"
-                  />{" "}
-                  Download
-                </Button>
-                <Button onClick={handleEditClick} className="whitespace-nowrap">
-                  <Image
-                    src="/icons/edit.svg"
-                    width={18}
-                    height={18}
-                    alt="edit icon"
-                  />{" "}
-                  Edit Structure
-                </Button>
-              </>
-            )}
+            <>
+              <div className="flex flex-row text-[10px] align-middle gap-[5px] items-center">
+                <Image
+                  src="/icons/update.svg"
+                  width={10}
+                  height={10}
+                  alt="update icon"
+                />
+                <span>Last Update</span>
+                <span className="text-primary">Jul 20, 2025</span>
+                <span className="text-primary">16:00</span>
+              </div>
+              <Button className="bg-white border border-primary text-primary whitespace-nowrap hover:bg-white/90">
+                <Image
+                  src="/icons/download.svg"
+                  width={18}
+                  height={18}
+                  alt="download icon"
+                />{" "}
+                Download
+              </Button>
+              <Button onClick={handleEditClick} className="whitespace-nowrap">
+                <Image
+                  src="/icons/edit.svg"
+                  width={18}
+                  height={18}
+                  alt="edit icon"
+                />{" "}
+                Edit Structure
+              </Button>
+            </>
           </div>
         </div>
       </div>
 
       <div style={{ width: "100%", height: "80vh" }}>
-        {chartEmployees.length === 0 ? (
-          <div
-            className="rounded-md bg-grayscale-10 border shadow-sm border-grayscale-20 p-12 flex flex-col items-center justify-center gap-2 cursor-pointer h-full"
-            onClick={() => openAssignModal()}
-          >
-            <Image
-              src="/icons/user-grey.svg"
-              alt="no employees"
-              width={40}
-              height={40}
-              className="opacity-60"
-            />
-            <p className="font-medium text-gray-700">No Employees Assigned</p>
-            <p className="text-gray-500 text-sm text-center">
-              <span className="text-primary cursor-pointer underline">
-                Click
-              </span>{" "}
-              to start building your company’s organization structure.
-            </p>
-          </div>
-        ) : (
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            nodeTypes={nodeTypes}
-            fitView
-            style={{
-              backgroundColor: "#EDEDED",
-            }}
-            className="bg-grayscale-10"
-          >
-            <Background />
-            <CustomControls />
-          </ReactFlow>
-        )}
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          nodeTypes={nodeTypes}
+          fitView
+          style={{
+            backgroundColor: "#EDEDED",
+          }}
+          className="bg-grayscale-10"
+        >
+          <Background />
+          <CustomControls />
+        </ReactFlow>
       </div>
-
-      <AssignEmployeeModal
-        open={assignEmployeeOpen}
-        // handleClose={() => setAssignEmployeeOpen(false)}
-        handleSave={handleModalSave}
-        onOpenChange={setAssignEmployeeOpen}
-        // unassignedEmployees={unassignedEmployees}
-        chartEmployees={chartEmployees}
-      />
-
-      {selectedEmployeeDetails && (
-        <EmployeeProfileModal
-          open={isProfileModalOpen}
-          onOpenChange={setIsProfileModalOpen}
-          handleClose={() => setIsProfileModalOpen(false)}
-          employeeData={selectedEmployeeDetails}
-          handleSave={handleModalEditSave}
-          chartEmployees={chartEmployees}
-        />
-      )}
     </div>
   );
 }

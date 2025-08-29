@@ -19,14 +19,12 @@ export const assignEmployeeFormScheme = z.object({
 
 export type NodeCardData = {
   employee: EmployeeNode;
-  isEditMode: boolean;
-  isSafari: boolean;
-  onAddChild: (id: string, handle: "top" | "bottom") => void;
-  onEdit: (
+  onAddChild?: (id: string, handle: "top" | "bottom") => void;
+  onEdit?: (
     employee: EmployeeNode,
     employeeDetail: IEmployeeDetailsResponse | null
   ) => void;
-  onDelete: (id: string) => void; // Added for future delete functionality
+  onDelete?: (id: string) => void; // Added for future delete functionality
 };
 export interface EmployeeNode {
   employeeId: string;

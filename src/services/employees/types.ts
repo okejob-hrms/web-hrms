@@ -240,3 +240,27 @@ export interface IEmployeeOrganizationStructure {
   relationship_type: string | null;
   children: IEmployeeOrganizationStructure[];
 }
+
+export interface IGroupedEmployee {
+  id: number;
+  employee_id: number;
+  code: string;
+  photo_profile: string;
+  photo_profile_url: string | null;
+  name: string;
+  email: string;
+  roles: string[];
+  department: string;
+  job_level: string;
+  job_position: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface IJobLevelGroup {
+  job_level_id: number;
+  job_level_name: string;
+  description: string;
+  employees: IGroupedEmployee[];
+  employees_count: number;
+}

@@ -1,6 +1,6 @@
 import OrganizationChart from "@/components/pages/organization-structure";
 
-export default function DepartmentManagementPage() {
+export default function OrganizationStructurePage() {
   return (
     <div className="font-sans min-h-screen">
       <OrganizationChart />
