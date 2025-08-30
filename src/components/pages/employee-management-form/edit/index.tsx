@@ -97,9 +97,9 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
         start_date: employeeDetails.employment.start_date
           ? new Date(employeeDetails.employment.start_date)
           : new Date(),
-        end_date: employeeDetails.employment.start_date
+        end_date: employeeDetails.employment.end_date
           ? new Date(employeeDetails.employment.end_date)
-          : null,
+          : new Date(),
         role_id: employeeDetails.employment.job_level_id.toString() || "",
         marital_status: employeeDetails.marital_status.toString(),
         height: Number(employeeDetails.height),
@@ -133,10 +133,10 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
   const onSubmit = (values: z.infer<typeof employeeManagementFormScheme>) => {
     try {
       const { countryCode: _, ...restValues } = values;
-      const filteredSocialMedia = values.social_media_accounts.filter(
+      const filteredSocialMedia = values.social_media_accounts?.filter(
         (account) => account.type.trim() !== "" && account.url.trim() !== "",
       );
-      const filteredDirectReports = values.direct_reports.flatMap((item) =>
+      const filteredDirectReports = values.direct_reports?.flatMap((item) =>
         item.direct_report_id.map((subItem: number) => ({
           direct_report_id: subItem,
           relationship_type: item.relationship_type as "primary" | "secondary",
