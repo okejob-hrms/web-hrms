@@ -54,6 +54,11 @@ export const getGenerateTitle = (title: string) => {
 
 export const getHideSidebar = (path: string) => {
   const hidePath = ['/auth', '/dashboard', '/settings/access-control/add'];
+  const employeeDetailPattern = /^\/employee\/employee-management\/[^\/]+$/;
+  
+  if (employeeDetailPattern.test(path)) {
+    return true;
+  }
 
   return hidePath.some((p) => path.startsWith(p));
 };

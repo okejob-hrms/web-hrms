@@ -98,7 +98,7 @@ export const EmployeeDetail = React.memo(function EmployeeDetail({
   console.log("# details", data);
   if (data) {
     return (
-      <div className="w-full flex flex-col gap-4">
+      <div className="w-full flex flex-col gap-4 md:px-[125px] px-4">
         <div className="grid grid-cols-3 items-start">
           <div className="flex flex-col items-center col-start-2">
             <Avatar className="h-20 w-20">
