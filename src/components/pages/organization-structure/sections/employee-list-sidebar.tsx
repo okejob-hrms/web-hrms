@@ -8,7 +8,14 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { ChevronsUpDown, Loader2 } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  ChevronDown,
+  ChevronsUpDown,
+  ChevronUp,
+  Loader2,
+} from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { getEmployeeGroupJobLevel } from "@/services/employees/group";
 
@@ -77,7 +84,15 @@ const dummyJobLevelGroups = {
 export const EmployeeListSidebar = () => {
   const [searchTerm, setSearchTerm] = useState("");
 
-  // 2. Fetch the data using useQuery
+  const [openStates, setOpenStates] = useState<Record<string, boolean>>({});
+
+  const handleOpenChange = (jobLevelId: number, isOpen: boolean) => {
+    setOpenStates((prev) => ({ ...prev, [jobLevelId]: isOpen }));
+  };
+
+  const isCollapsibleOpen = (jobLevelId: number) => {
+    return openStates[jobLevelId] ?? true; // Default to open
+  };
   const {
     data: jobLevelGroups,
     isLoading,
@@ -87,15 +102,12 @@ export const EmployeeListSidebar = () => {
     queryFn: getEmployeeGroupJobLevel,
   });
 
-  // 3. Filter the live data from the API based on the search term
   const filteredGroups = useMemo(() => {
     const jobLevelGroups = dummyJobLevelGroups;
     if (!jobLevelGroups?.data) return [];
 
-    // If there's no search term, return all groups
     if (!searchTerm) return jobLevelGroups.data;
 
-    // Otherwise, filter employees within each group
     return jobLevelGroups.data
       .map((group) => ({
         ...group,
@@ -103,7 +115,7 @@ export const EmployeeListSidebar = () => {
           employee.name.toLowerCase().includes(searchTerm.toLowerCase())
         ),
       }))
-      .filter((group) => group.employees.length > 0); // Only include groups that have matching employees
+      .filter((group) => group.employees.length > 0);
   }, [searchTerm]);
 
   return (
@@ -115,9 +127,8 @@ export const EmployeeListSidebar = () => {
         onChange={(e) => setSearchTerm(e.target.value)}
         className="mb-4"
       />
-      <div className="flex-1 overflow-y-auto">
-        {/* 4. Handle loading and error states */}
-        {isLoading && (
+      <div className="flex-1 overflow-y-auto space-y-4">
+        {/* {isLoading && (
           <div className="flex justify-center items-center h-full">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
@@ -126,46 +137,61 @@ export const EmployeeListSidebar = () => {
           <div className="text-center text-red-500">
             Failed to load employees.
           </div>
-        )}
+        )} */}
 
-        {/* 5. Render the filtered groups from the API response */}
-        {!isLoading &&
-          !isError &&
-          filteredGroups.map((group) => (
-            <Collapsible key={group.job_level_id} defaultOpen>
-              <CollapsibleTrigger className="w-full flex justify-between items-center py-2 font-medium text-sm text-gray-600">
-                <span>
-                  {group.job_level_name} ({group.employees_count})
-                </span>
-                <ChevronsUpDown className="h-4 w-4" />
-              </CollapsibleTrigger>
-              <CollapsibleContent>
-                <div className="pl-2 space-y-1 py-1">
-                  {group.employees.map((employee) => (
-                    <div
-                      key={employee.id}
-                      className="flex items-center gap-3 p-1 rounded-md hover:bg-gray-50"
-                    >
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={employee.photo_profile_url ?? ""} />
-                        <AvatarFallback>
-                          {employee.name.charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex flex-col">
-                        <span className="text-sm font-medium">
-                          {employee.name}
-                        </span>
-                        <span className="text-xs text-gray-500">
-                          {employee.job_position}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
+        {filteredGroups.map((group) => (
+          <Collapsible
+            key={group.job_level_id}
+            open={isCollapsibleOpen(group.job_level_id)}
+            onOpenChange={(isOpen) =>
+              handleOpenChange(group.job_level_id, isOpen)
+            }
+          >
+            <div className="flex flex-row justify-between">
+              <div className="flex flex-row gap-2">
+                <span className="text-primary">{group.job_level_name}</span>
+                <div className="flex items-center gap-2">
+                  <div className="bg-primary-background text-primary text-xs font-medium px-2 py-0.5 rounded-full">
+                    {group.employees_count}
+                  </div>
                 </div>
-              </CollapsibleContent>
-            </Collapsible>
-          ))}
+              </div>
+              <CollapsibleTrigger asChild>
+                <button className="IconButton">
+                  {isCollapsibleOpen(group.job_level_id) ? (
+                    <ChevronUp className="h-4 w-4 text-primary" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4 text-primary" />
+                  )}
+                </button>
+              </CollapsibleTrigger>
+            </div>
+
+            <CollapsibleContent>
+              <div className="pl-2 space-y-1 py-1">
+                {group.employees.map((employee) => (
+                  <div
+                    key={employee.id}
+                    className="flex items-center gap-3 p-1 rounded-md hover:bg-gray-50"
+                  >
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={employee.photo_profile_url ?? ""} />
+                      <AvatarFallback>{employee.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium">
+                        {employee.name}
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        {employee.job_position}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+        ))}
       </div>
     </div>
   );

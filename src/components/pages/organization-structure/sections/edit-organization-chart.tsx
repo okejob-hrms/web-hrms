@@ -29,11 +29,19 @@ import { CustomNode } from "./custom-node";
 import { CustomControls } from "./custom-controls";
 import { flattenOrgData } from "../utis";
 
-import { getOrgChart } from "@/services/employees/organization-structure";
-import { IEmployeeResponse } from "@/services/employees/types";
-import { getEmployeeDetail } from "@/services/employees";
-import { IEmployeeDetailsResponse } from "@/services/employees/types";
+import {
+  getOrgChart,
+  postAssignEmployee,
+} from "@/services/employees/organization-structure";
+import {
+  IEmployeeOrganizationStructure,
+  IEmployeeResponse,
+} from "@/services/employees/types";
 import { useRouter } from "next/navigation";
+import { EmployeeListSidebar } from "./employee-list-sidebar";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const dagreGraph = new dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
 const nodeWidth = 220;
@@ -80,6 +88,7 @@ const nodeTypes = {
 };
 
 export default function OrganizationChartEdit() {
+  const queryClient = useQueryClient();
   const router = useRouter();
   const [chartEmployees, setChartEmployees] =
     useState<EmployeeNode[]>(initialChartData);
@@ -91,44 +100,33 @@ export default function OrganizationChartEdit() {
   const [assignEmployeeOpen, setAssignEmployeeOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [selectedEmployeeDetails, setSelectedEmployeeDetails] =
-    useState<IEmployeeDetailsResponse | null>(null);
-  const [isEditMode, setIsEditMode] = useState(false);
-
-  const [isSafari, setIsSafari] = useState(false);
-  useEffect(() => {
-    const isSafariBrowser =
-      /^((?!chrome|android).)*safari/i.test(navigator.userAgent) &&
-      !/CriOS/i.test(navigator.userAgent);
-    setIsSafari(isSafariBrowser);
-  }, []);
-
-  useEffect(() => {
-    const fetchAndSetInitialChart = async () => {
-      try {
-        const response = await getOrgChart();
-        const flattenedData = flattenOrgData(response.data);
-        setChartEmployees(flattenedData);
-      } catch (error) {
-        console.error("Failed to fetch organization chart:", error);
-      }
-    };
-    fetchAndSetInitialChart();
-  }, []);
+    useState<EmployeeNode | null>(null);
+  const [selectedParentId, setSelectedParentId] = useState("");
+  const {
+    data: fetchedEmployees,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["organizationChart"],
+    queryFn: getOrgChart,
+    // The `select` option transforms the data after a successful fetch
+    select: (apiResponse) => flattenOrgData(apiResponse.data),
+  });
 
   useEffect(() => {
-    const onAddChild = (employeeId: string, handle: "top" | "bottom") => {
+    if (fetchedEmployees) {
+      setChartEmployees(fetchedEmployees);
+    }
+  }, [fetchedEmployees]);
+
+  useEffect(() => {
+    const onAddChild = (employeeId: string) => {
+      setSelectedParentId(employeeId);
       setAssignEmployeeOpen(true);
     };
     const onEdit = async (employee: EmployeeNode) => {
       setIsProfileModalOpen(true);
-      setSelectedEmployeeDetails(null);
-      try {
-        const response = await getEmployeeDetail(Number(employee.employeeId));
-        setSelectedEmployeeDetails(response.data);
-      } catch (error) {
-        console.error("Failed to fetch employee details:", error);
-        setIsProfileModalOpen(false);
-      }
+      setSelectedEmployeeDetails(employee);
     };
     const onDelete = (employeeId: string) => {
       console.log("Delete employee:", employeeId);
@@ -146,8 +144,7 @@ export default function OrganizationChartEdit() {
       onAddChild,
       onEdit,
       onDelete,
-      isEditMode,
-      isSafari,
+      isEditMode: true,
     }));
 
     const { nodes: transformedNodes, edges: transformedEdges } =
@@ -159,115 +156,108 @@ export default function OrganizationChartEdit() {
 
     setNodes(layoutedNodes as Node<NodeCardData>[]);
     setEdges(layoutedEdges);
-  }, [chartEmployees, isEditMode, isSafari]);
+  }, [chartEmployees]);
 
-  const handleModalSave = (
-    employeeToAdd: IEmployeeResponse,
-    formValues: AssignEmployeeFormValues
-  ) => {
-    const newEmployee: EmployeeNode = {
-      employeeId: String(employeeToAdd.id),
-      name: employeeToAdd.name,
-      title: employeeToAdd.job_position,
-      image: employeeToAdd.photo_profile_url || "/icons/user02.svg",
-      reportsTo: {
-        primary: formValues.primaryDirectReport,
-        additional: formValues.additionalDirectReport,
-      },
-    };
-
-    setChartEmployees((prev) => [...prev, newEmployee]);
-    setAssignEmployeeOpen(false);
-  };
-
-  const handleEditClick = () => {
-    setIsEditMode(true);
-  };
-
-  const handleSaveClick = () => {
-    router.back();
+  const handleModalSave = (formValues: AssignEmployeeFormValues) => {
+    assignManager(formValues);
   };
 
   const handleCancelClick = () => {
     router.back();
   };
 
-  const openAssignModal = (parentId?: string) => {
+  const openAssignModal = () => {
     setAssignEmployeeOpen(true);
   };
 
-  const handleModalEditSave = (formValues: AssignEmployeeFormValues) => {};
-  return (
-    <div className="font-sans min-h-screen">
-      <div className="flex justify-between w-full items-center mb-3">
-        <div className="flex flex-col sm:flex-row justify-between w-full items-start sm:items-center gap-4 sm:gap-0">
-          <div className="flex gap-2 items-center flex-wrap">
-            <h2 className="font-semibold text-xl">Organization Structure</h2>
-          </div>
-          <div className="flex flex-row gap-2">
-            <>
-              <Button
-                variant="outline"
-                onClick={handleCancelClick}
-                className="whitespace-nowrap"
-              >
-                Cancel
-              </Button>
-              <Button onClick={handleSaveClick} className="whitespace-nowrap">
-                Save Changes
-              </Button>
-            </>
-          </div>
-        </div>
-      </div>
+  const handleModalEditSave = (formValues: AssignEmployeeFormValues) => {
+    assignManager(formValues);
+  };
 
-      <div style={{ width: "100%", height: "80vh" }}>
-        {chartEmployees.length === 0 ? (
-          <div
-            className="rounded-md bg-grayscale-10 border shadow-sm border-grayscale-20 p-12 flex flex-col items-center justify-center gap-2 cursor-pointer h-full"
-            onClick={() => openAssignModal()}
-          >
-            <Image
-              src="/icons/user-grey.svg"
-              alt="no employees"
-              width={40}
-              height={40}
-              className="opacity-60"
-            />
-            <p className="font-medium text-gray-700">No Employees Assigned</p>
-            <p className="text-gray-500 text-sm text-center">
-              <span className="text-primary cursor-pointer underline">
-                Click
-              </span>{" "}
-              to start building your company’s organization structure.
-            </p>
-          </div>
-        ) : (
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            nodeTypes={nodeTypes}
-            fitView
-            style={{
-              backgroundColor: "#EDEDED",
-            }}
-            className="bg-grayscale-10"
-          >
-            <Background />
-            <CustomControls />
-          </ReactFlow>
-        )}
+  const { mutate: assignManager, isPending } = useMutation({
+    mutationFn: postAssignEmployee,
+    onSuccess: () => {
+      toast.success("Assign Manager Successfully Updated!");
+      queryClient.invalidateQueries({ queryKey: ["organizationChart"] });
+    },
+    onError: (error) => {
+      toast.error(`Failed to create/edit employee: ${error.message}`);
+    },
+  });
+
+  if (isError) {
+    toast.error("Error Fetching Organization Structure");
+  }
+
+  return (
+    <div className="font-sans flex flex-col h-full">
+      <div className="flex items-center gap-2 p-4 border-b flex-shrink-0 bg-white">
+        <Button variant="ghost" size="icon" onClick={handleCancelClick}>
+          <Image
+            src="/icons/chevronLeft.svg"
+            alt="Back"
+            width={24}
+            height={24}
+          />
+        </Button>
+        <h2 className="font-semibold text-xl">Organization Structure</h2>
+      </div>
+      <div className="flex flex-row" style={{ height: "100vh" }}>
+        <EmployeeListSidebar />
+        <div className="flex-1 h-full">
+          {isLoading ? (
+            <div className="flex flex-col gap-4 items-center w-full h-full">
+              <Skeleton className="h-12 w-full" />
+              <div className="space-y-2 w-full">
+                <Skeleton className="h-30 w-full" />
+              </div>
+            </div>
+          ) : chartEmployees.length === 0 ? (
+            <div
+              className="rounded-md bg-grayscale-10 border shadow-sm border-grayscale-20 p-12 flex flex-col items-center justify-center gap-2 cursor-pointer h-full"
+              onClick={() => openAssignModal()}
+            >
+              <Image
+                src="/icons/user-grey.svg"
+                alt="no employees"
+                width={40}
+                height={40}
+                className="opacity-60"
+              />
+              <p className="font-medium text-gray-700">No Employees Assigned</p>
+              <p className="text-gray-500 text-sm text-center">
+                <span className="text-primary cursor-pointer underline">
+                  Click
+                </span>{" "}
+                to start building your company’s organization structure.
+              </p>
+            </div>
+          ) : (
+            <ReactFlow
+              nodes={nodes}
+              edges={edges}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              nodeTypes={nodeTypes}
+              fitView
+              style={{
+                backgroundColor: "#EDEDED",
+              }}
+              className="bg-grayscale-10"
+            >
+              <Background />
+              <CustomControls />
+            </ReactFlow>
+          )}
+        </div>
       </div>
 
       <AssignEmployeeModal
         open={assignEmployeeOpen}
-        // handleClose={() => setAssignEmployeeOpen(false)}
         handleSave={handleModalSave}
         onOpenChange={setAssignEmployeeOpen}
-        // unassignedEmployees={unassignedEmployees}
         chartEmployees={chartEmployees}
+        parentId={selectedParentId}
       />
 
       {selectedEmployeeDetails && (

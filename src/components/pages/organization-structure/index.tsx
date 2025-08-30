@@ -100,6 +100,7 @@ export default function OrganizationChart() {
 
     const dataForNodes: NodeCardData[] = chartEmployees.map((emp) => ({
       employee: emp,
+      isEditMode: false,
     }));
 
     const { nodes: transformedNodes, edges: transformedEdges } =
