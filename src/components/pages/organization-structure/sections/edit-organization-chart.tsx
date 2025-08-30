@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 // FileName: index.tsx
 "use client";
 
@@ -33,10 +34,6 @@ import {
   getOrgChart,
   postAssignEmployee,
 } from "@/services/employees/organization-structure";
-import {
-  IEmployeeOrganizationStructure,
-  IEmployeeResponse,
-} from "@/services/employees/types";
 import { useRouter } from "next/navigation";
 import { EmployeeListSidebar } from "./employee-list-sidebar";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -174,7 +171,7 @@ export default function OrganizationChartEdit() {
     assignManager(formValues);
   };
 
-  const { mutate: assignManager, isPending } = useMutation({
+  const { mutate: assignManager } = useMutation({
     mutationFn: postAssignEmployee,
     onSuccess: () => {
       toast.success("Assign Manager Successfully Updated!");

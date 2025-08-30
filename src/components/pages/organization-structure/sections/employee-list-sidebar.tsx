@@ -8,14 +8,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import {
-  ArrowDown,
-  ArrowUp,
-  ChevronDown,
-  ChevronsUpDown,
-  ChevronUp,
-  Loader2,
-} from "lucide-react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { getEmployeeGroupJobLevel } from "@/services/employees/group";
 
@@ -94,9 +87,9 @@ export const EmployeeListSidebar = () => {
     return openStates[jobLevelId] ?? true; // Default to open
   };
   const {
-    data: jobLevelGroups,
-    isLoading,
-    isError,
+    // data: jobLevelGroups,
+    // isLoading,
+    // isError,
   } = useQuery({
     queryKey: ["employeeGroupsByJobLevel"],
     queryFn: getEmployeeGroupJobLevel,

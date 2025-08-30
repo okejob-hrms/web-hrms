@@ -23,7 +23,6 @@ export const NodeCard = ({ data }: { data: NodeCardData }) => {
   const fallbackSrc = "/icons/user02.svg";
   const [imgSrc, setImgSrc] = useState(image || fallbackSrc);
 
-  // 2. This effect resets the image source if the employee prop changes
   useEffect(() => {
     setImgSrc(image || fallbackSrc);
   }, [image]);

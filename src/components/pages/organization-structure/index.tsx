@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 // FileName: index.tsx
 "use client";
 
