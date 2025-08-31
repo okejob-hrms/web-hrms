@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import React from "react";
-import ChangePasswordPage from "@/components/pages/auth-change-password";
+import React from 'react';
+import ChangePasswordPage from '@/components/pages/auth-change-password';
 
-export default function ComingSoon() {
+export default function ChangePassword() {
   return <ChangePasswordPage />;
 }
