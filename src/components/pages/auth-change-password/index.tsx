@@ -59,9 +59,10 @@ export default function ChangePasswordPage() {
       token: tokenParam,
     },
     mode: 'onChange',
+    reValidateMode: 'onChange',
   });
 
-  // Kalau email/token di URL berubah, update default values
+  // Update default values kalau email/token di URL berubah
   useEffect(() => {
     form.reset({
       email: emailParam,
@@ -77,11 +78,12 @@ export default function ChangePasswordPage() {
   const mutation = useMutation({
     mutationFn: postChangePassword,
     onSuccess: () => {
-      toast.success('Success to change password');
+      toast.success('Password successfully changed!');
       router.push('/auth/success-change-password');
     },
     onError: () => {
-      toast.error('Failed to change password');
+      const message = 'Failed to change password';
+      toast.error(message);
     },
   });
 
@@ -92,12 +94,13 @@ export default function ChangePasswordPage() {
   return (
     <div className="max-w-md mx-auto min-h-screen flex flex-col justify-center px-6">
       {/* Back button */}
-      <button
+      <Button
+        variant="ghost"
         onClick={() => router.back()}
-        className="flex items-center gap-2 text-sm font-medium mb-6"
+        className="flex items-center gap-2 text-sm font-medium mb-6 w-fit"
       >
         <ArrowLeft className="h-5 w-5" /> Back
-      </button>
+      </Button>
 
       {/* Title */}
       <h1 className="text-2xl font-bold mb-1">Create a New Password</h1>
@@ -124,7 +127,11 @@ export default function ChangePasswordPage() {
           />
 
           {/* Hidden Token */}
-          <input type="hidden" {...form.register('token')} />
+          <FormField
+            control={form.control}
+            name="token"
+            render={({ field }) => <input type="hidden" {...field} />}
+          />
 
           {/* Password */}
           <FormField
