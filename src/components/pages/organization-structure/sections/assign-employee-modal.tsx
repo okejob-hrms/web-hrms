@@ -50,17 +50,17 @@ import { getTeam } from "@/services/team";
 interface AssignEmployeeModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  handleSave: (
-    employee: IEmployeeResponse,
-    values: AssignEmployeeFormValues
-  ) => void;
-  unassignedEmployees?: EmployeeNode[];
+  handleSave: (values: AssignEmployeeFormValues) => void;
   chartEmployees: EmployeeNode[];
+  parentId?: string;
 }
 
 export default function AssignEmployeeModal({
   open,
   onOpenChange,
+  handleSave,
+  chartEmployees,
+  parentId,
 }: AssignEmployeeModalProps) {
   const [selectedEmployee, setSelectedEmployee] =
     useState<IEmployeeResponse | null>(null);
@@ -218,8 +218,7 @@ export default function AssignEmployeeModal({
 
   const onSubmit = (data: AssignEmployeeFormValues) => {
     if (selectedEmployee) {
-      // Will implemented after api Ready
-      // handleSave(selectedEmployee, data);
+      handleSave(data);
       setSelectedEmployee(null);
       setSearch("");
       form.reset();
@@ -254,7 +253,7 @@ export default function AssignEmployeeModal({
               {!selectedEmployee ? (
                 <FormField
                   control={form.control}
-                  name="name"
+                  name="employee_id"
                   render={() => (
                     <FormItem>
                       <FormLabel>
@@ -292,22 +291,62 @@ export default function AssignEmployeeModal({
                                 value={employee.name}
                                 onSelect={() => {
                                   setSelectedEmployee(employee);
-                                  form.setValue("name", employee.name);
                                   form.setValue(
-                                    "department",
+                                    "employee_id",
+                                    String(employee.id)
+                                  );
+                                  form.setValue(
+                                    "department_id",
                                     String(employee.department_id)
                                   );
                                   form.setValue(
-                                    "position",
+                                    "job_position_id",
                                     String(employee.job_position_id)
                                   );
                                   form.setValue(
-                                    "jobLevel",
-                                    String(employee.job_level_id),
-                                    {
-                                      shouldValidate: true,
-                                    }
+                                    "job_level_id",
+                                    String(employee.job_level_id)
                                   );
+
+                                  const employeeOnChart = chartEmployees.find(
+                                    (chartEmp) =>
+                                      chartEmp.employeeId ===
+                                      String(employee.id)
+                                  );
+
+                                  const primaryReports = employeeOnChart
+                                    ? employeeOnChart.primary_direct_report.map(
+                                        (report) => String(report.id)
+                                      )
+                                    : [];
+
+                                  if (parentId) {
+                                    primaryReports.push(parentId);
+                                  }
+
+                                  const uniquePrimaryReports = [
+                                    ...new Set(primaryReports),
+                                  ];
+
+                                  form.setValue(
+                                    "primary_direct_report",
+                                    uniquePrimaryReports
+                                  );
+
+                                  if (employeeOnChart) {
+                                    form.setValue(
+                                      "additional_direct_report",
+                                      employeeOnChart.secondary_direct_report.map(
+                                        (report) => String(report.id)
+                                      )
+                                    );
+                                    form.setValue(
+                                      "team_id",
+                                      employeeOnChart.team_members.map((team) =>
+                                        String(team.id)
+                                      )
+                                    );
+                                  }
                                 }}
                               >
                                 <Avatar className="h-8 w-8 mr-2">
@@ -367,7 +406,7 @@ export default function AssignEmployeeModal({
                   </div>
                   <FormField
                     control={form.control}
-                    name="department"
+                    name="department_id"
                     render={({ field }) => (
                       <FormItem>
                         <label className="text-sm text-text-secondary">
@@ -385,7 +424,7 @@ export default function AssignEmployeeModal({
                   />
                   <FormField
                     control={form.control}
-                    name="position"
+                    name="job_position_id"
                     render={({ field }) => (
                       <FormItem>
                         <label className="text-sm text-text-secondary">
@@ -403,7 +442,7 @@ export default function AssignEmployeeModal({
                   />
                   <FormField
                     control={form.control}
-                    name="jobLevel"
+                    name="job_level_id"
                     render={({ field }) => (
                       <FormItem>
                         <label className="text-sm text-text-secondary">
@@ -422,7 +461,7 @@ export default function AssignEmployeeModal({
 
                   <FormField
                     control={form.control}
-                    name="primaryDirectReport"
+                    name="primary_direct_report"
                     render={({ field }) => (
                       <FormItem>
                         <div className="flex flex-col gap-2">
@@ -431,13 +470,13 @@ export default function AssignEmployeeModal({
                             <span className="text-red-500">*</span>
                           </label>
                           <MultiSelect
-                            name="primaryDirectReport"
                             options={employeesOptions}
-                            value={field.value}
+                            defaultValue={field.value}
                             onValueChange={field.onChange}
                             maxCount={3}
                             variant="inverted"
                             disabled={isLoadingEmployees}
+                            {...field}
                           />
                         </div>
                         <FormMessage />
@@ -447,7 +486,7 @@ export default function AssignEmployeeModal({
 
                   <FormField
                     control={form.control}
-                    name="additionalDirectReport"
+                    name="additional_direct_report"
                     render={({ field }) => (
                       <FormItem>
                         <div className="flex flex-col gap-2">
@@ -455,13 +494,13 @@ export default function AssignEmployeeModal({
                             Additional Direct Report
                           </label>
                           <MultiSelect
-                            name="additionalDirectReport"
                             options={employeesOptions}
-                            value={field.value}
+                            defaultValue={field.value}
                             onValueChange={field.onChange}
                             maxCount={3}
                             variant="inverted"
                             disabled={isLoadingEmployees}
+                            {...field}
                           />
                         </div>
                         <FormMessage />
@@ -471,7 +510,7 @@ export default function AssignEmployeeModal({
 
                   <FormField
                     control={form.control}
-                    name="teams"
+                    name="team_id"
                     render={({ field }) => (
                       <FormItem>
                         <div className="flex flex-col gap-2">
@@ -479,14 +518,14 @@ export default function AssignEmployeeModal({
                             Team
                           </label>
                           <MultiSelect
-                            name="teams"
                             placeholder="All Teams"
                             options={teamOptions}
-                            value={field.value}
+                            defaultValue={field.value}
                             onValueChange={field.onChange}
                             maxCount={3}
                             variant="inverted"
                             disabled={isTeamsLoading || !!teamsError}
+                            {...field}
                           />
                         </div>
                         <FormMessage />

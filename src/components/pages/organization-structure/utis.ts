@@ -19,8 +19,7 @@ export function flattenOrgData(
 
     flatList.push({
       employeeId: String(apiNode.id),
-      name: apiNode.name,
-      title: apiNode.title,
+      ...apiNode,
       image: "/icons/user02.svg",
       reportsTo: {
         primary: primaryReports,

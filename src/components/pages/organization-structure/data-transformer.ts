@@ -1,7 +1,6 @@
 // FileName: src/utils/data-transformer.ts
 
 import { type Edge, type Node } from "@xyflow/react";
-// 1. Import the shared NodeCardData type for the function's input
 import { type NodeCardData } from "./types";
 
 const edgeStyles = {
@@ -9,7 +8,6 @@ const edgeStyles = {
   additional: { stroke: "#0F3C56", strokeWidth: 1, strokeDasharray: "5 5" },
 };
 
-// 2. The function now correctly accepts an array of NodeCardData
 export function transformDataForFlow(dataForNodes: NodeCardData[]): {
   nodes: Node[];
   edges: Edge[];

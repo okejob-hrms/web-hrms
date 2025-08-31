@@ -53,7 +53,13 @@ export const getGenerateTitle = (title: string) => {
 };
 
 export const getHideSidebar = (path: string) => {
-  const hidePath = ['/auth', '/dashboard', '/settings/access-control/add'];
+  const hidePath = [
+    "/auth",
+    "/dashboard",
+    "/settings/access-control/add",
+    "/employee/organization/structure/edit",
+  ];
+
   const employeeDetailPattern = /^\/employee\/employee-management\/[^\/]+$/;
   
   if (employeeDetailPattern.test(path)) {
@@ -63,16 +69,15 @@ export const getHideSidebar = (path: string) => {
   return hidePath.some((p) => path.startsWith(p));
 };
 
-
 export const getBreadcrumbs = (pathname: string) => {
-  const segments = pathname.split('/').filter(Boolean);
+  const segments = pathname.split("/").filter(Boolean);
 
   return segments.map((segment, index) => {
-    const link = '/' + segments.slice(0, index + 1).join('/');
+    const link = "/" + segments.slice(0, index + 1).join("/");
 
     return {
       label: segment
-        .replace(/-/g, ' ')
+        .replace(/-/g, " ")
         .replace(/\b\w/g, (c) => c.toUpperCase()),
       link,
     };
@@ -80,8 +85,8 @@ export const getBreadcrumbs = (pathname: string) => {
 };
 
 export const getLastPath = (pathname: string) => {
-  const segments = pathname.split('/').filter(Boolean);
-  return segments.length > 0 ? segments[segments.length - 1] : '';
+  const segments = pathname.split("/").filter(Boolean);
+  return segments.length > 0 ? segments[segments.length - 1] : "";
 };
 
 export const toTitleCase = (str: string) => {

@@ -9,7 +9,7 @@ type NodeCardData = {
   employee: EmployeeNode;
   onAddChild: (id: string, handle: "top" | "bottom") => void;
   onEdit: (employee: EmployeeNode) => void;
-  onDelete: (id: string) => void;
+  onDelete: (employee: EmployeeNode) => void;
   isEditMode: boolean;
 };
 
@@ -18,7 +18,14 @@ export const NodeCard = ({ data }: { data: NodeCardData }) => {
   const menuRef = useRef<HTMLDivElement>(null);
 
   const { employee, isEditMode, onAddChild, onEdit, onDelete } = data;
-  const { employeeId, name, title, image } = employee;
+  const { employeeId, name, job_position, image } = employee;
+
+  const fallbackSrc = "/icons/user02.svg";
+  const [imgSrc, setImgSrc] = useState(image || fallbackSrc);
+
+  useEffect(() => {
+    setImgSrc(image || fallbackSrc);
+  }, [image]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -52,16 +59,15 @@ export const NodeCard = ({ data }: { data: NodeCardData }) => {
         style={{ width: 220, height: 100 }}
       >
         <div className="flex flex-col gap-2 h-full">
-          {/* Top row */}
           <div className="flex justify-between items-start gap-2">
-            {/* Column 1: Avatar and Text */}
             <div className="flex gap-2 items-start flex-1 min-w-0">
               <Image
-                src={image || "/images/default-avatar.png"}
+                src={fallbackSrc}
                 alt={name}
                 width={40}
                 height={40}
                 className="rounded-full flex-shrink-0"
+                onError={() => setImgSrc(fallbackSrc)}
               />
               <div className="flex flex-col items-start pt-1 max-w-[120px]">
                 <span
@@ -71,10 +77,10 @@ export const NodeCard = ({ data }: { data: NodeCardData }) => {
                   {name}
                 </span>
                 <span
-                  title={title}
+                  title={job_position}
                   className="text-xs text-gray-500 w-full truncate"
                 >
-                  {title}
+                  {job_position}
                 </span>
               </div>
             </div>
@@ -100,7 +106,7 @@ export const NodeCard = ({ data }: { data: NodeCardData }) => {
                     </button>
                     <button
                       className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center gap-2"
-                      onClick={() => onDelete(employeeId)}
+                      onClick={() => onDelete(employee)}
                     >
                       <Trash2 className="w-4 h-4" /> Delete
                     </button>
@@ -110,7 +116,6 @@ export const NodeCard = ({ data }: { data: NodeCardData }) => {
             )}
           </div>
 
-          {/* Bottom row: icons */}
           <div className="flex justify-center items-center gap-2 mt-1">
             <button className="flex items-center gap-2 hover:none px-2 py-1 transition">
               <Image

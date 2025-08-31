@@ -258,7 +258,79 @@ export interface IEmployeeDetailsResponse {
 export interface IEmployeeOrganizationStructure {
   id: number;
   name: string;
-  title: string;
+  email: string;
+  phone_number: string;
+  photo_profile: string;
+  department_id: string;
+  department: string;
+  job_position_id: number;
+  job_position: string;
+  job_level_id: number;
+  job_level: string;
+  user_id: number;
+  status: number;
+  start_date: string;
+  end_date: string | null;
+  photo_profile_url: string | null;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+  primary_direct_report: {
+    id: number;
+    name: string;
+  }[];
+  secondary_direct_report: {
+    id: number;
+    name: string;
+  }[];
+  team_members: {
+    id: number;
+    name: string;
+    description: string;
+    deleted_at: string | null;
+    created_at: string | null;
+    updated_at: string | null;
+  }[];
   relationship_type: string | null;
   children: IEmployeeOrganizationStructure[];
+}
+
+export interface DirectReport {
+  id: number;
+  name: string;
+}
+
+export interface IGroupedEmployee {
+  id: number;
+  employee_id: number;
+  code: string;
+  photo_profile: string;
+  photo_profile_url: string | null;
+  name: string;
+  email: string;
+  roles: string[];
+  department: string;
+  job_level: string;
+  job_position: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface IJobLevelGroup {
+  job_level_id: number;
+  job_level_name: string;
+  description: string;
+  employees: IGroupedEmployee[];
+  employees_count: number;
+}
+
+export interface IAssignManagerResponse {
+  id: number;
+  employee_profile_id: number;
+  direct_report_id: number;
+  relationship_type: string;
+  start_date: string | null;
+  end_date: string | null;
+  created_date: string | null;
+  updated_date: string | null;
 }

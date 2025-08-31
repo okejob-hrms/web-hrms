@@ -1,7 +1,6 @@
 // FileName: sections/custom-node.tsx  (Corrected Version)
 
 import React from "react";
-// 1. Import Handle and Position
 import { Handle, Position } from "@xyflow/react";
 import { NodeCard } from "./node-card";
 import { EmployeeNode } from "../types";
@@ -10,10 +9,9 @@ type CustomNodeData = {
   employee: EmployeeNode;
   onAddChild: (id: string, handle: "top" | "bottom") => void;
   onEdit: (employee: EmployeeNode) => void;
-  onDelete: (id: string) => void;
+  onDelete: (employee: EmployeeNode) => void;
   isEditMode: boolean;
 };
-// Use this new, more specific type in NodeProps.
 export const CustomNode = ({ data }: { data: CustomNodeData }) => {
   return (
     <>
