@@ -9,7 +9,7 @@ type NodeCardData = {
   employee: EmployeeNode;
   onAddChild: (id: string, handle: "top" | "bottom") => void;
   onEdit: (employee: EmployeeNode) => void;
-  onDelete: (id: string) => void;
+  onDelete: (employee: EmployeeNode) => void;
   isEditMode: boolean;
 };
 
@@ -106,7 +106,7 @@ export const NodeCard = ({ data }: { data: NodeCardData }) => {
                     </button>
                     <button
                       className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center gap-2"
-                      onClick={() => onDelete(employeeId)}
+                      onClick={() => onDelete(employee)}
                     >
                       <Trash2 className="w-4 h-4" /> Delete
                     </button>

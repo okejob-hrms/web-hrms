@@ -9,7 +9,7 @@ type CustomNodeData = {
   employee: EmployeeNode;
   onAddChild: (id: string, handle: "top" | "bottom") => void;
   onEdit: (employee: EmployeeNode) => void;
-  onDelete: (id: string) => void;
+  onDelete: (employee: EmployeeNode) => void;
   isEditMode: boolean;
 };
 export const CustomNode = ({ data }: { data: CustomNodeData }) => {
