@@ -26,7 +26,7 @@ export type NodeCardData = {
     employee: EmployeeNode,
     employeeDetail: IEmployeeDetailsResponse | null
   ) => void;
-  onDelete?: (id: string) => void; // Added for future delete functionality
+  onDelete?: (employee: EmployeeNode) => void; // Added for future delete functionality
 };
 export interface EmployeeNode {
   employeeId: string;

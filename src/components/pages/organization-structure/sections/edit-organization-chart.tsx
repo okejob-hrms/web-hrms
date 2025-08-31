@@ -125,9 +125,16 @@ export default function OrganizationChartEdit() {
       setIsProfileModalOpen(true);
       setSelectedEmployeeDetails(employee);
     };
-    const onDelete = (employeeId: string) => {
-      console.log("Delete employee:", employeeId);
-      alert(`Delete employee: ${employeeId}`);
+    const onDelete = (employee: EmployeeNode) => {
+      assignManager({
+        employee_id: employee.employeeId,
+        department_id: employee.department_id,
+        job_level_id: String(employee.job_level_id),
+        job_position_id: String(employee.job_position_id),
+        primary_direct_report: [],
+        additional_direct_report: [],
+        team_id: employee.team_members.map((team) => String(team.id)),
+      });
     };
 
     if (chartEmployees.length === 0) {
