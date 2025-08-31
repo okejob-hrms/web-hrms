@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,7 +15,7 @@ import {
   FormControl,
   FormMessage,
 } from '@/components/ui/form';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { postChangePassword } from '@/services/auth';
 import { toast } from 'sonner';
@@ -39,13 +39,20 @@ const formSchema = z
 
 export default function ChangePasswordPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-
-  const emailParam = searchParams.get('email') ?? '';
-  const tokenParam = searchParams.get('token') ?? '';
-
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
+
+  // -----------------------------
+  // Ambil query param dari asPath
+  // -----------------------------
+  const query = useMemo(() => {
+    if (typeof window === 'undefined') return { email: '', token: '' };
+    const params = new URLSearchParams(window.location.search);
+    return {
+      email: params.get('email') ?? '',
+      token: params.get('token') ?? '',
+    };
+  }, []);
 
   // -----------------------------
   // Form
@@ -53,24 +60,24 @@ export default function ChangePasswordPage() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: emailParam,
+      email: query.email,
       password: '',
       password_confirmation: '',
-      token: tokenParam,
+      token: query.token,
     },
     mode: 'onChange',
     reValidateMode: 'onChange',
   });
 
-  // Update default values kalau email/token di URL berubah
+  // Reset form kalau query berubah
   useEffect(() => {
     form.reset({
-      email: emailParam,
+      email: query.email,
       password: '',
       password_confirmation: '',
-      token: tokenParam,
+      token: query.token,
     });
-  }, [emailParam, tokenParam, form]);
+  }, [query.email, query.token, form]);
 
   // -----------------------------
   // Mutation
@@ -82,8 +89,7 @@ export default function ChangePasswordPage() {
       router.push('/auth/success-change-password');
     },
     onError: () => {
-      const message = 'Failed to change password';
-      toast.error(message);
+      toast.error('Failed to change password');
     },
   });
 
@@ -111,7 +117,7 @@ export default function ChangePasswordPage() {
       {/* Form */}
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          {/* Email (disabled) */}
+          {/* Email */}
           <FormField
             control={form.control}
             name="email"
@@ -145,7 +151,6 @@ export default function ChangePasswordPage() {
                     <Input
                       placeholder="Input your password"
                       type={showPassword ? 'text' : 'password'}
-                      className="w-full"
                       {...field}
                     />
                     <button
@@ -174,7 +179,6 @@ export default function ChangePasswordPage() {
                     <Input
                       placeholder="Confirm your password"
                       type={showPasswordConfirm ? 'text' : 'password'}
-                      className="w-full"
                       {...field}
                     />
                     <button
