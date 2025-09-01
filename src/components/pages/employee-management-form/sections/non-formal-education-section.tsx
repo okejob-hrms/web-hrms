@@ -40,7 +40,7 @@ dayjs.extend(localizedFormat);
 
 export const columns: ColumnDef<IEducationResponse>[] = [
   {
-    accessorKey: "instution",
+    accessorKey: "institution",
     header: "Institution",
   },
   {
@@ -73,12 +73,14 @@ interface Props {
 }
 
 export const AddNonFormalEducationFormModal = ({
-  employee_profile_id = 1,
+  employee_profile_id,
 }: Props) => {
   const [open, setOpen] = React.useState(false);
   const queryClient = useQueryClient();
-  const { setValue, watch } = useFormContext();
-  const watchedEducations = watch("educations");
+  const formContext = useFormContext();
+
+  const { setValue, watch } = formContext || {};
+  const watchedEducations = watch ? watch("educations") : null;
 
   const form = useForm<INonFormalEducationForm>({
     resolver: zodResolver(nonFormalEducationFormScheme),
@@ -94,36 +96,98 @@ export const AddNonFormalEducationFormModal = ({
 
   const addNonFormalEducation = useMutation({
     mutationFn: (params: {
-      employee_profile_id: number;
+      employee_profile_id?: number;
       payload: INonFormalEducationForm;
     }) => postCreateEducation(params),
     onSuccess: (res) => {
-      setValue(
-        "educations",
-        watchedEducations
-          ? [...watchedEducations, { id: res.data.id }]
-          : [{ id: res.data.id }],
-      );
       toast.success("Non formal Education added successfully!");
 
-      queryClient.invalidateQueries({ queryKey: ["non-formal-educations"] });
+      if (setValue) {
+        const updatedEducations = Array.isArray(watchedEducations)
+          ? [...watchedEducations, res.data]
+          : [res.data];
+        setValue("educations", updatedEducations);
+      }
+
+      const queryKey = ["non-formal-educations", employee_profile_id || ""];
+      queryClient.setQueryData(queryKey, (oldData: any) => {
+        if (!oldData) {
+          return {
+            data: {
+              data: [res.data],
+              total: 1,
+              page: 1,
+              per_page: 10,
+            },
+          };
+        }
+
+        return {
+          ...oldData,
+          data: {
+            ...oldData.data,
+            data: [...(oldData.data.data || []), res.data],
+            total: (oldData.data.total || 0) + 1,
+          },
+        };
+      });
+
+      if (watchedEducations) {
+        const watchedQueryKey = ["non-formal-educations", watchedEducations];
+        queryClient.setQueryData(watchedQueryKey, (oldData: any) => {
+          if (!oldData) {
+            return {
+              data: {
+                data: [res.data],
+                total: 1,
+                page: 1,
+                per_page: 10,
+              },
+            };
+          }
+
+          return {
+            ...oldData,
+            data: {
+              ...oldData.data,
+              data: [...(oldData.data.data || []), res.data],
+              total: (oldData.data.total || 0) + 1,
+            },
+          };
+        });
+      }
+
+      queryClient.invalidateQueries({
+        queryKey: ["non-formal-educations"],
+      });
+
       setOpen(false);
       form.reset();
     },
     onError: (error: any) => {
+      console.error("Mutation error:", error);
       toast.error(
-        `Failed to add non formal education information: ${error.message || "Unknown error"}`,
+        `Failed to add non formal education information: ${error?.response?.data?.message || error.message || "Unknown error"}`,
       );
     },
   });
 
-  const onSubmit = (values: INonFormalEducationForm) => {
-    const params = {
-      employee_profile_id,
-      payload: values,
-    };
+  const onSubmit = async (values: INonFormalEducationForm) => {
+    try {
+      const payload = {
+        ...values,
+      };
 
-    addNonFormalEducation.mutate(params);
+      const params = {
+        employee_profile_id,
+        payload,
+      };
+
+      addNonFormalEducation.mutate(params);
+    } catch (error) {
+      console.error("Submit error:", error);
+      toast.error("Failed to submit form");
+    }
   };
 
   const handleCancel = () => {
@@ -131,6 +195,12 @@ export const AddNonFormalEducationFormModal = ({
     form.reset();
     addNonFormalEducation.reset();
   };
+
+  React.useEffect(() => {
+    if (Object.keys(form.formState.errors).length > 0) {
+      console.log("Form validation errors:", form.formState.errors);
+    }
+  }, [form.formState.errors]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -146,8 +216,18 @@ export const AddNonFormalEducationFormModal = ({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <InputForm name="institution" label="School" required />
-              <InputForm name="location" label="Location" required />
+              <InputForm
+                name="institution"
+                label="School"
+                required
+                disabled={addNonFormalEducation.isPending}
+              />
+              <InputForm
+                name="location"
+                label="Location"
+                required
+                disabled={addNonFormalEducation.isPending}
+              />
               <div className="grid grid-cols-2 gap-4 w-full">
                 <DatePicker name="start_date" label="Start Date" />
                 <DatePicker name="graduation_date" label="Graduation Date" />
@@ -157,11 +237,27 @@ export const AddNonFormalEducationFormModal = ({
                 label="Notes"
                 required
                 className="col-start-1 col-span-2"
+                disabled={addNonFormalEducation.isPending}
               />
             </div>
 
+            {Object.keys(form.formState.errors).length > 0 && (
+              <div className="text-red-500 text-sm mt-2">
+                <p>Please fix the following errors:</p>
+                <ul className="list-disc ml-4">
+                  {Object.entries(form.formState.errors).map(
+                    ([field, error]) => (
+                      <li key={field}>
+                        {field}: {error?.message}
+                      </li>
+                    ),
+                  )}
+                </ul>
+              </div>
+            )}
+
             {addNonFormalEducation.isError && (
-              <div className="text-error text-sm mt-2">
+              <div className="text-red-500 text-sm mt-2">
                 Error:{" "}
                 {addNonFormalEducation.error?.message ||
                   "Failed to save non formal education information"}
@@ -177,7 +273,12 @@ export const AddNonFormalEducationFormModal = ({
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={addNonFormalEducation.isPending}>
+              <Button
+                type="submit"
+                disabled={
+                  addNonFormalEducation.isPending || !form.formState.isValid
+                }
+              >
                 {addNonFormalEducation.isPending ? "Saving..." : "Save"}
               </Button>
             </DialogFooter>
@@ -208,25 +309,44 @@ const SectionHeader = ({ withAddButton, employee_profile_id }: Props) => (
 export const NonFormalEducationSection = React.memo<Props>(
   function NonFormalEducationSection({
     withAddButton = false,
-    employee_profile_id = 1,
+    employee_profile_id,
   }) {
-    const { data, isLoading, error } = useQuery({
-      queryKey: ["non-formal-educations", employee_profile_id],
+    const formContext = useFormContext();
+
+    const watchedEducations = formContext
+      ? formContext.watch("educations")
+      : null;
+
+    const { data, isLoading } = useQuery({
+      queryKey: employee_profile_id
+        ? ["non-formal-educations", employee_profile_id]
+        : ["non-formal-educations"],
       queryFn: () => getEducations({ employee_profile_id }),
       retry: (failureCount, error: any) => {
-        if (error?.response?.status >= 400) {
+        console.error("Query error:", error);
+        if (error?.response?.status >= 400 && error?.response?.status < 500) {
           return false;
         }
         return failureCount < 3;
       },
+      enabled: !!employee_profile_id,
     });
 
-    if (error) {
-      toast.error("Error fetching educations data");
-    }
+    const apiEducations =
+      data?.data?.data?.filter((item) => item.category === "non_formal") || [];
+    const watchedNonFormalEducations = Array.isArray(watchedEducations)
+      ? watchedEducations.filter((item) => item.category === "non_formal")
+      : [];
+
+    const returnedData =
+      apiEducations.length > 0 ? apiEducations : watchedNonFormalEducations;
+
     return (
       <React.Fragment>
-        <SectionHeader withAddButton={withAddButton} />
+        <SectionHeader
+          withAddButton={withAddButton}
+          employee_profile_id={employee_profile_id}
+        />
         {isLoading ? (
           <div className="flex flex-col gap-4 items-center w-full">
             <Skeleton className="h-12 w-full" />
@@ -237,9 +357,7 @@ export const NonFormalEducationSection = React.memo<Props>(
         ) : (
           <DataTable
             columns={columns}
-            data={data?.data.data.filter(
-              (item) => item.category === "non_formal",
-            )}
+            data={returnedData || []}
             tableClassName="table-fixed w-full"
             tableCellClassName="w-1/9 text-clip text-balance"
             tableHeadClassName="w-1/9 text-clip text-balance"

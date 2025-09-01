@@ -218,7 +218,17 @@ export const PersonalInformationSection = React.memo(
               ]}
               required
             />
-            <InputForm name="blood_type" label="Blood Type" required />
+            <SelectForm
+              name="blood_type"
+              label="Blood Type"
+              options={[
+                { label: "A", value: "A" },
+                { label: "AB", value: "AB" },
+                { label: "B", value: "B" },
+                { label: "O", value: "O" },
+              ]}
+              required
+            />
           </div>
           <div className="grid grid-cols-2 gap-2 col-start-1 col-end-2 items-start">
             <InputForm

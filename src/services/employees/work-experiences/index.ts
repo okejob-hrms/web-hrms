@@ -4,7 +4,7 @@ import qs from "qs";
 import { IResponseWorkExperience, IWorkExperienceForm } from "./types";
 
 interface Params {
-  employee_profile_id: number;
+  employee_profile_id?: number;
   payload?: IWorkExperienceForm;
   search?: string;
 }
@@ -13,7 +13,7 @@ export const postCreateWorkExperience = async (
   params: Params,
 ): Promise<ApiResponse<IResponseWorkExperience>> => {
   const response = await api.post<ApiResponse<IResponseWorkExperience>>(
-    `employees/${params.employee_profile_id}/work-experiences`,
+    `employees/${params.employee_profile_id ? `${params.employee_profile_id}/` : ""}work-experiences`,
     { json: params.payload },
   );
   return response.json();

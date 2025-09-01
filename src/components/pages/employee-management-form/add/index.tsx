@@ -38,7 +38,7 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
       router.push("/employee/employee-management");
       form.reset();
     },
-    onError: (error: any, _, context) => {
+    onError: (error: any) => {
       toast.error(
         `Failed to add employee: ${error.message || "Unknown error"}`,
       );
@@ -82,10 +82,12 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
         })),
         phone_number: Number(convertPhoneToNumber(values.phone_number)),
         bank_id: Number(values.bank_id),
-        work_experiences: values.work_experiences,
-        contact_refferences: values.contact_refferences,
-        families: values.families,
-        educations: values.educations,
+        work_experiences: values.work_experiences?.filter((item) => item.id),
+        contact_refferences: values.contact_refferences?.filter(
+          (item) => item.id,
+        ),
+        families: values.families?.filter((item) => item.id),
+        educations: values.educations?.filter((item) => item.id),
       };
       mutate(params);
     } catch (err) {

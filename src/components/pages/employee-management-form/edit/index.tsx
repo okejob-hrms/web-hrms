@@ -107,10 +107,10 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
         job_position_id: employeeDetails.employment.job_position_id.toString(),
         department_id: employeeDetails.employment.job_position_id.toString(),
         job_level_id: employeeDetails.employment.job_level_id.toString(),
-        bank_id: employeeDetails.bank_account.bank_id.toString(),
+        bank_id: employeeDetails.bank_account?.bank_id.toString(),
         salary_nett: Number(employeeDetails.employment.salary_nett),
         base_salary: Number(employeeDetails.employment.base_salary),
-        team_members: employeeDetails.team_members[0].team_id.toString(),
+        team_members: employeeDetails.team_members[0]?.team_id.toString(),
         status: employeeDetails.employment.status.toString(),
         direct_reports: [
           {
@@ -122,8 +122,14 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
             direct_report_id: secondaryDirectReports,
           },
         ],
-        account_number: employeeDetails.bank_account.account_number.toString(),
-        account_name: employeeDetails.bank_account.account_name,
+        account_number: employeeDetails.bank_account?.account_number.toString(),
+        account_name: employeeDetails.bank_account?.account_name,
+        ...(employeeDetails.employee_documents && {
+          attachments: employeeDetails.employee_documents?.map((item) => ({
+            path: item.path,
+            type: item.type,
+          })),
+        }),
       };
 
       form.reset(formValues);
@@ -160,6 +166,7 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
         })),
         phone_number: Number(values.phone_number),
         bank_id: Number(values.bank_id),
+        ...(values.photo_profile && { photo_profile: values.photo_profile }),
       };
       editEmployee(params);
     } catch (err) {
@@ -213,7 +220,9 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
               <Button variant="outline" className="md:max-w-36 w-[50%]">
                 Cancel
               </Button>
-              <Button className="md:max-w-36 w-[50%]">Update</Button>
+              <Button type="submit" className="md:max-w-36 w-[50%]">
+                Update
+              </Button>
             </div>
             <Button
               className="min-w-36 text-error font-semibold text-base"

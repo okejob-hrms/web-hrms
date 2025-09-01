@@ -4,7 +4,7 @@ import { ApiResponse, PaginatedResponse } from "@/lib/types";
 import qs from "qs";
 
 interface Params {
-  employee_profile_id: number;
+  employee_profile_id?: number;
   payload?: IFamilyForm;
   search?: string;
 }
@@ -13,7 +13,7 @@ export const postCreateFamily = async (
   params: Params,
 ): Promise<ApiResponse<IFamilyResponse>> => {
   const response = await api.post<ApiResponse<IFamilyResponse>>(
-    `employees/${params.employee_profile_id}/families`,
+    `employees/${params.employee_profile_id ? `${params.employee_profile_id}/` : ""}families`,
     { json: params.payload },
   );
   return response.json();

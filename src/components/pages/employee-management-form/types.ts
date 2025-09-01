@@ -1,8 +1,8 @@
 import { phoneNumberSchema } from "@/lib/helpers";
-import z from "zod";
+import z, { stringbool } from "zod";
 
 export const employeeManagementFormScheme = z.object({
-  photo_profile: z.string().optional(),
+  photo_profile: z.string().optional().nullable(),
   name: z.string().min(1, "required"),
   email: z.string().email("Invalid email").min(1, "required"),
   // role_id: z.number().int().min(1, "required"),
@@ -84,10 +84,95 @@ export const employeeManagementFormScheme = z.object({
       path: z.string().min(1, "required"),
     }),
   ),
-  families: z.array(z.object({ id: z.number() })).optional(),
-  educations: z.array(z.object({ id: z.number() })).optional(),
-  work_experiences: z.array(z.object({ id: z.number() })).optional(),
-  contact_refferences: z.array(z.object({ id: z.number() })).optional(),
+  employee_documents: z
+    .array(
+      z.object({
+        type: z.string(),
+        path: z.string(),
+      }),
+    )
+    .optional(),
+  families: z
+    .array(
+      z.object({
+        id: z.number(),
+        employee_profile_id: z.number(),
+        name: z.string(),
+        relationship: z.string(),
+        date_of_birth: z.string(),
+        place_of_birth: z.string(),
+        email: z.string(),
+        phone: z.string(),
+        occupation: z.string(),
+        company: z.string(),
+        highest_education: z.string().or(z.number()),
+        created_at: z.string(),
+        updated_at: z.string(),
+      }),
+    )
+    .optional()
+    .or(z.array(z.object({ id: z.number() })))
+    .optional(),
+  educations: z
+    .array(
+      z.object({
+        id: z.number(),
+        employee_profile_id: z.number(),
+        category: z.string(),
+        institution: z.string(),
+        major: z.string(),
+        location: z.string(),
+        start_date: z.string(),
+        graduation_date: z.string(),
+        gpa: z.string(),
+        notes: z.string(),
+        created_at: z.string(),
+        updated_at: z.string(),
+      }),
+    )
+    .optional()
+    .or(z.array(z.object({ id: z.number() })))
+    .optional(),
+  work_experiences: z
+    .array(
+      z.object({
+        id: z.number(),
+        employee_profile_id: z.number(),
+        company: z.string(),
+        initial_position: z.string(),
+        final_position: z.string(),
+        supervisor: z.string(),
+        supervisor_contact: z.string(),
+        company_address: z.string(),
+        start_date: z.string(),
+        end_date: z.string(),
+        last_salary: z.string(),
+        reason_for_resign: z.string(),
+        created_at: z.string(),
+        updated_at: z.string(),
+      }),
+    )
+    .optional()
+    .or(z.array(z.object({ id: z.number() })))
+    .optional(),
+  contact_refferences: z
+    .array(
+      z.object({
+        id: z.number(),
+        employee_profile_id: z.number(),
+        name: z.string(),
+        relationship: z.string(),
+        email: z.string(),
+        phone: z.string(),
+        occupation: z.string(),
+        company: z.string(),
+        created_at: z.string(),
+        updated_at: z.string(),
+      }),
+    )
+    .optional()
+    .or(z.array(z.object({ id: z.number() })))
+    .optional(),
 });
 
 export const employeeManagementFormDefaultValues = {
