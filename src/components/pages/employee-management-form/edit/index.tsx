@@ -48,7 +48,7 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
   });
   const employeeDetails = data?.data;
   const { mutate: editEmployee } = useMutation({
-    mutationFn: (params: IMutateEmployeeRequests) => updateEmployee(params),
+    mutationFn: (params: IMutateEmployeeRequests) => updateEmployee(params, employee_profile_id),
     onSuccess: () => {
       toast.success("Edit employee successfully!");
       router.push("/employee/employee-management");
