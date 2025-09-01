@@ -8,7 +8,7 @@ export type IPositionForm = z.infer<typeof positionFormScheme>;
 export interface JobPositionResponse {
   id: number;
   name: string;
-  description: string;
+  description?: string;
   status: string; // "1" or "2" as string
   created_at: string;
   updated_at: string;

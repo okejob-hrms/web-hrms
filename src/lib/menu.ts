@@ -19,7 +19,7 @@ export const menus: Record<string, MenuItem[]> = {
         },
         { name: "Position", value: "employee/organization/position" },
         { name: "Teams", value: "employee/organization/teams" },
-        { name: "Job Levels", value: "employee/organization/job-levels" },
+        { name: "Job Levels", value: "employee/organization/job-level" },
         {
           name: "Department",
           value: "employee/organization/department-management",
