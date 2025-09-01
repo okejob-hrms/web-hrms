@@ -60,15 +60,19 @@ export const getHideSidebar = (path: string) => {
     "/employee/organization/structure/edit",
   ];
 
-  const employeeDetailPattern = /^\/employee\/employee-management\/[^\/]+$/;
-  
+  const employeeDetailPattern = /^\/employee\/employee-management\/\d+$/;
+
   if (employeeDetailPattern.test(path)) {
     return true;
   }
 
-  return hidePath.some((p) => path.startsWith(p));
-};
+  const matchedHidePath = hidePath.find((p) => path.startsWith(p));
+  if (matchedHidePath) {
+    return true;
+  }
 
+  return false;
+};
 export const getBreadcrumbs = (pathname: string) => {
   const segments = pathname.split("/").filter(Boolean);
 

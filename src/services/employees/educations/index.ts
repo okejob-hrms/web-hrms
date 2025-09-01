@@ -8,7 +8,7 @@ import {
 } from "./types";
 
 interface Params {
-  employee_profile_id: number;
+  employee_profile_id?: number;
   payload?: IFormalEducationForm | INonFormalEducationForm;
   search?: string;
 }
@@ -17,7 +17,7 @@ export const postCreateEducation = async (
   params: Params,
 ): Promise<ApiResponse<IEducationResponse>> => {
   const response = await api.post<ApiResponse<IEducationResponse>>(
-    `employees/${params.employee_profile_id}/educations`,
+    `employees/${params.employee_profile_id ? `${params.employee_profile_id}/` : ""}educations`,
     { json: params.payload },
   );
   return response.json();

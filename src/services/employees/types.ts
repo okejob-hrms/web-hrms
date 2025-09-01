@@ -70,7 +70,7 @@ export interface IMutateEmployeeRequests {
   hobby: string;
   achievement: string;
   personal_description: string;
-  photo_profile?: string;
+  photo_profile?: string | null;
 
   social_media_accounts?: {
     type: string;
@@ -123,9 +123,9 @@ export interface IMutateEmployeeRequests {
   contact_refferences?: {
     id: number;
   }[];
-  employee_documents?: {
-    id: number;
-  }[];
+  // employee_documents?: {
+  //   id: number;
+  // }[];
 }
 
 export interface IEmployeeDetailsResponse {

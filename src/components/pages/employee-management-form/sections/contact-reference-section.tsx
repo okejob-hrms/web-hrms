@@ -66,13 +66,13 @@ interface Props {
   employee_profile_id?: number;
 }
 
-export const AddContactReferenceModal = ({
-  employee_profile_id = 1,
-}: Props) => {
+export const AddContactReferenceModal = ({ employee_profile_id }: Props) => {
   const [open, setOpen] = React.useState(false);
   const queryClient = useQueryClient();
-  const { setValue, watch } = useFormContext();
-  const watchedContactReferences = watch("contact_refferences");
+  const formContext = useFormContext();
+
+  const { setValue, watch } = formContext || {};
+  const watchedContactReferences = watch ? watch("contact_refferences") : null;
 
   const form = useForm<IContactReferenceForm>({
     resolver: zodResolver(ContactReferenceFormSchema),
@@ -88,38 +88,102 @@ export const AddContactReferenceModal = ({
 
   const addContactReferenceMutation = useMutation({
     mutationFn: (params: {
-      employee_profile_id: number;
+      employee_profile_id?: number;
       payload: IContactReferenceForm;
     }) => postCreateContactReference(params),
     onSuccess: (res) => {
       toast.success("Contact reference added successfully!");
-      setValue(
-        "contact_refferences",
-        watchedContactReferences
-          ? [...watchedContactReferences, { id: res.data.id }]
-          : { id: res.data.id },
-      );
-      queryClient.invalidateQueries({ queryKey: ["contact-references"] });
+
+      if (setValue) {
+        const updatedReferences = Array.isArray(watchedContactReferences)
+          ? [...watchedContactReferences, res.data]
+          : [res.data];
+        setValue("contact_refferences", updatedReferences);
+      }
+
+      const queryKey = ["contact_refferences", employee_profile_id || ""];
+      queryClient.setQueryData(queryKey, (oldData: any) => {
+        if (!oldData) {
+          return {
+            data: {
+              data: [res.data],
+              total: 1,
+              page: 1,
+              per_page: 10,
+            },
+          };
+        }
+
+        return {
+          ...oldData,
+          data: {
+            ...oldData.data,
+            data: [...(oldData.data.data || []), res.data],
+            total: (oldData.data.total || 0) + 1,
+          },
+        };
+      });
+
+      if (watchedContactReferences) {
+        const watchedQueryKey = [
+          "contact_refferences",
+          watchedContactReferences,
+        ];
+        queryClient.setQueryData(watchedQueryKey, (oldData: any) => {
+          if (!oldData) {
+            return {
+              data: {
+                data: [res.data],
+                total: 1,
+                page: 1,
+                per_page: 10,
+              },
+            };
+          }
+
+          return {
+            ...oldData,
+            data: {
+              ...oldData.data,
+              data: [...(oldData.data.data || []), res.data],
+              total: (oldData.data.total || 0) + 1,
+            },
+          };
+        });
+      }
+
+      queryClient.invalidateQueries({
+        queryKey: ["contact_refferences"],
+      });
+
       setOpen(false);
       form.reset();
     },
     onError: (error: any) => {
+      console.error("Mutation error:", error);
       toast.error(
-        `Failed to add contact reference information: ${error.message || "Unknown error"}`,
+        `Failed to add contact reference: ${error?.response?.data?.message || error.message || "Unknown error"}`,
       );
     },
   });
 
-  const onSubmit = (values: IContactReferenceForm) => {
-    const params = {
-      employee_profile_id,
-      payload: {
+  const onSubmit = async (values: IContactReferenceForm) => {
+    try {
+      const payload = {
         ...values,
-        phone: convertPhoneToNumber(values.phone),
-      },
-    };
+        phone: values.phone ? convertPhoneToNumber(values.phone) : values.phone,
+      };
 
-    addContactReferenceMutation.mutate(params);
+      const params = {
+        employee_profile_id,
+        payload,
+      };
+
+      addContactReferenceMutation.mutate(params);
+    } catch (error) {
+      console.error("Submit error:", error);
+      toast.error("Failed to submit form");
+    }
   };
 
   const handleCancel = () => {
@@ -127,6 +191,12 @@ export const AddContactReferenceModal = ({
     form.reset();
     addContactReferenceMutation.reset();
   };
+
+  React.useEffect(() => {
+    if (Object.keys(form.formState.errors).length > 0) {
+      console.log("Form validation errors:", form.formState.errors);
+    }
+  }, [form.formState.errors]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -150,11 +220,26 @@ export const AddContactReferenceModal = ({
               <InputForm name="company" label="Company" required />
             </div>
 
+            {Object.keys(form.formState.errors).length > 0 && (
+              <div className="text-red-500 text-sm mt-2">
+                <p>Please fix the following errors:</p>
+                <ul className="list-disc ml-4">
+                  {Object.entries(form.formState.errors).map(
+                    ([field, error]) => (
+                      <li key={field}>
+                        {field}: {error?.message}
+                      </li>
+                    ),
+                  )}
+                </ul>
+              </div>
+            )}
+
             {addContactReferenceMutation.isError && (
-              <div className="text-error text-sm mt-2">
+              <div className="text-red-500 text-sm mt-2">
                 Error:{" "}
                 {addContactReferenceMutation.error?.message ||
-                  "Failed to save Contact reference information"}
+                  "Failed to save contact reference information"}
               </div>
             )}
 
@@ -169,7 +254,10 @@ export const AddContactReferenceModal = ({
               </Button>
               <Button
                 type="submit"
-                disabled={addContactReferenceMutation.isPending}
+                disabled={
+                  addContactReferenceMutation.isPending ||
+                  !form.formState.isValid
+                }
               >
                 {addContactReferenceMutation.isPending ? "Saving..." : "Save"}
               </Button>
@@ -197,28 +285,35 @@ const SectionHeader = ({ withAddButton, employee_profile_id }: Props) => (
 );
 
 export const ContactOfReferenceSection = React.memo<Props>(
-  function ContactOfReferenceSection({
-    withAddButton,
-    employee_profile_id = 1,
-  }) {
-    const { data, isLoading, error } = useQuery({
-      queryKey: ["contact-references", employee_profile_id],
+  function ContactOfReferenceSection({ withAddButton, employee_profile_id }) {
+    const formContext = useFormContext();
+
+    const watchedContactReferences = formContext
+      ? formContext.watch("contact_refferences")
+      : null;
+    const { data, isLoading } = useQuery({
+      queryKey: employee_profile_id
+        ? ["contact_refferences", employee_profile_id]
+        : ["contact_refferences"],
       queryFn: () => getContactReferences({ employee_profile_id }),
       retry: (failureCount, error: any) => {
-        if (error?.response?.status >= 400) {
+        console.error("Query error:", error);
+        if (error?.response?.status >= 400 && error?.response?.status < 500) {
           return false;
         }
         return failureCount < 3;
       },
+      enabled: !!employee_profile_id,
     });
 
-    if (error) {
-      toast.error("Error fetching contact reference data");
-    }
+    const returnedData = data?.data?.data || watchedContactReferences;
 
     return (
       <React.Fragment>
-        <SectionHeader withAddButton={withAddButton} />
+        <SectionHeader
+          withAddButton={withAddButton}
+          employee_profile_id={employee_profile_id}
+        />
         {isLoading ? (
           <div className="flex flex-col gap-4 items-center w-full">
             <Skeleton className="h-12 w-full" />
@@ -229,7 +324,7 @@ export const ContactOfReferenceSection = React.memo<Props>(
         ) : (
           <DataTable
             columns={columns}
-            data={data?.data.data}
+            data={returnedData || []}
             tableClassName="table-fixed w-full"
             tableCellClassName="w-1/9 text-clip text-balance"
             tableHeadClassName="w-1/9 text-clip text-balance"

@@ -4,7 +4,7 @@ import qs from "qs";
 import { IContactReferenceResponse, IContactReferenceForm } from "./types";
 
 interface Params {
-  employee_profile_id: number;
+  employee_profile_id?: number;
   payload?: IContactReferenceForm;
   search?: string;
 }
@@ -13,7 +13,7 @@ export const postCreateContactReference = async (
   params: Params,
 ): Promise<ApiResponse<IContactReferenceResponse>> => {
   const response = await api.post<ApiResponse<IContactReferenceResponse>>(
-    `employees/${params.employee_profile_id}/contact-references`,
+    `employees/${params.employee_profile_id ? `${params.employee_profile_id}/` : ""}contact-references`,
     { json: params.payload },
   );
   return response.json();

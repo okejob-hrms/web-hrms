@@ -1,3 +1,4 @@
+import { phoneNumberSchema } from "@/lib/helpers";
 import z from "zod";
 
 export interface IResponseWorkExperience {
@@ -22,11 +23,7 @@ export const WorkExperienceFormSchema = z.object({
   initial_position: z.string().min(1, "Initial position is required"),
   final_position: z.string().min(1, "Final position is required"),
   supervisor: z.string().min(1, "Supervisor is required"),
-  supervisor_contact: z
-    .number({
-      error: "Supervisor contact must be a number",
-    })
-    .positive("Supervisor contact must be a valid number"),
+  supervisor_contact: phoneNumberSchema,
   company_address: z.string().min(1, "Company address is required"),
   start_date: z.date().min(1, "Date of joining is required"),
   end_date: z.date().min(1, "Date of resignation is required"),

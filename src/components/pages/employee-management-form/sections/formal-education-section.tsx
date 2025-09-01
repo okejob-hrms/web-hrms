@@ -75,13 +75,13 @@ interface Props {
   employee_profile_id?: number;
 }
 
-export const AddFormalEducationFormModal = ({
-  employee_profile_id = 1,
-}: Props) => {
+export const AddFormalEducationFormModal = ({ employee_profile_id }: Props) => {
   const [open, setOpen] = React.useState(false);
   const queryClient = useQueryClient();
-  const { setValue, watch } = useFormContext();
-  const watchedEducations = watch("educations");
+  const formContext = useFormContext();
+
+  const { setValue, watch } = formContext || {};
+  const watchedEducations = watch ? watch("educations") : null;
 
   const form = useForm<IFormalEducationForm>({
     resolver: zodResolver(formalEducationFormScheme),
@@ -99,43 +99,91 @@ export const AddFormalEducationFormModal = ({
 
   const addFormalEducation = useMutation({
     mutationFn: (params: {
-      employee_profile_id: number;
+      employee_profile_id?: number;
       payload: IFormalEducationForm;
     }) => postCreateEducation(params),
     onSuccess: (res) => {
-      console.log("watched ", watchedEducations);
-      setValue(
-        "educations",
-        watchedEducations
-          ? [...watchedEducations, { id: res.data.id }]
-          : [{ id: res.data.id }],
-      );
       toast.success("Formal Education added successfully!");
 
-      queryClient.invalidateQueries({ queryKey: ["formal-educations"] });
+      if (setValue) {
+        const updatedEducations = Array.isArray(watchedEducations)
+          ? [...watchedEducations, res.data]
+          : [res.data];
+        setValue("educations", updatedEducations);
+      }
+
+      const queryKey = ["formal-educations", employee_profile_id || ""];
+      queryClient.setQueryData(queryKey, (oldData: any) => {
+        if (!oldData) {
+          return {
+            data: {
+              data: [res.data],
+              total: 1,
+              page: 1,
+              per_page: 10,
+            },
+          };
+        }
+
+        return {
+          ...oldData,
+          data: {
+            ...oldData.data,
+            data: [...(oldData.data.data || []), res.data],
+            total: (oldData.data.total || 0) + 1,
+          },
+        };
+      });
+
+      if (watchedEducations) {
+        const watchedQueryKey = ["formal-educations", watchedEducations];
+        queryClient.setQueryData(watchedQueryKey, (oldData: any) => {
+          if (!oldData) {
+            return {
+              data: {
+                data: [res.data],
+                total: 1,
+                page: 1,
+                per_page: 10,
+              },
+            };
+          }
+
+          return {
+            ...oldData,
+            data: {
+              ...oldData.data,
+              data: [...(oldData.data.data || []), res.data],
+              total: (oldData.data.total || 0) + 1,
+            },
+          };
+        });
+      }
+
+      queryClient.invalidateQueries({
+        queryKey: ["formal-educations"],
+      });
+
       setOpen(false);
       form.reset();
     },
     onError: (error: any) => {
+      console.error("Mutation error:", error);
       toast.error(
-        `Failed to add formal education information: ${error.message || "Unknown error"}`,
+        `Failed to add formal education information: ${error?.response?.data?.message || error.message || "Unknown error"}`,
       );
     },
   });
 
   const onSubmit = async (values: IFormalEducationForm) => {
     try {
-      console.log("Submitting values:", values);
-
-      const isValid = await form.trigger();
-      if (!isValid) {
-        console.log("Form validation failed");
-        return;
-      }
+      const payload = {
+        ...values,
+      };
 
       const params = {
         employee_profile_id,
-        payload: values,
+        payload,
       };
 
       addFormalEducation.mutate(params);
@@ -153,7 +201,7 @@ export const AddFormalEducationFormModal = ({
 
   React.useEffect(() => {
     if (Object.keys(form.formState.errors).length > 0) {
-      console.log("Form errors:", form.formState.errors);
+      console.log("Form validation errors:", form.formState.errors);
     }
   }, [form.formState.errors]);
 
@@ -171,9 +219,24 @@ export const AddFormalEducationFormModal = ({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <InputForm name="institution" label="School" required />
-              <InputForm name="location" label="City" required />
-              <InputForm name="major" label="Major" required />
+              <InputForm
+                name="institution"
+                label="School"
+                required
+                disabled={addFormalEducation.isPending}
+              />
+              <InputForm
+                name="location"
+                label="City"
+                required
+                disabled={addFormalEducation.isPending}
+              />
+              <InputForm
+                name="major"
+                label="Major"
+                required
+                disabled={addFormalEducation.isPending}
+              />
               <div className="grid grid-cols-2 gap-4 w-full">
                 <DatePicker name="start_date" label="Education Start Date" />
                 <DatePicker name="graduation_date" label="Graduation Date" />
@@ -184,15 +247,40 @@ export const AddFormalEducationFormModal = ({
                   <span className="text-error">*</span>
                 </FormLabel>
                 <div className="flex items-center gap-2 w-full">
-                  <InputForm name="gpa" required type="number" />
+                  <InputForm
+                    name="gpa"
+                    required
+                    type="number"
+                    disabled={addFormalEducation.isPending}
+                  />
                   <span className="text-text-disabled">/</span>
-                  <InputForm name="max_gpa" type="number" required />
+                  <InputForm
+                    name="max_gpa"
+                    type="number"
+                    required
+                    disabled={addFormalEducation.isPending}
+                  />
                 </div>
               </div>
             </div>
 
+            {Object.keys(form.formState.errors).length > 0 && (
+              <div className="text-red-500 text-sm mt-2">
+                <p>Please fix the following errors:</p>
+                <ul className="list-disc ml-4">
+                  {Object.entries(form.formState.errors).map(
+                    ([field, error]) => (
+                      <li key={field}>
+                        {field}: {error?.message}
+                      </li>
+                    ),
+                  )}
+                </ul>
+              </div>
+            )}
+
             {addFormalEducation.isError && (
-              <div className="text-error text-sm mt-2">
+              <div className="text-red-500 text-sm mt-2">
                 Error:{" "}
                 {addFormalEducation.error?.message ||
                   "Failed to save formal education information"}
@@ -208,7 +296,12 @@ export const AddFormalEducationFormModal = ({
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={addFormalEducation.isPending}>
+              <Button
+                type="submit"
+                disabled={
+                  addFormalEducation.isPending || !form.formState.isValid
+                }
+              >
                 {addFormalEducation.isPending ? "Saving..." : "Save"}
               </Button>
             </DialogFooter>
@@ -219,7 +312,7 @@ export const AddFormalEducationFormModal = ({
   );
 };
 
-const SectionHeader = ({ withAddButton, employee_profile_id = 1 }: Props) => (
+const SectionHeader = ({ withAddButton, employee_profile_id }: Props) => (
   <div
     className={withAddButton ? "flex justify-between items-center mb-4" : ""}
   >
@@ -237,22 +330,38 @@ const SectionHeader = ({ withAddButton, employee_profile_id = 1 }: Props) => (
 export const FormalEducationSection = React.memo<Props>(
   function FormalEducationSection({
     withAddButton = false,
-    employee_profile_id = 1,
+    employee_profile_id,
   }) {
-    const { data, isLoading, error } = useQuery({
-      queryKey: ["formal-educations", employee_profile_id],
+    const formContext = useFormContext();
+
+    const watchedEducations = formContext
+      ? formContext.watch("educations")
+      : null;
+
+    const { data, isLoading } = useQuery({
+      queryKey: employee_profile_id
+        ? ["formal-educations", employee_profile_id]
+        : ["formal-educations"],
       queryFn: () => getEducations({ employee_profile_id }),
       retry: (failureCount, error: any) => {
-        if (error?.response?.status >= 400) {
+        console.error("Query error:", error);
+        if (error?.response?.status >= 400 && error?.response?.status < 500) {
           return false;
         }
         return failureCount < 3;
       },
+      enabled: !!employee_profile_id,
     });
 
-    if (error) {
-      toast.error("Error fetching educations data");
-    }
+    const apiEducations =
+      data?.data?.data?.filter((item) => item.category === "formal") || [];
+    const watchedFormalEducations = Array.isArray(watchedEducations)
+      ? watchedEducations.filter((item) => item.category === "formal")
+      : [];
+
+    const returnedData =
+      apiEducations.length > 0 ? apiEducations : watchedFormalEducations;
+
     return (
       <React.Fragment>
         <SectionHeader
@@ -269,7 +378,7 @@ export const FormalEducationSection = React.memo<Props>(
         ) : (
           <DataTable
             columns={columns}
-            data={data?.data.data.filter((item) => item.category === "formal")}
+            data={returnedData || []}
             tableClassName="table-fixed w-full"
             tableCellClassName="w-1/9 text-clip text-balance"
             tableHeadClassName="w-1/9 text-clip text-balance"

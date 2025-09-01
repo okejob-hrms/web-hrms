@@ -81,19 +81,19 @@ export const columns: ColumnDef<IFamilyResponse>[] = [
   },
 ];
 
-const TABLE_CELL_CLASSES =
-  "md:w-1/9 md:text-clip md:text-balance whitespace-nowrap";
-
 interface Props {
   withAddButton?: boolean;
   employee_profile_id?: number;
 }
 
-export const AddFamilyFormModal = ({ employee_profile_id = 1 }: Props) => {
+export const AddFamilyFormModal = ({ employee_profile_id }: Props) => {
   const [open, setOpen] = React.useState(false);
   const queryClient = useQueryClient();
-  const { setValue, watch } = useFormContext();
-  const watchedFamilies = watch("families");
+  const formContext = useFormContext();
+
+  const { setValue, watch } = formContext || {};
+  const watchedFamilies = watch ? watch("families") : null;
+
   const form = useForm<IFamilyForm>({
     resolver: zodResolver(familyFormScheme),
     defaultValues: {
@@ -111,57 +111,113 @@ export const AddFamilyFormModal = ({ employee_profile_id = 1 }: Props) => {
 
   const createFamilyMutation = useMutation({
     mutationFn: (params: {
-      employee_profile_id: number;
+      employee_profile_id?: number;
       payload: IFamilyForm;
     }) => postCreateFamily(params),
     onSuccess: (res) => {
-      setValue(
-        "families",
-        watchedFamilies
-          ? [...watchedFamilies, { id: res.data.id }]
-          : { id: res.data.id },
-      );
       toast.success("Family information added successfully!");
 
-      queryClient.invalidateQueries({ queryKey: ["family"] });
+      if (setValue) {
+        const updatedFamilies = Array.isArray(watchedFamilies)
+          ? [...watchedFamilies, res.data]
+          : [res.data];
+        setValue("families", updatedFamilies);
+      }
+
+      const queryKey = ["family", employee_profile_id || ""];
+      queryClient.setQueryData(queryKey, (oldData: any) => {
+        if (!oldData) {
+          return {
+            data: {
+              data: [res.data],
+              total: 1,
+              page: 1,
+              per_page: 10,
+            },
+          };
+        }
+
+        return {
+          ...oldData,
+          data: {
+            ...oldData.data,
+            data: [...(oldData.data.data || []), res.data],
+            total: (oldData.data.total || 0) + 1,
+          },
+        };
+      });
+
+      if (watchedFamilies) {
+        const watchedQueryKey = ["family", watchedFamilies];
+        queryClient.setQueryData(watchedQueryKey, (oldData: any) => {
+          if (!oldData) {
+            return {
+              data: {
+                data: [res.data],
+                total: 1,
+                page: 1,
+                per_page: 10,
+              },
+            };
+          }
+
+          return {
+            ...oldData,
+            data: {
+              ...oldData.data,
+              data: [...(oldData.data.data || []), res.data],
+              total: (oldData.data.total || 0) + 1,
+            },
+          };
+        });
+      }
+
+      queryClient.invalidateQueries({
+        queryKey: ["family"],
+      });
+
       setOpen(false);
       form.reset();
     },
     onError: (error: any) => {
+      console.error("Mutation error:", error);
       toast.error(
-        `Failed to add family information: ${error.message || "Unknown error"}`,
+        `Failed to add family information: ${error?.response?.data?.message || error.message || "Unknown error"}`,
       );
     },
   });
 
-  const onSubmit = (values: IFamilyForm) => {
+  const onSubmit = async (values: IFamilyForm) => {
     try {
+      const payload = {
+        ...values,
+        highest_education: Number(values.highest_education),
+        phone: values.phone ? convertPhoneToNumber(values.phone) : values.phone,
+      };
+
       const params = {
         employee_profile_id,
-        payload: {
-          ...values,
-          highest_education: Number(values.highest_education),
-          phone: convertPhoneToNumber(values.phone),
-        },
+        payload,
       };
-      console.log(params);
+
       createFamilyMutation.mutate(params);
-    } catch (err) {
-      console.log(err);
+    } catch (error) {
+      console.error("Submit error:", error);
+      toast.error("Failed to submit form");
     }
   };
-
-  React.useEffect(() => {
-    if (Object.keys(form.formState.errors).length > 0) {
-      console.log("Form errors:", form.formState.errors);
-    }
-  }, [form.formState.errors]);
 
   const handleCancel = () => {
     setOpen(false);
     form.reset();
     createFamilyMutation.reset();
   };
+
+  React.useEffect(() => {
+    if (Object.keys(form.formState.errors).length > 0) {
+      console.log("Form validation errors:", form.formState.errors);
+    }
+  }, [form.formState.errors]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -207,12 +263,8 @@ export const AddFamilyFormModal = ({ employee_profile_id = 1 }: Props) => {
                 disabled={createFamilyMutation.isPending}
                 required
               />
-              <InputForm name="email" label="Email" required />
-              <PhoneInput
-                name="phone_number"
-                label="Phone Number"
-                required={true}
-              />
+              <InputForm name="email" label="Email" type="email" required />
+              <PhoneInput name="phone" label="Phone Number" required={true} />
               <InputForm
                 name="occupation"
                 label="Occupation"
@@ -227,8 +279,23 @@ export const AddFamilyFormModal = ({ employee_profile_id = 1 }: Props) => {
               />
             </div>
 
+            {Object.keys(form.formState.errors).length > 0 && (
+              <div className="text-red-500 text-sm mt-2">
+                <p>Please fix the following errors:</p>
+                <ul className="list-disc ml-4">
+                  {Object.entries(form.formState.errors).map(
+                    ([field, error]) => (
+                      <li key={field}>
+                        {field}: {error?.message}
+                      </li>
+                    ),
+                  )}
+                </ul>
+              </div>
+            )}
+
             {createFamilyMutation.isError && (
-              <div className="text-error text-sm mt-2">
+              <div className="text-red-500 text-sm mt-2">
                 Error:{" "}
                 {createFamilyMutation.error?.message ||
                   "Failed to save family information"}
@@ -244,7 +311,12 @@ export const AddFamilyFormModal = ({ employee_profile_id = 1 }: Props) => {
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={createFamilyMutation.isPending}>
+              <Button
+                type="submit"
+                disabled={
+                  createFamilyMutation.isPending || !form.formState.isValid
+                }
+              >
                 {createFamilyMutation.isPending ? "Saving..." : "Save"}
               </Button>
             </DialogFooter>
@@ -255,7 +327,7 @@ export const AddFamilyFormModal = ({ employee_profile_id = 1 }: Props) => {
   );
 };
 
-const SectionHeader = ({ withAddButton, employee_profile_id = 1 }: Props) => (
+const SectionHeader = ({ withAddButton, employee_profile_id }: Props) => (
   <div
     className={withAddButton ? "flex justify-between items-center mb-4" : ""}
   >
@@ -273,29 +345,31 @@ const SectionHeader = ({ withAddButton, employee_profile_id = 1 }: Props) => (
 export const FamilyInformationSection = React.memo<Props>(
   function FamilyInformationSection({
     withAddButton = false,
-    employee_profile_id = 1,
+    employee_profile_id,
   }) {
-    const {
-      data: families,
-      isLoading,
-      error,
-    } = useQuery({
-      queryKey: ["family", employee_profile_id],
+    const formContext = useFormContext();
+
+    const watchedFamilies = formContext ? formContext.watch("families") : null;
+
+    const { data, isLoading } = useQuery({
+      queryKey: employee_profile_id
+        ? ["family", employee_profile_id]
+        : ["family"],
       queryFn: () => getFamilies({ employee_profile_id }),
       retry: (failureCount, error: any) => {
-        if (error?.response?.status >= 400) {
+        console.error("Query error:", error);
+        if (error?.response?.status >= 400 && error?.response?.status < 500) {
           return false;
         }
         return failureCount < 3;
       },
+      enabled: !!employee_profile_id,
     });
 
-    if (error) {
-      toast.error("Error fetching families data");
-    }
+    const returnedData = data?.data?.data || watchedFamilies;
 
     return (
-      <>
+      <React.Fragment>
         <SectionHeader
           withAddButton={withAddButton}
           employee_profile_id={employee_profile_id}
@@ -310,15 +384,15 @@ export const FamilyInformationSection = React.memo<Props>(
         ) : (
           <DataTable
             columns={columns}
-            data={families?.data.data}
+            data={returnedData || []}
             tableClassName="table-fixed w-full"
-            tableCellClassName={TABLE_CELL_CLASSES}
-            tableHeadClassName={TABLE_CELL_CLASSES}
+            tableCellClassName="w-1/9 text-clip text-balance"
+            tableHeadClassName="w-1/9 text-clip text-balance"
           />
         )}
 
         <Separator className="my-6" />
-      </>
+      </React.Fragment>
     );
   },
 );
