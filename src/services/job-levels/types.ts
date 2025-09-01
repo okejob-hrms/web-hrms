@@ -7,7 +7,7 @@ export type IJobLevelForm = z.infer<typeof jobLevelFormScheme>;
 export interface JobLevel {
   id: number;
   name: string;
-  description: string;
+  description?: string;
   created_at: string;
   updated_at: string;
 }
