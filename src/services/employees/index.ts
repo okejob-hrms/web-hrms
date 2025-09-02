@@ -64,11 +64,14 @@ export const createEmployee = (
 
 export const updateEmployee = (
   params: IMutateEmployeeRequests,
-  id: number
+  id: number,
 ): Promise<ApiResponse<ICreateEmployeeResponse>> => {
-  const response = api.put<ApiResponse<ICreateEmployeeResponse>>(`employees/${id}`, {
-    json: params,
-  });
+  const response = api.put<ApiResponse<ICreateEmployeeResponse>>(
+    `employees/${id}`,
+    {
+      json: params,
+    },
+  );
   return response.json();
 };
 

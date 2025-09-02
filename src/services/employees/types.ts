@@ -174,6 +174,15 @@ export interface IEmployeeDetailsResponse {
     end_date: string;
     base_salary: string;
     salary_nett: string;
+    allowances: {
+      id: number;
+      employment_id: number;
+      allowance_type_id: number;
+      allowance_value: string;
+      deleted_at: string | null;
+      created_at: string;
+      updated_at: string | null;
+    }[];
     status: number;
     deleted_at: string | null;
     created_at: string;

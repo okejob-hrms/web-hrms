@@ -1,4 +1,3 @@
-// src/components/pages/employee-management-form/edit/index.tsx
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
@@ -32,7 +31,9 @@ import {
 } from "@/services/employees";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
+import EmployeeUpdateModal from "../sections/edit-modal";
+import EmployeeArchieveModal from "../sections/archieve-modal";
+import AppSkeleton from "@/components/partials/app-skeleton";
 
 interface Props {
   employee_profile_id: number;
@@ -42,76 +43,95 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
   employee_profile_id,
 }: Props) {
   const router = useRouter();
-  const { data } = useQuery({
+  const [isDataLoaded, setIsDataLoaded] = React.useState(false);
+
+  const { data, isLoading } = useQuery({
     queryKey: ["employee-detail", employee_profile_id],
     queryFn: () => getEmployeeDetail(employee_profile_id),
   });
   const employeeDetails = data?.data;
-  const { mutate: editEmployee } = useMutation({
-    mutationFn: (params: IMutateEmployeeRequests) => updateEmployee(params, employee_profile_id),
-    onSuccess: () => {
-      toast.success("Edit employee successfully!");
-      router.push("/employee/employee-management");
-      form.reset();
-    },
-    onError: (error: any) => {
-      toast.error(
-        `Failed to edit employee: ${error.message || "Unknown error"}`,
-      );
-    },
-  });
-  const { mutate: archieveEmployee } = useMutation({
-    mutationFn: () => deleteEmployee(employee_profile_id),
-    onSuccess: () => {
-      toast.success("Archieve employee successfully!");
-      router.push("/employee/employee-management");
-      form.reset();
-    },
-    onError: (error: any) => {
-      toast.error(
-        `Failed to archieve employee: ${error.message || "Unknown error"}`,
-      );
-    },
-  });
+
+  const { mutate: editEmployee, isPending: isPendingEditEmployee } =
+    useMutation({
+      mutationFn: (params: IMutateEmployeeRequests) =>
+        updateEmployee(params, employee_profile_id),
+      onSuccess: () => {
+        toast.success("Edit employee successfully!");
+        router.push("/employee/employee-management");
+      },
+      onError: (error: any) => {
+        toast.error(
+          `Failed to edit employee: ${error.message || "Unknown error"}`,
+        );
+      },
+    });
+
+  const { mutate: archieveEmployee, isPending: isPendingArchieveEmployee } =
+    useMutation({
+      mutationFn: () => deleteEmployee(employee_profile_id),
+      onSuccess: () => {
+        toast.success("Archive employee successfully!");
+        router.push("/employee/employee-management");
+      },
+      onError: (error: any) => {
+        toast.error(
+          `Failed to archive employee: ${error.message || "Unknown error"}`,
+        );
+      },
+    });
+
   const form = useForm<z.infer<typeof employeeManagementFormScheme>>({
     resolver: zodResolver(employeeManagementFormScheme),
     defaultValues: employeeManagementFormDefaultValues,
+    mode: "onChange",
   });
 
   React.useEffect(() => {
-    if (employeeDetails) {
-      const primaryDirectReports = employeeDetails.reporting_relationships
-        .filter((report) => report.relationship_type === "primary")
-        .map((report) => report.employee_profile_id);
+    if (employeeDetails && !isDataLoaded) {
+      const primaryDirectReports =
+        employeeDetails.reporting_relationships
+          ?.filter((report) => report.relationship_type === "primary")
+          .map((report) => report.employee_profile_id) || [];
 
-      const secondaryDirectReports = employeeDetails.reporting_relationships
-        .filter((report) => report.relationship_type === "secondary")
-        .map((report) => report.employee_profile_id);
+      const secondaryDirectReports =
+        employeeDetails.reporting_relationships
+          ?.filter((report) => report.relationship_type === "secondary")
+          .map((report) => report.employee_profile_id) || [];
+
       const formValues = {
         ...employeeDetails,
-        name: employeeDetails.user.name,
-        email: employeeDetails.user.email,
+        name: employeeDetails.user?.name || "",
+        email: employeeDetails.user?.email || "",
         date_of_birth: employeeDetails.date_of_birth
           ? new Date(employeeDetails.date_of_birth)
           : new Date(),
-        start_date: employeeDetails.employment.start_date
+        blood_type: employeeDetails.blood_type || "",
+        start_date: employeeDetails.employment?.start_date
           ? new Date(employeeDetails.employment.start_date)
           : new Date(),
-        end_date: employeeDetails.employment.end_date
+        end_date: employeeDetails.employment?.end_date
           ? new Date(employeeDetails.employment.end_date)
           : new Date(),
-        role_id: employeeDetails.employment.job_level_id.toString() || "",
-        marital_status: employeeDetails.marital_status.toString(),
-        height: Number(employeeDetails.height),
-        weight: Number(employeeDetails.weight),
-        job_position_id: employeeDetails.employment.job_position_id.toString(),
-        department_id: employeeDetails.employment.job_position_id.toString(),
-        job_level_id: employeeDetails.employment.job_level_id.toString(),
-        bank_id: employeeDetails.bank_account?.bank_id.toString(),
-        salary_nett: Number(employeeDetails.employment.salary_nett),
-        base_salary: Number(employeeDetails.employment.base_salary),
-        team_members: employeeDetails.team_members[0]?.team_id.toString(),
-        status: employeeDetails.employment.status.toString(),
+        role_id: employeeDetails.employment?.job_level_id?.toString() || "",
+        marital_status: employeeDetails.marital_status?.toString() || "",
+        height: Number(employeeDetails.height) || 0,
+        weight: Number(employeeDetails.weight) || 0,
+        job_position_id:
+          employeeDetails.employment?.job_position_id?.toString() || "",
+        department_id:
+          employeeDetails.employment?.job_position_id?.toString() || "",
+        job_level_id:
+          employeeDetails.employment?.job_level_id?.toString() || "",
+        bank_id: employeeDetails.bank_account?.bank_id?.toString() || "",
+        salary_nett: Number(employeeDetails.employment?.salary_nett) || 0,
+        base_salary: Number(employeeDetails.employment?.base_salary) || 0,
+        team_members:
+          employeeDetails.team_members?.[0]?.team_id?.toString() || "",
+        allowances: employeeDetails.employment.allowances.map((item) => ({
+          allowance_type_id: item.allowance_type_id.toString(),
+          allowance_value: Number(item.allowance_value),
+        })),
+        status: employeeDetails.employment?.status?.toString() || "",
         direct_reports: [
           {
             relationship_type: "primary" as "primary" | "secondary",
@@ -122,8 +142,9 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
             direct_report_id: secondaryDirectReports,
           },
         ],
-        account_number: employeeDetails.bank_account?.account_number.toString(),
-        account_name: employeeDetails.bank_account?.account_name,
+        account_number:
+          employeeDetails.bank_account?.account_number?.toString() || "",
+        account_name: employeeDetails.bank_account?.account_name || "",
         ...(employeeDetails.employee_documents && {
           attachments: employeeDetails.employee_documents?.map((item) => ({
             path: item.path,
@@ -132,18 +153,31 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
         }),
       };
 
-      form.reset(formValues);
+      setTimeout(() => {
+        form.reset(formValues);
+        setIsDataLoaded(true);
+      }, 0);
+
+      // Method 2: Alternative - Set values individually (uncomment if reset doesn't work)
+      /*
+      Object.entries(formValues).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          form.setValue(key as any, value, { shouldValidate: false, shouldDirty: false });
+        }
+      });
+      setIsDataLoaded(true);
+      */
     }
-  }, [employeeDetails, form]);
+  }, [employeeDetails, isDataLoaded, form]);
 
   const onSubmit = (values: z.infer<typeof employeeManagementFormScheme>) => {
     try {
       const { countryCode: _, ...restValues } = values;
       const filteredSocialMedia = values.social_media_accounts?.filter(
-        (account) => account.type.trim() !== "" && account.url.trim() !== "",
+        (account) => account.type?.trim() !== "" && account.url?.trim() !== "",
       );
       const filteredDirectReports = values.direct_reports?.flatMap((item) =>
-        item.direct_report_id.map((subItem: number) => ({
+        (item.direct_report_id || []).map((subItem: number) => ({
           direct_report_id: subItem,
           relationship_type: item.relationship_type as "primary" | "secondary",
         })),
@@ -160,7 +194,7 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
         start_date: dayjs(values.start_date).format("YYYY-MM-DD"),
         end_date: dayjs(values.end_date).format("YYYY-MM-DD"),
         direct_reports: filteredDirectReports,
-        allowances: values.allowances.map((item) => ({
+        allowances: (values.allowances || []).map((item) => ({
           allowance_type_id: Number(item.allowance_type_id),
           allowance_value: Number(item.allowance_value),
         })),
@@ -174,6 +208,15 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
     }
   };
 
+  if (
+    isLoading ||
+    isPendingEditEmployee ||
+    isPendingArchieveEmployee ||
+    !isDataLoaded
+  ) {
+    return <AppSkeleton />;
+  }
+
   return (
     <React.Fragment>
       <Form {...form}>
@@ -185,31 +228,31 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
           <FamilyInformationSection
             withAddButton
             employee_profile_id={
-              employeeDetails?.employment.employee_profile_id
+              employeeDetails?.employment?.employee_profile_id
             }
           />
           <FormalEducationSection
             withAddButton
             employee_profile_id={
-              employeeDetails?.employment.employee_profile_id
+              employeeDetails?.employment?.employee_profile_id
             }
           />
           <NonFormalEducationSection
             withAddButton
             employee_profile_id={
-              employeeDetails?.employment.employee_profile_id
+              employeeDetails?.employment?.employee_profile_id
             }
           />
           <WorkExperienceSection
             withAddButton
             employee_profile_id={
-              employeeDetails?.employment.employee_profile_id
+              employeeDetails?.employment?.employee_profile_id
             }
           />
           <ContactOfReferenceSection
             withAddButton
             employee_profile_id={
-              employeeDetails?.employment.employee_profile_id
+              employeeDetails?.employment?.employee_profile_id
             }
           />
           <AttachmentsSection
@@ -217,26 +260,17 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
           />
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex gap-2 my-8 justify-between md:justify-start w-full">
-              <Button variant="outline" className="md:max-w-36 w-[50%]">
+              <Button
+                type="button"
+                variant="outline"
+                className="md:max-w-36 w-[50%]"
+                onClick={() => router.push("/employee/employee-management")}
+              >
                 Cancel
               </Button>
-              <Button type="submit" className="md:max-w-36 w-[50%]">
-                Update
-              </Button>
+              <EmployeeUpdateModal onUpdate={form.handleSubmit(onSubmit)} />
             </div>
-            <Button
-              className="min-w-36 text-error font-semibold text-base"
-              variant="ghost"
-              onClick={() => archieveEmployee}
-            >
-              <Image
-                src="/icons/deleteOutlined.svg"
-                width={20}
-                height={20}
-                alt="delete"
-              />{" "}
-              Archieve Employee
-            </Button>
+            <EmployeeArchieveModal onArchieve={() => archieveEmployee()} />
           </div>
         </form>
       </Form>
