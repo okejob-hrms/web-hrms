@@ -157,16 +157,6 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
         form.reset(formValues);
         setIsDataLoaded(true);
       }, 0);
-
-      // Method 2: Alternative - Set values individually (uncomment if reset doesn't work)
-      /*
-      Object.entries(formValues).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          form.setValue(key as any, value, { shouldValidate: false, shouldDirty: false });
-        }
-      });
-      setIsDataLoaded(true);
-      */
     }
   }, [employeeDetails, isDataLoaded, form]);
 
