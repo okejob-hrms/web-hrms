@@ -87,7 +87,7 @@ export const EmployeeListSidebar = () => {
     return openStates[jobLevelId] ?? true; // Default to open
   };
   const {
-    // data: jobLevelGroups,
+    data: fetchJobLevelGroups,
     // isLoading,
     // isError,
   } = useQuery({
@@ -96,7 +96,7 @@ export const EmployeeListSidebar = () => {
   });
 
   const filteredGroups = useMemo(() => {
-    const jobLevelGroups = dummyJobLevelGroups;
+    const jobLevelGroups = fetchJobLevelGroups;
     if (!jobLevelGroups?.data) return [];
 
     if (!searchTerm) return jobLevelGroups.data;

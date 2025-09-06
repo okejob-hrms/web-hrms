@@ -20,6 +20,7 @@ import {
   IPositionForm,
   JobPositionResponse,
 } from "@/services/job-position/types";
+import { HTTPError } from "ky";
 
 export function useJobPositions() {
   const queryClient = useQueryClient();
@@ -62,16 +63,30 @@ export function useJobPositions() {
     },
   });
 
-  const { mutate: editJobPosition } = useMutation({
+  const { mutate: editJobPosition, isPending: isPendingEdit } = useMutation({
     mutationFn: putJobPositions,
     onSuccess: () => {
       toast.success("Job position updated successfully!");
       queryClient.invalidateQueries({ queryKey: ["job-positions"] });
       handleClose();
     },
-    onError: (error) => {
+    onError: async (error) => {
       handleClose();
-      toast.error(`Failed to update job position: ${error.message}`);
+      try {
+        if (error instanceof HTTPError) {
+          const errorData = await error.response.json();
+          const message =
+            errorData.errors?.name?.[0] ||
+            errorData.errors?.status?.[0] ||
+            errorData.message ||
+            "An unknown error occurred.";
+          toast.error(message);
+        } else {
+          toast.error(`Failed to update job position: ${error.message}`);
+        }
+      } catch (_) {
+        toast.error(`An unexpected error occurred: ${error.message}`);
+      }
     },
   });
 
@@ -102,43 +117,35 @@ export function useJobPositions() {
     }
   );
 
-  // Handler to open the modal for creating
   const handleCreate = () => {
     setSelectedJobPosition(null);
     setEditModalOpen(true);
   };
 
-  // Handler to open the modal for editing
   const handleEdit = (jobPosition: JobPositionResponse) => {
     setSelectedJobPosition(jobPosition);
     setEditModalOpen(true);
   };
 
-  // Handler to open the delete confirmation dialog
   const handleDeleteClick = (jobPosition: JobPositionResponse) => {
     setSelectedJobPosition(jobPosition);
     setDeleteDialogOpen(true);
   };
 
-  // Handler to save (either create or update)
   const handleSave = (data: IPositionForm) => {
     if (selectedJobPosition) {
-      // It's an update
       editJobPosition({ id: selectedJobPosition.id, payload: data });
     } else {
-      // It's a create
-      addJobPosition({ name: data.name });
+      addJobPosition({ name: data.name, status: data.status });
     }
   };
 
-  // Handler to confirm deletion
   const handleDeleteConfirm = () => {
     if (selectedJobPosition) {
       removeJobPosition({ id: selectedJobPosition.id });
     }
   };
 
-  // Handler to close all modals and reset state
   const handleClose = () => {
     setEditModalOpen(false);
     setDeleteDialogOpen(false);
@@ -152,6 +159,7 @@ export function useJobPositions() {
       isFetching ||
       isRefetching ||
       isPendingAdd ||
+      isPendingEdit ||
       isPendingRemove,
     hasNextPage,
     hasPreviousPage,

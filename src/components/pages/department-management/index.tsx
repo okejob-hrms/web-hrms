@@ -147,6 +147,7 @@ export default function DepartmentManagementList() {
         open={isDeleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
         onDelete={handleDeleteConfirm}
+        isLoading={isLoading}
       />
       <DepartmentModal
         open={isEditModalOpen}
@@ -154,6 +155,7 @@ export default function DepartmentManagementList() {
         initialData={selectedDepartment}
         handleSave={handleSave}
         handleClose={handleClose}
+        isLoading={isLoading}
       />
     </div>
   );

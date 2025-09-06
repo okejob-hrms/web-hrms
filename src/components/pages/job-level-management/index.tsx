@@ -136,6 +136,7 @@ export default function JobLevelList() {
         open={isDeleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
         onDelete={handleDeleteConfirm}
+        isLoading={isLoading}
       />
       <JobLevelModal
         open={isEditModalOpen}
@@ -143,6 +144,7 @@ export default function JobLevelList() {
         initialData={selectedJobLevel}
         handleSave={handleSave}
         handleClose={handleClose}
+        isLoading={isLoading}
       />
     </div>
   );

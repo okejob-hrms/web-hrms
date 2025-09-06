@@ -11,10 +11,12 @@ export default function DeleteDepartmentDialog({
   open,
   onOpenChange,
   onDelete,
+  isLoading,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onDelete: () => void;
+  isLoading?: boolean;
 }) {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -42,12 +44,14 @@ export default function DeleteDepartmentDialog({
           <Button
             className="w-1/2 bg-transparent text-red-500 hover:bg-transparent font-medium py-2 rounded-lg shadow-none border-none"
             onClick={onDelete}
+            isLoading={isLoading}
           >
             Delete Department
           </Button>
           <Button
             className="w-1/2 bg-[#18618B] hover:bg-[#14506e] text-white font-medium py-2 rounded-lg"
             onClick={() => onOpenChange(false)}
+            disabled={isLoading}
           >
             Cancel
           </Button>

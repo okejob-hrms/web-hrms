@@ -31,6 +31,7 @@ interface DepartmentModalProps {
   initialData: IDepartment | null;
   handleSave: (data: DepartmentFormValues) => void;
   handleClose: () => void;
+  isLoading?: boolean;
 }
 
 export default function DepartmentModal({
@@ -39,6 +40,7 @@ export default function DepartmentModal({
   initialData,
   handleSave,
   handleClose,
+  isLoading,
 }: DepartmentModalProps) {
   const form = useForm<DepartmentFormValues>({
     resolver: zodResolver(departmentManagementFormScheme),
@@ -127,11 +129,13 @@ export default function DepartmentModal({
               <AlertDialogCancel
                 className="min-w-[100px] border-2 border-[#18618B] text-[#18618B] bg-white hover:bg-[#e6f1f7] font-medium py-2 rounded-lg"
                 onClick={handleClose}
+                disabled={isLoading}
               >
                 Cancel
               </AlertDialogCancel>
               <Button
                 type="submit"
+                isLoading={isLoading}
                 disabled={!form.formState.isValid}
                 className="min-w-[100px] bg-[#18618B] hover:bg-[#14506e] text-white font-medium py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
