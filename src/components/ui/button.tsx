@@ -77,9 +77,14 @@ Button.displayName = "Button";
 interface FilePreviewProps {
   preview: PreviewDoc;
   onRemove: () => void;
+  isRemoving?: boolean;
 }
 
-function FilePreview({ preview, onRemove }: FilePreviewProps) {
+function FilePreview({
+  preview,
+  onRemove,
+  isRemoving = false,
+}: FilePreviewProps) {
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return "0 Bytes";
     const k = 1024;
@@ -89,17 +94,34 @@ function FilePreview({ preview, onRemove }: FilePreviewProps) {
   };
 
   return (
-    <div className="flex flex-row border rounded-xs border-grayscale-10 p-2">
-      <div className="flex flex-col gap-2">
-        <span className="text-text-secondary font-semibold text-sm">
+    <div
+      className={cn(
+        "flex justify-between items-center border rounded-xs border-grayscale-10 p-2 transition-opacity",
+        isRemoving && "opacity-50",
+      )}
+    >
+      <div className="flex flex-col gap-1 flex-1 min-w-0">
+        <span className="text-text-secondary font-semibold text-sm truncate">
           {preview.name}
         </span>
         <span className="text-text-disabled text-[10px]">
           {formatFileSize(preview.size)}
         </span>
       </div>
-      <Button variant="ghost" className="w-fit" onClick={onRemove}>
-        <Trash />
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        className="ml-2 h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50 flex-shrink-0"
+        onClick={onRemove}
+        disabled={isRemoving}
+        aria-label={`Remove ${preview.name}`}
+      >
+        {isRemoving ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <Trash className="h-4 w-4" />
+        )}
       </Button>
     </div>
   );
@@ -112,62 +134,101 @@ function UploadButton({
   defaultFile,
 }: UploadButtonProps) {
   const ref = React.useRef<HTMLInputElement>(null);
-  const { preview, handleFileUpload, handleRemove, isUploading, setPreview } =
-    useFileUpload({ name });
+  const [isInitialized, setIsInitialized] = React.useState(false);
 
-  const handleButtonClick = () => {
-    if (ref.current) {
+  const {
+    preview,
+    handleFileUpload,
+    handleRemove,
+    isUploading,
+    isRemoving,
+    setPreview,
+  } = useFileUpload({ name });
+
+  const handleButtonClick = React.useCallback(() => {
+    if (ref.current && !isUploading) {
       ref.current.click();
     }
-  };
+  }, [isUploading]);
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      handleFileUpload(file);
+  const handleFileChange = React.useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (file) {
+        handleFileUpload(file);
 
-      // Clear the input value to allow re-uploading the same file
-      if (ref.current) {
-        ref.current.value = "";
+        if (ref.current) {
+          ref.current.value = "";
+        }
       }
-    }
-  };
+    },
+    [handleFileUpload],
+  );
 
   React.useEffect(() => {
-    if (defaultFile && !preview) {
+    if (defaultFile && !preview && !isInitialized) {
       setPreview({
-        name: defaultFile.filename,
-        size: defaultFile.size,
-        url: defaultFile.path,
-        type: defaultFile.mime_type,
+        name: defaultFile.filename || "Unknown file",
+        size: defaultFile.size || 0,
+        url: defaultFile.path || "",
+        type: defaultFile.mime_type || "",
       });
+
+      setIsInitialized(true);
     }
-  }, [defaultFile, preview, setPreview]);
+  }, [defaultFile, preview, setPreview, isInitialized]);
+
+  const handleRemoveWithConfirmation = React.useCallback(() => {
+    if (window.confirm("Are you sure you want to remove this file?")) {
+      handleRemove();
+    }
+  }, [handleRemove]);
 
   return (
-    <div className="flex flex-col max-w-fit gap-2">
-      <span className="text-sm">
-        {label}
-        {required && <span className="text-error">*</span>}
-      </span>
+    <div className="flex flex-col gap-3 max-w-full">
+      <div className="flex items-center gap-1">
+        <span className="text-sm font-medium">{label}</span>
+        {required && (
+          <span className="text-red-500 text-sm" aria-label="Required field">
+            *
+          </span>
+        )}
+      </div>
 
-      {preview && <FilePreview preview={preview} onRemove={handleRemove} />}
+      {preview && (
+        <FilePreview
+          preview={preview}
+          onRemove={handleRemoveWithConfirmation}
+          isRemoving={isRemoving}
+        />
+      )}
 
       <Button
+        type="button"
         variant="outline"
-        className="w-28"
+        className="w-fit min-w-[140px]"
+        size="default"
         onClick={handleButtonClick}
-        disabled={isUploading}
+        disabled={isUploading || isRemoving}
       >
-        <Image
-          aria-hidden
-          src="/icons/attachmentBlue.svg"
-          alt="attachment icon"
-          width={18}
-          height={18}
-          className="text-primary"
-        />
-        {isUploading ? "Uploading..." : "Upload File"}
+        {isUploading ? (
+          <>
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Uploading...
+          </>
+        ) : (
+          <>
+            <Image
+              aria-hidden
+              src="/icons/attachmentBlue.svg"
+              alt=""
+              width={18}
+              height={18}
+              className="text-primary"
+            />
+            {preview ? "Change File" : "Upload File"}
+          </>
+        )}
       </Button>
 
       <input
@@ -175,7 +236,9 @@ function UploadButton({
         ref={ref}
         onChange={handleFileChange}
         className="hidden"
-        disabled={isUploading}
+        disabled={isUploading || isRemoving}
+        aria-label={`Upload file for ${label}`}
+        accept="*/*"
       />
     </div>
   );

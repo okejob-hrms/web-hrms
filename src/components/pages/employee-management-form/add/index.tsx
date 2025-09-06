@@ -45,21 +45,19 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
     },
   });
   const form = useForm<z.infer<typeof employeeManagementFormScheme>>({
-    resolver: zodResolver(employeeManagementFormScheme),
+    // resolver: zodResolver(employeeManagementFormScheme),
     defaultValues: employeeManagementFormDefaultValues,
   });
 
   const onSubmit = (values: z.infer<typeof employeeManagementFormScheme>) => {
     try {
-      const { countryCode: _, ...restValues } = values;
+      const {
+        countryCode: _,
+        additional_direct_report_id,
+        ...restValues
+      } = values;
       const filteredSocialMedia = values.social_media_accounts?.filter(
         (account) => account?.type.trim() !== "" && account?.url.trim() !== "",
-      );
-      const filteredDirectReports = values.direct_reports?.flatMap((item) =>
-        item.direct_report_id.map((subItem: number) => ({
-          direct_report_id: subItem,
-          relationship_type: item.relationship_type as "primary" | "secondary",
-        })),
       );
 
       const params: IMutateEmployeeRequests = {
@@ -75,7 +73,6 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
         date_of_birth: dayjs(values.date_of_birth).format("YYYY-MM-DD"),
         start_date: dayjs(values.start_date).format("YYYY-MM-DD"),
         end_date: dayjs(values.end_date).format("YYYY-MM-DD"),
-        direct_reports: filteredDirectReports,
         allowances: values.allowances.map((item) => ({
           allowance_type_id: Number(item.allowance_type_id),
           allowance_value: Number(item.allowance_value),
@@ -88,7 +85,16 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
         ),
         families: values.families?.filter((item) => item.id),
         educations: values.educations?.filter((item) => item.id),
+        ...(values.primary_direct_report_id !== 0 && {
+          primary_direct_report_id: Number(values.primary_direct_report_id),
+        }),
+        ...(values.additional_direct_report_id !== 0 && {
+          additional_direct_report_id: Number(
+            values.additional_direct_report_id,
+          ),
+        }),
       };
+      console.log(params);
       mutate(params);
     } catch (err) {
       console.log("Error submit", err);

@@ -40,7 +40,6 @@ export const api = ky.create({
   },
 });
 
-
 export const apiUpload = ky.create({
   prefixUrl:
     process.env.NEXT_PUBLIC_BASE_URL || "https://api.okejobhub.fun/api/v1",

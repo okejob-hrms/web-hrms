@@ -11,6 +11,7 @@ interface Params {
   employee_profile_id?: number;
   payload?: IFormalEducationForm | INonFormalEducationForm;
   search?: string;
+  id?: number;
 }
 
 export const postCreateEducation = async (
@@ -30,6 +31,26 @@ export const getEducations = async (
     ApiResponse<PaginatedResponse<IEducationResponse>>
   >(
     `employees/${params.employee_profile_id}/educations${params.search ? qs.stringify({ search: params.search }, { encodeValuesOnly: true }) : ""}`,
+  );
+  return response.json();
+};
+
+export const putUpdateEducation = async (
+  params: Params,
+): Promise<ApiResponse<IEducationResponse>> => {
+  const response = await api.put<ApiResponse<IEducationResponse>>(
+    `employees/${params.employee_profile_id}/educations/${params.id}`,
+    { json: params.payload },
+  );
+  return response.json();
+};
+
+export const deleteEducation = async (
+  params: Params,
+): Promise<ApiResponse<IEducationResponse>> => {
+  const response = await api.delete<ApiResponse<IEducationResponse>>(
+    `employees/${params.employee_profile_id}/educations/${params.id}`,
+    { json: params.payload },
   );
   return response.json();
 };

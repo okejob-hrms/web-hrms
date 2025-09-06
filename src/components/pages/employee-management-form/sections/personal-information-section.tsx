@@ -19,6 +19,7 @@ import { uploadAttachment } from "@/services/attachments";
 import { toast } from "sonner";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { cn, stringAvatar } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const PersonalInformationSection = React.memo(
   function PersonalInformationSection() {
@@ -30,6 +31,8 @@ export const PersonalInformationSection = React.memo(
     const { watch, setValue, getValues, formState } = useFormContext();
     const [socialMediaCount, setSocialMediaCount] = React.useState(1);
     const [previewPhotoProfile, setPreviewPhotoProfile] = React.useState("");
+    const [isLoadingPhotoProfile, setLoadingPhotoProfile] =
+      React.useState(false);
     const fileInputRef = React.useRef<HTMLInputElement>(null);
 
     React.useEffect(() => {
@@ -48,16 +51,18 @@ export const PersonalInformationSection = React.memo(
       }
     }, [watch("social_media_accounts")]);
 
-    const { mutate: uploadPhotoProfile } = useMutation({
-      mutationFn: uploadAttachment,
-      onSuccess: (res) => {
-        setValue("photo_profile", res.data.path);
-        setPreviewPhotoProfile(res.data.url);
-      },
-      onError: (error) => {
-        toast.error(`Failed to upload photo profile: ${error.message}`);
-      },
-    });
+    const { mutate: uploadPhotoProfile, isPending: isPendingPhotoProfile } =
+      useMutation({
+        mutationFn: uploadAttachment,
+        onSuccess: (res) => {
+          setValue("photo_profile", res.data.path);
+          setPreviewPhotoProfile(res.data.url);
+          setLoadingPhotoProfile(false);
+        },
+        onError: (error) => {
+          toast.error(`Failed to upload photo profile: ${error.message}`);
+        },
+      });
 
     const roleOptions = React.useMemo(() => {
       if (roles?.data) {
@@ -76,16 +81,19 @@ export const PersonalInformationSection = React.memo(
     };
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+      setLoadingPhotoProfile(true);
       const file = event.target.files?.[0];
       if (file) {
         if (!file.type.startsWith("image/")) {
           toast.error("Please select an image file");
+          setLoadingPhotoProfile(false);
           return;
         }
 
         const maxSize = 5 * 1024 * 1024; // 5MB
         if (file.size > maxSize) {
           toast.error("File size must be less than 5MB");
+          setLoadingPhotoProfile(false);
           return;
         }
 
@@ -93,6 +101,7 @@ export const PersonalInformationSection = React.memo(
 
         if (fileInputRef.current) {
           fileInputRef.current.value = "";
+          setLoadingPhotoProfile(false);
         }
       }
     };
@@ -134,24 +143,29 @@ export const PersonalInformationSection = React.memo(
               <span className="text-sm text-text-disabled">(optional)</span>
             </label>
             <div className="flex items-center gap-4">
-              <Avatar className="size-20 bg-grayscale-10 items-center justify-center">
-                <AvatarImage
-                  src={previewPhotoProfile || "/icons/userPlaceholder.svg"}
-                  alt="Profile photo"
-                  className={cn(
-                    `bg-grayscale-10 m-auto object-cover`,
-                    !previewPhotoProfile && "h-10 w-10",
-                  )}
-                />
-                <AvatarFallback className="size-10 font-semibold">
-                  {stringAvatar(watch("name"))}
-                </AvatarFallback>
-              </Avatar>
+              {isLoadingPhotoProfile || isPendingPhotoProfile ? (
+                <Skeleton className="size-20 rounded-full" />
+              ) : (
+                <Avatar className="size-20 bg-grayscale-10 items-center justify-center">
+                  <AvatarImage
+                    src={previewPhotoProfile || "/icons/userPlaceholder.svg"}
+                    alt="Profile photo"
+                    className={cn(
+                      `bg-grayscale-10 m-auto object-cover`,
+                      !previewPhotoProfile && "h-10 w-10",
+                    )}
+                  />
+                  <AvatarFallback className="size-10 font-semibold">
+                    {stringAvatar(watch("name"))}
+                  </AvatarFallback>
+                </Avatar>
+              )}
               <Button
                 variant="outline"
                 className="w-44"
                 size="lg"
                 onClick={handlePhoto}
+                disabled={isLoadingPhotoProfile || isPendingPhotoProfile}
                 type="button"
               >
                 <Image

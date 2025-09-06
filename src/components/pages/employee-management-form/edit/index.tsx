@@ -1,4 +1,3 @@
-// src/components/pages/employee-management-form/edit/index.tsx
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
@@ -14,7 +13,6 @@ import { BankInformationSection } from "../sections/bank-information-section";
 import { FamilyInformationSection } from "../sections/family-information-section";
 import { FormalEducationSection } from "../sections/formal-education-section";
 import { NonFormalEducationSection } from "../sections/non-formal-education-section";
-import { WorkExperienceSection } from "../sections/work-experience-section";
 import { ContactOfReferenceSection } from "../sections/contact-reference-section";
 import { AttachmentsSection } from "../sections/attachments-section";
 import { Button } from "../../../ui/button";
@@ -32,7 +30,10 @@ import {
 } from "@/services/employees";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
+import EmployeeUpdateModal from "../sections/edit-modal";
+import EmployeeArchieveModal from "../sections/archieve-modal";
+import AppSkeleton from "@/components/partials/app-skeleton";
+import { WorkExperienceSection } from "../sections/work-experience-section";
 
 interface Props {
   employee_profile_id: number;
@@ -42,142 +43,280 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
   employee_profile_id,
 }: Props) {
   const router = useRouter();
-  const { data } = useQuery({
+  const [isDataLoaded, setIsDataLoaded] = React.useState(false);
+
+  const { data, isLoading } = useQuery({
     queryKey: ["employee-detail", employee_profile_id],
     queryFn: () => getEmployeeDetail(employee_profile_id),
   });
   const employeeDetails = data?.data;
-  const { mutate: editEmployee } = useMutation({
-    mutationFn: (params: IMutateEmployeeRequests) => updateEmployee(params, employee_profile_id),
-    onSuccess: () => {
-      toast.success("Edit employee successfully!");
-      router.push("/employee/employee-management");
-      form.reset();
-    },
-    onError: (error: any) => {
-      toast.error(
-        `Failed to edit employee: ${error.message || "Unknown error"}`,
-      );
-    },
-  });
-  const { mutate: archieveEmployee } = useMutation({
-    mutationFn: () => deleteEmployee(employee_profile_id),
-    onSuccess: () => {
-      toast.success("Archieve employee successfully!");
-      router.push("/employee/employee-management");
-      form.reset();
-    },
-    onError: (error: any) => {
-      toast.error(
-        `Failed to archieve employee: ${error.message || "Unknown error"}`,
-      );
-    },
-  });
+
+  const { mutate: editEmployee, isPending: isPendingEditEmployee } =
+    useMutation({
+      mutationFn: (params: IMutateEmployeeRequests) =>
+        updateEmployee(params, employee_profile_id),
+      onSuccess: () => {
+        toast.success("Edit employee successfully!");
+        router.push("/employee/employee-management");
+      },
+      onError: (error: any) => {
+        toast.error(
+          `Failed to edit employee: ${error.message || "Unknown error"}`,
+        );
+      },
+    });
+
+  const { mutate: archieveEmployee, isPending: isPendingArchieveEmployee } =
+    useMutation({
+      mutationFn: () => deleteEmployee(employee_profile_id),
+      onSuccess: () => {
+        toast.success("Archive employee successfully!");
+        router.push("/employee/employee-management");
+      },
+      onError: (error: any) => {
+        toast.error(
+          `Failed to archive employee: ${error.message || "Unknown error"}`,
+        );
+      },
+    });
+
   const form = useForm<z.infer<typeof employeeManagementFormScheme>>({
     resolver: zodResolver(employeeManagementFormScheme),
     defaultValues: employeeManagementFormDefaultValues,
+    mode: "onChange",
   });
 
-  React.useEffect(() => {
-    if (employeeDetails) {
-      const primaryDirectReports = employeeDetails.reporting_relationships
-        .filter((report) => report.relationship_type === "primary")
-        .map((report) => report.employee_profile_id);
+  const hasValidSocialMediaAccounts = React.useCallback((accounts: any[]) => {
+    return (
+      accounts &&
+      accounts.length > 0 &&
+      accounts.some(
+        (account) =>
+          account?.type &&
+          account?.url &&
+          account.type.trim() !== "" &&
+          account.url.trim() !== "",
+      )
+    );
+  }, []);
 
-      const secondaryDirectReports = employeeDetails.reporting_relationships
-        .filter((report) => report.relationship_type === "secondary")
-        .map((report) => report.employee_profile_id);
+  const filterValidData = React.useCallback(
+    (data: any[], requiredFields: string[]) => {
+      if (!data || !Array.isArray(data) || data.length === 0) {
+        return [];
+      }
+
+      return data.filter(
+        (item) =>
+          item &&
+          requiredFields.every(
+            (field) =>
+              item[field] !== undefined &&
+              item[field] !== null &&
+              String(item[field]).trim() !== "",
+          ),
+      );
+    },
+    [],
+  );
+
+  React.useEffect(() => {
+    if (employeeDetails && !isDataLoaded) {
+      const socialMediaAccounts = employeeDetails.social_media_accounts || [];
+      const validSocialMedia =
+        socialMediaAccounts.length > 0
+          ? socialMediaAccounts.map((item) => ({
+              url: item.url || "",
+              type: item.type || "",
+            }))
+          : [{ type: "", url: "" }];
       const formValues = {
         ...employeeDetails,
-        name: employeeDetails.user.name,
-        email: employeeDetails.user.email,
+        name: employeeDetails.user?.name || "",
+        email: employeeDetails.user?.email || "",
+        phone_number: employeeDetails.phone_number?.toString() || "",
         date_of_birth: employeeDetails.date_of_birth
           ? new Date(employeeDetails.date_of_birth)
           : new Date(),
-        start_date: employeeDetails.employment.start_date
+        start_date: employeeDetails.employment?.start_date
           ? new Date(employeeDetails.employment.start_date)
           : new Date(),
-        end_date: employeeDetails.employment.end_date
+        end_date: employeeDetails.employment?.end_date
           ? new Date(employeeDetails.employment.end_date)
           : new Date(),
-        role_id: employeeDetails.employment.job_level_id.toString() || "",
-        marital_status: employeeDetails.marital_status.toString(),
-        height: Number(employeeDetails.height),
-        weight: Number(employeeDetails.weight),
-        job_position_id: employeeDetails.employment.job_position_id.toString(),
-        department_id: employeeDetails.employment.job_position_id.toString(),
-        job_level_id: employeeDetails.employment.job_level_id.toString(),
-        bank_id: employeeDetails.bank_account?.bank_id.toString(),
-        salary_nett: Number(employeeDetails.employment.salary_nett),
-        base_salary: Number(employeeDetails.employment.base_salary),
-        team_members: employeeDetails.team_members[0]?.team_id.toString(),
-        status: employeeDetails.employment.status.toString(),
-        direct_reports: [
-          {
-            relationship_type: "primary" as "primary" | "secondary",
-            direct_report_id: primaryDirectReports,
-          },
-          {
-            relationship_type: "secondary" as "primary" | "secondary",
-            direct_report_id: secondaryDirectReports,
-          },
-        ],
-        account_number: employeeDetails.bank_account?.account_number.toString(),
-        account_name: employeeDetails.bank_account?.account_name,
-        ...(employeeDetails.employee_documents && {
-          attachments: employeeDetails.employee_documents?.map((item) => ({
-            path: item.path,
-            type: item.type,
-          })),
-        }),
+        blood_type: employeeDetails.blood_type || "",
+        marital_status: employeeDetails.marital_status?.toString() || "",
+        height: Number(employeeDetails.height) || 0,
+        weight: Number(employeeDetails.weight) || 0,
+        gender: employeeDetails.gender || "",
+        place_of_birth: employeeDetails.place_of_birth || "",
+        id_number: employeeDetails.id_number || "",
+        npwp: employeeDetails.npwp || "",
+        bpjs: employeeDetails.bpjs || "",
+        citizen_id_address: employeeDetails.citizen_id_address || "",
+        residential_address: employeeDetails.residential_address || "",
+        hobby: employeeDetails.hobby || "",
+        achievement: employeeDetails.achievement || "",
+        personal_description: employeeDetails.personal_description || "",
+        photo_profile: employeeDetails.photo_profile || "",
+        role_id: employeeDetails.employment?.job_level_id?.toString() || "",
+        job_position_id:
+          employeeDetails.employment?.job_position_id?.toString() || "",
+        department_id:
+          employeeDetails.employment?.department_id?.toString() || "",
+        job_level_id:
+          employeeDetails.employment?.job_level_id?.toString() || "",
+        status: employeeDetails.employment?.status?.toString() || "",
+        team_members:
+          employeeDetails.team_members?.[0]?.team_id?.toString() || "",
+        base_salary: Number(employeeDetails.employment?.base_salary) || 0,
+        salary_nett: Number(employeeDetails.employment?.salary_nett) || 0,
+        allowances: (employeeDetails.employment?.allowances || [])?.map(
+          (item) => ({
+            allowance_type_id: item.allowance_type_id?.toString() || "",
+            allowance_value: Number(item.allowance_value) || 0,
+          }),
+        ),
+        bank_id: employeeDetails.bank_account?.bank_id?.toString() || "",
+        account_number:
+          employeeDetails.bank_account?.account_number?.toString() || "",
+        account_name: employeeDetails.bank_account?.account_name || "",
+        social_media_accounts: validSocialMedia,
+        attachments: (employeeDetails.employee_documents || []).map((item) => ({
+          path: item.path,
+          type: item.type,
+        })),
+        families: employeeDetails.families || [],
+        educations: employeeDetails.educations || [],
+        work_experiences: employeeDetails.work_experiences || [],
+        contact_refferences: employeeDetails.contact_refferences || [],
       };
 
-      form.reset(formValues);
+      setTimeout(() => {
+        form.reset(formValues);
+        setIsDataLoaded(true);
+      }, 0);
     }
-  }, [employeeDetails, form]);
+  }, [employeeDetails, isDataLoaded, form]);
 
-  const onSubmit = (values: z.infer<typeof employeeManagementFormScheme>) => {
-    try {
-      const { countryCode: _, ...restValues } = values;
-      const filteredSocialMedia = values.social_media_accounts?.filter(
-        (account) => account.type.trim() !== "" && account.url.trim() !== "",
-      );
-      const filteredDirectReports = values.direct_reports?.flatMap((item) =>
-        item.direct_report_id.map((subItem: number) => ({
-          direct_report_id: subItem,
-          relationship_type: item.relationship_type as "primary" | "secondary",
-        })),
-      );
-      const params: IMutateEmployeeRequests = {
-        ...restValues,
-        role_id: Number(values.role_id),
-        department_id: Number(values.department_id),
-        job_level_id: Number(values.job_level_id),
-        job_position_id: Number(values.job_position_id),
-        social_media_accounts: filteredSocialMedia,
-        team_members: [{ team_id: Number(values.team_members) }],
-        date_of_birth: dayjs(values.date_of_birth).format("YYYY-MM-DD"),
-        start_date: dayjs(values.start_date).format("YYYY-MM-DD"),
-        end_date: dayjs(values.end_date).format("YYYY-MM-DD"),
-        direct_reports: filteredDirectReports,
-        allowances: values.allowances.map((item) => ({
+  const onSubmit = React.useCallback(
+    (values: z.infer<typeof employeeManagementFormScheme>) => {
+      try {
+        const {
+          countryCode,
+          employee_documents,
+          attachments,
+          work_experiences,
+          educations,
+          contact_refferences,
+          families,
+          social_media_accounts,
+          allowances,
+          ...restValues
+        } = values;
+
+        const validSocialMedia = filterValidData(social_media_accounts || [], [
+          "type",
+          "url",
+        ]);
+
+        const validAllowances = filterValidData(allowances || [], [
+          "allowance_type_id",
+          "allowance_value",
+        ]).map((item) => ({
           allowance_type_id: Number(item.allowance_type_id),
           allowance_value: Number(item.allowance_value),
-        })),
-        phone_number: Number(values.phone_number),
-        bank_id: Number(values.bank_id),
-        ...(values.photo_profile && { photo_profile: values.photo_profile }),
-      };
-      editEmployee(params);
-    } catch (err) {
-      console.log("Error submit", err);
-    }
-  };
+        }));
+
+        const baseParams: IMutateEmployeeRequests = {
+          ...restValues,
+          role_id: Number(values.role_id) || 0,
+          department_id: Number(values.department_id) || 0,
+          job_level_id: Number(values.job_level_id) || 0,
+          job_position_id: Number(values.job_position_id) || 0,
+          phone_number: Number(values.phone_number) || 0,
+          bank_id: Number(values.bank_id) || 0,
+          date_of_birth: dayjs(values.date_of_birth).format("YYYY-MM-DD"),
+          start_date: dayjs(values.start_date).format("YYYY-MM-DD"),
+          end_date: dayjs(values.end_date).format("YYYY-MM-DD"),
+          team_members: [{ team_id: Number(values.team_members) || 0 }],
+          allowances: validAllowances,
+          attachments: attachments || [],
+        };
+
+        const conditionalParams: Partial<IMutateEmployeeRequests> = {};
+        if (hasValidSocialMediaAccounts(validSocialMedia)) {
+          conditionalParams.social_media_accounts = validSocialMedia;
+        }
+
+        if (values.photo_profile && values.photo_profile.trim() !== "") {
+          conditionalParams.photo_profile = values.photo_profile;
+        }
+
+        if (families && families.length > 0) {
+          const validFamilies = filterValidData(families, [
+            "name",
+            "relationship",
+          ]);
+          if (validFamilies.length > 0) {
+            conditionalParams.families = validFamilies;
+          }
+        }
+
+        if (educations && educations.length > 0) {
+          const validEducations = filterValidData(educations, [
+            "institution",
+            "degree",
+          ]);
+          if (validEducations.length > 0) {
+            conditionalParams.educations = validEducations;
+          }
+        }
+
+        if (work_experiences && work_experiences.length > 0) {
+          const validWorkExperiences = filterValidData(work_experiences, [
+            "company",
+            "position",
+          ]);
+          if (validWorkExperiences.length > 0) {
+            conditionalParams.work_experiences = validWorkExperiences;
+          }
+        }
+
+        if (contact_refferences && contact_refferences.length > 0) {
+          const validContacts = filterValidData(contact_refferences, [
+            "name",
+            "phone",
+          ]);
+          if (validContacts.length > 0) {
+            conditionalParams.contact_refferences = validContacts;
+          }
+        }
+
+        const finalParams = { ...baseParams, ...conditionalParams };
+
+        editEmployee(finalParams);
+      } catch (err) {
+        console.error("Error in onSubmit:", err);
+        toast.error("Failed to prepare form data for submission");
+      }
+    },
+    [editEmployee, filterValidData, hasValidSocialMediaAccounts],
+  );
+
+  if (
+    isLoading ||
+    isPendingEditEmployee ||
+    isPendingArchieveEmployee ||
+    !isDataLoaded
+  ) {
+    return <AppSkeleton />;
+  }
 
   return (
     <React.Fragment>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <PersonalInformationSection />
           <EmployeeinformationSection />
           <SalaryInformationSection />
@@ -185,58 +324,57 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
           <FamilyInformationSection
             withAddButton
             employee_profile_id={
-              employeeDetails?.employment.employee_profile_id
+              employeeDetails?.employment?.employee_profile_id
             }
           />
           <FormalEducationSection
             withAddButton
             employee_profile_id={
-              employeeDetails?.employment.employee_profile_id
+              employeeDetails?.employment?.employee_profile_id
             }
           />
           <NonFormalEducationSection
             withAddButton
             employee_profile_id={
-              employeeDetails?.employment.employee_profile_id
+              employeeDetails?.employment?.employee_profile_id
             }
           />
           <WorkExperienceSection
             withAddButton
             employee_profile_id={
-              employeeDetails?.employment.employee_profile_id
+              employeeDetails?.employment?.employee_profile_id
             }
           />
           <ContactOfReferenceSection
             withAddButton
             employee_profile_id={
-              employeeDetails?.employment.employee_profile_id
+              employeeDetails?.employment?.employee_profile_id
             }
           />
           <AttachmentsSection
             employee_documents={employeeDetails?.employee_documents}
           />
-          <div className="flex flex-col md:flex-row justify-between items-center">
+
+          <div className="flex flex-col md:flex-row justify-between items-center pt-6 border-t">
             <div className="flex gap-2 my-8 justify-between md:justify-start w-full">
-              <Button variant="outline" className="md:max-w-36 w-[50%]">
+              <Button
+                type="button"
+                variant="outline"
+                className="md:max-w-36 w-[50%]"
+                onClick={() => router.push("/employee/employee-management")}
+                disabled={isPendingEditEmployee}
+              >
                 Cancel
               </Button>
-              <Button type="submit" className="md:max-w-36 w-[50%]">
-                Update
-              </Button>
+              <EmployeeUpdateModal
+                onUpdate={form.handleSubmit(onSubmit)}
+                disabled={isPendingEditEmployee}
+              />
             </div>
-            <Button
-              className="min-w-36 text-error font-semibold text-base"
-              variant="ghost"
-              onClick={() => archieveEmployee}
-            >
-              <Image
-                src="/icons/deleteOutlined.svg"
-                width={20}
-                height={20}
-                alt="delete"
-              />{" "}
-              Archieve Employee
-            </Button>
+            <EmployeeArchieveModal
+              onArchieve={() => archieveEmployee()}
+              disabled={isPendingArchieveEmployee}
+            />
           </div>
         </form>
       </Form>

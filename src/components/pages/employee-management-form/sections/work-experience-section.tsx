@@ -4,13 +4,15 @@
 import { DataTable } from "@/components/tables/data-table";
 import { Button } from "@/components/ui/button";
 import { ColumnDef } from "@tanstack/react-table";
-import { Plus } from "lucide-react";
+import { Ellipsis, Plus } from "lucide-react";
 import * as React from "react";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import {
   getWorkExperiences,
   postCreateWorkExperience,
+  putUpdateWorkExperience,
+  deleteWorkExperience,
 } from "@/services/employees/work-experiences";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -36,69 +38,101 @@ import { InputForm } from "@/components/ui/input";
 import { DatePicker } from "@/components/ui/date-picker";
 import { TextAreaForm } from "@/components/ui/textarea";
 import { rupiahFormatter } from "@/lib/helpers";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import Image from "next/image";
 
 dayjs.extend(localizedFormat);
 
-interface Props {
-  withAddButton?: boolean;
-  employee_profile_id?: number;
+interface TableRowActionsProps {
+  row: any;
+  onEdit: (workExperience: IResponseWorkExperience) => void;
+  onDelete: (workExperienceId: number) => void;
 }
 
-export const columns: ColumnDef<IResponseWorkExperience>[] = [
-  {
-    accessorKey: "company",
-    header: "Company",
-  },
-  {
-    accessorKey: "initial_position",
-    header: "Initial Position",
-  },
-  {
-    accessorKey: "final_position",
-    header: "Final Position",
-  },
-  {
-    accessorKey: "supervisor",
-    header: "Supervision",
-  },
-  {
-    accessorKey: "supervisor_contact",
-    header: "Supervisor Contact",
-  },
-  {
-    accessorKey: "company_address",
-    header: "Company Address",
-  },
-  {
-    accessorKey: "start_date",
-    header: "Join Date",
-    cell: ({ row }) => (
-      <span>{dayjs(row.original.start_date).format("LL")}</span>
-    ),
-  },
-  {
-    accessorKey: "end_date",
-    header: "Resign Date",
-    cell: ({ row }) => <span>{dayjs(row.original.end_date).format("LL")}</span>,
-  },
-  {
-    accessorKey: "last_salary",
-    header: "Last Salary",
-    cell: ({ getValue }) => {
-      const salary = getValue<number>();
-      return rupiahFormatter(salary);
-    },
-  },
-  {
-    accessorKey: "reason_for_resign",
-    header: "Reason of Resign",
-  },
-];
+const TableRowActions = ({ row, onEdit, onDelete }: TableRowActionsProps) => {
+  const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
 
-export const AddWorkExperienceModal = ({ employee_profile_id }: Props) => {
-  const [open, setOpen] = React.useState(false);
+  const handleEditClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onEdit(row.original);
+    setIsDropdownOpen(false);
+  };
+
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onDelete(row.original.id);
+    setIsDropdownOpen(false);
+  };
+
+  return (
+    <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" className="h-8 w-8 p-0">
+          <span className="sr-only">Open menu</span>
+          <Ellipsis className="h-4 w-4 text-grayscale-30" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={handleEditClick} className="cursor-pointer">
+          <div className="flex h-fit w-fit gap-2 justify-between items-center">
+            <Image
+              src="/icons/editGrey.svg"
+              height={16}
+              width={16}
+              alt="icon-edit"
+            />
+            Edit
+          </div>
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={handleDeleteClick}
+          className="cursor-pointer"
+        >
+          <div className="flex h-fit w-fit gap-2 justify-between items-center">
+            <Image
+              src="/icons/delete.svg"
+              height={16}
+              width={16}
+              alt="icon-delete"
+            />
+            Delete
+          </div>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
+
+interface WorkExperienceFormModalProps {
+  isEdit?: boolean;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  workExperienceData?: IResponseWorkExperience | null;
+  employee_profile_id?: number;
+  onSuccess?: () => void;
+}
+
+const WorkExperienceFormModal = ({
+  isEdit,
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
+  workExperienceData,
+  employee_profile_id,
+  onSuccess,
+}: WorkExperienceFormModalProps) => {
+  const [internalOpen, setInternalOpen] = React.useState(false);
   const queryClient = useQueryClient();
   const formContext = useFormContext();
+
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  const setOpen = controlledOnOpenChange || setInternalOpen;
 
   const { setValue, watch } = formContext || {};
   const watchedWorkExperiences = watch ? watch("work_experiences") : null;
@@ -119,19 +153,54 @@ export const AddWorkExperienceModal = ({ employee_profile_id }: Props) => {
     },
   });
 
-  const createWorkExperienceMutation = useMutation({
+  React.useEffect(() => {
+    if (isEdit && workExperienceData && open) {
+      form.reset({
+        company: workExperienceData.company || "",
+        initial_position: workExperienceData.initial_position || "",
+        final_position: workExperienceData.final_position || "",
+        supervisor: workExperienceData.supervisor || "",
+        supervisor_contact: workExperienceData.supervisor_contact || "",
+        company_address: workExperienceData.company_address || "",
+        start_date: workExperienceData.start_date
+          ? new Date(workExperienceData.start_date)
+          : new Date(),
+        end_date: workExperienceData.end_date
+          ? new Date(workExperienceData.end_date)
+          : new Date(),
+        last_salary: Number(workExperienceData.last_salary) || 0,
+        reason_for_resign: workExperienceData.reason_for_resign || "",
+      });
+    }
+  }, [isEdit, workExperienceData, open, form]);
+
+  const mutation = useMutation({
     mutationFn: (params: {
       employee_profile_id?: number;
       payload: IWorkExperienceForm;
-    }) => postCreateWorkExperience(params),
+      id?: number;
+    }) =>
+      isEdit
+        ? putUpdateWorkExperience(params)
+        : postCreateWorkExperience(params),
     onSuccess: (res) => {
-      toast.success("Work experience added successfully!");
+      toast.success(
+        `Work experience ${isEdit ? "updated" : "added"} successfully!`,
+      );
 
-      if (setValue) {
-        const updatedWorkExperiences = Array.isArray(watchedWorkExperiences)
-          ? [...watchedWorkExperiences, res.data]
-          : [res.data];
-        setValue("work_experiences", updatedWorkExperiences);
+      if (setValue && watchedWorkExperiences) {
+        if (isEdit) {
+          const updatedWorkExperiences = watchedWorkExperiences.map(
+            (w: IResponseWorkExperience) =>
+              w.id === workExperienceData?.id ? res.data : w,
+          );
+          setValue("work_experiences", updatedWorkExperiences);
+        } else {
+          const updatedWorkExperiences = Array.isArray(watchedWorkExperiences)
+            ? [...watchedWorkExperiences, res.data]
+            : [res.data];
+          setValue("work_experiences", updatedWorkExperiences);
+        }
       }
 
       const queryKey = ["work-experiences", employee_profile_id || ""];
@@ -147,30 +216,17 @@ export const AddWorkExperienceModal = ({ employee_profile_id }: Props) => {
           };
         }
 
-        return {
-          ...oldData,
-          data: {
-            ...oldData.data,
-            data: [...(oldData.data.data || []), res.data],
-            total: (oldData.data.total || 0) + 1,
-          },
-        };
-      });
-
-      if (watchedWorkExperiences) {
-        const watchedQueryKey = ["work-experiences", watchedWorkExperiences];
-        queryClient.setQueryData(watchedQueryKey, (oldData: any) => {
-          if (!oldData) {
-            return {
-              data: {
-                data: [res.data],
-                total: 1,
-                page: 1,
-                per_page: 10,
-              },
-            };
-          }
-
+        if (isEdit) {
+          return {
+            ...oldData,
+            data: {
+              ...oldData.data,
+              data: oldData.data.data.map((w: IResponseWorkExperience) =>
+                w.id === workExperienceData?.id ? res.data : w,
+              ),
+            },
+          };
+        } else {
           return {
             ...oldData,
             data: {
@@ -179,20 +235,20 @@ export const AddWorkExperienceModal = ({ employee_profile_id }: Props) => {
               total: (oldData.data.total || 0) + 1,
             },
           };
-        });
-      }
-
-      queryClient.invalidateQueries({
-        queryKey: ["work-experiences"],
+        }
       });
 
+      queryClient.invalidateQueries({ queryKey: ["work-experiences"] });
       setOpen(false);
       form.reset();
+      onSuccess?.();
     },
     onError: (error: any) => {
-      console.error("Mutation error:", error.response.data);
+      console.error("Mutation error:", error);
       toast.error(
-        `Failed to add work experience: ${error?.response?.data?.message || error.message || "Unknown error"}`,
+        `Failed to ${isEdit ? "update" : "add"} work experience: ${
+          error?.response?.data?.message || error.message || "Unknown error"
+        }`,
       );
     },
   });
@@ -206,9 +262,10 @@ export const AddWorkExperienceModal = ({ employee_profile_id }: Props) => {
       const params = {
         employee_profile_id,
         payload,
+        ...(isEdit && workExperienceData?.id && { id: workExperienceData.id }),
       };
 
-      createWorkExperienceMutation.mutate(params);
+      mutation.mutate(params);
     } catch (error) {
       console.error("Submit error:", error);
       toast.error("Failed to submit form");
@@ -218,29 +275,23 @@ export const AddWorkExperienceModal = ({ employee_profile_id }: Props) => {
   const handleCancel = () => {
     setOpen(false);
     form.reset();
-    createWorkExperienceMutation.reset();
+    mutation.reset();
   };
-
-  React.useEffect(() => {
-    if (Object.keys(form.formState.errors).length > 0) {
-      console.log("Form validation errors:", form.formState.errors);
-    }
-  }, [form.formState.errors]);
-
-  React.useEffect(() => {
-    console.log("Response Error", createWorkExperienceMutation.data);
-  }, [createWorkExperienceMutation.data]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>
-          <Plus /> Add Work Experience
-        </Button>
-      </DialogTrigger>
+      {!controlledOpen && (
+        <DialogTrigger asChild>
+          <Button>
+            <Plus /> Add Work Experience
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="bg-white md:min-w-5xl overflow-y-scroll max-h-[90vh]">
         <DialogHeader>
-          <DialogTitle>Add Work Experience</DialogTitle>
+          <DialogTitle>
+            {isEdit ? "Edit Work Experience" : "Add Work Experience"}
+          </DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -264,14 +315,14 @@ export const AddWorkExperienceModal = ({ employee_profile_id }: Props) => {
                 label="Supervisor Contact Person"
                 required
                 type="number"
-                disabled={createWorkExperienceMutation.isPending}
+                disabled={mutation.isPending}
               />
               <TextAreaForm
                 name="company_address"
                 label="Company Address"
                 required
                 className="md:col-span-2"
-                disabled={createWorkExperienceMutation.isPending}
+                disabled={mutation.isPending}
               />
               <div className="grid grid-cols-2 gap-4 w-full">
                 <DatePicker label="Date of Joining" name="start_date" />
@@ -282,14 +333,14 @@ export const AddWorkExperienceModal = ({ employee_profile_id }: Props) => {
                 label="Last Salary"
                 required
                 type="number"
-                disabled={createWorkExperienceMutation.isPending}
+                disabled={mutation.isPending}
               />
               <TextAreaForm
                 name="reason_for_resign"
                 label="Reason of Resignation"
                 required
                 className="md:col-span-2"
-                disabled={createWorkExperienceMutation.isPending}
+                disabled={mutation.isPending}
               />
             </div>
 
@@ -308,11 +359,10 @@ export const AddWorkExperienceModal = ({ employee_profile_id }: Props) => {
               </div>
             )}
 
-            {createWorkExperienceMutation.isError && (
+            {mutation.isError && (
               <div className="text-red-500 text-sm mt-2">
                 Error:{" "}
-                {createWorkExperienceMutation.error?.message ||
-                  "Failed to save work experience"}
+                {mutation.error?.message || "Failed to save work experience"}
               </div>
             )}
 
@@ -321,18 +371,15 @@ export const AddWorkExperienceModal = ({ employee_profile_id }: Props) => {
                 type="button"
                 variant="outline"
                 onClick={handleCancel}
-                disabled={createWorkExperienceMutation.isPending}
+                disabled={mutation.isPending}
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
-                disabled={
-                  createWorkExperienceMutation.isPending ||
-                  !form.formState.isValid
-                }
+                // disabled={mutation.isPending || !form.formState.isValid}
               >
-                {createWorkExperienceMutation.isPending ? "Saving..." : "Save"}
+                {mutation.isPending ? "Saving..." : "Save"}
               </Button>
             </DialogFooter>
           </form>
@@ -341,6 +388,11 @@ export const AddWorkExperienceModal = ({ employee_profile_id }: Props) => {
     </Dialog>
   );
 };
+
+interface Props {
+  withAddButton?: boolean;
+  employee_profile_id?: number;
+}
 
 const SectionHeader = ({ withAddButton, employee_profile_id }: Props) => (
   <div
@@ -352,7 +404,7 @@ const SectionHeader = ({ withAddButton, employee_profile_id }: Props) => (
       Work Experience
     </h2>
     {withAddButton && (
-      <AddWorkExperienceModal employee_profile_id={employee_profile_id} />
+      <WorkExperienceFormModal employee_profile_id={employee_profile_id} />
     )}
   </div>
 );
@@ -363,10 +415,53 @@ export const WorkExperienceSection = React.memo<Props>(
     employee_profile_id,
   }) {
     const formContext = useFormContext();
+    const queryClient = useQueryClient();
+    const [editingWorkExperience, setEditingWorkExperience] =
+      React.useState<IResponseWorkExperience | null>(null);
+    const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
 
     const watchedWorkExperiences = formContext
       ? formContext.watch("work_experiences")
       : null;
+
+    const deleteMutation = useMutation({
+      mutationFn: ({ id }: { id: number }) =>
+        deleteWorkExperience({ id, employee_profile_id }),
+      onSuccess: (_, variables) => {
+        toast.success("Work experience deleted successfully!");
+        if (formContext?.setValue && watchedWorkExperiences) {
+          const updatedWorkExperiences = watchedWorkExperiences.filter(
+            (w: IResponseWorkExperience) => w.id !== variables.id,
+          );
+          formContext.setValue("work_experiences", updatedWorkExperiences);
+        }
+        const queryKey = ["work-experiences", employee_profile_id || ""];
+        queryClient.setQueryData(queryKey, (oldData: any) => {
+          if (!oldData) return oldData;
+
+          return {
+            ...oldData,
+            data: {
+              ...oldData.data,
+              data: oldData.data.data.filter(
+                (w: IResponseWorkExperience) => w.id !== variables.id,
+              ),
+              total: oldData.data.total - 1,
+            },
+          };
+        });
+
+        queryClient.invalidateQueries({ queryKey: ["work-experiences"] });
+      },
+      onError: (error: any) => {
+        console.error("Delete mutation error:", error);
+        toast.error(
+          `Failed to delete work experience: ${
+            error?.response?.data?.message || error.message || "Unknown error"
+          }`,
+        );
+      },
+    });
 
     const { data, isLoading } = useQuery({
       queryKey: employee_profile_id
@@ -385,12 +480,109 @@ export const WorkExperienceSection = React.memo<Props>(
 
     const returnedData = data?.data?.data || watchedWorkExperiences;
 
+    const handleEdit = (workExperience: IResponseWorkExperience) => {
+      setEditingWorkExperience(workExperience);
+      setIsEditModalOpen(true);
+    };
+
+    const handleDelete = (workExperienceId: number) => {
+      if (
+        window.confirm("Are you sure you want to delete this work experience?")
+      ) {
+        deleteMutation.mutate({ id: workExperienceId });
+      }
+    };
+
+    const handleFormSuccess = () => {
+      setIsEditModalOpen(false);
+      setEditingWorkExperience(null);
+    };
+
+    const columns: ColumnDef<IResponseWorkExperience>[] = React.useMemo(
+      () => [
+        {
+          accessorKey: "company",
+          header: "Company",
+        },
+        {
+          accessorKey: "initial_position",
+          header: "Initial Position",
+        },
+        {
+          accessorKey: "final_position",
+          header: "Final Position",
+        },
+        {
+          accessorKey: "supervisor",
+          header: "Supervision",
+        },
+        {
+          accessorKey: "supervisor_contact",
+          header: "Supervisor Contact",
+        },
+        {
+          accessorKey: "company_address",
+          header: "Company Address",
+        },
+        {
+          accessorKey: "start_date",
+          header: "Join Date",
+          cell: ({ row }) => (
+            <span>{dayjs(row.original.start_date).format("LL")}</span>
+          ),
+        },
+        {
+          accessorKey: "end_date",
+          header: "Resign Date",
+          cell: ({ row }) => (
+            <span>{dayjs(row.original.end_date).format("LL")}</span>
+          ),
+        },
+        {
+          accessorKey: "last_salary",
+          header: "Last Salary",
+          cell: ({ getValue }) => {
+            const salary = getValue<number>();
+            return rupiahFormatter(salary);
+          },
+        },
+        {
+          accessorKey: "reason_for_resign",
+          header: "Reason of Resign",
+        },
+        {
+          accessorKey: "menu",
+          header: "",
+          cell: ({ row }) => (
+            <TableRowActions
+              row={row}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+            />
+          ),
+        },
+      ],
+      [],
+    );
+
     return (
       <React.Fragment>
         <SectionHeader
           withAddButton={withAddButton}
           employee_profile_id={employee_profile_id}
         />
+
+        {isEditModalOpen && (
+          <WorkExperienceFormModal
+            isEdit
+            open={isEditModalOpen}
+            onOpenChange={setIsEditModalOpen}
+            workExperienceData={editingWorkExperience}
+            employee_profile_id={employee_profile_id}
+            onSuccess={handleFormSuccess}
+          />
+        )}
+
         {isLoading ? (
           <div className="flex flex-col gap-4 items-center w-full">
             <Skeleton className="h-12 w-full" />
