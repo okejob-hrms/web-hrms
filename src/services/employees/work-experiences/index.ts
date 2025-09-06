@@ -7,6 +7,7 @@ interface Params {
   employee_profile_id?: number;
   payload?: IWorkExperienceForm;
   search?: string;
+  id?: number;
 }
 
 export const postCreateWorkExperience = async (
@@ -26,6 +27,26 @@ export const getWorkExperiences = async (
     ApiResponse<PaginatedResponse<IResponseWorkExperience>>
   >(
     `employees/${params.employee_profile_id}/work-experiences${params.search ? qs.stringify({ search: params.search }, { encodeValuesOnly: true }) : ""}`,
+  );
+  return response.json();
+};
+
+export const putUpdateWorkExperience = async (
+  params: Params,
+): Promise<ApiResponse<IResponseWorkExperience>> => {
+  const response = await api.put<ApiResponse<IResponseWorkExperience>>(
+    `employees/${params.employee_profile_id}/work-experiences/${params.id}`,
+    { json: params.payload },
+  );
+  return response.json();
+};
+
+export const deleteWorkExperience = async (
+  params: Params,
+): Promise<ApiResponse<IResponseWorkExperience>> => {
+  const response = await api.delete<ApiResponse<IResponseWorkExperience>>(
+    `employees/${params.employee_profile_id}/work-experiences/${params.id}`,
+    { json: params.payload },
   );
   return response.json();
 };

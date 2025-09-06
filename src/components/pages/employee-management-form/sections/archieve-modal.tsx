@@ -14,9 +14,10 @@ import Image from "next/image";
 
 interface Props {
   onArchieve: () => void;
+  disabled: boolean;
 }
 
-export default function EmployeeArchieveModal({ onArchieve }: Props) {
+export default function EmployeeArchieveModal({ onArchieve, disabled }: Props) {
   const [isOpen, setIsOpen] = useState(false);
 
   const handleArchieve = () => {
@@ -65,6 +66,7 @@ export default function EmployeeArchieveModal({ onArchieve }: Props) {
             <AlertDialogAction
               onClick={handleArchieve}
               className="flex-1 bg-transparent hover:opacity-50 hover:bg-transparent font-semibold text-error rounded-md py-2"
+              disabled={disabled}
             >
               Archieve Employee Data
             </AlertDialogAction>

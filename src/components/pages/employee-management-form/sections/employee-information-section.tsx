@@ -35,9 +35,9 @@ import { getJobLevels, postJobLevel } from "@/services/job-levels";
 import { toast } from "sonner";
 import { getTeam, postTeam } from "@/services/team";
 import { ITeamForm, teamFormScheme } from "@/services/team/types";
-import { MultiSelectForm } from "@/components/ui/multi-select";
 import { getEmployees } from "@/services/employees";
 import { useDebounce } from "@/hooks/use-debounce";
+import { ComboboxForm } from "@/components/ui/combobox";
 
 export const AddNewJobLevelModal: React.FC = () => {
   const [open, setOpen] = React.useState(false);
@@ -398,7 +398,7 @@ export const AddNewTeamModal: React.FC = () => {
 
 export const EmployeeinformationSection = React.memo(
   function EmployeeinformationSection() {
-    const { watch, register, setValue } = useFormContext();
+    const { watch, setValue } = useFormContext();
     const watchedDepartmentId = watch("department_id");
     const watchedJobPositionId = watch("job_position_id");
     const watchedJobLevelId = watch("job_level_id");
@@ -613,7 +613,7 @@ export const EmployeeinformationSection = React.memo(
             modalChildren={<AddNewJobLevelModal />}
             disabled={isJobLevelsLoading || !!jobLevelsError}
           />
-          <div className="flex flex-col gap-2">
+          {/* <div className="flex flex-col gap-2">
             <label className="text-sm text-text-secondary">
               Primary Direct Report
             </label>
@@ -664,7 +664,20 @@ export const EmployeeinformationSection = React.memo(
               value="secondary"
               {...register("direct_reports.1.relationship_type")}
             />
-          </div>
+          </div> */}
+          <ComboboxForm
+            name="primary_direct_report_id"
+            label="Primary Direct Report"
+            options={employeesOptions}
+            disabled={isLoadingEmployees}
+          />
+          <ComboboxForm
+            name="additional_direct_report_id"
+            label="Additional Direct Report"
+            options={employeesOptions}
+            disabled={isLoadingEmployees}
+            isOptional
+          />
           <SelectForm
             name="team_members"
             label="Team"

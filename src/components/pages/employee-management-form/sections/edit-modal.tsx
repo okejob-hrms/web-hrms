@@ -13,14 +13,16 @@ import { Button } from "@/components/ui/button";
 import Image from "next/image";
 
 interface Props {
-  onUpdate: () => void;
+  onUpdate: (e?: React.FormEvent) => void;
+  disabled: boolean;
 }
 
-export default function EmployeeUpdateModal({ onUpdate }: Props) {
+export default function EmployeeUpdateModal({ onUpdate, disabled }: Props) {
   const [isOpen, setIsOpen] = useState(false);
 
-  const handleUpdate = () => {
+  const handleUpdate = (e: React.MouseEvent) => {
     console.log("Employee data updated");
+    e.preventDefault();
     onUpdate();
     setIsOpen(false);
   };
@@ -31,7 +33,11 @@ export default function EmployeeUpdateModal({ onUpdate }: Props) {
 
   return (
     <div className="space-y-4">
-      <Button onClick={() => setIsOpen(true)} className="md:min-w-[174px]">
+      <Button
+        type="button"
+        onClick={() => setIsOpen(true)}
+        className="md:min-w-[174px]"
+      >
         Update
       </Button>
 
@@ -52,7 +58,7 @@ export default function EmployeeUpdateModal({ onUpdate }: Props) {
             </AlertDialogDescription>
           </AlertDialogHeader>
 
-          <AlertDialogFooter className="flex justify-between gap-3  w-full">
+          <AlertDialogFooter className="flex justify-between gap-3 w-full">
             <AlertDialogCancel
               onClick={handleCancel}
               className="flex-1 border text-primary border-primary bg-white hover:bg-blue-50 rounded-md py-2 font-medium"
@@ -62,6 +68,7 @@ export default function EmployeeUpdateModal({ onUpdate }: Props) {
             <AlertDialogAction
               onClick={handleUpdate}
               className="flex-1 bg-primary text-white rounded-md py-2 font-medium"
+              disabled={disabled}
             >
               Update
             </AlertDialogAction>

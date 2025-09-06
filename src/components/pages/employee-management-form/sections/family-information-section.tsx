@@ -5,7 +5,7 @@ import { DataTable } from "@/components/tables/data-table";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { ColumnDef } from "@tanstack/react-table";
-import { Plus } from "lucide-react";
+import { Ellipsis, Plus } from "lucide-react";
 import * as React from "react";
 import {
   Dialog,
@@ -24,7 +24,12 @@ import {
   IFamilyResponse,
 } from "@/services/employees/families/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { getFamilies, postCreateFamily } from "@/services/employees/families";
+import {
+  deleteFamily,
+  getFamilies,
+  postCreateFamily,
+  putUpdateFamily,
+} from "@/services/employees/families";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { DatePicker } from "@/components/ui/date-picker";
 import { SelectForm } from "@/components/ui/select-form";
@@ -32,6 +37,14 @@ import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { convertPhoneToNumber } from "@/lib/helpers";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import Image from "next/image";
+import dayjs from "dayjs";
 
 const formatDate = (dateString: string): string => {
   return new Date(dateString).toLocaleDateString("id-ID", {
@@ -41,55 +54,91 @@ const formatDate = (dateString: string): string => {
   });
 };
 
-export const columns: ColumnDef<IFamilyResponse>[] = [
-  {
-    accessorKey: "name",
-    header: "Name",
-  },
-  {
-    accessorKey: "relationship",
-    header: "Family Relationship",
-  },
-  {
-    accessorKey: "place_of_birth",
-    header: "Place of Birth",
-  },
-  {
-    accessorKey: "date_of_birth",
-    header: "Date of Birth",
-    cell: ({ row }) => <span>{formatDate(row.getValue("date_of_birth"))}</span>,
-  },
-  {
-    accessorKey: "highest_education",
-    header: "Highest Education Level",
-  },
-  {
-    accessorKey: "email",
-    header: "Email",
-  },
-  {
-    accessorKey: "phone",
-    header: "Phone",
-  },
-  {
-    accessorKey: "occupation",
-    header: "Occupation",
-  },
-  {
-    accessorKey: "company",
-    header: "Company",
-  },
-];
-
-interface Props {
-  withAddButton?: boolean;
-  employee_profile_id?: number;
+interface TableRowActionsProps {
+  row: any;
+  onEdit: (family: IFamilyResponse) => void;
+  onDelete: (familyId: number) => void;
 }
 
-export const AddFamilyFormModal = ({ employee_profile_id }: Props) => {
-  const [open, setOpen] = React.useState(false);
+const TableRowActions = ({ row, onEdit, onDelete }: TableRowActionsProps) => {
+  const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
+
+  const handleEditClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onEdit(row.original);
+    setIsDropdownOpen(false);
+  };
+
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onDelete(row.original.id);
+    setIsDropdownOpen(false);
+  };
+
+  return (
+    <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" className="h-8 w-8 p-0">
+          <span className="sr-only">Open menu</span>
+          <Ellipsis className="h-4 w-4 text-grayscale-30" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={handleEditClick} className="cursor-pointer">
+          <div className="flex h-fit w-fit gap-2 justify-between items-center">
+            <Image
+              src="/icons/editGrey.svg"
+              height={16}
+              width={16}
+              alt="icon-edit"
+            />
+            Edit
+          </div>
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={handleDeleteClick}
+          className="cursor-pointer"
+        >
+          <div className="flex h-fit w-fit gap-2 justify-between items-center">
+            <Image
+              src="/icons/delete.svg"
+              height={16}
+              width={16}
+              alt="icon-delete"
+            />
+            Delete
+          </div>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
+
+interface FamilyFormModalProps {
+  isEdit?: boolean;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  familyData?: IFamilyResponse | null;
+  employee_profile_id?: number;
+  onSuccess?: () => void;
+}
+
+const FamilyFormModal = ({
+  isEdit,
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
+  familyData,
+  employee_profile_id,
+  onSuccess,
+}: FamilyFormModalProps) => {
+  const [internalOpen, setInternalOpen] = React.useState(false);
   const queryClient = useQueryClient();
   const formContext = useFormContext();
+
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  const setOpen = controlledOnOpenChange || setInternalOpen;
 
   const { setValue, watch } = formContext || {};
   const watchedFamilies = watch ? watch("families") : null;
@@ -109,19 +158,47 @@ export const AddFamilyFormModal = ({ employee_profile_id }: Props) => {
     },
   });
 
-  const createFamilyMutation = useMutation({
+  React.useEffect(() => {
+    if (isEdit && familyData && open) {
+      form.reset({
+        name: familyData.name || "",
+        place_of_birth: familyData.place_of_birth || "",
+        date_of_birth: familyData.date_of_birth
+          ? dayjs(familyData.date_of_birth).format("DD/MM/YYYY")
+          : "",
+        relationship: familyData.relationship || "",
+        highest_education: familyData.highest_education?.toString() || "1",
+        email: familyData.email || "",
+        phone: familyData.phone?.toString() || "",
+        occupation: familyData.occupation || "",
+        company: familyData.company || "",
+      });
+    }
+  }, [isEdit, familyData, open, form]);
+
+  const mutation = useMutation({
     mutationFn: (params: {
       employee_profile_id?: number;
       payload: IFamilyForm;
-    }) => postCreateFamily(params),
+      id?: number;
+    }) => (isEdit ? putUpdateFamily(params) : postCreateFamily(params)),
     onSuccess: (res) => {
-      toast.success("Family information added successfully!");
+      toast.success(
+        `Family information ${isEdit ? "updated" : "added"} successfully!`,
+      );
 
-      if (setValue) {
-        const updatedFamilies = Array.isArray(watchedFamilies)
-          ? [...watchedFamilies, res.data]
-          : [res.data];
-        setValue("families", updatedFamilies);
+      if (setValue && watchedFamilies) {
+        if (isEdit) {
+          const updatedFamilies = watchedFamilies.map((f: IFamilyResponse) =>
+            f.id === familyData?.id ? res.data : f,
+          );
+          setValue("families", updatedFamilies);
+        } else {
+          const updatedFamilies = Array.isArray(watchedFamilies)
+            ? [...watchedFamilies, res.data]
+            : [res.data];
+          setValue("families", updatedFamilies);
+        }
       }
 
       const queryKey = ["family", employee_profile_id || ""];
@@ -137,30 +214,17 @@ export const AddFamilyFormModal = ({ employee_profile_id }: Props) => {
           };
         }
 
-        return {
-          ...oldData,
-          data: {
-            ...oldData.data,
-            data: [...(oldData.data.data || []), res.data],
-            total: (oldData.data.total || 0) + 1,
-          },
-        };
-      });
-
-      if (watchedFamilies) {
-        const watchedQueryKey = ["family", watchedFamilies];
-        queryClient.setQueryData(watchedQueryKey, (oldData: any) => {
-          if (!oldData) {
-            return {
-              data: {
-                data: [res.data],
-                total: 1,
-                page: 1,
-                per_page: 10,
-              },
-            };
-          }
-
+        if (isEdit) {
+          return {
+            ...oldData,
+            data: {
+              ...oldData.data,
+              data: oldData.data.data.map((f: IFamilyResponse) =>
+                f.id === familyData?.id ? res.data : f,
+              ),
+            },
+          };
+        } else {
           return {
             ...oldData,
             data: {
@@ -169,20 +233,20 @@ export const AddFamilyFormModal = ({ employee_profile_id }: Props) => {
               total: (oldData.data.total || 0) + 1,
             },
           };
-        });
-      }
-
-      queryClient.invalidateQueries({
-        queryKey: ["family"],
+        }
       });
 
+      queryClient.invalidateQueries({ queryKey: ["family"] });
       setOpen(false);
       form.reset();
+      onSuccess?.();
     },
     onError: (error: any) => {
       console.error("Mutation error:", error);
       toast.error(
-        `Failed to add family information: ${error?.response?.data?.message || error.message || "Unknown error"}`,
+        `Failed to ${isEdit ? "update" : "add"} family information: ${
+          error?.response?.data?.message || error.message || "Unknown error"
+        }`,
       );
     },
   });
@@ -198,9 +262,10 @@ export const AddFamilyFormModal = ({ employee_profile_id }: Props) => {
       const params = {
         employee_profile_id,
         payload,
+        ...(isEdit && familyData?.id && { id: familyData.id }),
       };
 
-      createFamilyMutation.mutate(params);
+      mutation.mutate(params);
     } catch (error) {
       console.error("Submit error:", error);
       toast.error("Failed to submit form");
@@ -210,25 +275,21 @@ export const AddFamilyFormModal = ({ employee_profile_id }: Props) => {
   const handleCancel = () => {
     setOpen(false);
     form.reset();
-    createFamilyMutation.reset();
+    mutation.reset();
   };
-
-  React.useEffect(() => {
-    if (Object.keys(form.formState.errors).length > 0) {
-      console.log("Form validation errors:", form.formState.errors);
-    }
-  }, [form.formState.errors]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>
-          <Plus /> Add Family Information
-        </Button>
-      </DialogTrigger>
+      {!controlledOpen && (
+        <DialogTrigger asChild>
+          <Button>
+            <Plus /> Add Family Information
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="bg-white md:min-w-5xl overflow-y-scroll max-h-[90vh]">
         <DialogHeader>
-          <DialogTitle>Add Family</DialogTitle>
+          <DialogTitle>{isEdit ? "Edit Family" : "Add Family"}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -260,7 +321,7 @@ export const AddFamilyFormModal = ({ employee_profile_id }: Props) => {
                   { label: "Master's Degree (S2)", value: "7" },
                   { label: "Doctorate (S3)", value: "8" },
                 ]}
-                disabled={createFamilyMutation.isPending}
+                disabled={mutation.isPending}
                 required
               />
               <InputForm name="email" label="Email" type="email" required />
@@ -269,13 +330,13 @@ export const AddFamilyFormModal = ({ employee_profile_id }: Props) => {
                 name="occupation"
                 label="Occupation"
                 required
-                disabled={createFamilyMutation.isPending}
+                disabled={mutation.isPending}
               />
               <InputForm
                 name="company"
                 label="Company"
                 required
-                disabled={createFamilyMutation.isPending}
+                disabled={mutation.isPending}
               />
             </div>
 
@@ -294,11 +355,10 @@ export const AddFamilyFormModal = ({ employee_profile_id }: Props) => {
               </div>
             )}
 
-            {createFamilyMutation.isError && (
+            {mutation.isError && (
               <div className="text-red-500 text-sm mt-2">
                 Error:{" "}
-                {createFamilyMutation.error?.message ||
-                  "Failed to save family information"}
+                {mutation.error?.message || "Failed to save family information"}
               </div>
             )}
 
@@ -307,17 +367,15 @@ export const AddFamilyFormModal = ({ employee_profile_id }: Props) => {
                 type="button"
                 variant="outline"
                 onClick={handleCancel}
-                disabled={createFamilyMutation.isPending}
+                disabled={mutation.isPending}
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
-                disabled={
-                  createFamilyMutation.isPending || !form.formState.isValid
-                }
+                disabled={mutation.isPending || !form.formState.isValid}
               >
-                {createFamilyMutation.isPending ? "Saving..." : "Save"}
+                {mutation.isPending ? "Saving..." : "Save"}
               </Button>
             </DialogFooter>
           </form>
@@ -327,7 +385,15 @@ export const AddFamilyFormModal = ({ employee_profile_id }: Props) => {
   );
 };
 
-const SectionHeader = ({ withAddButton, employee_profile_id }: Props) => (
+interface SectionHeaderProps {
+  withAddButton?: boolean;
+  employee_profile_id?: number;
+}
+
+const SectionHeader = ({
+  withAddButton,
+  employee_profile_id,
+}: SectionHeaderProps) => (
   <div
     className={withAddButton ? "flex justify-between items-center mb-4" : ""}
   >
@@ -337,19 +403,67 @@ const SectionHeader = ({ withAddButton, employee_profile_id }: Props) => (
       Family Information
     </h2>
     {withAddButton && (
-      <AddFamilyFormModal employee_profile_id={employee_profile_id} />
+      <FamilyFormModal employee_profile_id={employee_profile_id} />
     )}
   </div>
 );
 
-export const FamilyInformationSection = React.memo<Props>(
-  function FamilyInformationSection({
+interface FamilyInformationSectionProps {
+  withAddButton?: boolean;
+  employee_profile_id?: number;
+}
+
+export const FamilyInformationSection =
+  React.memo<FamilyInformationSectionProps>(function FamilyInformationSection({
     withAddButton = false,
     employee_profile_id,
   }) {
     const formContext = useFormContext();
+    const queryClient = useQueryClient();
+    const [editingFamily, setEditingFamily] =
+      React.useState<IFamilyResponse | null>(null);
+    const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
 
     const watchedFamilies = formContext ? formContext.watch("families") : null;
+
+    const deleteMutation = useMutation({
+      mutationFn: ({ id }: { id: number }) =>
+        deleteFamily({ id, employee_profile_id }),
+      onSuccess: (_, variables) => {
+        toast.success("Family information deleted successfully!");
+        if (formContext?.setValue && watchedFamilies) {
+          const updatedFamilies = watchedFamilies.filter(
+            (f: IFamilyResponse) => f.id !== variables.id,
+          );
+          formContext.setValue("families", updatedFamilies);
+        }
+        const queryKey = ["family", employee_profile_id || ""];
+        queryClient.setQueryData(queryKey, (oldData: any) => {
+          if (!oldData) return oldData;
+
+          return {
+            ...oldData,
+            data: {
+              ...oldData.data,
+              data: oldData.data.data.filter(
+                (f: IFamilyResponse) => f.id !== variables.id,
+              ),
+              total: oldData.data.total - 1,
+            },
+          };
+        });
+
+        queryClient.invalidateQueries({ queryKey: ["family"] });
+      },
+      onError: (error: any) => {
+        console.error("Delete mutation error:", error);
+        toast.error(
+          `Failed to delete family information: ${
+            error?.response?.data?.message || error.message || "Unknown error"
+          }`,
+        );
+      },
+    });
 
     const { data, isLoading } = useQuery({
       queryKey: employee_profile_id
@@ -368,12 +482,98 @@ export const FamilyInformationSection = React.memo<Props>(
 
     const returnedData = data?.data?.data || watchedFamilies;
 
+    const handleEdit = (family: IFamilyResponse) => {
+      setEditingFamily(family);
+      setIsEditModalOpen(true);
+    };
+
+    const handleDelete = (familyId: number) => {
+      if (
+        window.confirm("Are you sure you want to delete this family member?")
+      ) {
+        deleteMutation.mutate({ id: familyId });
+      }
+    };
+
+    const handleFormSuccess = () => {
+      setIsEditModalOpen(false);
+      setEditingFamily(null);
+    };
+
+    const columns: ColumnDef<IFamilyResponse>[] = React.useMemo(
+      () => [
+        {
+          accessorKey: "name",
+          header: "Name",
+        },
+        {
+          accessorKey: "relationship",
+          header: "Family Relationship",
+        },
+        {
+          accessorKey: "place_of_birth",
+          header: "Place of Birth",
+        },
+        {
+          accessorKey: "date_of_birth",
+          header: "Date of Birth",
+          cell: ({ row }) => (
+            <span>{formatDate(row.getValue("date_of_birth"))}</span>
+          ),
+        },
+        {
+          accessorKey: "highest_education",
+          header: "Highest Education Level",
+        },
+        {
+          accessorKey: "email",
+          header: "Email",
+        },
+        {
+          accessorKey: "phone",
+          header: "Phone",
+        },
+        {
+          accessorKey: "occupation",
+          header: "Occupation",
+        },
+        {
+          accessorKey: "company",
+          header: "Company",
+        },
+        {
+          accessorKey: "menu",
+          header: "",
+          cell: ({ row }) => (
+            <TableRowActions
+              row={row}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+            />
+          ),
+        },
+      ],
+      [],
+    );
+
     return (
       <React.Fragment>
         <SectionHeader
           withAddButton={withAddButton}
           employee_profile_id={employee_profile_id}
         />
+
+        {isEditModalOpen && (
+          <FamilyFormModal
+            isEdit
+            open={isEditModalOpen}
+            onOpenChange={setIsEditModalOpen}
+            familyData={editingFamily}
+            employee_profile_id={employee_profile_id}
+            onSuccess={handleFormSuccess}
+          />
+        )}
+
         {isLoading ? (
           <div className="flex flex-col gap-4 items-center w-full">
             <Skeleton className="h-12 w-full" />
@@ -394,5 +594,4 @@ export const FamilyInformationSection = React.memo<Props>(
         <Separator className="my-6" />
       </React.Fragment>
     );
-  },
-);
+  });

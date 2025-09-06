@@ -4,11 +4,11 @@ import { ApiResponse, PaginatedResponse } from "@/lib/types";
 import { PaginationState } from "@tanstack/react-table";
 
 export const postJobPosition = async (
-  payload: IPositionForm
+  payload: IPositionForm,
 ): Promise<ApiResponse<JobPositionResponse>> => {
   const response = await api.post<ApiResponse<JobPositionResponse>>(
     "job-positions",
-    { json: { payload } }
+    { json: { payload } },
   );
   return response.json();
 };
@@ -17,26 +17,26 @@ export const getJobPosition = async (): Promise<
   PaginatedResponse<JobPositionResponse>
 > => {
   const response = await api.get<PaginatedResponse<JobPositionResponse>>(
-    "job-positions"
+    "job-positions",
     // JSON.stringify(payload),
   );
   return response.json();
 };
 
 export const postJobPositionManagement = async (
-  payload: IPositionForm
+  payload: IPositionForm,
 ): Promise<ApiResponse<JobPositionResponse>> => {
   const response = await api.post<ApiResponse<JobPositionResponse>>(
     "job-positions",
     {
       json: payload,
-    }
+    },
   );
   return response.json();
 };
 
 export const getJobPositionPagination = async (
-  pagination?: PaginationState
+  pagination?: PaginationState,
 ): Promise<PaginatedResponse<JobPositionResponse>> => {
   let searchParams = {};
 
@@ -52,7 +52,7 @@ export const getJobPositionPagination = async (
     "job-positions",
     {
       searchParams,
-    }
+    },
     // JSON.stringify(payload),
   );
   return response.json();
@@ -69,7 +69,7 @@ export const putJobPositions = async ({
     `job-positions/${id}`,
     {
       json: payload,
-    }
+    },
   );
   return response.json();
 };

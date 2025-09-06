@@ -195,3 +195,11 @@ export interface UploadButtonProps extends React.ComponentProps<"button"> {
     mime_type: string;
   };
 }
+
+export interface ComboboxProps extends InputFormProps {
+  options: {
+    label: string;
+    value: string;
+    icon?: React.ReactNode;
+  }[];
+}

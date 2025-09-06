@@ -71,38 +71,27 @@ export interface IMutateEmployeeRequests {
   achievement: string;
   personal_description: string;
   photo_profile?: string | null;
-
   social_media_accounts?: {
     type: string;
     url: string;
   }[];
-
   job_position_id: number;
   job_level_id: number;
   department_id: number;
-
-  direct_reports?: {
-    direct_report_id: number;
-    relationship_type: string;
-  }[];
-
+  primary_direct_report_id: number;
+  additional_direct_report_id?: number;
   team_members: {
     team_id: number;
   }[];
-
   start_date: string;
   end_date?: string;
-
   status: string;
-
   base_salary: number;
   salary_nett: number;
-
   allowances: {
     allowance_type_id: number;
     allowance_value: number;
   }[];
-
   bank_id: number;
   account_number: string;
   account_name: string;

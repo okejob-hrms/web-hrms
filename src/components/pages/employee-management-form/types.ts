@@ -1,5 +1,5 @@
 import { phoneNumberSchema } from "@/lib/helpers";
-import z, { stringbool } from "zod";
+import z from "zod";
 
 export const employeeManagementFormScheme = z.object({
   photo_profile: z.string().optional().nullable(),
@@ -13,8 +13,6 @@ export const employeeManagementFormScheme = z.object({
   place_of_birth: z.string().min(1, "required"),
   date_of_birth: z.date(),
   marital_status: z.string(),
-  // marital_status: z.enum(["single", "married", "divorced", "widowed", "separated"]),
-  // blood_type: z.enum(["A", "B", "AB", "O"]).nullable(),
   blood_type: z.string().min(1, "required"),
   height: z.number().min(1, "required"),
   weight: z.number().min(1, "required"),
@@ -38,35 +36,17 @@ export const employeeManagementFormScheme = z.object({
       }),
     )
     .optional(),
-
   job_position_id: z.string().min(1, "required"),
   department_id: z.string().min(1, "required"),
   job_level_id: z.string().min(1, "required"),
-
-  direct_reports: z
-    .array(
-      z.object({
-        direct_report_id: z.array(z.number().int()),
-        relationship_type: z.enum(["primary", "secondary"]),
-      }),
-    )
-    .optional(),
-
-  // team_members: z.array(
-  //   z.object({
-  //     team_id: z.number().int().min(1, "required"),
-  //   }),
-  // ),
+  primary_direct_report_id: z.number().min(1, "required"),
+  additional_direct_report_id: z.number(),
   team_members: z.string(),
-
   start_date: z.date(),
   end_date: z.date().optional(),
-
-  // // status: z.enum(["0", "1"]), // active/inactive flag
   status: z.string(),
   base_salary: z.number(),
   salary_nett: z.number().min(1, "required"),
-
   allowances: z.array(
     z.object({
       allowance_type_id: z.string().min(1, "required"),
@@ -215,7 +195,8 @@ export const employeeManagementFormDefaultValues = {
   job_level_id: "",
   status: "",
   team_members: "",
-  direct_reports: [],
+  primary_direct_report_id: 0,
+  additional_direct_report_id: 0,
   base_salary: 0,
   salary_nett: 0,
   bank_id: "",

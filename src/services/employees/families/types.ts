@@ -22,7 +22,7 @@ export interface IFamilyResponse {
   employee_profile_id: number;
   name: string;
   relationship: string;
-  date_of_birth: Dayjs;
+  date_of_birth: Dayjs | string;
   place_of_birth: string;
   email: string;
   phone: number;
