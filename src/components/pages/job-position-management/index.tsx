@@ -136,6 +136,7 @@ export default function JobPositionList() {
         open={isDeleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
         onDelete={handleDeleteConfirm}
+        isLoading={isLoading}
       />
       <JobLevelModal
         open={isEditModalOpen}
@@ -143,6 +144,7 @@ export default function JobPositionList() {
         initialData={selectedJobPosition}
         handleSave={handleSave}
         handleClose={handleClose}
+        isLoading={isLoading}
       />
     </div>
   );

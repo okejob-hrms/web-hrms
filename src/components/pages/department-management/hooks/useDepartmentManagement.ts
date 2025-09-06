@@ -17,6 +17,7 @@ import {
 } from "@/services/department";
 import { toast } from "sonner";
 import { PaginationState } from "@tanstack/react-table";
+import { HTTPError } from "ky";
 
 export function useDepartmentManagement() {
   const queryClient = useQueryClient();
@@ -59,16 +60,29 @@ export function useDepartmentManagement() {
     },
   });
 
-  const { mutate: editDepartment } = useMutation({
+  const { mutate: editDepartment, isPending: isPendingEdit } = useMutation({
     mutationFn: putDepartment,
     onSuccess: () => {
       toast.success("Department updated successfully!");
       queryClient.invalidateQueries({ queryKey: ["departments"] });
       handleClose();
     },
-    onError: (error) => {
+    onError: async (error) => {
       handleClose();
-      toast.error(`Failed to update department: ${error.message}`);
+      try {
+        if (error instanceof HTTPError) {
+          const errorData = await error.response.json();
+          const message =
+            errorData.errors?.name?.[0] ||
+            errorData.message ||
+            "An unknown error occurred.";
+          toast.error(message);
+        } else {
+          toast.error(`Failed to update department: ${error.message}`);
+        }
+      } catch (_) {
+        toast.error(`An unexpected error occurred: ${error.message}`);
+      }
     },
   });
 
@@ -97,43 +111,35 @@ export function useDepartmentManagement() {
     },
   });
 
-  // Handler to open the modal for creating
   const handleCreate = () => {
     setSelectedDepartment(null);
     setEditModalOpen(true);
   };
 
-  // Handler to open the modal for editing
   const handleEdit = (department: IDepartment) => {
     setSelectedDepartment(department);
     setEditModalOpen(true);
   };
 
-  // Handler to open the delete confirmation dialog
   const handleDeleteClick = (department: IDepartment) => {
     setSelectedDepartment(department);
     setDeleteDialogOpen(true);
   };
 
-  // Handler to save (either create or update)
   const handleSave = (data: DepartmentFormValues) => {
     if (selectedDepartment) {
-      // It's an update
       editDepartment({ id: selectedDepartment.id, payload: data });
     } else {
-      // It's a create
       addDepartment(data);
     }
   };
 
-  // Handler to confirm deletion
   const handleDeleteConfirm = () => {
     if (selectedDepartment) {
       removeDepartment({ id: selectedDepartment.id });
     }
   };
 
-  // Handler to close all modals and reset state
   const handleClose = () => {
     setEditModalOpen(false);
     setDeleteDialogOpen(false);
@@ -147,6 +153,7 @@ export function useDepartmentManagement() {
       isFetching ||
       isRefetching ||
       isPendingAdd ||
+      isPendingEdit ||
       isPendingRemove,
     hasNextPage,
     hasPreviousPage,

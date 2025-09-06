@@ -21,18 +21,19 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { IDepartment } from "@/lib/types";
 import {
   IPositionForm,
+  JobPositionResponse,
   positionFormScheme,
 } from "@/services/job-position/types";
 
 interface JobPositionModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  initialData: IDepartment | null;
+  initialData: JobPositionResponse | null;
   handleSave: (data: IPositionForm) => void;
   handleClose: () => void;
+  isLoading?: boolean;
 }
 
 export default function JobPositionModal({
@@ -41,12 +42,14 @@ export default function JobPositionModal({
   initialData,
   handleSave,
   handleClose,
+  isLoading,
 }: JobPositionModalProps) {
   const form = useForm<IPositionForm>({
     resolver: zodResolver(positionFormScheme),
     mode: "onChange", // validate on change so Save button can disable live
     defaultValues: {
       name: "",
+      status: "",
     },
   });
 
@@ -54,10 +57,12 @@ export default function JobPositionModal({
     if (initialData) {
       form.reset({
         name: initialData.name,
+        status: initialData.status,
       });
     } else {
       form.reset({
         name: "",
+        status: "",
       });
     }
   }, [initialData, form]);
@@ -66,6 +71,7 @@ export default function JobPositionModal({
     handleSave(data);
     form.reset({
       name: "",
+      status: "",
     });
   };
 
@@ -101,11 +107,13 @@ export default function JobPositionModal({
               <AlertDialogCancel
                 className="min-w-[100px] border-2 border-[#18618B] text-[#18618B] bg-white hover:bg-[#e6f1f7] font-medium py-2 rounded-lg"
                 onClick={handleClose}
+                disabled={isLoading}
               >
                 Cancel
               </AlertDialogCancel>
               <Button
                 type="submit"
+                isLoading={isLoading}
                 disabled={!form.formState.isValid}
                 className="min-w-[100px] bg-[#18618B] hover:bg-[#14506e] text-white font-medium py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >

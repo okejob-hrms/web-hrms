@@ -12,6 +12,7 @@ import { ITeam } from "@/lib/types";
 import { getTeam, postTeam, putTeam, deleteTeam } from "@/services/team";
 import { toast } from "sonner";
 import { PaginationState } from "@tanstack/react-table";
+import { HTTPError } from "ky";
 
 export function useTeamManagement() {
   const queryClient = useQueryClient();
@@ -51,16 +52,29 @@ export function useTeamManagement() {
     },
   });
 
-  const { mutate: editTeam } = useMutation({
+  const { mutate: editTeam, isPending: isPendingEdit } = useMutation({
     mutationFn: putTeam,
     onSuccess: () => {
       toast.success("team updated successfully!");
       queryClient.invalidateQueries({ queryKey: ["teams"] });
       handleClose();
     },
-    onError: (error) => {
+    onError: async (error) => {
       handleClose();
-      toast.error(`Failed to update team: ${error.message}`);
+      try {
+        if (error instanceof HTTPError) {
+          const errorData = await error.response.json();
+          const message =
+            errorData.errors?.name?.[0] ||
+            errorData.message ||
+            "An unknown error occurred.";
+          toast.error(message);
+        } else {
+          toast.error(`Failed to update team: ${error.message}`);
+        }
+      } catch (_) {
+        toast.error(`An unexpected error occurred: ${error.message}`);
+      }
     },
   });
 
@@ -132,6 +146,7 @@ export function useTeamManagement() {
       isFetching ||
       isRefetching ||
       isPendingAdd ||
+      isPendingEdit ||
       isPendingRemove,
     hasNextPage,
     hasPreviousPage,

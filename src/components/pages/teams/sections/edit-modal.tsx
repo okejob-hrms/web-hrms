@@ -31,6 +31,7 @@ interface TeamModalProps {
   initialData: ITeam | null;
   handleSave: (data: TeamsFormValues) => void;
   handleClose: () => void;
+  isLoading?: boolean;
 }
 
 export default function TeamModal({
@@ -39,6 +40,7 @@ export default function TeamModal({
   initialData,
   handleSave,
   handleClose,
+  isLoading,
 }: TeamModalProps) {
   const form = useForm<TeamsFormValues>({
     resolver: zodResolver(teamsFormScheme),
@@ -125,6 +127,7 @@ export default function TeamModal({
               <AlertDialogCancel
                 className="min-w-[100px] border-2 border-[#18618B] text-[#18618B] bg-white hover:bg-[#e6f1f7] font-medium py-2 rounded-lg"
                 onClick={handleClose}
+                disabled={isLoading}
               >
                 Cancel
               </AlertDialogCancel>
@@ -132,6 +135,7 @@ export default function TeamModal({
                 type="submit"
                 disabled={!form.formState.isValid}
                 className="min-w-[100px] bg-[#18618B] hover:bg-[#14506e] text-white font-medium py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                isLoading={isLoading}
               >
                 Save
               </Button>

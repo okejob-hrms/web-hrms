@@ -141,6 +141,7 @@ export default function TeamManagementList() {
         open={isDeleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
         onDelete={handleDeleteConfirm}
+        isLoading={isLoading}
       />
       <DepartmentModal
         open={isEditModalOpen}
@@ -148,6 +149,7 @@ export default function TeamManagementList() {
         initialData={selectedteam}
         handleSave={handleSave}
         handleClose={handleClose}
+        isLoading={isLoading}
       />
     </div>
   );

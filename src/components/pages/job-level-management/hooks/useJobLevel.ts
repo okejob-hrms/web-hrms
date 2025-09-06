@@ -8,7 +8,6 @@ import {
   keepPreviousData,
 } from "@tanstack/react-query";
 
-import { IDepartment } from "@/lib/types";
 import {
   getJobLevelsPagination,
   postJobLevelManagement,
@@ -17,15 +16,15 @@ import {
 } from "@/services/job-levels";
 import { toast } from "sonner";
 import { PaginationState } from "@tanstack/react-table";
-import { IJobLevelForm } from "@/services/job-levels/types";
+import { IJobLevelForm, JobLevel } from "@/services/job-levels/types";
+import { HTTPError } from "ky";
 
 export function useJobLevels() {
   const queryClient = useQueryClient();
 
-  // State for managing modals and the department being edited/deleted
   const [isEditModalOpen, setEditModalOpen] = useState(false);
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [selectedJobLevel, setSelectedJobLevel] = useState<IDepartment | null>(
+  const [selectedJobLevel, setSelectedJobLevel] = useState<JobLevel | null>(
     null
   );
 
@@ -61,16 +60,29 @@ export function useJobLevels() {
     },
   });
 
-  const { mutate: editJobLevel } = useMutation({
+  const { mutate: editJobLevel, isPending: isPendingEdit } = useMutation({
     mutationFn: putJobLevels,
     onSuccess: () => {
       toast.success("Job Level updated successfully!");
       queryClient.invalidateQueries({ queryKey: ["job-levels"] });
       handleClose();
     },
-    onError: (error) => {
+    onError: async (error) => {
       handleClose();
-      toast.error(`Failed to update job level: ${error.message}`);
+      try {
+        if (error instanceof HTTPError) {
+          const errorData = await error.response.json();
+          const message =
+            errorData.errors?.name?.[0] ||
+            errorData.message ||
+            "An unknown error occurred.";
+          toast.error(message);
+        } else {
+          toast.error(`Failed to update job level: ${error.message}`);
+        }
+      } catch (_) {
+        toast.error(`An unexpected error occurred: ${error.message}`);
+      }
     },
   });
 
@@ -99,25 +111,21 @@ export function useJobLevels() {
     },
   });
 
-  // Handler to open the modal for creating
   const handleCreate = () => {
     setSelectedJobLevel(null);
     setEditModalOpen(true);
   };
 
-  // Handler to open the modal for editing
-  const handleEdit = (department: IDepartment) => {
-    setSelectedJobLevel(department);
+  const handleEdit = (jobLevel: JobLevel) => {
+    setSelectedJobLevel(jobLevel);
     setEditModalOpen(true);
   };
 
-  // Handler to open the delete confirmation dialog
-  const handleDeleteClick = (department: IDepartment) => {
-    setSelectedJobLevel(department);
+  const handleDeleteClick = (jobLevel: JobLevel) => {
+    setSelectedJobLevel(jobLevel);
     setDeleteDialogOpen(true);
   };
 
-  // Handler to save (either create or update)
   const handleSave = (data: IJobLevelForm) => {
     if (selectedJobLevel) {
       // It's an update
@@ -149,6 +157,7 @@ export function useJobLevels() {
       isFetching ||
       isRefetching ||
       isPendingAdd ||
+      isPendingEdit ||
       isPendingRemove,
     hasNextPage,
     hasPreviousPage,
