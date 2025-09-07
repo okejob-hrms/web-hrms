@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { Badge } from "@/components/ui/badge";
@@ -6,7 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Toolbar } from "./sections/toolbar";
-import { ColumnDef } from "@tanstack/react-table";
+import { ColumnDef, PaginationState } from "@tanstack/react-table";
 import { DataTable } from "@/components/tables/data-table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn, stringAvatar } from "@/lib/utils";
@@ -143,18 +144,29 @@ export const columns: ColumnDef<IEmployeeResponse>[] = [
     },
   },
 ];
+
 export default function EmployeeManagementList() {
   const router = useRouter();
+  const [pagination, setPagination] = React.useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 10,
+  });
   const [filters, setFilters] = React.useState<Filters>({
     department_ids: [],
     job_position_ids: [],
     search: "",
   });
+  
   const debouncedFilters = useDebounce(filters, 300);
+  const queryParams = React.useMemo(() => ({
+    ...debouncedFilters,
+    page: pagination.pageIndex + 1,
+    per_page: pagination.pageSize,
+  }), [debouncedFilters, pagination]);
 
   const { data: employees, isLoading } = useQuery({
-    queryKey: ["employees", debouncedFilters],
-    queryFn: () => getEmployees(debouncedFilters),
+    queryKey: ["employees", queryParams],
+    queryFn: () => getEmployees(queryParams),
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
@@ -173,6 +185,15 @@ export default function EmployeeManagementList() {
           ? newFilters.job_position_ids
           : prev.job_position_ids,
     }));
+    
+    setPagination(prev => ({
+      ...prev,
+      pageIndex: 0,
+    }));
+  }, []);
+
+  const handlePaginationChange = React.useCallback((updater: any) => {
+    setPagination(updater);
   }, []);
 
   return (
@@ -184,7 +205,7 @@ export default function EmployeeManagementList() {
           <div className="flex gap-2 items-center">
             <h2 className="font-semibold text-xl">Employee List</h2>
             <Badge className="bg-primary-background text-primary rounded-full">
-              {employees?.data.data.length} Employee
+              {employees?.data.total || 0} Employee{employees?.data.total !== 1 ? 's' : ''}
             </Badge>
           </div>
           <Button
@@ -203,8 +224,10 @@ export default function EmployeeManagementList() {
         ) : (
           <DataTable
             columns={columns}
-            data={employees?.data.data}
+            data={employees?.data.data || []}
             pagination={employees?.data}
+            paginationState={pagination}
+            setPaginationState={handlePaginationChange}
           />
         )}
       </div>

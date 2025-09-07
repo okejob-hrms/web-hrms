@@ -7,6 +7,7 @@ import {
 } from "./types";
 import { api } from "@/lib/api";
 import qs from "qs";
+
 interface Params {
   search?: string;
   department_ids?: number[];
@@ -15,6 +16,8 @@ interface Params {
   status?: string;
   start_date?: string | null;
   end_date?: string | null;
+  page?: number;
+  per_page?: number;
 }
 
 export const getEmployees = (
@@ -38,6 +41,10 @@ export const getEmployees = (
       acc[key] = filtered;
       return acc;
     }
+    if (typeof value === "number") {
+      acc[key] = value;
+      return acc;
+    }
     acc[key] = value;
     return acc;
   }, {});
@@ -46,7 +53,6 @@ export const getEmployees = (
     encodeValuesOnly: true,
     arrayFormat: "brackets",
   });
-
   const response = api.get<ApiResponse<PaginatedResponse<IEmployeeResponse>>>(
     `employees${queryString ? `?${queryString}` : ""}`,
   );
