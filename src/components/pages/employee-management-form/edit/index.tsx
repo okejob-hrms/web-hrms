@@ -335,7 +335,7 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
   );
 
   React.useEffect(() => {
-    const subscription = form.watch((value, { name, type }) => {
+    const subscription = form.watch((value, { name }) => {
       if (
         name === "primary_direct_report_id" &&
         value.primary_direct_report_id
