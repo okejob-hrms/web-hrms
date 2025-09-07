@@ -251,7 +251,7 @@ const FamilyFormModal = ({
     },
   });
 
-  const onSubmit = async (values: IFamilyForm) => {
+  const onSubmit = React.useCallback(async (values: IFamilyForm) => {
     try {
       const payload = {
         ...values,
@@ -270,13 +270,31 @@ const FamilyFormModal = ({
       console.error("Submit error:", error);
       toast.error("Failed to submit form");
     }
-  };
+  }, []);
 
   const handleCancel = () => {
     setOpen(false);
     form.reset();
     mutation.reset();
   };
+
+  const handleUpdateFamily = React.useCallback(
+    async (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const isValid = await form.trigger();
+      const formData = form.getValues();
+
+      console.log("# ERROR EDIT ", form.formState.errors);
+
+      if (!isValid) {
+        console.log("Form validation failed");
+        return;
+      }
+      onSubmit(formData);
+    },
+    [form, onSubmit],
+  );
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -372,7 +390,7 @@ const FamilyFormModal = ({
                 Cancel
               </Button>
               <Button
-                type="submit"
+                onClick={handleUpdateFamily}
                 disabled={mutation.isPending || !form.formState.isValid}
               >
                 {mutation.isPending ? "Saving..." : "Save"}

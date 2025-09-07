@@ -4,7 +4,7 @@
 import { DataTable } from "@/components/tables/data-table";
 import { Button } from "@/components/ui/button";
 import { ColumnDef } from "@tanstack/react-table";
-import { Plus } from "lucide-react";
+import { Ellipsis, Plus } from "lucide-react";
 import * as React from "react";
 import {
   Dialog,
@@ -24,6 +24,8 @@ import { Separator } from "@/components/ui/separator";
 import {
   getContactReferences,
   postCreateContactReference,
+  putUpdateContactReference,
+  deleteContactReference,
 } from "@/services/employees/contact-references";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -33,43 +35,99 @@ import {
 } from "@/services/employees/contact-references/types";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { convertPhoneToNumber } from "@/lib/helpers";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import Image from "next/image";
 
-export const columns: ColumnDef<IContactReferenceResponse>[] = [
-  {
-    accessorKey: "name",
-    header: "Name",
-  },
-  {
-    accessorKey: "relationship",
-    header: "Relationship",
-  },
-  {
-    accessorKey: "email",
-    header: "Email",
-  },
-  {
-    accessorKey: "phone",
-    header: "Phone Number",
-  },
-  {
-    accessorKey: "occupation",
-    header: "Occupation",
-  },
-  {
-    accessorKey: "company",
-    header: "Company",
-  },
-];
-
-interface Props {
-  withAddButton?: boolean;
-  employee_profile_id?: number;
+interface TableRowActionsProps {
+  row: any;
+  onEdit: (contactReference: IContactReferenceResponse) => void;
+  onDelete: (contactReferenceId: number) => void;
 }
 
-export const AddContactReferenceModal = ({ employee_profile_id }: Props) => {
-  const [open, setOpen] = React.useState(false);
+const TableRowActions = ({ row, onEdit, onDelete }: TableRowActionsProps) => {
+  const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
+
+  const handleEditClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onEdit(row.original);
+    setIsDropdownOpen(false);
+  };
+
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onDelete(row.original.id);
+    setIsDropdownOpen(false);
+  };
+
+  return (
+    <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" className="h-8 w-8 p-0">
+          <span className="sr-only">Open menu</span>
+          <Ellipsis className="h-4 w-4 text-grayscale-30" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={handleEditClick} className="cursor-pointer">
+          <div className="flex h-fit w-fit gap-2 justify-between items-center">
+            <Image
+              src="/icons/editGrey.svg"
+              height={16}
+              width={16}
+              alt="icon-edit"
+            />
+            Edit
+          </div>
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={handleDeleteClick}
+          className="cursor-pointer"
+        >
+          <div className="flex h-fit w-fit gap-2 justify-between items-center">
+            <Image
+              src="/icons/delete.svg"
+              height={16}
+              width={16}
+              alt="icon-delete"
+            />
+            Delete
+          </div>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
+
+interface ContactReferenceFormModalProps {
+  isEdit?: boolean;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  contactReferenceData?: IContactReferenceResponse | null;
+  employee_profile_id?: number;
+  onSuccess?: () => void;
+}
+
+const ContactReferenceFormModal = ({
+  isEdit,
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
+  contactReferenceData,
+  employee_profile_id,
+  onSuccess,
+}: ContactReferenceFormModalProps) => {
+  const [internalOpen, setInternalOpen] = React.useState(false);
   const queryClient = useQueryClient();
   const formContext = useFormContext();
+
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  const setOpen = controlledOnOpenChange || setInternalOpen;
 
   const { setValue, watch } = formContext || {};
   const watchedContactReferences = watch ? watch("contact_refferences") : null;
@@ -86,19 +144,48 @@ export const AddContactReferenceModal = ({ employee_profile_id }: Props) => {
     },
   });
 
-  const addContactReferenceMutation = useMutation({
+  React.useEffect(() => {
+    if (isEdit && contactReferenceData && open) {
+      form.reset({
+        name: contactReferenceData.name || "",
+        relationship: contactReferenceData.relationship || "",
+        email: contactReferenceData.email || "",
+        occupation: contactReferenceData.occupation || "",
+        company: contactReferenceData.company || "",
+        phone: contactReferenceData.phone || "",
+      });
+    }
+  }, [isEdit, contactReferenceData, open, form]);
+
+  const mutation = useMutation({
     mutationFn: (params: {
       employee_profile_id?: number;
       payload: IContactReferenceForm;
-    }) => postCreateContactReference(params),
+      id?: number;
+    }) =>
+      isEdit
+        ? putUpdateContactReference(params)
+        : postCreateContactReference(params),
     onSuccess: (res) => {
-      toast.success("Contact reference added successfully!");
+      toast.success(
+        `Contact reference ${isEdit ? "updated" : "added"} successfully!`,
+      );
 
-      if (setValue) {
-        const updatedReferences = Array.isArray(watchedContactReferences)
-          ? [...watchedContactReferences, res.data]
-          : [res.data];
-        setValue("contact_refferences", updatedReferences);
+      if (setValue && watchedContactReferences) {
+        if (isEdit) {
+          const updatedContactReferences = watchedContactReferences.map(
+            (c: IContactReferenceResponse) =>
+              c.id === contactReferenceData?.id ? res.data : c,
+          );
+          setValue("contact_refferences", updatedContactReferences);
+        } else {
+          const updatedContactReferences = Array.isArray(
+            watchedContactReferences,
+          )
+            ? [...watchedContactReferences, res.data]
+            : [res.data];
+          setValue("contact_refferences", updatedContactReferences);
+        }
       }
 
       const queryKey = ["contact_refferences", employee_profile_id || ""];
@@ -114,33 +201,17 @@ export const AddContactReferenceModal = ({ employee_profile_id }: Props) => {
           };
         }
 
-        return {
-          ...oldData,
-          data: {
-            ...oldData.data,
-            data: [...(oldData.data.data || []), res.data],
-            total: (oldData.data.total || 0) + 1,
-          },
-        };
-      });
-
-      if (watchedContactReferences) {
-        const watchedQueryKey = [
-          "contact_refferences",
-          watchedContactReferences,
-        ];
-        queryClient.setQueryData(watchedQueryKey, (oldData: any) => {
-          if (!oldData) {
-            return {
-              data: {
-                data: [res.data],
-                total: 1,
-                page: 1,
-                per_page: 10,
-              },
-            };
-          }
-
+        if (isEdit) {
+          return {
+            ...oldData,
+            data: {
+              ...oldData.data,
+              data: oldData.data.data.map((c: IContactReferenceResponse) =>
+                c.id === contactReferenceData?.id ? res.data : c,
+              ),
+            },
+          };
+        } else {
           return {
             ...oldData,
             data: {
@@ -149,25 +220,25 @@ export const AddContactReferenceModal = ({ employee_profile_id }: Props) => {
               total: (oldData.data.total || 0) + 1,
             },
           };
-        });
-      }
-
-      queryClient.invalidateQueries({
-        queryKey: ["contact_refferences"],
+        }
       });
 
+      queryClient.invalidateQueries({ queryKey: ["contact_refferences"] });
       setOpen(false);
       form.reset();
+      onSuccess?.();
     },
     onError: (error: any) => {
       console.error("Mutation error:", error);
       toast.error(
-        `Failed to add contact reference: ${error?.response?.data?.message || error.message || "Unknown error"}`,
+        `Failed to ${isEdit ? "update" : "add"} contact reference: ${
+          error?.response?.data?.message || error.message || "Unknown error"
+        }`,
       );
     },
   });
 
-  const onSubmit = async (values: IContactReferenceForm) => {
+  const onSubmit = React.useCallback(async (values: IContactReferenceForm) => {
     try {
       const payload = {
         ...values,
@@ -177,37 +248,55 @@ export const AddContactReferenceModal = ({ employee_profile_id }: Props) => {
       const params = {
         employee_profile_id,
         payload,
+        ...(isEdit &&
+          contactReferenceData?.id && { id: contactReferenceData.id }),
       };
 
-      addContactReferenceMutation.mutate(params);
+      mutation.mutate(params);
     } catch (error) {
       console.error("Submit error:", error);
       toast.error("Failed to submit form");
     }
-  };
+  }, []);
+
+  const handleUpdateContactReference = React.useCallback(
+    async (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const isValid = await form.trigger();
+      const formData = form.getValues();
+
+      console.log("# ERROR EDIT ", form.formState.errors);
+
+      if (!isValid) {
+        console.log("Form validation failed");
+        return;
+      }
+      onSubmit(formData);
+    },
+    [form, onSubmit],
+  );
 
   const handleCancel = () => {
     setOpen(false);
     form.reset();
-    addContactReferenceMutation.reset();
+    mutation.reset();
   };
-
-  React.useEffect(() => {
-    if (Object.keys(form.formState.errors).length > 0) {
-      console.log("Form validation errors:", form.formState.errors);
-    }
-  }, [form.formState.errors]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>
-          <Plus /> Add Contact Reference
-        </Button>
-      </DialogTrigger>
+      {!controlledOpen && (
+        <DialogTrigger asChild>
+          <Button>
+            <Plus /> Add Contact Reference
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="bg-white md:min-w-5xl overflow-y-scroll max-h-[90vh]">
         <DialogHeader>
-          <DialogTitle>Add Contact Reference</DialogTitle>
+          <DialogTitle>
+            {isEdit ? "Edit Contact Reference" : "Add Contact Reference"}
+          </DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -235,11 +324,10 @@ export const AddContactReferenceModal = ({ employee_profile_id }: Props) => {
               </div>
             )}
 
-            {addContactReferenceMutation.isError && (
+            {mutation.isError && (
               <div className="text-red-500 text-sm mt-2">
                 Error:{" "}
-                {addContactReferenceMutation.error?.message ||
-                  "Failed to save contact reference information"}
+                {mutation.error?.message || "Failed to save contact reference"}
               </div>
             )}
 
@@ -248,18 +336,15 @@ export const AddContactReferenceModal = ({ employee_profile_id }: Props) => {
                 type="button"
                 variant="outline"
                 onClick={handleCancel}
-                disabled={addContactReferenceMutation.isPending}
+                disabled={mutation.isPending}
               >
                 Cancel
               </Button>
               <Button
-                type="submit"
-                disabled={
-                  addContactReferenceMutation.isPending ||
-                  !form.formState.isValid
-                }
+                onClick={handleUpdateContactReference}
+                // disabled={mutation.isPending || !form.formState.isValid}
               >
-                {addContactReferenceMutation.isPending ? "Saving..." : "Save"}
+                {mutation.isPending ? "Saving..." : "Save"}
               </Button>
             </DialogFooter>
           </form>
@@ -268,6 +353,11 @@ export const AddContactReferenceModal = ({ employee_profile_id }: Props) => {
     </Dialog>
   );
 };
+
+interface Props {
+  withAddButton?: boolean;
+  employee_profile_id?: number;
+}
 
 const SectionHeader = ({ withAddButton, employee_profile_id }: Props) => (
   <div
@@ -279,7 +369,7 @@ const SectionHeader = ({ withAddButton, employee_profile_id }: Props) => (
       Contact Reference
     </h2>
     {withAddButton && (
-      <AddContactReferenceModal employee_profile_id={employee_profile_id} />
+      <ContactReferenceFormModal employee_profile_id={employee_profile_id} />
     )}
   </div>
 );
@@ -287,10 +377,54 @@ const SectionHeader = ({ withAddButton, employee_profile_id }: Props) => (
 export const ContactOfReferenceSection = React.memo<Props>(
   function ContactOfReferenceSection({ withAddButton, employee_profile_id }) {
     const formContext = useFormContext();
+    const queryClient = useQueryClient();
+    const [editingContactReference, setEditingContactReference] =
+      React.useState<IContactReferenceResponse | null>(null);
+    const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
 
     const watchedContactReferences = formContext
       ? formContext.watch("contact_refferences")
       : null;
+
+    const deleteMutation = useMutation({
+      mutationFn: ({ id }: { id: number }) =>
+        deleteContactReference({ id, employee_profile_id }),
+      onSuccess: (_, variables) => {
+        toast.success("Contact reference deleted successfully!");
+        if (formContext?.setValue && watchedContactReferences) {
+          const updatedContactReferences = watchedContactReferences.filter(
+            (c: IContactReferenceResponse) => c.id !== variables.id,
+          );
+          formContext.setValue("contact_refferences", updatedContactReferences);
+        }
+        const queryKey = ["contact_refferences", employee_profile_id || ""];
+        queryClient.setQueryData(queryKey, (oldData: any) => {
+          if (!oldData) return oldData;
+
+          return {
+            ...oldData,
+            data: {
+              ...oldData.data,
+              data: oldData.data.data.filter(
+                (c: IContactReferenceResponse) => c.id !== variables.id,
+              ),
+              total: oldData.data.total - 1,
+            },
+          };
+        });
+
+        queryClient.invalidateQueries({ queryKey: ["contact_refferences"] });
+      },
+      onError: (error: any) => {
+        console.error("Delete mutation error:", error);
+        toast.error(
+          `Failed to delete contact reference: ${
+            error?.response?.data?.message || error.message || "Unknown error"
+          }`,
+        );
+      },
+    });
+
     const { data, isLoading } = useQuery({
       queryKey: employee_profile_id
         ? ["contact_refferences", employee_profile_id]
@@ -308,12 +442,85 @@ export const ContactOfReferenceSection = React.memo<Props>(
 
     const returnedData = data?.data?.data || watchedContactReferences;
 
+    const handleEdit = (contactReference: IContactReferenceResponse) => {
+      setEditingContactReference(contactReference);
+      setIsEditModalOpen(true);
+    };
+
+    const handleDelete = (contactReferenceId: number) => {
+      if (
+        window.confirm(
+          "Are you sure you want to delete this contact reference?",
+        )
+      ) {
+        deleteMutation.mutate({ id: contactReferenceId });
+      }
+    };
+
+    const handleFormSuccess = () => {
+      setIsEditModalOpen(false);
+      setEditingContactReference(null);
+    };
+
+    const columns: ColumnDef<IContactReferenceResponse>[] = React.useMemo(
+      () => [
+        {
+          accessorKey: "name",
+          header: "Name",
+        },
+        {
+          accessorKey: "relationship",
+          header: "Relationship",
+        },
+        {
+          accessorKey: "email",
+          header: "Email",
+        },
+        {
+          accessorKey: "phone",
+          header: "Phone Number",
+        },
+        {
+          accessorKey: "occupation",
+          header: "Occupation",
+        },
+        {
+          accessorKey: "company",
+          header: "Company",
+        },
+        {
+          accessorKey: "menu",
+          header: "",
+          cell: ({ row }) => (
+            <TableRowActions
+              row={row}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+            />
+          ),
+        },
+      ],
+      [],
+    );
+
     return (
       <React.Fragment>
         <SectionHeader
           withAddButton={withAddButton}
           employee_profile_id={employee_profile_id}
         />
+
+        {isEditModalOpen && (
+          <ContactReferenceFormModal
+            isEdit
+            open={isEditModalOpen}
+            onOpenChange={setIsEditModalOpen}
+            contactReferenceData={editingContactReference}
+            employee_profile_id={employee_profile_id}
+            onSuccess={handleFormSuccess}
+          />
+        )}
+
         {isLoading ? (
           <div className="flex flex-col gap-4 items-center w-full">
             <Skeleton className="h-12 w-full" />

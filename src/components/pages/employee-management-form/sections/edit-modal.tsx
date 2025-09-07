@@ -20,11 +20,17 @@ interface Props {
 export default function EmployeeUpdateModal({ onUpdate, disabled }: Props) {
   const [isOpen, setIsOpen] = useState(false);
 
-  const handleUpdate = (e: React.MouseEvent) => {
+  const handleUpdate = async (e: React.MouseEvent) => {
     console.log("Employee data updated");
     e.preventDefault();
-    onUpdate();
-    setIsOpen(false);
+    e.stopPropagation();
+
+    try {
+      await onUpdate();
+      setIsOpen(false);
+    } catch (error) {
+      console.error("Error updating employee:", error);
+    }
   };
 
   const handleCancel = () => {
@@ -37,6 +43,7 @@ export default function EmployeeUpdateModal({ onUpdate, disabled }: Props) {
         type="button"
         onClick={() => setIsOpen(true)}
         className="md:min-w-[174px]"
+        disabled={disabled}
       >
         Update
       </Button>

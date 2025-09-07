@@ -34,6 +34,7 @@ export interface IEducationResponse {
   start_date: string;
   graduation_date: string;
   gpa: string;
+  max_gpa: string;
   notes: string;
   employee_profile_id: string;
   updated_at: string;

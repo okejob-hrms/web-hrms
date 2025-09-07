@@ -671,6 +671,7 @@ export const EmployeeinformationSection = React.memo(
             label="Primary Direct Report"
             options={employeesOptions}
             disabled={isLoadingEmployees}
+            valueType="number"
           />
           <ComboboxForm
             name="additional_direct_report_id"
@@ -678,6 +679,7 @@ export const EmployeeinformationSection = React.memo(
             options={employeesOptions}
             disabled={isLoadingEmployees}
             isOptional
+            valueType="number"
           />
           <SelectForm
             name="team_members"

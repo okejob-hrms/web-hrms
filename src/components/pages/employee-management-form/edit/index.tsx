@@ -185,23 +185,22 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
           employeeDetails.bank_account?.account_number?.toString() || "",
         account_name: employeeDetails.bank_account?.account_name || "",
         social_media_accounts: validSocialMedia,
-        attachments: (employeeDetails.employee_documents || []).map((item) => ({
-          path: item.path,
-          type: item.type,
-        })),
+        attachments: [],
         families: employeeDetails.families || [],
         educations: employeeDetails.educations || [],
         work_experiences: employeeDetails.work_experiences || [],
         contact_refferences: employeeDetails.contact_refferences || [],
         ...(employeeDetails.reporting_relationships.length > 0 && {
-          primary_direct_report_id:
+          primary_direct_report_id: Number(
             employeeDetails.reporting_relationships.filter(
               (item) => item.relationship_type === "primary",
-            )[0]?.employee_profile_id,
-          additional_direct_report_id:
+            )[0]?.employee_profile_id || 0,
+          ),
+          additional_direct_report_id: Number(
             employeeDetails.reporting_relationships.filter(
               (item) => item.relationship_type === "secondary",
-            )[0]?.employee_profile_id,
+            )[0]?.employee_profile_id || 0,
+          ),
         }),
       };
 
@@ -306,6 +305,24 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
           }
         }
 
+        if (
+          values.primary_direct_report_id &&
+          values.primary_direct_report_id !== 0
+        ) {
+          conditionalParams.primary_direct_report_id = Number(
+            values.primary_direct_report_id,
+          );
+        }
+
+        if (
+          values.additional_direct_report_id &&
+          values.additional_direct_report_id !== 0
+        ) {
+          conditionalParams.additional_direct_report_id = Number(
+            values.additional_direct_report_id,
+          );
+        }
+
         const finalParams = { ...baseParams, ...conditionalParams };
 
         editEmployee(finalParams);
@@ -316,6 +333,53 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
     },
     [editEmployee, filterValidData, hasValidSocialMediaAccounts],
   );
+
+  React.useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (
+        name === "primary_direct_report_id" &&
+        value.primary_direct_report_id
+      ) {
+        const numValue = Number(value.primary_direct_report_id);
+        if (numValue !== value.primary_direct_report_id) {
+          form.setValue("primary_direct_report_id", numValue);
+        }
+        console.log("primary changed:", value.primary_direct_report_id);
+      }
+
+      if (
+        name === "additional_direct_report_id" &&
+        value.additional_direct_report_id
+      ) {
+        const numValue = Number(value.additional_direct_report_id);
+        if (numValue !== value.additional_direct_report_id) {
+          form.setValue("additional_direct_report_id", numValue);
+        }
+        console.log("additional changed:", value.additional_direct_report_id);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [form]);
+
+  const handleUpdateEmployee = React.useCallback(async () => {
+    const isValid = await form.trigger();
+    const formData = form.getValues();
+
+    // const processedData = {
+    //   ...formData,
+    //   primary_direct_report_id: Number(formData.primary_direct_report_id) || 0,
+    //   additional_direct_report_id: Number(formData.additional_direct_report_id) || 0,
+    // };
+
+    // console.log("submitted ", processedData)
+    console.log("# ERROR EDIT ", form.formState.errors);
+    if (!isValid) {
+      console.log("Form validation failed");
+      return;
+    }
+    onSubmit(formData);
+  }, [form, onSubmit]);
 
   if (
     isLoading ||
@@ -380,7 +444,7 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
                 Cancel
               </Button>
               <EmployeeUpdateModal
-                onUpdate={form.handleSubmit(onSubmit)}
+                onUpdate={handleUpdateEmployee}
                 disabled={isPendingEditEmployee}
               />
             </div>

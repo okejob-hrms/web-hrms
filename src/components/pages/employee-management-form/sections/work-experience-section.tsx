@@ -253,7 +253,7 @@ const WorkExperienceFormModal = ({
     },
   });
 
-  const onSubmit = async (values: IWorkExperienceForm) => {
+  const onSubmit = React.useCallback(async (values: IWorkExperienceForm) => {
     try {
       const payload = {
         ...values,
@@ -270,7 +270,25 @@ const WorkExperienceFormModal = ({
       console.error("Submit error:", error);
       toast.error("Failed to submit form");
     }
-  };
+  }, []);
+
+  const handleUpdateEmployee = React.useCallback(
+    async (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const isValid = await form.trigger();
+      const formData = form.getValues();
+
+      console.log("# ERROR EDIT ", form.formState.errors);
+
+      if (!isValid) {
+        console.log("Form validation failed");
+        return;
+      }
+      onSubmit(formData);
+    },
+    [form, onSubmit],
+  );
 
   const handleCancel = () => {
     setOpen(false);
@@ -314,7 +332,6 @@ const WorkExperienceFormModal = ({
                 name="supervisor_contact"
                 label="Supervisor Contact Person"
                 required
-                type="number"
                 disabled={mutation.isPending}
               />
               <TextAreaForm
@@ -376,7 +393,7 @@ const WorkExperienceFormModal = ({
                 Cancel
               </Button>
               <Button
-                type="submit"
+                onClick={handleUpdateEmployee}
                 // disabled={mutation.isPending || !form.formState.isValid}
               >
                 {mutation.isPending ? "Saving..." : "Save"}

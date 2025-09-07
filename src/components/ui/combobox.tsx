@@ -2,6 +2,7 @@
 
 import { Check, ChevronDownIcon } from "lucide-react";
 import { useFormContext } from "react-hook-form";
+import { useState } from "react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -35,18 +36,16 @@ export function ComboboxForm({
   isOptional,
   placeholder = "Select",
   options,
-}: ComboboxProps) {
+  valueType = "string", // Add this prop to specify if value should be number or string
+}: ComboboxProps & { valueType?: "string" | "number" }) {
   const { control, setValue } = useFormContext();
+  const [open, setOpen] = useState(false);
 
   return (
     <FormField
       control={control}
       name={name}
       render={({ field }) => {
-        // const value =
-        //   field.value !== undefined && field.value !== null
-        //     ? field.value.toString()
-        //     : "";
         return (
           <FormItem className={cn("flex flex-col", formItemClassName)}>
             <FormLabel className={cn("text-sm font-normal", labelClassName)}>
@@ -55,20 +54,22 @@ export function ComboboxForm({
                 <span className="text-text-disabled"> (optional)</span>
               )}
             </FormLabel>
-            <Popover>
+            <Popover open={open} onOpenChange={setOpen}>
               <PopoverTrigger asChild>
                 <FormControl>
                   <Button
                     variant="outline"
                     role="combobox"
+                    aria-expanded={open}
                     className={cn(
                       "w-full justify-between rounded-sm font-normal text-black border-input h-10",
                     )}
                   >
                     {field.value
-                      ? options.find(
-                          (item) =>
-                            item.value.toString() === field.value.toString(),
+                      ? options.find((item) =>
+                          valueType === "number"
+                            ? item.value.toString() === field.value.toString()
+                            : item.value === field.value,
                         )?.label
                       : placeholder}
                     <ChevronDownIcon className="size-4 opacity-50" />
@@ -77,10 +78,7 @@ export function ComboboxForm({
               </PopoverTrigger>
               <PopoverContent className="w-full p-0">
                 <Command>
-                  <CommandInput
-                    placeholder="Search framework..."
-                    className="h-9"
-                  />
+                  <CommandInput placeholder="Search..." className="h-9" />
                   <CommandList>
                     <CommandEmpty>No data found.</CommandEmpty>
                     <CommandGroup>
@@ -89,14 +87,24 @@ export function ComboboxForm({
                           value={item.label}
                           key={item.value}
                           onSelect={() => {
-                            setValue(name, item.value);
+                            const finalValue =
+                              valueType === "number"
+                                ? Number(item.value)
+                                : item.value;
+                            console.log(`${name} : ${item.label}`);
+                            setValue(name, finalValue);
+                            setOpen(false);
                           }}
                         >
                           {item.label}
                           <Check
                             className={cn(
-                              "ml-auto",
-                              item.value === field.value
+                              "ml-auto size-4",
+                              (
+                                valueType === "number"
+                                  ? item.value === field.value?.toString()
+                                  : item.value === field.value
+                              )
                                 ? "opacity-100"
                                 : "opacity-0",
                             )}
