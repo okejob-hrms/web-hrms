@@ -496,6 +496,7 @@ export const EmployeeinformationSection = React.memo(
         ],
         queryFn: () =>
           getEmployees({
+            per_page: 100,
             department_ids: watchedDepartmentId
               ? [watchedDepartmentId]
               : undefined,

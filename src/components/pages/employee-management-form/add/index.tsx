@@ -31,7 +31,7 @@ import { convertPhoneToNumber } from "@/lib/helpers";
 
 export const AddEmployeeForm = React.memo(function AddEmployee() {
   const router = useRouter();
-  const { mutate } = useMutation({
+  const { mutate, isPending } = useMutation({
     mutationFn: (params: IMutateEmployeeRequests) => createEmployee(params),
     onSuccess: () => {
       toast.success("Employee added successfully!");
@@ -120,7 +120,11 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
           <ContactOfReferenceSection withAddButton />
           <AttachmentsSection />
           <div className="flex gap-2 my-8 justify-between md:justify-start w-full">
-            <Button variant="outline" className="md:max-w-36 w-[50%]">
+            <Button
+              variant="outline"
+              className="md:max-w-36 w-[50%]"
+              isLoading={isPending}
+            >
               Cancel
             </Button>
             <Button className="md:max-w-36 w-[50%]">Add Employee</Button>

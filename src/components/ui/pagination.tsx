@@ -64,7 +64,7 @@ function PaginationLink({
         }),
         "text-text-disabled font-semibold",
         isActive && "bg-primary-focused text-primary",
-        className
+        className,
       )}
       {...props}
     />
@@ -81,7 +81,7 @@ function PaginationPrevious({
       size="default"
       className={cn(
         "gap-1 px-2.5 sm:pl-2.5 rounded-sm border border-primary",
-        className
+        className,
       )}
       {...props}
     >
@@ -108,7 +108,7 @@ function PaginationNext({
       size="default"
       className={cn(
         "gap-1 px-2.5 sm:pr-2.5 rounded-sm border border-primary",
-        className
+        className,
       )}
       {...props}
     >

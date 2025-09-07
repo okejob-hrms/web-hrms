@@ -15,6 +15,7 @@ export interface PaginatedResponse<T> {
   per_page: number;
   prev_page_url: string | null;
   to: number;
+  total: number;
 }
 
 export interface ApiResponse<T> {

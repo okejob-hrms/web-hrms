@@ -18,7 +18,7 @@ const Profile = React.memo(function Profile({ className }: Props) {
   const handleLogout = () => {
     localStorage.removeItem("token");
     router.push("/auth/login");
-  }
+  };
 
   return (
     <div className={cn("flex gap-3 items-center", className)}>

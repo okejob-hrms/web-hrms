@@ -62,13 +62,14 @@ export function ComboboxForm({
                     variant="outline"
                     role="combobox"
                     className={cn(
-                      "w-full justify-between rounded-sm font-normal text-text-disabled border-input h-10",
-                      // !field.value && "text-muted-foreground",
+                      "w-full justify-between rounded-sm font-normal text-black border-input h-10",
                     )}
                   >
                     {field.value
-                      ? options.find((item) => item.value === field.value)
-                          ?.label
+                      ? options.find(
+                          (item) =>
+                            item.value.toString() === field.value.toString(),
+                        )?.label
                       : placeholder}
                     <ChevronDownIcon className="size-4 opacity-50" />
                   </Button>

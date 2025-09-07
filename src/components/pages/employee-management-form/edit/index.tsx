@@ -22,7 +22,7 @@ import {
 } from "../types";
 import { IMutateEmployeeRequests } from "@/services/employees/types";
 import dayjs from "dayjs";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   updateEmployee,
   getEmployeeDetail,
@@ -44,6 +44,7 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
 }: Props) {
   const router = useRouter();
   const [isDataLoaded, setIsDataLoaded] = React.useState(false);
+  const queryClient = useQueryClient();
 
   const { data, isLoading } = useQuery({
     queryKey: ["employee-detail", employee_profile_id],
@@ -57,6 +58,7 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
         updateEmployee(params, employee_profile_id),
       onSuccess: () => {
         toast.success("Edit employee successfully!");
+        queryClient.invalidateQueries({ queryKey: ["employees"] });
         router.push("/employee/employee-management");
       },
       onError: (error: any) => {
@@ -71,6 +73,7 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
       mutationFn: () => deleteEmployee(employee_profile_id),
       onSuccess: () => {
         toast.success("Archive employee successfully!");
+
         router.push("/employee/employee-management");
       },
       onError: (error: any) => {
@@ -190,6 +193,16 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
         educations: employeeDetails.educations || [],
         work_experiences: employeeDetails.work_experiences || [],
         contact_refferences: employeeDetails.contact_refferences || [],
+        ...(employeeDetails.reporting_relationships.length > 0 && {
+          primary_direct_report_id:
+            employeeDetails.reporting_relationships.filter(
+              (item) => item.relationship_type === "primary",
+            )[0]?.employee_profile_id,
+          additional_direct_report_id:
+            employeeDetails.reporting_relationships.filter(
+              (item) => item.relationship_type === "secondary",
+            )[0]?.employee_profile_id,
+        }),
       };
 
       setTimeout(() => {
@@ -372,7 +385,7 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
               />
             </div>
             <EmployeeArchieveModal
-              onArchieve={() => archieveEmployee()}
+              onArchieve={archieveEmployee}
               disabled={isPendingArchieveEmployee}
             />
           </div>
