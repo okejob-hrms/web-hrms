@@ -77,7 +77,7 @@ export default function EmployeeUpdateModal({ onUpdate, disabled }: Props) {
               className="flex-1 bg-primary text-white rounded-md py-2 font-medium"
               disabled={disabled}
             >
-              Update Data
+              Update
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
