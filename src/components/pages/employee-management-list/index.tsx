@@ -156,13 +156,16 @@ export default function EmployeeManagementList() {
     job_position_ids: [],
     search: "",
   });
-  
+
   const debouncedFilters = useDebounce(filters, 300);
-  const queryParams = React.useMemo(() => ({
-    ...debouncedFilters,
-    page: pagination.pageIndex + 1,
-    per_page: pagination.pageSize,
-  }), [debouncedFilters, pagination]);
+  const queryParams = React.useMemo(
+    () => ({
+      ...debouncedFilters,
+      page: pagination.pageIndex + 1,
+      per_page: pagination.pageSize,
+    }),
+    [debouncedFilters, pagination],
+  );
 
   const { data: employees, isLoading } = useQuery({
     queryKey: ["employees", queryParams],
@@ -185,8 +188,8 @@ export default function EmployeeManagementList() {
           ? newFilters.job_position_ids
           : prev.job_position_ids,
     }));
-    
-    setPagination(prev => ({
+
+    setPagination((prev) => ({
       ...prev,
       pageIndex: 0,
     }));
@@ -205,7 +208,8 @@ export default function EmployeeManagementList() {
           <div className="flex gap-2 items-center">
             <h2 className="font-semibold text-xl">Employee List</h2>
             <Badge className="bg-primary-background text-primary rounded-full">
-              {employees?.data.total || 0} Employee{employees?.data.total !== 1 ? 's' : ''}
+              {employees?.data.total || 0} Employee
+              {employees?.data.total !== 1 ? "s" : ""}
             </Badge>
           </div>
           <Button

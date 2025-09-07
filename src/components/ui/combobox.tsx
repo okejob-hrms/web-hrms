@@ -66,8 +66,10 @@ export function ComboboxForm({
                     )}
                   >
                     {field.value
-                      ? options.find((item) => item.value.toString() === field.value.toString())
-                          ?.label
+                      ? options.find(
+                          (item) =>
+                            item.value.toString() === field.value.toString(),
+                        )?.label
                       : placeholder}
                     <ChevronDownIcon className="size-4 opacity-50" />
                   </Button>

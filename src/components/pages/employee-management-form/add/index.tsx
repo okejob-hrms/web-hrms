@@ -120,7 +120,11 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
           <ContactOfReferenceSection withAddButton />
           <AttachmentsSection />
           <div className="flex gap-2 my-8 justify-between md:justify-start w-full">
-            <Button variant="outline" className="md:max-w-36 w-[50%]" isLoading={isPending}>
+            <Button
+              variant="outline"
+              className="md:max-w-36 w-[50%]"
+              isLoading={isPending}
+            >
               Cancel
             </Button>
             <Button className="md:max-w-36 w-[50%]">Add Employee</Button>
