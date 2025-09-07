@@ -226,11 +226,12 @@ const CardItem = React.memo(function CardItem({ file }: { file: IDocument }) {
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuItem>
-                <Icon size={12} name="openNewTab" color="#8E8E8E" /> Open
-                Document
+                <Image width={15} height={15} src="/icons/openNewTabGrey.svg" alt="Open Document" />
+                Open Document
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <Icon size={12} name="edit" color="#8E8E8E" /> Edit
+                <Image width={15} height={15} src="/icons/editGrey.svg" alt="Edit" /> 
+                Edit
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <a
@@ -238,12 +239,17 @@ const CardItem = React.memo(function CardItem({ file }: { file: IDocument }) {
                   download={file.filename}
                   className="flex items-center gap-2"
                 >
-                  <Icon size={12} name="download" color="#8E8E8E" />
+                  <Image width={15} height={15} src="/icons/downloadGrey.svg" alt="Download" /> 
                   Download
                 </a>
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <Icon size={12} name="delete" color="#8E8E8E" /> Delete
+                <Image width={15} height={15} src="/icons/delete.svg" alt="Delete" /> 
+                Delete
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Image width={15} height={15} src="/icons/totalCustomer.svg" alt="Manage Access" /> 
+                Manage Access
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
