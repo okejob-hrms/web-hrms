@@ -10,10 +10,8 @@ export const assignEmployeeFormScheme = z.object({
   department_id: z.string().min(1, "Department is required"),
   job_position_id: z.string().min(1, "Position is required"),
   job_level_id: z.string().min(1, "Job Level is required"),
-  primary_direct_report: z
-    .array(z.string())
-    .min(1, "At least one primary direct report is required"),
-  additional_direct_report: z.array(z.string()).optional(),
+  primary_direct_report: z.string().min(1, "Primary Direct Report is required"),
+  additional_direct_report: z.string().optional(),
   team_id: z.array(z.string()).optional(),
   start_date: z.string().optional(),
 });
