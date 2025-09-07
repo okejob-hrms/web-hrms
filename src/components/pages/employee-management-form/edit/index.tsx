@@ -190,6 +190,8 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
         educations: employeeDetails.educations || [],
         work_experiences: employeeDetails.work_experiences || [],
         contact_refferences: employeeDetails.contact_refferences || [],
+        primary_direct_report_id: employeeDetails.reporting_relationships.filter(item => item.relationship_type === "primary")[0].employee_profile_id,
+        additional_direct_report_id: employeeDetails.reporting_relationships.filter(item => item.relationship_type === "secondary")[0].employee_profile_id
       };
 
       setTimeout(() => {
