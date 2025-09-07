@@ -30,6 +30,7 @@ import { getJobLevels } from "@/services/job-levels";
 import { getJobPosition } from "@/services/job-position";
 import { getTeam } from "@/services/team";
 import { getEmployees } from "@/services/employees";
+import { ComboboxForm } from "@/components/ui/combobox";
 
 interface EmployeeProfileModalProps {
   open: boolean;
@@ -280,23 +281,13 @@ const EditView = ({
         control={form.control}
         name="primary_direct_report"
         render={({ field }) => (
-          <FormItem>
-            <div className="flex flex-col gap-2">
-              <label className="text-sm text-text-secondary">
-                Primary Direct Report <span className="text-red-500">*</span>
-              </label>
-              <MultiSelect
-                options={employeesOptions}
-                defaultValue={field.value}
-                onValueChange={field.onChange}
-                maxCount={3}
-                variant="inverted"
-                disabled={isLoadingEmployees}
-                {...field}
-              />
-            </div>
-            <FormMessage />
-          </FormItem>
+          <ComboboxForm
+            label="Primary Direct Report"
+            defaultValue={field.value}
+            options={employeesOptions}
+            disabled={isLoadingEmployees}
+            {...field}
+          />
         )}
       />
 
@@ -304,23 +295,14 @@ const EditView = ({
         control={form.control}
         name="additional_direct_report"
         render={({ field }) => (
-          <FormItem>
-            <div className="flex flex-col gap-2">
-              <label className="text-sm text-text-secondary">
-                Additional Direct Report
-              </label>
-              <MultiSelect
-                options={employeesOptions}
-                defaultValue={field.value}
-                onValueChange={field.onChange}
-                maxCount={3}
-                variant="inverted"
-                disabled={isLoadingEmployees}
-                {...field}
-              />
-            </div>
-            <FormMessage />
-          </FormItem>
+          <ComboboxForm
+            label="Additional Direct Report"
+            defaultValue={field.value}
+            options={employeesOptions}
+            disabled={isLoadingEmployees}
+            isOptional
+            {...field}
+          />
         )}
       />
 
@@ -601,11 +583,11 @@ export default function EmployeeProfileModal({
                           primary_direct_report:
                             employeeData.primary_direct_report.map((r) =>
                               String(r.id)
-                            ),
+                            )[0],
                           additional_direct_report:
                             employeeData.secondary_direct_report.map((r) =>
                               String(r.id)
-                            ),
+                            )[0],
                           team_id: employeeData.team_members.map((t) =>
                             String(t.id)
                           ),

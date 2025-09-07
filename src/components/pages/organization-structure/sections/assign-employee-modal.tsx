@@ -46,6 +46,7 @@ import { getDepartment } from "@/services/department";
 import { getJobLevels } from "@/services/job-levels";
 import { getJobPosition } from "@/services/job-position";
 import { getTeam } from "@/services/team";
+import { ComboboxForm } from "@/components/ui/combobox";
 
 interface AssignEmployeeModalProps {
   open: boolean;
@@ -330,7 +331,7 @@ export default function AssignEmployeeModal({
 
                                   form.setValue(
                                     "primary_direct_report",
-                                    uniquePrimaryReports
+                                    uniquePrimaryReports[0]
                                   );
 
                                   if (employeeOnChart) {
@@ -338,7 +339,7 @@ export default function AssignEmployeeModal({
                                       "additional_direct_report",
                                       employeeOnChart.secondary_direct_report.map(
                                         (report) => String(report.id)
-                                      )
+                                      )[0]
                                     );
                                     form.setValue(
                                       "team_id",
@@ -463,24 +464,13 @@ export default function AssignEmployeeModal({
                     control={form.control}
                     name="primary_direct_report"
                     render={({ field }) => (
-                      <FormItem>
-                        <div className="flex flex-col gap-2">
-                          <label className="text-sm text-text-secondary">
-                            Primary Direct Report{" "}
-                            <span className="text-red-500">*</span>
-                          </label>
-                          <MultiSelect
-                            options={employeesOptions}
-                            defaultValue={field.value}
-                            onValueChange={field.onChange}
-                            maxCount={3}
-                            variant="inverted"
-                            disabled={isLoadingEmployees}
-                            {...field}
-                          />
-                        </div>
-                        <FormMessage />
-                      </FormItem>
+                      <ComboboxForm
+                        label="Primary Direct Report"
+                        defaultValue={field.value}
+                        options={employeesOptions}
+                        disabled={isLoadingEmployees}
+                        {...field}
+                      />
                     )}
                   />
 
@@ -488,23 +478,14 @@ export default function AssignEmployeeModal({
                     control={form.control}
                     name="additional_direct_report"
                     render={({ field }) => (
-                      <FormItem>
-                        <div className="flex flex-col gap-2">
-                          <label className="text-sm text-text-secondary">
-                            Additional Direct Report
-                          </label>
-                          <MultiSelect
-                            options={employeesOptions}
-                            defaultValue={field.value}
-                            onValueChange={field.onChange}
-                            maxCount={3}
-                            variant="inverted"
-                            disabled={isLoadingEmployees}
-                            {...field}
-                          />
-                        </div>
-                        <FormMessage />
-                      </FormItem>
+                      <ComboboxForm
+                        label="Additional Direct Report"
+                        defaultValue={field.value}
+                        options={employeesOptions}
+                        disabled={isLoadingEmployees}
+                        isOptional
+                        {...field}
+                      />
                     )}
                   />
 
