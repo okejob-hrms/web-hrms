@@ -106,7 +106,6 @@ export default function OrganizationChartEdit() {
   } = useQuery({
     queryKey: ["organizationChart"],
     queryFn: getOrgChart,
-    // The `select` option transforms the data after a successful fetch
     select: (apiResponse) => flattenOrgData(apiResponse.data),
   });
 
@@ -131,8 +130,8 @@ export default function OrganizationChartEdit() {
         department_id: employee.department_id,
         job_level_id: String(employee.job_level_id),
         job_position_id: String(employee.job_position_id),
-        primary_direct_report: [],
-        additional_direct_report: [],
+        primary_direct_report: "",
+        additional_direct_report: "",
         team_id: employee.team_members.map((team) => String(team.id)),
       });
     };
@@ -218,7 +217,7 @@ export default function OrganizationChartEdit() {
             </div>
           ) : chartEmployees.length === 0 ? (
             <div
-              className="rounded-md bg-grayscale-10 border shadow-sm border-grayscale-20 p-12 flex flex-col items-center justify-center gap-2 cursor-pointer h-full"
+              className="bg-grayscale-10 border shadow-sm border-grayscale-20 p-12 flex flex-col items-center justify-center gap-2 cursor-pointer h-full"
               onClick={() => openAssignModal()}
             >
               <Image
