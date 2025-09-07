@@ -81,7 +81,7 @@ export function DataTable<TData, TValue>({
             className={cn(
               "w-full",
               customSize ? "table-fixed min-w-[800px]" : "min-w-[800px]",
-              tableClassName
+              tableClassName,
             )}
           >
             <TableHeader>
@@ -103,14 +103,14 @@ export function DataTable<TData, TValue>({
                         customSize
                           ? "break-words whitespace-normal"
                           : "min-w-[120px]",
-                        tableHeadClassName
+                        tableHeadClassName,
                       )}
                     >
                       {header.isPlaceholder
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
-                            header.getContext()
+                            header.getContext(),
                           )}
                     </TableHead>
                   ))}
@@ -146,21 +146,21 @@ export function DataTable<TData, TValue>({
                           customSize
                             ? "break-words whitespace-normal"
                             : "min-w-[120px]",
-                          tableCellClassName
+                          tableCellClassName,
                         )}
                       >
                         {customSize ? (
                           <div className="break-words whitespace-normal">
                             {flexRender(
                               cell.column.columnDef.cell,
-                              cell.getContext()
+                              cell.getContext(),
                             )}
                           </div>
                         ) : (
                           <div className="max-w-[200px] break-words whitespace-break-spaces">
                             {flexRender(
                               cell.column.columnDef.cell,
-                              cell.getContext()
+                              cell.getContext(),
                             )}
                           </div>
                         )}

@@ -14,10 +14,10 @@ interface RowActionsProps {
   hideDelete?: boolean;
 }
 
-export function RowActions({ 
+export function RowActions({
   onEdit,
   onDelete,
-  hideDelete = false
+  hideDelete = false,
 }: RowActionsProps) {
   return (
     <DropdownMenu>

@@ -35,6 +35,7 @@ export default function EmployeeArchieveModal({ onArchieve, disabled }: Props) {
         onClick={() => setIsOpen(true)}
         className="md:min-w-[174px] text-error font-semibold text-base"
         variant="ghost"
+        type="button"
       >
         <Image
           src="/icons/deleteOutlined.svg"
@@ -46,19 +47,21 @@ export default function EmployeeArchieveModal({ onArchieve, disabled }: Props) {
       </Button>
 
       <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
-        <AlertDialogContent className="max-w-md mx-auto bg-white rounded-lg shadow-lg p-6">
-          <AlertDialogHeader className="text-center items-center justify-center">
+        <AlertDialogContent className="max-w-md mx-auto bg-white rounded-lg shadow-lg p-6 gap-8">
+          <AlertDialogHeader className="text-center items-center justify-center gap-0">
             <Image
-              src="/icons/delete.svg"
+              src="/icons/deleteContained.svg"
               height={56}
               width={56}
               alt="archieve confirmation"
+              className="mb-4"
             />
             <AlertDialogTitle className="text-lg font-semibold text-black mb-2">
-              Are you sure want to update this employee data?
+              Are you sure you want to archive this employee?
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-sm text-text-secondary">
-              Please make sure all information is accurate before proceeding.
+            <AlertDialogDescription className="text-sm text-text-secondary text-center">
+              Archiving will remove this employee from the active employee list.
+              The data is not deleted and can be restored at any time.
             </AlertDialogDescription>
           </AlertDialogHeader>
 
