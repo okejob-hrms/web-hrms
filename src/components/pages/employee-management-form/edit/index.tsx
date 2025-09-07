@@ -185,10 +185,7 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
           employeeDetails.bank_account?.account_number?.toString() || "",
         account_name: employeeDetails.bank_account?.account_name || "",
         social_media_accounts: validSocialMedia,
-        attachments: (employeeDetails.employee_documents || []).map((item) => ({
-          path: item.path,
-          type: item.type,
-        })),
+        attachments: [],
         families: employeeDetails.families || [],
         educations: employeeDetails.educations || [],
         work_experiences: employeeDetails.work_experiences || [],
