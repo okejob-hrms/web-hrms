@@ -11,12 +11,15 @@ const attachmentTypes = [
     required: true,
   },
   { name: "personal_id", label: "Personal ID Card", required: true },
+  { name: "family_card", label: "Family Card", required: true },
+  { name: "npwp", label: "NPWP", required: true },
   {
     name: "health_insurance_card",
     label: "Health Insurance Card (BPJS)",
     required: true,
   },
   { name: "bank_account_book", label: "Bank Account Book", required: true },
+  { name: "driver_license", label: "Driver License", required: true },
   { name: "other", label: "Others", required: false },
 ];
 
