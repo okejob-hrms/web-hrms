@@ -27,7 +27,11 @@ import {
   Video,
   Music,
   Archive,
+  AlertCircle,
+  Upload,
+  RefreshCw,
 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import * as React from "react";
 import Image from "next/image";
 
@@ -35,6 +39,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DropEvent, FileRejection } from "react-dropzone";
 import { IDocument } from "@/lib/types";
 import { IEmployeeDetailsResponse } from "@/services/employees/types";
+import DeleteDocumentModal from "./delete-document-modal";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import {
+  deleteEmployeeDocument,
+  getAllEmployeeDocument,
+} from "@/services/document";
+import { toast } from "sonner";
+import AppSkeleton from "@/components/partials/app-skeleton";
 
 interface DragnDropProps {
   handleDrop:
@@ -47,8 +59,13 @@ interface DragnDropProps {
   files?: File[] | undefined;
 }
 
+interface CardItemProps {
+  file: IDocument;
+  userId: number;
+}
+
 interface Props {
-  data: IEmployeeDetailsResponse;
+  userId: number;
 }
 
 const tabs = [
@@ -208,7 +225,24 @@ const DragnDrop = React.memo(function DragnDrop({
   );
 });
 
-const CardItem = React.memo(function CardItem({ file }: { file: IDocument }) {
+const CardItem = React.memo(function CardItem({ file, userId }: CardItemProps) {
+  const [dropdownOpen, setDropdownOpen] = React.useState(false);
+
+  const { mutate: deleteDocument, isPending: isPendingDelete } = useMutation({
+    mutationFn: () => deleteEmployeeDocument(file.id, userId),
+    onSuccess: () => {
+      toast.success("Document deleted successfully!");
+      setDropdownOpen(false);
+    },
+    onError: (error) => {
+      toast.error(`Failed to delete document: ${error.message}`);
+    },
+  });
+
+  const handleDropdownOpenChange = (open: boolean) => {
+    setDropdownOpen(open);
+  };
+
   return (
     <div className="bg-primary-background rounded-md shadow-sm border hover:shadow-md transition-shadow">
       <DocumentPreview file={file} />
@@ -220,35 +254,94 @@ const CardItem = React.memo(function CardItem({ file }: { file: IDocument }) {
           >
             {file.filename}
           </p>
-          <DropdownMenu>
-            <DropdownMenuTrigger className="shrink-0">
+          <DropdownMenu
+            open={dropdownOpen}
+            onOpenChange={handleDropdownOpenChange}
+          >
+            <DropdownMenuTrigger
+              className="shrink-0 p-1 hover:bg-gray-100 rounded transition-colors cursor-pointer"
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
+            >
               <Ellipsis size={12} className="text-text-disabled" />
             </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem>
-                <Image width={15} height={15} src="/icons/openNewTabGrey.svg" alt="Open Document" />
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onSelect={(e) => {
+                  e.preventDefault();
+                }}
+                className="cursor-pointer"
+              >
+                <Image
+                  width={15}
+                  height={15}
+                  src="/icons/openNewTabGrey.svg"
+                  alt="Open Document"
+                />
                 Open Document
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Image width={15} height={15} src="/icons/editGrey.svg" alt="Edit" /> 
+              <DropdownMenuItem
+                onSelect={(e) => {
+                  e.preventDefault();
+                }}
+                className="cursor-pointer"
+              >
+                <Image
+                  width={15}
+                  height={15}
+                  src="/icons/editGrey.svg"
+                  alt="Edit"
+                />
                 Edit
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem
+                onSelect={(e) => {
+                  e.preventDefault();
+                }}
+              >
                 <a
                   href={`${process.env.NEXT_PUBLIC_FILE_URL}/${file.path}`}
                   download={file.filename}
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 w-full cursor-pointer"
+                  onClick={() => setDropdownOpen(false)}
                 >
-                  <Image width={15} height={15} src="/icons/downloadGrey.svg" alt="Download" /> 
+                  <Image
+                    width={15}
+                    height={15}
+                    src="/icons/downloadGrey.svg"
+                    alt="Download"
+                  />
                   Download
                 </a>
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Image width={15} height={15} src="/icons/delete.svg" alt="Delete" /> 
-                Delete
+              <DropdownMenuItem
+                asChild
+                onSelect={(e) => {
+                  e.preventDefault();
+                }}
+                className="cursor-pointer"
+              >
+                <div className="w-full">
+                  <DeleteDocumentModal
+                    onArchieve={deleteDocument}
+                    disabled={isPendingDelete}
+                    onModalClose={() => setDropdownOpen(false)}
+                  />
+                </div>
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Image width={15} height={15} src="/icons/totalCustomer.svg" alt="Manage Access" /> 
+              <DropdownMenuItem
+                onSelect={(e) => {
+                  e.preventDefault();
+                }}
+                className="cursor-pointer"
+              >
+                <Image
+                  width={15}
+                  height={15}
+                  src="/icons/totalCustomer.svg"
+                  alt="Manage Access"
+                />
                 Manage Access
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -333,20 +426,121 @@ const UploadDocumentModal = React.memo(function UploadDocumentModal() {
 });
 
 export const DocumentDetail = React.memo(function DocumentDetail({
-  data,
+  userId,
 }: Props) {
-  const documents = data.employee_documents;
+  const {
+    data: documents,
+    isLoading,
+    isError,
+    error,
+    refetch,
+    isFetching,
+  } = useQuery({
+    queryKey: ["document-employee", userId],
+    queryFn: () => getAllEmployeeDocument(userId),
+    retry: 2,
+    retryDelay: 1000,
+  });
+
   return (
     <div className="flex flex-col w-full gap-2 p-2">
       <div className="flex flex-col md:flex-row justify-between items-center gap-4">
         <h1 className="font-semibold text-lg">Employee Document</h1>
         <UploadDocumentModal />
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        {documents.map((item) => (
-          <CardItem key={item.id} file={item} />
-        ))}
-      </div>
+
+      {isLoading && <AppSkeleton />}
+
+      {/* {isError && (
+        <div className="flex flex-col items-center justify-center py-12 space-y-4">
+          <div className="flex flex-col items-center space-y-4 max-w-md text-center">
+            <div className="rounded-full bg-red-50 p-3">
+              <AlertCircle className="h-8 w-8 text-red-500" />
+            </div>
+            <div className="space-y-2">
+              <h3 className="font-semibold text-lg text-gray-900">
+                Failed to Load Documents
+              </h3>
+              <p className="text-sm text-text-secondary">
+                {error?.message || "Something went wrong while loading the documents. Please try again."}
+              </p>
+            </div>
+            <Button 
+              onClick={() => refetch()} 
+              disabled={isFetching}
+              className="flex items-center gap-2"
+            >
+              {isFetching ? (
+                <RefreshCw className="h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4" />
+              )}
+              Try Again
+            </Button>
+          </div>
+        </div>
+      )} */}
+
+      {!isLoading && (!documents?.data || documents.data.length === 0) && (
+        <div className="flex flex-col items-center justify-center py-12 space-y-4">
+          <div className="flex flex-col items-center space-y-4 max-w-md text-center">
+            <div className="rounded-full bg-gray-50 p-4">
+              <FileText className="h-12 w-12 text-gray-400" />
+            </div>
+            <div className="space-y-2">
+              <h3 className="font-semibold text-lg text-gray-900">
+                No Documents Found
+              </h3>
+              <p className="text-sm text-text-secondary">
+                This employee doesn&apos;t have any documents uploaded yet.
+                Start by uploading their first document.
+              </p>
+            </div>
+            <UploadDocumentModal />
+          </div>
+        </div>
+      )}
+
+      {!isLoading &&
+        !isError &&
+        documents?.data &&
+        documents.data.length > 0 && (
+          <>
+            {isFetching && (
+              <Alert className="mb-4">
+                <RefreshCw className="h-4 w-4 animate-spin" />
+                <AlertDescription>Refreshing documents...</AlertDescription>
+              </Alert>
+            )}
+
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              {documents.data.map((item) => (
+                <CardItem key={item.id} file={item} userId={userId} />
+              ))}
+            </div>
+
+            <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-200">
+              <p className="text-sm text-text-secondary">
+                {documents.data.length} document
+                {documents.data.length !== 1 ? "s" : ""} found
+              </p>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => refetch()}
+                disabled={isFetching}
+                className="flex items-center gap-2"
+              >
+                {isFetching ? (
+                  <RefreshCw className="h-3 w-3 animate-spin" />
+                ) : (
+                  <RefreshCw className="h-3 w-3" />
+                )}
+                Refresh
+              </Button>
+            </div>
+          </>
+        )}
     </div>
   );
 });

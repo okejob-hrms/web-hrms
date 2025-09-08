@@ -17,7 +17,7 @@ interface Props {
   disabled: boolean;
 }
 
-export default function EmployeeArchieveModal({ onArchieve, disabled }: Props) {
+export default function ArchieveEmployeeModal({ onArchieve, disabled }: Props) {
   const [isOpen, setIsOpen] = useState(false);
 
   const handleArchieve = () => {

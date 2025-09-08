@@ -31,7 +31,7 @@ import {
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import EmployeeUpdateModal from "../sections/edit-modal";
-import EmployeeArchieveModal from "../sections/archieve-modal";
+import ArchieveEmployeeModal from "../sections/archieve-employee-modal";
 import AppSkeleton from "@/components/partials/app-skeleton";
 import { WorkExperienceSection } from "../sections/work-experience-section";
 
@@ -448,7 +448,7 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
                 disabled={isPendingEditEmployee}
               />
             </div>
-            <EmployeeArchieveModal
+            <ArchieveEmployeeModal
               onArchieve={archieveEmployee}
               disabled={isPendingArchieveEmployee}
             />
