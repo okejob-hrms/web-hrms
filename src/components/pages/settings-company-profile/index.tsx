@@ -7,132 +7,17 @@ import { ColumnDef } from '@tanstack/react-table';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Edit3 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-
-// =======================
-// Types
-// =======================
-interface CompanyInfo {
-  name: string;
-  legalEntity: string;
-  industry: string;
-  email: string;
-  phone: string;
-  regNumber: string;
-  website?: string;
-  address: string;
-}
-
-interface PayrollInfo {
-  bankAccountName: string;
-  bankAccountNumber: string;
-  bankAccountHolder: string;
-  currency: string;
-}
-
-interface WorkingHour {
-  day: string;
-  shift: string;
-  workingHours: string;
-  break: string;
-}
-
-// =======================
-// Mock Data
-// =======================
-const companyInfo: CompanyInfo = {
-  name: 'Company Name',
-  legalEntity: '-',
-  industry: '-',
-  email: '-',
-  phone: '-',
-  regNumber: '-',
-  website: '-',
-  address: '-',
-};
-
-const payrollInfo: PayrollInfo = {
-  bankAccountName: '-',
-  bankAccountNumber: '-',
-  bankAccountHolder: '-',
-  currency: '-',
-};
-
-const workingHours: WorkingHour[] = [
-  {
-    day: 'Monday',
-    shift: 'Regular Shift',
-    workingHours: '08:00 AM - 05:00 PM',
-    break: '12:00 PM - 01:00 PM',
-  },
-  {
-    day: '',
-    shift: 'Shift 1',
-    workingHours: '07:00 AM - 03:00 PM',
-    break: '12:00 PM - 01:00 PM',
-  },
-  {
-    day: '',
-    shift: 'Shift 2',
-    workingHours: '03:00 PM - 11:00 PM',
-    break: '07:00 PM - 08:00 PM',
-  },
-  {
-    day: 'Tuesday',
-    shift: 'Regular Shift',
-    workingHours: '08:00 AM - 05:00 PM',
-    break: '12:00 PM - 01:00 PM',
-  },
-  {
-    day: 'Wednesday',
-    shift: 'Regular Shift',
-    workingHours: '08:00 AM - 05:00 PM',
-    break: '12:00 PM - 01:00 PM',
-  },
-  {
-    day: 'Thursday',
-    shift: 'Regular Shift',
-    workingHours: '08:00 AM - 05:00 PM',
-    break: '12:00 PM - 01:00 PM',
-  },
-  {
-    day: 'Friday',
-    shift: 'Regular Shift',
-    workingHours: '08:00 AM - 05:00 PM',
-    break: '12:00 PM - 01:00 PM',
-  },
-  {
-    day: 'Saturday',
-    shift: 'Half Day',
-    workingHours: '08:00 AM - 12:00 PM',
-    break: '-',
-  },
-  { day: 'Sunday', shift: 'Off', workingHours: '-', break: '-' },
-];
+import { useRouter } from 'next/navigation';
+import { useCompanyProfile, WorkingHour } from './hook';
 
 // =======================
 // Table Columns
 // =======================
 const columns: ColumnDef<WorkingHour>[] = [
-  {
-    accessorKey: 'day',
-    header: 'Role Name',
-    size: 160,
-  },
-  {
-    accessorKey: 'shift',
-    header: 'Shift',
-    size: 160,
-  },
-  {
-    accessorKey: 'workingHours',
-    header: 'Working Hours',
-    size: 200,
-  },
-  {
-    accessorKey: 'break',
-    header: 'Break',
-    size: 160,
-  },
+  { accessorKey: 'day', header: 'Day', size: 160 },
+  { accessorKey: 'shift', header: 'Shift', size: 160 },
+  { accessorKey: 'workingHours', header: 'Working Hours', size: 200 },
+  { accessorKey: 'break', header: 'Break', size: 160 },
 ];
 
 function InfoItem({ label, value }: { label: string; value: string }) {
@@ -146,6 +31,13 @@ function InfoItem({ label, value }: { label: string; value: string }) {
 
 export default function SettingsCompanyProfile() {
   const isMobile = useIsMobile();
+  const router = useRouter();
+  const { data, isLoading, isError } = useCompanyProfile();
+
+  if (isLoading) return <p>Loading...</p>;
+  if (isError || !data) return <p>Failed to load company profile</p>;
+
+  const { companyInfo, payrollInfo, workingHours } = data;
 
   return (
     <div className="font-sans min-h-screen bg-gray-50">
@@ -156,10 +48,10 @@ export default function SettingsCompanyProfile() {
             <Avatar className="h-20 w-20">
               <AvatarImage src="/company-logo.png" alt="Company Logo" />
               <AvatarFallback className="bg-blue-50 text-blue-700">
-                CN
+                {companyInfo.name?.charAt(0) ?? 'C'}
               </AvatarFallback>
             </Avatar>
-            <p className="font-semibold text-lg">Company Name</p>
+            <p className="font-semibold text-lg">{companyInfo.name}</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2 mb-3">
             <InfoItem label="Legal Entity" value={companyInfo.legalEntity} />
@@ -207,7 +99,11 @@ export default function SettingsCompanyProfile() {
           />
 
           <div className="flex mt-4">
-            <Button variant="outline" className="flex flex-row gap-6">
+            <Button
+              variant="outline"
+              className="flex flex-row gap-6"
+              onClick={() => router.push('/settings/company-profile/edit')}
+            >
               <Edit3 />
               Edit Company Information
             </Button>

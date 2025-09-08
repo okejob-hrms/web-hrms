@@ -4,6 +4,7 @@ export interface IRole {
   guard_name: string;
   created_at: string;
   updated_at: string;
+  description: string;
   permissions: IPermissionModule[]
 }
 
@@ -113,4 +114,72 @@ export interface ICreateRoleResponse {
     guard_name: string;
     name: string;
   };
+}
+
+export interface CompanyResponse {
+  data: Company;
+}
+
+export interface Company {
+  id: number;
+  name: string;
+  legal_entity_name: string;
+  industry: string;
+  email: string;
+  phone: string;
+  logo: string | null;
+  business_registration_number: string;
+  website: string;
+  address: string;
+  is_active: boolean;
+  payroll_bank_name: string;
+  payroll_bank_account_number: string;
+  payroll_bank_account_name: string;
+  payroll_currency: string;
+  work_schedules: WorkSchedule[];
+}
+
+export interface WorkSchedule {
+  day_of_week: number; // 1 = Monday, 7 = Sunday
+  day_name: string;
+  has_schedule: boolean;
+  schedules: Schedule[];
+  total_shifts: number;
+}
+
+export interface Schedule {
+  id?: number;
+  sequence: number;
+  shift_name: string;
+  start_time: string; // format: HH:mm
+  end_time: string;   // format: HH:mm
+  ends_next_day: boolean;
+  break_start_time?: string;
+  break_end_time?: string;
+}
+
+
+export interface CompanyRequest {
+  address: string;
+  business_registration_number: string;
+  email: string;
+  industry: string;
+  legal_entity_name: string;
+  logo: string | null;
+  name: string;
+  payroll_bank_account_name: string;
+  payroll_bank_account_number: string;
+  payroll_bank_name: string;
+  payroll_currency: string;
+  phone: string;
+  website: string;
+  work_schedules: WorkScheduleReq[];
+}
+
+export interface WorkScheduleReq {
+  day_of_week: number;
+  has_schedule: boolean;
+  day_name: string;
+  total_shifts: number;
+  schedules?: Schedule[];
 }

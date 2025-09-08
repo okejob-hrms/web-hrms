@@ -68,7 +68,7 @@ export default function SettingsAccessControlAdd({
     if (roleDetail?.data) {
       form.reset({
         name: roleDetail.data.name ?? '',
-        description: roleDetail.data.guard_name ?? '',
+        description: roleDetail.data.description ?? '',
       });
 
       const grantedIds =
