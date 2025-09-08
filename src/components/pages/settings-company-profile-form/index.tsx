@@ -40,7 +40,9 @@ export default function SettingsCompanyProfileForm() {
   const [workSchedules, setWorkSchedules] = useState(
     dataWorkSchedule?.rawWorkSchedules || [],
   );
-  const [previewLogo, setPreviewLogo] = useState<string | null>(imagePhoto);
+  const [previewLogo, setPreviewLogo] = useState<string | null | undefined>(
+    imagePhoto,
+  );
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

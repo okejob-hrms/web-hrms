@@ -17,6 +17,7 @@ export interface CompanyInfo {
   website?: string;
   address: string;
   logo: string | null;
+  logo_url: string | null;
 }
 
 export interface PayrollInfo {
@@ -62,6 +63,7 @@ export function useCompanyProfile() {
         website: c.website,
         address: c.address,
         logo: c.logo,
+        logo_url: c.logo_url
       };
 
       // Map PayrollInfo
@@ -73,7 +75,7 @@ export function useCompanyProfile() {
       };
 
       // Map WorkingHours
-      const workingHours: WorkingHour[] = c.work_schedules.flatMap((day) =>
+      const workingHours = c.work_schedules.flatMap((day) =>
         day.schedules.length > 0
           ? day.schedules.map((s) => ({
               day: day.day_name,
@@ -82,14 +84,14 @@ export function useCompanyProfile() {
               break:
                 s.break_start_time && s.break_end_time
                   ? `${s.break_start_time} - ${s.break_end_time}`
-                  : '-',
+                  : "-",
             }))
           : [
               {
                 day: day.day_name,
-                shift: 'Off',
-                workingHours: '-',
-                break: '-',
+                shift: "Off",
+                workingHours: "-",
+                break: "-",
               },
             ]
       );

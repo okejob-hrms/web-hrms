@@ -111,7 +111,7 @@ function mapFromApiResponse(data: CompanyProfileData): CompanyFormValues {
     bankAccountNumber: data?.payrollInfo?.bankAccountNumber,
     bankAccountHolder: data?.payrollInfo?.bankAccountHolder,
     currency: data?.payrollInfo?.currency,
-    logo: data?.companyInfo?.logo,
+    logo: data?.companyInfo?.logo_url,
     workSchedules: data?.rawWorkSchedules?.map((day) => ({
       day_of_week: day.day_of_week,
       schedules: (day.schedules ?? []).map((s) => ({
@@ -144,7 +144,7 @@ export function useCompanyForm() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { data, isLoading } = useCompanyProfile();
-  const [imagePhoto, setImagePhoto] = useState('');
+  const [imagePhoto, setImagePhoto] = useState(data?.companyInfo.logo_url);
 
   const form = useForm<CompanyFormValues>({
     resolver: zodResolver(companySchema),
@@ -159,7 +159,7 @@ export function useCompanyForm() {
   }, [data, isLoading, form]);
 
   const mutation = useMutation({
-    mutationFn: (values: CompanyFormValues) =>
+    mutationFn: (values: CompanyFormValues) => 
       updateCompanyProfile(mapToApiPayload(values)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['companyProfile'] });

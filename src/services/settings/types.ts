@@ -138,6 +138,7 @@ export interface Company {
   payroll_bank_account_name: string;
   payroll_currency: string;
   work_schedules: WorkSchedule[];
+  logo_url: string | null;
 }
 
 export interface WorkSchedule {

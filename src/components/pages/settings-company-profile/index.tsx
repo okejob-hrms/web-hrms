@@ -14,7 +14,31 @@ import { useCompanyProfile, WorkingHour } from './hook';
 // Table Columns
 // =======================
 const columns: ColumnDef<WorkingHour>[] = [
-  { accessorKey: 'day', header: 'Day', size: 160 },
+  {
+    id: 'day',
+    header: 'Day',
+    size: 160,
+    cell: ({ row, table }) => {
+      const day = row.original.day;
+
+      // semua row di tabel
+      const allRows = table.getRowModel().rows;
+      // filter row yang sama harinya
+      const sameDayRows = allRows.filter((r) => r.original.day === day);
+
+      const firstRowId = sameDayRows[0].id;
+
+      if (row.id === firstRowId) {
+        return (
+          <td rowSpan={sameDayRows.length} className="px-4 py-2">
+            {day}
+          </td>
+        );
+      }
+
+      return null; // biarin kosong, rowSpan sudah cover
+    },
+  },
   { accessorKey: 'shift', header: 'Shift', size: 160 },
   { accessorKey: 'workingHours', header: 'Working Hours', size: 200 },
   { accessorKey: 'break', header: 'Break', size: 160 },
@@ -46,7 +70,10 @@ export default function SettingsCompanyProfile() {
           <h2 className="font-semibold text-xl">Company Information</h2>
           <div className="flex flex-col items-center gap-2">
             <Avatar className="h-20 w-20">
-              <AvatarImage src="/company-logo.png" alt="Company Logo" />
+              <AvatarImage
+                src={companyInfo.logo_url || ''}
+                alt="Company Logo"
+              />
               <AvatarFallback className="bg-blue-50 text-blue-700">
                 {companyInfo.name?.charAt(0) ?? 'C'}
               </AvatarFallback>
