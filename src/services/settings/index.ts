@@ -1,5 +1,5 @@
 import { api } from "@/lib/api";
-import { IRolesResponse, IPermissionResponse, IEmployee, ICreateRolePayload, ICreateRoleResponse, IRoleDetailResponse } from "./types";
+import { IRolesResponse, IPermissionResponse, IEmployee, ICreateRolePayload, ICreateRoleResponse, IRoleDetailResponse, CompanyResponse, CompanyRequest } from "./types";
 import { PaginatedResponse } from "@/lib/types";
 
 export const getRoles = async (): Promise<IRolesResponse> => {
@@ -45,4 +45,19 @@ export const updateRole = async (
       json: payload,
     })
     .json<ICreateRoleResponse>();
+};
+
+export const getCompanyProfile = async (): Promise<CompanyResponse> => {
+  const response = await api.get("setting/company-profile");
+  return response.json();
+};
+
+export const updateCompanyProfile = async (
+  payload: CompanyRequest
+): Promise<CompanyResponse> => {
+  return api
+    .put(`setting/company-profile`, {
+      json: payload,
+    })
+    .json<CompanyResponse>();
 };

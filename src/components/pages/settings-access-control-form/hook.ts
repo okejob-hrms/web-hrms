@@ -57,6 +57,7 @@ export function useRoleManagementForm() {
     data: roleDetail,
     isLoading: isRoleLoading,
     error: roleError,
+    refetch: roleRefetch,
   } = useQuery({
     queryKey: ["role", selectedId],
     queryFn: () => getRoleById(selectedId!),
@@ -68,6 +69,7 @@ export function useRoleManagementForm() {
     data: userWithRole,
     isLoading: isUserRoleLoading,
     error: userWithRoleError,
+    refetch: userWithRoleRefetch,
   } = useQuery({
     queryKey: ["userWithRole", selectedId],
     queryFn: () => getUserWithRole(selectedId!),
@@ -90,7 +92,9 @@ export function useRoleManagementForm() {
   const updateRoleMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: ICreateRolePayload }) => updateRole(id, data),
     onSuccess: () => {
-      router.push("/settings/access-control");
+      // router.push("/settings/access-control");
+      roleRefetch();
+      userWithRoleRefetch();
       toast.success("Update role successful!");
     },
     onError: (error: Error) => {

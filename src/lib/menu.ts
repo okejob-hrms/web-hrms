@@ -57,6 +57,8 @@ export const getHideSidebar = (path: string) => {
     "/auth",
     "/dashboard",
     "/settings/access-control/add",
+    "/settings/access-control/",
+    "/settings/company-profile/edit",
     "/employee/organization/structure/edit",
   ];
 
