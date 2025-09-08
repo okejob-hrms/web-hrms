@@ -91,6 +91,7 @@ export interface IEmployeePagination {
   per_page: number;
   prev_page_url: string | null;
   to: number;
+  total: number;
 }
 
 export interface IEmployeeModule {
