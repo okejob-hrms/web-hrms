@@ -37,7 +37,7 @@ export function Tab({ data }: TabProps) {
     {
       name: "Document",
       value: "document",
-      content: <DocumentDetail data={data} />,
+      content: <DocumentDetail userId={data.user_id} />,
       icon: <Icon name="documentOutlined" size={18} color="currentColor" />,
     },
     {

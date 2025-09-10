@@ -31,7 +31,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useForm, useFormContext } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form } from "@/components/ui/form";
 import { InputForm } from "@/components/ui/input";
@@ -45,8 +45,40 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import Image from "next/image";
+import { cn } from "@/lib/utils";
 
 dayjs.extend(localizedFormat);
+
+// Phone number utility functions
+const formatPhoneNumber = (value: string): string => {
+  const cleanValue = value.replace(/\D/g, "");
+
+  if (cleanValue.length <= 3) {
+    return cleanValue;
+  } else if (cleanValue.length <= 6) {
+    return `${cleanValue.slice(0, 3)}-${cleanValue.slice(3)}`;
+  } else if (cleanValue.length <= 10) {
+    return `${cleanValue.slice(0, 3)}-${cleanValue.slice(3, 6)}-${cleanValue.slice(6)}`;
+  } else {
+    return `${cleanValue.slice(0, 3)}-${cleanValue.slice(3, 6)}-${cleanValue.slice(6, 10)}-${cleanValue.slice(10)}`;
+  }
+};
+
+const validatePhoneNumber = (value: string): string | null => {
+  const cleanValue = value.replace(/\D/g, "");
+
+  if (cleanValue.length < 3) {
+    return "Phone number must be at least 3 digits";
+  }
+  if (cleanValue.length > 15) {
+    return "Phone number must be no more than 15 digits";
+  }
+  return null;
+};
+
+const extractNumericPhone = (formattedPhone: string): string => {
+  return formattedPhone.replace(/\D/g, "");
+};
 
 interface TableRowActionsProps {
   row: any;
@@ -110,6 +142,89 @@ const TableRowActions = ({ row, onEdit, onDelete }: TableRowActionsProps) => {
   );
 };
 
+// Custom Phone Input Component
+interface PhoneInputProps {
+  name: string;
+  label: string;
+  required?: boolean;
+  disabled?: boolean;
+  form: any;
+}
+
+const PhoneInput = ({
+  name,
+  label,
+  required,
+  disabled,
+  form,
+}: PhoneInputProps) => {
+  const [displayValue, setDisplayValue] = React.useState("");
+  const [error, setError] = React.useState<string | null>(null);
+
+  const fieldValue = form.watch(name);
+
+  React.useEffect(() => {
+    if (fieldValue) {
+      setDisplayValue(formatPhoneNumber(fieldValue.toString()));
+    } else {
+      setDisplayValue("");
+    }
+  }, [fieldValue]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value;
+    const formattedValue = formatPhoneNumber(inputValue);
+    const numericValue = extractNumericPhone(formattedValue);
+
+    setDisplayValue(formattedValue);
+
+    const validationError = validatePhoneNumber(formattedValue);
+    setError(validationError);
+
+    form.setValue(name, numericValue, { shouldValidate: true });
+  };
+
+  const handleBlur = () => {
+    const validationError = validatePhoneNumber(displayValue);
+    setError(validationError);
+
+    if (validationError) {
+      form.setError(name, {
+        type: "manual",
+        message: validationError,
+      });
+    } else {
+      form.clearErrors(name);
+    }
+  };
+
+  return (
+    <div className="flex flex-col space-y-2">
+      <label htmlFor={name} className="text-sm font-medium">
+        {label} {required && <span className="text-red-500">*</span>}
+      </label>
+      <input
+        id={name}
+        type="text"
+        value={displayValue}
+        onChange={handleChange}
+        onBlur={handleBlur}
+        disabled={disabled}
+        placeholder="e.g. 123-456-7890"
+        className={cn(
+          "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+          error && "border-red-500 focus-visible:ring-red-500",
+        )}
+      />
+      {error && <p className="text-sm text-red-500">{error}</p>}
+      <p className="text-xs text-gray-500">
+        Enter digits only (3-15 characters). Formatting will be applied
+        automatically.
+      </p>
+    </div>
+  );
+};
+
 interface WorkExperienceFormModalProps {
   isEdit?: boolean;
   open?: boolean;
@@ -117,6 +232,7 @@ interface WorkExperienceFormModalProps {
   workExperienceData?: IResponseWorkExperience | null;
   employee_profile_id?: number;
   onSuccess?: () => void;
+  buttonVariant?: "default" | "outline";
 }
 
 const WorkExperienceFormModal = ({
@@ -126,16 +242,13 @@ const WorkExperienceFormModal = ({
   workExperienceData,
   employee_profile_id,
   onSuccess,
+  buttonVariant = "default",
 }: WorkExperienceFormModalProps) => {
   const [internalOpen, setInternalOpen] = React.useState(false);
   const queryClient = useQueryClient();
-  const formContext = useFormContext();
 
   const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
   const setOpen = controlledOnOpenChange || setInternalOpen;
-
-  const { setValue, watch } = formContext || {};
-  const watchedWorkExperiences = watch ? watch("work_experiences") : null;
 
   const form = useForm<IWorkExperienceForm>({
     resolver: zodResolver(WorkExperienceFormSchema),
@@ -183,62 +296,15 @@ const WorkExperienceFormModal = ({
       isEdit
         ? putUpdateWorkExperience(params)
         : postCreateWorkExperience(params),
-    onSuccess: (res) => {
+    onSuccess: () => {
       toast.success(
         `Work experience ${isEdit ? "updated" : "added"} successfully!`,
       );
 
-      if (setValue && watchedWorkExperiences) {
-        if (isEdit) {
-          const updatedWorkExperiences = watchedWorkExperiences.map(
-            (w: IResponseWorkExperience) =>
-              w.id === workExperienceData?.id ? res.data : w,
-          );
-          setValue("work_experiences", updatedWorkExperiences);
-        } else {
-          const updatedWorkExperiences = Array.isArray(watchedWorkExperiences)
-            ? [...watchedWorkExperiences, res.data]
-            : [res.data];
-          setValue("work_experiences", updatedWorkExperiences);
-        }
-      }
-
-      const queryKey = ["work-experiences", employee_profile_id || ""];
-      queryClient.setQueryData(queryKey, (oldData: any) => {
-        if (!oldData) {
-          return {
-            data: {
-              data: [res.data],
-              total: 1,
-              page: 1,
-              per_page: 10,
-            },
-          };
-        }
-
-        if (isEdit) {
-          return {
-            ...oldData,
-            data: {
-              ...oldData.data,
-              data: oldData.data.data.map((w: IResponseWorkExperience) =>
-                w.id === workExperienceData?.id ? res.data : w,
-              ),
-            },
-          };
-        } else {
-          return {
-            ...oldData,
-            data: {
-              ...oldData.data,
-              data: [...(oldData.data.data || []), res.data],
-              total: (oldData.data.total || 0) + 1,
-            },
-          };
-        }
+      queryClient.invalidateQueries({
+        queryKey: ["work-experiences", employee_profile_id || ""],
       });
 
-      queryClient.invalidateQueries({ queryKey: ["work-experiences"] });
       setOpen(false);
       form.reset();
       onSuccess?.();
@@ -253,41 +319,41 @@ const WorkExperienceFormModal = ({
     },
   });
 
-  const onSubmit = React.useCallback(async (values: IWorkExperienceForm) => {
-    try {
-      const payload = {
-        ...values,
-      };
+  const onSubmit = React.useCallback(
+    async (values: IWorkExperienceForm) => {
+      try {
+        const phoneError = validatePhoneNumber(
+          values.supervisor_contact?.toString() || "",
+        );
+        if (phoneError) {
+          form.setError("supervisor_contact", {
+            type: "manual",
+            message: phoneError,
+          });
+          return;
+        }
 
-      const params = {
-        employee_profile_id,
-        payload,
-        ...(isEdit && workExperienceData?.id && { id: workExperienceData.id }),
-      };
+        const payload = {
+          ...values,
+          supervisor_contact: extractNumericPhone(
+            values.supervisor_contact?.toString() || "",
+          ),
+        };
 
-      mutation.mutate(params);
-    } catch (error) {
-      console.error("Submit error:", error);
-      toast.error("Failed to submit form");
-    }
-  }, []);
+        const params = {
+          employee_profile_id,
+          payload,
+          ...(isEdit &&
+            workExperienceData?.id && { id: workExperienceData.id }),
+        };
 
-  const handleUpdateEmployee = React.useCallback(
-    async (e: React.MouseEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      const isValid = await form.trigger();
-      const formData = form.getValues();
-
-      console.log("# ERROR EDIT ", form.formState.errors);
-
-      if (!isValid) {
-        console.log("Form validation failed");
-        return;
+        mutation.mutate(params);
+      } catch (error) {
+        console.error("Submit error:", error);
+        toast.error("Failed to submit form");
       }
-      onSubmit(formData);
     },
-    [form, onSubmit],
+    [form, isEdit, workExperienceData?.id, employee_profile_id, mutation],
   );
 
   const handleCancel = () => {
@@ -300,7 +366,10 @@ const WorkExperienceFormModal = ({
     <Dialog open={open} onOpenChange={setOpen}>
       {!controlledOpen && (
         <DialogTrigger asChild>
-          <Button>
+          <Button
+            variant={buttonVariant}
+            className={cn(buttonVariant === "outline" && "bg-white")}
+          >
             <Plus /> Add Work Experience
           </Button>
         </DialogTrigger>
@@ -328,11 +397,12 @@ const WorkExperienceFormModal = ({
                 />
               </div>
               <InputForm name="supervisor" label="Supervisor" required />
-              <InputForm
+              <PhoneInput
                 name="supervisor_contact"
                 label="Supervisor Contact Person"
                 required
                 disabled={mutation.isPending}
+                form={form}
               />
               <TextAreaForm
                 name="company_address"
@@ -392,10 +462,7 @@ const WorkExperienceFormModal = ({
               >
                 Cancel
               </Button>
-              <Button
-                onClick={handleUpdateEmployee}
-                // disabled={mutation.isPending || !form.formState.isValid}
-              >
+              <Button type="submit" disabled={mutation.isPending}>
                 {mutation.isPending ? "Saving..." : "Save"}
               </Button>
             </DialogFooter>
@@ -431,54 +498,10 @@ export const WorkExperienceSection = React.memo<Props>(
     withAddButton = false,
     employee_profile_id,
   }) {
-    const formContext = useFormContext();
     const queryClient = useQueryClient();
     const [editingWorkExperience, setEditingWorkExperience] =
       React.useState<IResponseWorkExperience | null>(null);
     const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
-
-    const watchedWorkExperiences = formContext
-      ? formContext.watch("work_experiences")
-      : null;
-
-    const deleteMutation = useMutation({
-      mutationFn: ({ id }: { id: number }) =>
-        deleteWorkExperience({ id, employee_profile_id }),
-      onSuccess: (_, variables) => {
-        toast.success("Work experience deleted successfully!");
-        if (formContext?.setValue && watchedWorkExperiences) {
-          const updatedWorkExperiences = watchedWorkExperiences.filter(
-            (w: IResponseWorkExperience) => w.id !== variables.id,
-          );
-          formContext.setValue("work_experiences", updatedWorkExperiences);
-        }
-        const queryKey = ["work-experiences", employee_profile_id || ""];
-        queryClient.setQueryData(queryKey, (oldData: any) => {
-          if (!oldData) return oldData;
-
-          return {
-            ...oldData,
-            data: {
-              ...oldData.data,
-              data: oldData.data.data.filter(
-                (w: IResponseWorkExperience) => w.id !== variables.id,
-              ),
-              total: oldData.data.total - 1,
-            },
-          };
-        });
-
-        queryClient.invalidateQueries({ queryKey: ["work-experiences"] });
-      },
-      onError: (error: any) => {
-        console.error("Delete mutation error:", error);
-        toast.error(
-          `Failed to delete work experience: ${
-            error?.response?.data?.message || error.message || "Unknown error"
-          }`,
-        );
-      },
-    });
 
     const { data, isLoading } = useQuery({
       queryKey: employee_profile_id
@@ -495,7 +518,24 @@ export const WorkExperienceSection = React.memo<Props>(
       enabled: !!employee_profile_id,
     });
 
-    const returnedData = data?.data?.data || watchedWorkExperiences;
+    const deleteMutation = useMutation({
+      mutationFn: ({ id }: { id: number }) =>
+        deleteWorkExperience({ id, employee_profile_id }),
+      onSuccess: (_, variables) => {
+        toast.success("Work experience deleted successfully!");
+        queryClient.invalidateQueries({
+          queryKey: ["work-experiences", employee_profile_id || ""],
+        });
+      },
+      onError: (error: any) => {
+        console.error("Delete mutation error:", error);
+        toast.error(
+          `Failed to delete work experience: ${
+            error?.response?.data?.message || error.message || "Unknown error"
+          }`,
+        );
+      },
+    });
 
     const handleEdit = (workExperience: IResponseWorkExperience) => {
       setEditingWorkExperience(workExperience);
@@ -536,6 +576,12 @@ export const WorkExperienceSection = React.memo<Props>(
         {
           accessorKey: "supervisor_contact",
           header: "Supervisor Contact",
+          cell: ({ row }) => {
+            const phone = row.original.supervisor_contact;
+            return (
+              <span>{phone ? formatPhoneNumber(phone.toString()) : "-"}</span>
+            );
+          },
         },
         {
           accessorKey: "company_address",
@@ -610,10 +656,25 @@ export const WorkExperienceSection = React.memo<Props>(
         ) : (
           <DataTable
             columns={columns}
-            data={returnedData || []}
+            data={data?.data?.data || []}
             tableClassName="table-fixed w-full"
             tableCellClassName="w-1/9 text-clip text-balance"
             tableHeadClassName="w-1/9 text-clip text-balance"
+            noDataPlaceholder={
+              <div className="border border-primary-border bg-primary-background rounded-md p-2 gap-1 mx-8 flex flex-col items-center justify-center">
+                <p className="text-primary font-semibold text-lg text-center">
+                  Complete Work Experience Information
+                </p>
+                <p className="text-base text-text-secondary text-center">
+                  Add the employee&apos;s previous roles, companies, and career
+                  history to build a complete employment profile.
+                </p>
+                <WorkExperienceFormModal
+                  buttonVariant="outline"
+                  employee_profile_id={employee_profile_id}
+                />
+              </div>
+            }
           />
         )}
         <Separator className="my-6" />
