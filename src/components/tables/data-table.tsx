@@ -23,6 +23,8 @@ import {
 import { cn } from "@/lib/utils";
 import { GeneralPagination } from "../ui/pagination";
 import { PaginatedResponse } from "@/lib/types";
+import { Button } from "../ui/button";
+import { Plus } from "lucide-react";
 
 interface DataTableProps<TData, TValue = unknown> {
   columns: ColumnDef<TData, TValue>[];
@@ -36,6 +38,7 @@ interface DataTableProps<TData, TValue = unknown> {
   onRowSelectionChange?: OnChangeFn<RowSelectionState>;
   paginationState?: PaginationState;
   setPaginationState?: React.Dispatch<React.SetStateAction<PaginationState>>;
+  noDataPlaceholder?: React.ReactNode;
 }
 
 export function DataTable<TData, TValue>({
@@ -50,6 +53,7 @@ export function DataTable<TData, TValue>({
   onRowSelectionChange,
   paginationState,
   setPaginationState,
+  noDataPlaceholder,
 }: DataTableProps<TData, TValue>) {
   const enableRowSelection = !!rowSelection;
   const isPaginated =
@@ -174,12 +178,18 @@ export function DataTable<TData, TValue>({
                     colSpan={columns.length}
                     className="h-20 text-center p-4 bg-transparent"
                   >
-                    <p className="text-primary font-semibold text-sm">
-                      No Data Available
-                    </p>
-                    <p className="text-text-secondary text-sm">
-                      {"There's currently no data to display in this table."}
-                    </p>
+                    {noDataPlaceholder || (
+                      <>
+                        <p className="text-primary font-semibold text-sm">
+                          No Data Available
+                        </p>
+                        <p className="text-text-secondary text-sm">
+                          {
+                            "There's currently no data to display in this table."
+                          }
+                        </p>
+                      </>
+                    )}
                   </TableCell>
                 </TableRow>
               )}

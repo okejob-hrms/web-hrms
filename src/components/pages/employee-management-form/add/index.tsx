@@ -10,11 +10,6 @@ import { EmployeeinformationSection } from "../sections/employee-information-sec
 import { PersonalInformationSection } from "../sections/personal-information-section";
 import { SalaryInformationSection } from "../sections/salary-information-section";
 import { BankInformationSection } from "../sections/bank-information-section";
-import { FamilyInformationSection } from "../sections/family-information-section";
-import { FormalEducationSection } from "../sections/formal-education-section";
-import { NonFormalEducationSection } from "../sections/non-formal-education-section";
-import { WorkExperienceSection } from "../sections/work-experience-section";
-import { ContactOfReferenceSection } from "../sections/contact-reference-section";
 import { AttachmentsSection } from "../sections/attachments-section";
 import { Button } from "../../../ui/button";
 import {
@@ -45,7 +40,7 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
     },
   });
   const form = useForm<z.infer<typeof employeeManagementFormScheme>>({
-    // resolver: zodResolver(employeeManagementFormScheme),
+    resolver: zodResolver(employeeManagementFormScheme),
     defaultValues: employeeManagementFormDefaultValues,
   });
 
@@ -113,21 +108,14 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
           <EmployeeinformationSection />
           <SalaryInformationSection />
           <BankInformationSection />
-          <FamilyInformationSection withAddButton />
-          <FormalEducationSection withAddButton />
-          <NonFormalEducationSection withAddButton />
-          <WorkExperienceSection withAddButton />
-          <ContactOfReferenceSection withAddButton />
           <AttachmentsSection />
           <div className="flex gap-2 my-8 justify-between md:justify-start w-full">
-            <Button
-              variant="outline"
-              className="md:max-w-36 w-[50%]"
-              isLoading={isPending}
-            >
+            <Button variant="outline" className="md:max-w-36 w-[50%]">
               Cancel
             </Button>
-            <Button className="md:max-w-36 w-[50%]">Add Employee</Button>
+            <Button isLoading={isPending} className="md:max-w-36 w-[50%]">
+              Add Employee
+            </Button>
           </div>
         </form>
       </Form>

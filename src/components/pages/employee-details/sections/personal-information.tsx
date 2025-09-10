@@ -502,18 +502,23 @@ export const PersonalInformationDetail = React.memo(
 
         <FamilyInformationSection
           employee_profile_id={data.employment?.employee_profile_id || 0}
+          withAddButton
         />
         <FormalEducationSection
           employee_profile_id={data.employment?.employee_profile_id || 0}
+          withAddButton
         />
         <NonFormalEducationSection
           employee_profile_id={data.employment?.employee_profile_id || 0}
+          withAddButton
         />
         <WorkExperienceSection
           employee_profile_id={data.employment?.employee_profile_id || 0}
+          withAddButton
         />
         <ContactOfReferenceSection
           employee_profile_id={data.employment?.employee_profile_id || 0}
+          withAddButton
         />
       </div>
     );

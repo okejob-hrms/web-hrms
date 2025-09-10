@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { Form } from "@/components/ui/form";
 import { InputForm } from "@/components/ui/input";
-import { useForm, useFormContext } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -44,6 +44,7 @@ import {
 import Image from "next/image";
 import dayjs from "dayjs";
 import localizedFormat from "dayjs/plugin/localizedFormat";
+import { cn } from "@/lib/utils";
 
 dayjs.extend(localizedFormat);
 
@@ -116,6 +117,7 @@ interface NonFormalEducationFormModalProps {
   educationData?: IEducationResponse | null;
   employee_profile_id?: number;
   onSuccess?: () => void;
+  buttonVariant?: "default" | "outline";
 }
 
 const NonFormalEducationFormModal = ({
@@ -125,16 +127,13 @@ const NonFormalEducationFormModal = ({
   educationData,
   employee_profile_id,
   onSuccess,
+  buttonVariant = "default",
 }: NonFormalEducationFormModalProps) => {
   const [internalOpen, setInternalOpen] = React.useState(false);
   const queryClient = useQueryClient();
-  const formContext = useFormContext();
 
   const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
   const setOpen = controlledOnOpenChange || setInternalOpen;
-
-  const { setValue, watch } = formContext || {};
-  const watchedEducations = watch ? watch("educations") : null;
 
   const form = useForm<INonFormalEducationForm>({
     resolver: zodResolver(nonFormalEducationFormScheme),
@@ -176,57 +175,10 @@ const NonFormalEducationFormModal = ({
         `Non-formal education ${isEdit ? "updated" : "added"} successfully!`,
       );
 
-      if (setValue && watchedEducations) {
-        if (isEdit) {
-          const updatedEducations = watchedEducations.map(
-            (e: IEducationResponse) =>
-              e.id === educationData?.id ? res.data : e,
-          );
-          setValue("educations", updatedEducations);
-        } else {
-          const updatedEducations = Array.isArray(watchedEducations)
-            ? [...watchedEducations, res.data]
-            : [res.data];
-          setValue("educations", updatedEducations);
-        }
-      }
-
-      const queryKey = ["non-formal-educations", employee_profile_id || ""];
-      queryClient.setQueryData(queryKey, (oldData: any) => {
-        if (!oldData) {
-          return {
-            data: {
-              data: [res.data],
-              total: 1,
-              page: 1,
-              per_page: 10,
-            },
-          };
-        }
-
-        if (isEdit) {
-          return {
-            ...oldData,
-            data: {
-              ...oldData.data,
-              data: oldData.data.data.map((e: IEducationResponse) =>
-                e.id === educationData?.id ? res.data : e,
-              ),
-            },
-          };
-        } else {
-          return {
-            ...oldData,
-            data: {
-              ...oldData.data,
-              data: [...(oldData.data.data || []), res.data],
-              total: (oldData.data.total || 0) + 1,
-            },
-          };
-        }
+      queryClient.invalidateQueries({
+        queryKey: ["non-formal-educations", employee_profile_id || ""],
       });
 
-      queryClient.invalidateQueries({ queryKey: ["non-formal-educations"] });
       setOpen(false);
       form.reset();
       onSuccess?.();
@@ -260,25 +212,7 @@ const NonFormalEducationFormModal = ({
         toast.error("Failed to submit form");
       }
     },
-    [],
-  );
-
-  const handleUpdateEducation = React.useCallback(
-    async (e: React.MouseEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      const isValid = await form.trigger();
-      const formData = form.getValues();
-
-      console.log("# ERROR EDIT ", form.formState.errors);
-
-      if (!isValid) {
-        console.log("Form validation failed");
-        return;
-      }
-      onSubmit(formData);
-    },
-    [form, onSubmit],
+    [isEdit, educationData?.id, employee_profile_id, mutation],
   );
 
   const handleCancel = () => {
@@ -291,7 +225,10 @@ const NonFormalEducationFormModal = ({
     <Dialog open={open} onOpenChange={setOpen}>
       {!controlledOpen && (
         <DialogTrigger asChild>
-          <Button>
+          <Button
+            variant={buttonVariant}
+            className={cn(buttonVariant === "outline" && "bg-white")}
+          >
             <Plus /> Add Non Formal Education
           </Button>
         </DialogTrigger>
@@ -362,10 +299,7 @@ const NonFormalEducationFormModal = ({
               >
                 Cancel
               </Button>
-              <Button
-                onClick={handleUpdateEducation}
-                // disabled={mutation.isPending || !form.formState.isValid}
-              >
+              <Button type="submit" disabled={mutation.isPending}>
                 {mutation.isPending ? "Saving..." : "Save"}
               </Button>
             </DialogFooter>
@@ -401,54 +335,10 @@ export const NonFormalEducationSection = React.memo<Props>(
     withAddButton = false,
     employee_profile_id,
   }) {
-    const formContext = useFormContext();
     const queryClient = useQueryClient();
     const [editingEducation, setEditingEducation] =
       React.useState<IEducationResponse | null>(null);
     const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
-
-    const watchedEducations = formContext
-      ? formContext.watch("educations")
-      : null;
-
-    const deleteMutation = useMutation({
-      mutationFn: ({ id }: { id: number }) =>
-        deleteEducation({ id, employee_profile_id }),
-      onSuccess: (_, variables) => {
-        toast.success("Non-formal education deleted successfully!");
-        if (formContext?.setValue && watchedEducations) {
-          const updatedEducations = watchedEducations.filter(
-            (e: IEducationResponse) => e.id !== variables.id,
-          );
-          formContext.setValue("educations", updatedEducations);
-        }
-        const queryKey = ["non-formal-educations", employee_profile_id || ""];
-        queryClient.setQueryData(queryKey, (oldData: any) => {
-          if (!oldData) return oldData;
-
-          return {
-            ...oldData,
-            data: {
-              ...oldData.data,
-              data: oldData.data.data.filter(
-                (e: IEducationResponse) => e.id !== variables.id,
-              ),
-              total: oldData.data.total - 1,
-            },
-          };
-        });
-
-        queryClient.invalidateQueries({ queryKey: ["non-formal-educations"] });
-      },
-      onError: (error: any) => {
-        console.error("Delete mutation error:", error);
-        toast.error(
-          `Failed to delete non-formal education: ${
-            error?.response?.data?.message || error.message || "Unknown error"
-          }`,
-        );
-      },
-    });
 
     const { data, isLoading } = useQuery({
       queryKey: employee_profile_id
@@ -465,14 +355,27 @@ export const NonFormalEducationSection = React.memo<Props>(
       enabled: !!employee_profile_id,
     });
 
+    const deleteMutation = useMutation({
+      mutationFn: ({ id }: { id: number }) =>
+        deleteEducation({ id, employee_profile_id }),
+      onSuccess: (_, variables) => {
+        toast.success("Non-formal education deleted successfully!");
+        queryClient.invalidateQueries({
+          queryKey: ["non-formal-educations", employee_profile_id || ""],
+        });
+      },
+      onError: (error: any) => {
+        console.error("Delete mutation error:", error);
+        toast.error(
+          `Failed to delete non-formal education: ${
+            error?.response?.data?.message || error.message || "Unknown error"
+          }`,
+        );
+      },
+    });
+
     const apiEducations =
       data?.data?.data?.filter((item) => item.category === "non_formal") || [];
-    const watchedNonFormalEducations = Array.isArray(watchedEducations)
-      ? watchedEducations.filter((item) => item.category === "non_formal")
-      : [];
-
-    const returnedData =
-      apiEducations.length > 0 ? apiEducations : watchedNonFormalEducations;
 
     const handleEdit = (education: IEducationResponse) => {
       setEditingEducation(education);
@@ -565,10 +468,26 @@ export const NonFormalEducationSection = React.memo<Props>(
         ) : (
           <DataTable
             columns={columns}
-            data={returnedData || []}
+            data={apiEducations || []}
             tableClassName="table-fixed w-full"
             tableCellClassName="w-1/9 text-clip text-balance"
             tableHeadClassName="w-1/9 text-clip text-balance"
+            noDataPlaceholder={
+              <div className="border border-primary-border bg-primary-background rounded-md p-2 gap-1 mx-8 flex flex-col items-center justify-center">
+                <p className="text-primary font-semibold text-lg text-center">
+                  Complete Non-Formal Education Information
+                </p>
+                <p className="text-base text-text-secondary text-center">
+                  Record workshops, certifications, and other non-formal
+                  learning to showcase the employee&apos;s skills and
+                  development.
+                </p>
+                <NonFormalEducationFormModal
+                  buttonVariant="outline"
+                  employee_profile_id={employee_profile_id}
+                />
+              </div>
+            }
           />
         )}
         <Separator className="my-6" />

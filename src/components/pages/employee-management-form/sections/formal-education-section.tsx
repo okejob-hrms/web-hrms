@@ -43,6 +43,7 @@ import {
 import Image from "next/image";
 import dayjs from "dayjs";
 import localizedFormat from "dayjs/plugin/localizedFormat";
+import { cn } from "@/lib/utils";
 
 dayjs.extend(localizedFormat);
 
@@ -115,6 +116,7 @@ interface FormalEducationFormModalProps {
   educationData?: IEducationResponse | null;
   employee_profile_id?: number;
   onSuccess?: () => void;
+  buttonVariant?: "default" | "outline";
 }
 
 const FormalEducationFormModal = ({
@@ -123,6 +125,7 @@ const FormalEducationFormModal = ({
   onOpenChange: controlledOnOpenChange,
   educationData,
   employee_profile_id,
+  buttonVariant = "default",
   onSuccess,
 }: FormalEducationFormModalProps) => {
   const [internalOpen, setInternalOpen] = React.useState(false);
@@ -291,7 +294,10 @@ const FormalEducationFormModal = ({
     <Dialog open={open} onOpenChange={setOpen}>
       {!controlledOpen && (
         <DialogTrigger asChild>
-          <Button>
+          <Button
+            variant={buttonVariant}
+            className={cn(buttonVariant === "outline" && "bg-white")}
+          >
             <Plus /> Add Formal Education
           </Button>
         </DialogTrigger>
@@ -590,6 +596,18 @@ export const FormalEducationSection = React.memo<Props>(
             tableClassName="table-fixed w-full"
             tableCellClassName="w-1/9 text-clip text-balance"
             tableHeadClassName="w-1/9 text-clip text-balance"
+            noDataPlaceholder={
+              <div className="border border-primary-border bg-primary-background rounded-md p-2 gap-1 mx-8 flex flex-col items-center justify-center">
+                <p className="text-primary font-semibold text-lg text-center">
+                  Complete Formal Education Information
+                </p>
+                <p className="text-base text-text-secondary text-center">
+                  Record the employee’s formal education history for a more
+                  accurate and comprehensive employee profile.
+                </p>
+                <FormalEducationFormModal buttonVariant="outline" />
+              </div>
+            }
           />
         )}
 

@@ -45,6 +45,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Image from "next/image";
 import dayjs from "dayjs";
+import { cn } from "@/lib/utils";
 
 const formatDate = (dateString: string): string => {
   return new Date(dateString).toLocaleDateString("id-ID", {
@@ -123,6 +124,7 @@ interface FamilyFormModalProps {
   familyData?: IFamilyResponse | null;
   employee_profile_id?: number;
   onSuccess?: () => void;
+  buttonVariant?: "outline" | "default";
 }
 
 const FamilyFormModal = ({
@@ -132,6 +134,7 @@ const FamilyFormModal = ({
   familyData,
   employee_profile_id,
   onSuccess,
+  buttonVariant = "default",
 }: FamilyFormModalProps) => {
   const [internalOpen, setInternalOpen] = React.useState(false);
   const queryClient = useQueryClient();
@@ -300,7 +303,10 @@ const FamilyFormModal = ({
     <Dialog open={open} onOpenChange={setOpen}>
       {!controlledOpen && (
         <DialogTrigger asChild>
-          <Button>
+          <Button
+            variant={buttonVariant}
+            className={cn(buttonVariant === "outline" && "bg-white")}
+          >
             <Plus /> Add Family Information
           </Button>
         </DialogTrigger>
@@ -606,6 +612,21 @@ export const FamilyInformationSection =
             tableClassName="table-fixed w-full"
             tableCellClassName="w-1/9 text-clip text-balance"
             tableHeadClassName="w-1/9 text-clip text-balance"
+            noDataPlaceholder={
+              <div className="border border-primary-border bg-primary-background rounded-md p-2 gap-1 mx-8 flex flex-col items-center justify-center">
+                <p className="text-primary font-semibold text-lg text-center">
+                  Complete Family Information
+                </p>
+                <p className="text-base text-text-secondary text-center">
+                  Family information helps ensure accurate benefits and HR data.
+                  Continue by completing family details.
+                </p>
+                <FamilyFormModal
+                  employee_profile_id={employee_profile_id}
+                  buttonVariant="outline"
+                />
+              </div>
+            }
           />
         )}
 

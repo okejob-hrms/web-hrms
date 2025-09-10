@@ -42,6 +42,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import Image from "next/image";
+import { cn } from "@/lib/utils";
 
 interface TableRowActionsProps {
   row: any;
@@ -112,6 +113,7 @@ interface ContactReferenceFormModalProps {
   contactReferenceData?: IContactReferenceResponse | null;
   employee_profile_id?: number;
   onSuccess?: () => void;
+  buttonVariant?: "outline" | "default";
 }
 
 const ContactReferenceFormModal = ({
@@ -121,6 +123,7 @@ const ContactReferenceFormModal = ({
   contactReferenceData,
   employee_profile_id,
   onSuccess,
+  buttonVariant = "default",
 }: ContactReferenceFormModalProps) => {
   const [internalOpen, setInternalOpen] = React.useState(false);
   const queryClient = useQueryClient();
@@ -131,6 +134,13 @@ const ContactReferenceFormModal = ({
 
   const { setValue, watch } = formContext || {};
   const watchedContactReferences = watch ? watch("contact_refferences") : null;
+  const employeeProfileIdRef = React.useRef(employee_profile_id);
+
+  React.useEffect(() => {
+    if (employee_profile_id && typeof employee_profile_id === "number") {
+      employeeProfileIdRef.current = employee_profile_id;
+    }
+  }, [employee_profile_id]);
 
   const form = useForm<IContactReferenceForm>({
     resolver: zodResolver(ContactReferenceFormSchema),
@@ -162,10 +172,24 @@ const ContactReferenceFormModal = ({
       employee_profile_id?: number;
       payload: IContactReferenceForm;
       id?: number;
-    }) =>
-      isEdit
-        ? putUpdateContactReference(params)
-        : postCreateContactReference(params),
+    }) => {
+      const finalEmployeeProfileId =
+        params.employee_profile_id || employeeProfileIdRef.current;
+
+      if (!finalEmployeeProfileId) {
+        throw new Error("employee_profile_id is required but not available");
+      }
+
+      return isEdit
+        ? putUpdateContactReference({
+            ...params,
+            employee_profile_id: finalEmployeeProfileId,
+          })
+        : postCreateContactReference({
+            ...params,
+            employee_profile_id: finalEmployeeProfileId,
+          });
+    },
     onSuccess: (res) => {
       toast.success(
         `Contact reference ${isEdit ? "updated" : "added"} successfully!`,
@@ -188,7 +212,9 @@ const ContactReferenceFormModal = ({
         }
       }
 
-      const queryKey = ["contact_refferences", employee_profile_id || ""];
+      const finalEmployeeProfileId =
+        employee_profile_id || employeeProfileIdRef.current;
+      const queryKey = ["contact_refferences", finalEmployeeProfileId || ""];
       queryClient.setQueryData(queryKey, (oldData: any) => {
         if (!oldData) {
           return {
@@ -238,26 +264,39 @@ const ContactReferenceFormModal = ({
     },
   });
 
-  const onSubmit = React.useCallback(async (values: IContactReferenceForm) => {
-    try {
-      const payload = {
-        ...values,
-        phone: values.phone ? convertPhoneToNumber(values.phone) : values.phone,
-      };
+  const onSubmit = React.useCallback(
+    async (values: IContactReferenceForm) => {
+      try {
+        const finalEmployeeProfileId =
+          employee_profile_id || employeeProfileIdRef.current;
 
-      const params = {
-        employee_profile_id,
-        payload,
-        ...(isEdit &&
-          contactReferenceData?.id && { id: contactReferenceData.id }),
-      };
+        if (!finalEmployeeProfileId) {
+          toast.error("Employee profile ID is required");
+          return;
+        }
 
-      mutation.mutate(params);
-    } catch (error) {
-      console.error("Submit error:", error);
-      toast.error("Failed to submit form");
-    }
-  }, []);
+        const payload = {
+          ...values,
+          phone: values.phone
+            ? convertPhoneToNumber(values.phone)
+            : values.phone,
+        };
+
+        const params = {
+          employee_profile_id: finalEmployeeProfileId,
+          payload,
+          ...(isEdit &&
+            contactReferenceData?.id && { id: contactReferenceData.id }),
+        };
+
+        mutation.mutate(params);
+      } catch (error) {
+        console.error("Submit error:", error);
+        toast.error("Failed to submit form");
+      }
+    },
+    [employee_profile_id, isEdit, contactReferenceData?.id, mutation],
+  );
 
   const handleUpdateContactReference = React.useCallback(
     async (e: React.MouseEvent) => {
@@ -266,15 +305,13 @@ const ContactReferenceFormModal = ({
       const isValid = await form.trigger();
       const formData = form.getValues();
 
-      console.log("# ERROR EDIT ", form.formState.errors);
-
       if (!isValid) {
         console.log("Form validation failed");
         return;
       }
       onSubmit(formData);
     },
-    [form, onSubmit],
+    [form, onSubmit, employee_profile_id],
   );
 
   const handleCancel = () => {
@@ -283,11 +320,18 @@ const ContactReferenceFormModal = ({
     mutation.reset();
   };
 
+  if (!employee_profile_id && !employeeProfileIdRef.current) {
+    return null;
+  }
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       {!controlledOpen && (
         <DialogTrigger asChild>
-          <Button>
+          <Button
+            variant={buttonVariant}
+            className={cn(buttonVariant === "outline" && "bg-white")}
+          >
             <Plus /> Add Contact Reference
           </Button>
         </DialogTrigger>
@@ -342,7 +386,7 @@ const ContactReferenceFormModal = ({
               </Button>
               <Button
                 onClick={handleUpdateContactReference}
-                // disabled={mutation.isPending || !form.formState.isValid}
+                disabled={mutation.isPending}
               >
                 {mutation.isPending ? "Saving..." : "Save"}
               </Button>
@@ -386,9 +430,23 @@ export const ContactOfReferenceSection = React.memo<Props>(
       ? formContext.watch("contact_refferences")
       : null;
 
+    const employeeProfileIdRef = React.useRef(employee_profile_id);
+
+    React.useEffect(() => {
+      if (employee_profile_id && typeof employee_profile_id === "number") {
+        employeeProfileIdRef.current = employee_profile_id;
+      }
+    }, [employee_profile_id]);
+
     const deleteMutation = useMutation({
-      mutationFn: ({ id }: { id: number }) =>
-        deleteContactReference({ id, employee_profile_id }),
+      mutationFn: ({ id }: { id: number }) => {
+        const finalEmployeeProfileId =
+          employee_profile_id || employeeProfileIdRef.current;
+        return deleteContactReference({
+          id,
+          employee_profile_id: finalEmployeeProfileId,
+        });
+      },
       onSuccess: (_, variables) => {
         toast.success("Contact reference deleted successfully!");
         if (formContext?.setValue && watchedContactReferences) {
@@ -397,7 +455,9 @@ export const ContactOfReferenceSection = React.memo<Props>(
           );
           formContext.setValue("contact_refferences", updatedContactReferences);
         }
-        const queryKey = ["contact_refferences", employee_profile_id || ""];
+        const finalEmployeeProfileId =
+          employee_profile_id || employeeProfileIdRef.current;
+        const queryKey = ["contact_refferences", finalEmployeeProfileId || ""];
         queryClient.setQueryData(queryKey, (oldData: any) => {
           if (!oldData) return oldData;
 
@@ -425,11 +485,18 @@ export const ContactOfReferenceSection = React.memo<Props>(
       },
     });
 
+    const finalEmployeeProfileId =
+      employee_profile_id || employeeProfileIdRef.current;
+
     const { data, isLoading } = useQuery({
-      queryKey: employee_profile_id
-        ? ["contact_refferences", employee_profile_id]
+      queryKey: finalEmployeeProfileId
+        ? ["contact_refferences", finalEmployeeProfileId]
         : ["contact_refferences"],
-      queryFn: () => getContactReferences({ employee_profile_id }),
+      queryFn: () => {
+        return getContactReferences({
+          employee_profile_id: finalEmployeeProfileId,
+        });
+      },
       retry: (failureCount, error: any) => {
         console.error("Query error:", error);
         if (error?.response?.status >= 400 && error?.response?.status < 500) {
@@ -437,7 +504,7 @@ export const ContactOfReferenceSection = React.memo<Props>(
         }
         return failureCount < 3;
       },
-      enabled: !!employee_profile_id,
+      enabled: !!finalEmployeeProfileId,
     });
 
     const returnedData = data?.data?.data || watchedContactReferences;
@@ -503,11 +570,22 @@ export const ContactOfReferenceSection = React.memo<Props>(
       [],
     );
 
+    if (!finalEmployeeProfileId) {
+      console.warn(
+        "ContactOfReferenceSection: No employee_profile_id available",
+      );
+      return (
+        <div className="text-center text-red-500 p-4">
+          Error: Employee profile ID is required to load contact references
+        </div>
+      );
+    }
+
     return (
       <React.Fragment>
         <SectionHeader
           withAddButton={withAddButton}
-          employee_profile_id={employee_profile_id}
+          employee_profile_id={finalEmployeeProfileId}
         />
 
         {isEditModalOpen && (
@@ -516,7 +594,7 @@ export const ContactOfReferenceSection = React.memo<Props>(
             open={isEditModalOpen}
             onOpenChange={setIsEditModalOpen}
             contactReferenceData={editingContactReference}
-            employee_profile_id={employee_profile_id}
+            employee_profile_id={finalEmployeeProfileId}
             onSuccess={handleFormSuccess}
           />
         )}
@@ -535,6 +613,21 @@ export const ContactOfReferenceSection = React.memo<Props>(
             tableClassName="table-fixed w-full"
             tableCellClassName="w-1/9 text-clip text-balance"
             tableHeadClassName="w-1/9 text-clip text-balance"
+            noDataPlaceholder={
+              <div className="border border-primary-border bg-primary-background rounded-md p-2 gap-1 mx-8 flex flex-col items-center justify-center">
+                <p className="text-primary font-semibold text-lg text-center">
+                  Complete Contact Reference Information
+                </p>
+                <p className="text-base text-text-secondary text-center">
+                  Add references who can validate the employee&apos;s
+                  professional background and character.
+                </p>
+                <ContactReferenceFormModal
+                  buttonVariant="outline"
+                  employee_profile_id={finalEmployeeProfileId}
+                />
+              </div>
+            }
           />
         )}
         <Separator className="my-6" />
