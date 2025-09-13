@@ -94,6 +94,10 @@ export default function OrganizationChartEdit() {
   );
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
 
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState<number | null>(
+    null
+  );
+
   const [assignEmployeeOpen, setAssignEmployeeOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [selectedEmployeeDetails, setSelectedEmployeeDetails] =
@@ -104,10 +108,14 @@ export default function OrganizationChartEdit() {
     isLoading,
     isError,
   } = useQuery({
-    queryKey: ["organizationChart"],
-    queryFn: getOrgChart,
+    queryKey: ["organizationChart", selectedEmployeeId],
+    queryFn: () => getOrgChart(selectedEmployeeId),
     select: (apiResponse) => flattenOrgData(apiResponse.data),
   });
+
+  const handleEmployeeSelect = (employeeId: number) => {
+    setSelectedEmployeeId(employeeId);
+  };
 
   useEffect(() => {
     if (fetchedEmployees) {
@@ -188,9 +196,12 @@ export default function OrganizationChartEdit() {
     },
   });
 
-  if (isError) {
-    toast.error("Error Fetching Organization Structure");
-  }
+  useEffect(() => {
+    if (isError) {
+      setChartEmployees(initialChartData);
+      toast.error("Error Fetching Organization Structure");
+    }
+  }, [isError]);
 
   return (
     <div className="font-sans flex flex-col h-full">
@@ -206,13 +217,16 @@ export default function OrganizationChartEdit() {
         <h2 className="font-semibold text-xl">Organization Structure</h2>
       </div>
       <div className="flex flex-row" style={{ height: "100vh" }}>
-        <EmployeeListSidebar />
+        <EmployeeListSidebar
+          onEmployeeSelect={handleEmployeeSelect}
+          selectedEmployeeId={selectedEmployeeId}
+        />
         <div className="flex-1 h-full">
           {isLoading ? (
             <div className="flex flex-col gap-4 items-center w-full h-full">
               <Skeleton className="h-12 w-full" />
-              <div className="space-y-2 w-full">
-                <Skeleton className="h-30 w-full" />
+              <div className="space-y-2 w-full h-full">
+                <Skeleton className="w-full h-full" />
               </div>
             </div>
           ) : chartEmployees.length === 0 ? (
