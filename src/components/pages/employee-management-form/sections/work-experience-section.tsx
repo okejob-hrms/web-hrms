@@ -521,7 +521,7 @@ export const WorkExperienceSection = React.memo<Props>(
     const deleteMutation = useMutation({
       mutationFn: ({ id }: { id: number }) =>
         deleteWorkExperience({ id, employee_profile_id }),
-      onSuccess: (_, variables) => {
+      onSuccess: (_) => {
         toast.success("Work experience deleted successfully!");
         queryClient.invalidateQueries({
           queryKey: ["work-experiences", employee_profile_id || ""],

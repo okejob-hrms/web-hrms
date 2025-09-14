@@ -13,6 +13,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
+interface CommandInputProps
+  extends React.ComponentProps<typeof CommandPrimitive.Input> {
+  className?: string;
+  wrapperClassName?: string;
+}
+
 function Command({
   className,
   ...props
@@ -62,12 +68,13 @@ function CommandDialog({
 
 function CommandInput({
   className,
+  wrapperClassName,
   ...props
-}: React.ComponentProps<typeof CommandPrimitive.Input>) {
+}: CommandInputProps) {
   return (
     <div
       data-slot="command-input-wrapper"
-      className="relative w-full px-[14px] py-[10px]"
+      className={cn("relative w-full px-[14px] py-[10px]", wrapperClassName)}
     >
       <CommandPrimitive.Input
         data-slot="command-input"
