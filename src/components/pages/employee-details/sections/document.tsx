@@ -27,9 +27,8 @@ import {
   Video,
   Music,
   Archive,
-  AlertCircle,
-  Upload,
   RefreshCw,
+  X,
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import * as React from "react";
@@ -38,15 +37,17 @@ import Image from "next/image";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DropEvent, FileRejection } from "react-dropzone";
 import { IDocument } from "@/lib/types";
-import { IEmployeeDetailsResponse } from "@/services/employees/types";
 import DeleteDocumentModal from "./delete-document-modal";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  addEmployeeDocument,
   deleteEmployeeDocument,
   getAllEmployeeDocument,
 } from "@/services/document";
+import { uploadAttachment } from "@/services/attachments";
 import { toast } from "sonner";
 import AppSkeleton from "@/components/partials/app-skeleton";
+import ManageAccessModal from "./manage-acccess-modal";
 
 interface DragnDropProps {
   handleDrop:
@@ -66,6 +67,13 @@ interface CardItemProps {
 
 interface Props {
   userId: number;
+}
+
+interface UploadedFile {
+  file: File;
+  path?: string;
+  isUploading: boolean;
+  error?: string;
 }
 
 const tabs = [
@@ -207,13 +215,113 @@ const DocumentPreview = React.memo(function DocumentPreview({
   return <div className="min-h-36 relative">{renderPreview()}</div>;
 });
 
+const FileUploadPreview = React.memo(function FileUploadPreview({
+  uploadedFile,
+  onRemove,
+}: {
+  uploadedFile: UploadedFile;
+  onRemove: () => void;
+}) {
+  const fileType = getFileType(uploadedFile.file.name);
+  const extension = getFileExtension(uploadedFile.file.name);
+
+  const renderPreview = () => {
+    if (uploadedFile.isUploading) {
+      return (
+        <div className="flex flex-col items-center justify-center h-full bg-gray-100 rounded-t-md min-h-36">
+          <RefreshCw className="mb-2 text-gray-500 animate-spin" size={32} />
+          <p className="text-sm text-gray-600">Uploading...</p>
+        </div>
+      );
+    }
+
+    if (uploadedFile.error) {
+      return (
+        <div className="flex flex-col items-center justify-center h-full bg-red-50 rounded-t-md min-h-36">
+          <FileIcon className="mb-2 text-red-500" size={32} />
+          <p className="text-sm text-red-600">Upload failed</p>
+        </div>
+      );
+    }
+
+    switch (fileType) {
+      case "image":
+        return (
+          <div className="relative w-full h-full overflow-hidden rounded-t-md min-h-36">
+            <Image
+              src={URL.createObjectURL(uploadedFile.file)}
+              alt={uploadedFile.file.name}
+              fill
+              className="object-cover"
+            />
+          </div>
+        );
+
+      case "document":
+        return (
+          <div className="flex flex-col items-center min-h-36 justify-center h-full bg-gradient-to-br from-red-50 to-red-100 rounded-t-md">
+            <FileText className="mb-2 text-red-500" size={32} />
+            <p className="text-sm font-medium text-red-700 uppercase">
+              {extension}
+            </p>
+            <p className="text-xs text-red-600">Document</p>
+          </div>
+        );
+
+      default:
+        return (
+          <div className="flex flex-col items-center justify-center h-full bg-gradient-to-br from-gray-50 to-gray-100 rounded-t-md min-h-36">
+            <FileIcon className="mb-2 text-gray-500" size={32} />
+            <p className="text-sm font-medium text-gray-700 uppercase">
+              {extension || "file"}
+            </p>
+            <p className="text-xs text-gray-600">Unknown Type</p>
+          </div>
+        );
+    }
+  };
+
+  return (
+    <div className="bg-primary-background rounded-md shadow-sm border hover:shadow-md transition-shadow">
+      {renderPreview()}
+      <div className="p-4 bg-white rounded-b-md">
+        <div className="flex justify-between items-start gap-2">
+          <div className="flex-1 min-w-0">
+            <p
+              className="text-text-secondary text-sm truncate"
+              title={uploadedFile.file.name}
+            >
+              {uploadedFile.file.name}
+            </p>
+            <p className="text-xs text-text-disabled">
+              {(uploadedFile.file.size / 1024).toFixed(1)} KB
+            </p>
+            {uploadedFile.error && (
+              <p className="text-xs text-red-500 mt-1">{uploadedFile.error}</p>
+            )}
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onRemove}
+            className="shrink-0 h-6 w-6 p-0 hover:bg-gray-100"
+            disabled={uploadedFile.isUploading}
+          >
+            <X size={12} className="text-text-disabled" />
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+});
+
 const DragnDrop = React.memo(function DragnDrop({
   handleDrop,
   files,
 }: DragnDropProps) {
   return (
     <Dropzone
-      maxFiles={3}
+      maxFiles={10}
       onDrop={handleDrop}
       onError={console.error}
       src={files}
@@ -227,11 +335,15 @@ const DragnDrop = React.memo(function DragnDrop({
 
 const CardItem = React.memo(function CardItem({ file, userId }: CardItemProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
+  const [isManageAccessOpen, setIsManageAccessOpen] = React.useState(false);
+  const queryClient = useQueryClient();
 
   const { mutate: deleteDocument, isPending: isPendingDelete } = useMutation({
-    mutationFn: () => deleteEmployeeDocument(file.id, userId),
+    mutationFn: () => deleteEmployeeDocument(userId, file.id),
     onSuccess: () => {
       toast.success("Document deleted successfully!");
+      queryClient.invalidateQueries({ queryKey: ["document-employee"] });
       setDropdownOpen(false);
     },
     onError: (error) => {
@@ -242,6 +354,22 @@ const CardItem = React.memo(function CardItem({ file, userId }: CardItemProps) {
   const handleDropdownOpenChange = (open: boolean) => {
     setDropdownOpen(open);
   };
+
+  if (isPendingDelete) {
+    return (
+      <div className="bg-primary-background rounded-md shadow-sm border hover:shadow-md transition-shadow">
+        <div className="min-h-36 relative bg-gray-200 animate-pulse rounded-t-md"></div>
+        <div className="p-4 bg-white rounded-b-md">
+          <div className="flex justify-between gap-2">
+            <div className="h-4 bg-gray-200 rounded w-3/4 animate-pulse"></div>
+            <div className="h-4 bg-gray-200 rounded w-4 animate-pulse"></div>
+          </div>
+          <div className="h-3 bg-gray-200 rounded w-1/2 mt-2 animate-pulse"></div>
+          <div className="h-3 bg-gray-200 rounded w-3/4 mt-1 animate-pulse"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-primary-background rounded-md shadow-sm border hover:shadow-md transition-shadow">
@@ -316,22 +444,26 @@ const CardItem = React.memo(function CardItem({ file, userId }: CardItemProps) {
                 </a>
               </DropdownMenuItem>
               <DropdownMenuItem
-                asChild
                 onSelect={(e) => {
                   e.preventDefault();
+                  setDropdownOpen(false);
+                  setIsDeleteModalOpen(true);
                 }}
                 className="cursor-pointer"
               >
-                <div className="w-full">
-                  <DeleteDocumentModal
-                    onArchieve={deleteDocument}
-                    disabled={isPendingDelete}
-                    onModalClose={() => setDropdownOpen(false)}
-                  />
-                </div>
+                <Image
+                  width={15}
+                  height={15}
+                  src="/icons/delete.svg"
+                  alt="Delete"
+                />
+                Delete
               </DropdownMenuItem>
               <DropdownMenuItem
                 onSelect={(e) => {
+                  e.preventDefault();
+                  setDropdownOpen(false);
+                  setIsManageAccessOpen(true);
                   e.preventDefault();
                 }}
                 className="cursor-pointer"
@@ -346,6 +478,19 @@ const CardItem = React.memo(function CardItem({ file, userId }: CardItemProps) {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          <DeleteDocumentModal
+            isOpen={isDeleteModalOpen}
+            onClose={() => setIsDeleteModalOpen(false)}
+            onArchieve={deleteDocument}
+            disabled={isPendingDelete}
+          />
+          <ManageAccessModal
+            isOpen={isManageAccessOpen}
+            onClose={() => setIsManageAccessOpen(false)}
+            onSave={() => {}}
+            disabled={isPendingDelete}
+            employeeDocumentId={file.employee_profile_id}
+          />
         </div>
         <p className="text-xs text-text-disabled mt-1">{file.uploaded_at}</p>
         <p className="text-text-disabled text-xs">
@@ -357,12 +502,15 @@ const CardItem = React.memo(function CardItem({ file, userId }: CardItemProps) {
   );
 });
 
-const MenuTab = React.memo(function MenuTab() {
-  const [files, setFiles] = React.useState<File[] | undefined>();
-  const handleDrop = (files: File[]) => {
-    console.log(files);
-    setFiles(files);
-  };
+const MenuTab = React.memo(function MenuTab({
+  handleDrop,
+  uploadedFiles,
+  onRemoveFile,
+}: {
+  handleDrop: (files: File[]) => void;
+  uploadedFiles: UploadedFile[];
+  onRemoveFile: (index: number) => void;
+}) {
   return (
     <Tabs
       orientation="vertical"
@@ -381,13 +529,57 @@ const MenuTab = React.memo(function MenuTab() {
         ))}
       </TabsList>
 
-      <div className="flex items-center justify-center w-full border rounded-md font-medium text-muted-foreground col-span-4">
+      <div className="flex flex-col items-center justify-center w-full border rounded-md font-medium text-muted-foreground col-span-4">
         {tabs.map((tab) => (
-          <TabsContent key={tab.value} value={tab.value}>
+          <TabsContent key={tab.value} value={tab.value} className="w-full">
             {tab.name === "my-computer" ? (
-              <DragnDrop files={files} handleDrop={handleDrop} />
+              <div className="space-y-4">
+                <DragnDrop
+                  files={uploadedFiles.map((f) => f.file)}
+                  handleDrop={handleDrop}
+                />
+
+                {uploadedFiles.length > 0 && (
+                  <div className="space-y-4">
+                    <h3 className="font-medium text-sm">
+                      Selected Files ({uploadedFiles.length})
+                    </h3>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      {uploadedFiles.map((uploadedFile, index) => (
+                        <FileUploadPreview
+                          key={`${uploadedFile.file.name}-${index}`}
+                          uploadedFile={uploadedFile}
+                          onRemove={() => onRemoveFile(index)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             ) : (
-              <DragnDrop files={files} handleDrop={handleDrop} />
+              <div className="space-y-4">
+                <DragnDrop
+                  files={uploadedFiles.map((f) => f.file)}
+                  handleDrop={handleDrop}
+                />
+
+                {uploadedFiles.length > 0 && (
+                  <div className="space-y-4">
+                    <h3 className="font-medium text-sm">
+                      Selected Files ({uploadedFiles.length})
+                    </h3>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      {uploadedFiles.map((uploadedFile, index) => (
+                        <FileUploadPreview
+                          key={`${uploadedFile.file.name}-${index}`}
+                          uploadedFile={uploadedFile}
+                          onRemove={() => onRemoveFile(index)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
           </TabsContent>
         ))}
@@ -396,8 +588,117 @@ const MenuTab = React.memo(function MenuTab() {
   );
 });
 
-const UploadDocumentModal = React.memo(function UploadDocumentModal() {
+const UploadDocumentModal = React.memo(function UploadDocumentModal({
+  userId,
+}: {
+  userId: number;
+}) {
   const [open, setOpen] = React.useState(false);
+  const [uploadedFiles, setUploadedFiles] = React.useState<UploadedFile[]>([]);
+  const queryClient = useQueryClient();
+
+  // Upload individual file mutation
+  const { mutate: uploadFile } = useMutation({
+    mutationFn: uploadAttachment,
+    onSuccess: (response, file) => {
+      setUploadedFiles((prev) =>
+        prev.map((f) =>
+          f.file === file
+            ? {
+                ...f,
+                path: response.data.path,
+                isUploading: false,
+                error: undefined,
+              }
+            : f,
+        ),
+      );
+    },
+    onError: (error, file) => {
+      setUploadedFiles((prev) =>
+        prev.map((f) =>
+          f.file === file
+            ? { ...f, isUploading: false, error: error.message }
+            : f,
+        ),
+      );
+      toast.error(`Failed to upload ${file.name}: ${error.message}`);
+    },
+  });
+
+  // Create documents mutation
+  const { mutate: createDocuments, isPending: isCreating } = useMutation({
+    mutationFn: async () => {
+      const validFiles = uploadedFiles.filter((f) => f.path && !f.error);
+
+      if (validFiles.length === 0) {
+        throw new Error(
+          "No files are ready for upload. Please wait for file uploads to complete or fix any errors.",
+        );
+      }
+
+      const attachments = validFiles.map((f) => ({
+        type: "other",
+        path: f.path!,
+      }));
+
+      return addEmployeeDocument({
+        attachments,
+        user_id: userId,
+      });
+    },
+    onSuccess: () => {
+      toast.success("Documents created successfully!");
+      queryClient.invalidateQueries({ queryKey: ["document-employee"] });
+      setOpen(false);
+      setUploadedFiles([]);
+    },
+    onError: (error) => {
+      toast.error(`Failed to create documents: ${error.message}`);
+    },
+  });
+
+  const handleDrop = React.useCallback(
+    (acceptedFiles: File[]) => {
+      const newUploadedFiles: UploadedFile[] = acceptedFiles.map((file) => ({
+        file,
+        isUploading: true,
+      }));
+
+      setUploadedFiles((prev) => [...prev, ...newUploadedFiles]);
+
+      // Upload each file immediately
+      acceptedFiles.forEach((file) => {
+        uploadFile(file);
+      });
+    },
+    [uploadFile],
+  );
+
+  const handleRemoveFile = React.useCallback((index: number) => {
+    setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
+  }, []);
+
+  const handleUpload = React.useCallback(() => {
+    const hasUploadingFiles = uploadedFiles.some((f) => f.isUploading);
+    const hasErrors = uploadedFiles.some((f) => f.error);
+
+    if (hasUploadingFiles) {
+      toast.warning("Please wait for all files to finish uploading");
+      return;
+    }
+
+    if (hasErrors) {
+      toast.error("Please resolve upload errors before proceeding");
+      return;
+    }
+
+    createDocuments();
+  }, [uploadedFiles, createDocuments]);
+
+  const isUploading = uploadedFiles.some((f) => f.isUploading);
+  const hasValidFiles = uploadedFiles.some((f) => f.path && !f.error);
+  const canUpload = !isCreating && !isUploading && hasValidFiles;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -408,17 +709,40 @@ const UploadDocumentModal = React.memo(function UploadDocumentModal() {
         <DialogHeader>
           <DialogTitle>Upload Document</DialogTitle>
         </DialogHeader>
-        <MenuTab />
+
+        <MenuTab
+          handleDrop={handleDrop}
+          uploadedFiles={uploadedFiles}
+          onRemoveFile={handleRemoveFile}
+        />
 
         <DialogFooter>
           <Button
             type="button"
             variant="outline"
-            onClick={() => setOpen(false)}
+            onClick={() => {
+              setOpen(false);
+              setUploadedFiles([]);
+            }}
+            disabled={isCreating || isUploading}
           >
             Cancel
           </Button>
-          <Button type="submit">Upload Document</Button>
+          <Button type="button" onClick={handleUpload} disabled={!canUpload}>
+            {isCreating ? (
+              <>
+                <RefreshCw className="h-4 w-4 animate-spin mr-2" />
+                Creating Documents...
+              </>
+            ) : isUploading ? (
+              <>
+                <RefreshCw className="h-4 w-4 animate-spin mr-2" />
+                Uploading Files...
+              </>
+            ) : (
+              "Create Documents"
+            )}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -432,8 +756,6 @@ export const DocumentDetail = React.memo(function DocumentDetail({
     data: documents,
     isLoading,
     isError,
-    error,
-    refetch,
     isFetching,
   } = useQuery({
     queryKey: ["document-employee", userId],
@@ -446,40 +768,10 @@ export const DocumentDetail = React.memo(function DocumentDetail({
     <div className="flex flex-col w-full gap-2 p-2">
       <div className="flex flex-col md:flex-row justify-between items-center gap-4">
         <h1 className="font-semibold text-lg">Employee Document</h1>
-        <UploadDocumentModal />
+        <UploadDocumentModal userId={userId} />
       </div>
 
       {isLoading && <AppSkeleton />}
-
-      {/* {isError && (
-        <div className="flex flex-col items-center justify-center py-12 space-y-4">
-          <div className="flex flex-col items-center space-y-4 max-w-md text-center">
-            <div className="rounded-full bg-red-50 p-3">
-              <AlertCircle className="h-8 w-8 text-red-500" />
-            </div>
-            <div className="space-y-2">
-              <h3 className="font-semibold text-lg text-gray-900">
-                Failed to Load Documents
-              </h3>
-              <p className="text-sm text-text-secondary">
-                {error?.message || "Something went wrong while loading the documents. Please try again."}
-              </p>
-            </div>
-            <Button 
-              onClick={() => refetch()} 
-              disabled={isFetching}
-              className="flex items-center gap-2"
-            >
-              {isFetching ? (
-                <RefreshCw className="h-4 w-4 animate-spin" />
-              ) : (
-                <RefreshCw className="h-4 w-4" />
-              )}
-              Try Again
-            </Button>
-          </div>
-        </div>
-      )} */}
 
       {!isLoading && (!documents?.data || documents.data.length === 0) && (
         <div className="flex flex-col items-center justify-center py-12 space-y-4">
@@ -496,7 +788,7 @@ export const DocumentDetail = React.memo(function DocumentDetail({
                 Start by uploading their first document.
               </p>
             </div>
-            <UploadDocumentModal />
+            <UploadDocumentModal userId={userId} />
           </div>
         </div>
       )}
@@ -517,27 +809,6 @@ export const DocumentDetail = React.memo(function DocumentDetail({
               {documents.data.map((item) => (
                 <CardItem key={item.id} file={item} userId={userId} />
               ))}
-            </div>
-
-            <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-200">
-              <p className="text-sm text-text-secondary">
-                {documents.data.length} document
-                {documents.data.length !== 1 ? "s" : ""} found
-              </p>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => refetch()}
-                disabled={isFetching}
-                className="flex items-center gap-2"
-              >
-                {isFetching ? (
-                  <RefreshCw className="h-3 w-3 animate-spin" />
-                ) : (
-                  <RefreshCw className="h-3 w-3" />
-                )}
-                Refresh
-              </Button>
             </div>
           </>
         )}

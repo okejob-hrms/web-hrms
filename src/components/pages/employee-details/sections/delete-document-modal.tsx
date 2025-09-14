@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import * as React from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -9,97 +9,77 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
 import Image from "next/image";
+import { RefreshCw } from "lucide-react";
 
 interface Props {
   onArchieve: () => void;
   disabled: boolean;
-  onModalClose: () => void;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 export default function DeleteDocumentModal({
   onArchieve,
   disabled,
-  onModalClose,
+  isOpen,
+  onClose,
 }: Props) {
-  const [isOpen, setIsOpen] = useState(false);
-
   const handleArchieve = async (e: React.MouseEvent) => {
-    console.log("Employee data updated");
     e.preventDefault();
     e.stopPropagation();
 
     try {
       await onArchieve();
-      setIsOpen(false);
-      onModalClose();
+      onClose();
     } catch (error) {
       console.error("Error updating employee:", error);
     }
   };
 
-  const handleCancel = () => {
-    setIsOpen(false);
-  };
-
-  const handleDeleteClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsOpen(true);
-  };
-
   return (
-    <>
-      <Button
-        onClick={handleDeleteClick}
-        className="h-fit p-0 font-normal cursor-pointer justify-start"
-        variant="ghost"
-        type="button"
-        asChild={false}
-      >
-        <div className="flex items-center gap-2">
-          <Image width={15} height={15} src="/icons/delete.svg" alt="Delete" />
-          Delete
-        </div>
-      </Button>
+    <AlertDialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <AlertDialogContent className="max-w-md mx-auto bg-white rounded-lg shadow-lg p-6 gap-8">
+        <AlertDialogHeader className="text-center items-center justify-center gap-0">
+          <Image
+            src="/icons/deleteContained.svg"
+            height={56}
+            width={56}
+            alt="archieve confirmation"
+            className="mb-4"
+          />
+          <AlertDialogTitle className="text-lg font-semibold text-black mb-2">
+            Are you sure you want to delete this document?
+          </AlertDialogTitle>
+          <AlertDialogDescription className="text-sm text-text-secondary text-center">
+            Once deleted, this document will be permanently removed and cannot
+            be restored. Please confirm before proceeding.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
 
-      <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
-        <AlertDialogContent className="max-w-md mx-auto bg-white rounded-lg shadow-lg p-6 gap-8">
-          <AlertDialogHeader className="text-center items-center justify-center gap-0">
-            <Image
-              src="/icons/deleteContained.svg"
-              height={56}
-              width={56}
-              alt="archieve confirmation"
-              className="mb-4"
-            />
-            <AlertDialogTitle className="text-lg font-semibold text-black mb-2">
-              Are you sure you want to delete this document?
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-sm text-text-secondary text-center">
-              Once deleted, this document will be permanently removed and cannot
-              be restored. Please confirm before proceeding.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-
-          <AlertDialogFooter className="flex justify-between gap-3 w-full">
-            <AlertDialogAction
-              onClick={handleArchieve}
-              className="flex-1 bg-transparent hover:opacity-50 hover:bg-transparent font-semibold text-error rounded-md py-2"
-              disabled={disabled}
-            >
-              Delete Document
-            </AlertDialogAction>
-            <AlertDialogCancel
-              onClick={handleCancel}
-              className="flex-1 border bg-primary text-white border-primary hover:text-white rounded-md py-2 font-semibold"
-            >
-              Cancel
-            </AlertDialogCancel>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
+        <AlertDialogFooter className="flex justify-between gap-3 w-full">
+          <AlertDialogAction
+            onClick={handleArchieve}
+            className="flex-1 bg-transparent hover:opacity-50 hover:bg-transparent font-semibold text-error rounded-md py-2"
+            disabled={disabled}
+          >
+            {disabled ? (
+              <>
+                <RefreshCw className="h-4 w-4 animate-spin mr-2" />
+                Deleting...
+              </>
+            ) : (
+              "Delete Document"
+            )}
+          </AlertDialogAction>
+          <AlertDialogCancel
+            onClick={onClose}
+            className="flex-1 border bg-primary text-white border-primary hover:text-white rounded-md py-2 font-semibold"
+          >
+            Cancel
+          </AlertDialogCancel>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
