@@ -162,7 +162,6 @@ const DetailView = ({
   );
 };
 
-// --- Helper component for the Edit Form ---
 const EditView = ({
   form,
   employeeData,
@@ -346,7 +345,6 @@ export default function EmployeeProfileModal({
     resolver: zodResolver(assignEmployeeFormScheme),
     mode: "onChange",
   });
-
   const onSubmit = (data: AssignEmployeeFormValues) => {
     handleSave(data);
     onOpenChange(false);
@@ -553,7 +551,6 @@ export default function EmployeeProfileModal({
                   </Button>
                   <Button
                     type="button"
-                    disabled={!form.formState.isValid}
                     onClick={form.handleSubmit(onSubmit)}
                     className="min-w-[100px]"
                   >
@@ -574,31 +571,23 @@ export default function EmployeeProfileModal({
                     type="button"
                     variant="outline"
                     onClick={() => {
-                      form.reset(
-                        {
-                          employee_id: employeeData.employeeId,
-                          department_id: String(employeeData.department_id),
-                          job_position_id: String(employeeData.job_position_id),
-                          job_level_id: String(employeeData.job_level_id),
-                          primary_direct_report:
-                            employeeData.primary_direct_report.map((r) =>
-                              String(r.id)
-                            )[0],
-                          additional_direct_report:
-                            employeeData.secondary_direct_report.map((r) =>
-                              String(r.id)
-                            )[0],
-                          team_id: employeeData.team_members.map((t) =>
-                            String(t.id)
-                          ),
-                        },
-                        {
-                          keepDefaultValues: false, // clears previous defaults
-                          keepErrors: false, // optional: don’t trigger errors immediately
-                          keepDirty: false, // treat it as fresh form
-                        }
-                      );
-                      console.log("GET HERE");
+                      form.reset({
+                        employee_id: employeeData.employeeId,
+                        department_id: String(employeeData.department_id),
+                        job_position_id: String(employeeData.job_position_id),
+                        job_level_id: String(employeeData.job_level_id),
+                        primary_direct_report:
+                          employeeData.primary_direct_report.map((r) =>
+                            String(r.id)
+                          )[0],
+                        additional_direct_report:
+                          employeeData.secondary_direct_report.map((r) =>
+                            String(r.id)
+                          )[0],
+                        team_id: employeeData.team_members.map((t) =>
+                          String(t.id)
+                        ),
+                      });
                       setIsEditMode(true);
                     }}
                     className="min-w-[100px] "

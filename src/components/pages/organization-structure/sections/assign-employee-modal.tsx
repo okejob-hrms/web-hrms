@@ -290,7 +290,7 @@ export default function AssignEmployeeModal({
                               <CommandItem
                                 key={employee.id}
                                 value={employee.name}
-                                onSelect={() => {
+                                onSelect={async () => {
                                   setSelectedEmployee(employee);
                                   form.setValue(
                                     "employee_id",
@@ -347,6 +347,8 @@ export default function AssignEmployeeModal({
                                         String(team.id)
                                       )
                                     );
+
+                                    await form.trigger();
                                   }
                                 }}
                               >
