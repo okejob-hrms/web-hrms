@@ -69,7 +69,9 @@ const InputForm: React.FC<InputFormProps> = ({
       render={({ field }) => (
         <FormItem className={cn("", props.className)}>
           {label && (
-            <FormLabel className={cn("text-sm font-normal", labelClassName)}>
+            <FormLabel
+              className={cn("text-sm font-normal gap-0", labelClassName)}
+            >
               {label}
               {required && <span className="text-error">*</span>}
               {isOptional && (

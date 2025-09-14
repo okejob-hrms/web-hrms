@@ -208,6 +208,7 @@ export interface ComboboxOption {
 export interface ComboboxGroup {
   label: string;
   options: ComboboxOption[];
+  renderOption?: (option: ComboboxOption, index: number) => React.ReactNode;
 }
 
 export interface ComboboxProps extends InputFormProps {

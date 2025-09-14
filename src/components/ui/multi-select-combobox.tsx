@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { Search } from "lucide-react";
 import { useFormContext } from "react-hook-form";
 import * as React from "react";
 
@@ -20,7 +19,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { ComboboxOption } from "@/lib/types";
+import { ComboboxGroup, ComboboxOption } from "@/lib/types";
 
 interface MultiSelectComboboxProps {
   label: string;
@@ -30,10 +29,11 @@ interface MultiSelectComboboxProps {
   isOptional?: boolean;
   placeholder?: string;
   options?: ComboboxOption[];
-  groups?: { label: string; options: ComboboxOption[] }[];
+  groups?: ComboboxGroup[];
   emptyMessage?: string;
   searchPlaceholder?: string;
   popoverClassName?: string;
+  renderOption?: (option: ComboboxOption) => React.ReactNode;
 }
 
 export function MultiSelectComboboxForm({
@@ -46,25 +46,26 @@ export function MultiSelectComboboxForm({
   options = [],
   groups = [],
   emptyMessage = "No data found.",
-  searchPlaceholder = "Search...",
+  renderOption,
 }: MultiSelectComboboxProps) {
   const { control, setValue, getValues } = useFormContext();
   const [open, setOpen] = React.useState(false);
   const [searchValue, setSearchValue] = React.useState("");
-  const inputRef = React.useRef<HTMLInputElement>(null);
+  const inputRef = React.useRef<HTMLDivElement>(null);
 
-  // const allOptions = [...options, ...groups.flatMap((group) =>
-  //   group.options.map(option => ({
-  //     ...option,
-  //     type: group.label === "Employee" ? "EmployeeProfile" :
-  //           group.label === "Department" ? "Departement" : "JobLevel"
-  //   }))
-  // )];
+  const getOptionType = (groupLabel: string) => {
+    const typeMap: Record<string, string> = {
+      Employee: "EmployeeProfile",
+      Department: "Departement",
+      "Job Level": "JobLevel",
+    };
+    return typeMap[groupLabel] || "";
+  };
 
-  const handleSelect = (option: ComboboxOption & { type?: string }) => {
+  const handleSelect = (option: ComboboxOption, type?: string) => {
     const newValue = {
       value: option.value.toString(),
-      type: option.type || "",
+      type: type || "",
       label: option.label,
     };
 
@@ -98,6 +99,8 @@ export function MultiSelectComboboxForm({
     };
   }, []);
 
+  const defaultRender = (option: ComboboxOption) => option.label;
+
   return (
     <FormField
       control={control}
@@ -113,76 +116,70 @@ export function MultiSelectComboboxForm({
             </FormLabel>
 
             <div className="relative" ref={inputRef}>
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
-              <input
-                type="text"
-                placeholder={placeholder}
-                value={searchValue}
-                onChange={(e) => {
-                  setSearchValue(e.target.value);
-                  setOpen(true);
-                }}
-                onFocus={() => setOpen(true)}
-                className="w-full pl-10 pr-3 py-2 rounded-sm border border-input text-sm h-10"
-              />
-
-              {open && (
-                <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white border border-input rounded-sm shadow-lg">
-                  <Command>
-                    <CommandList className="overflow-auto">
-                      <CommandEmpty>{emptyMessage}</CommandEmpty>
-                      {options.length > 0 && (
-                        <CommandGroup>
-                          {options.map((option) => (
-                            <CommandItem
-                              key={`${option.value}-${option.label}`}
-                              onSelect={() => handleSelect(option)}
-                              disabled={option.disabled}
-                              className={cn(
-                                option.disabled &&
-                                  "opacity-50 cursor-not-allowed",
-                              )}
-                            >
-                              {option.label}
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      )}
-                      {groups.map((group) => (
-                        <CommandGroup
-                          key={group.label}
-                          heading={group.label}
-                          className="max-h-[200px] overflow-y-auto"
-                        >
-                          {group.options.map((option) => (
-                            <CommandItem
-                              key={`${option.value}-${option.label}`}
-                              onSelect={() =>
-                                handleSelect({
-                                  ...option,
-                                  type:
-                                    group.label === "Employee"
-                                      ? "EmployeeProfile"
-                                      : group.label === "Department"
-                                        ? "Departement"
-                                        : "JobLevel",
-                                })
-                              }
-                              disabled={option.disabled}
-                              className={cn(
-                                option.disabled &&
-                                  "opacity-50 cursor-not-allowed",
-                              )}
-                            >
-                              {option.label}
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      ))}
-                    </CommandList>
-                  </Command>
+              <Command shouldFilter={false} className="overflow-visible">
+                <div className="relative">
+                  <CommandInput
+                    placeholder={placeholder}
+                    value={searchValue}
+                    onValueChange={setSearchValue}
+                    onFocus={() => setOpen(true)}
+                    className="w-full pr-3 py-2 rounded-sm border border-input text-sm h-10"
+                    wrapperClassName="px-0 py-0"
+                  />
                 </div>
-              )}
+
+                {open && (
+                  <CommandList className="absolute top-full left-0 right-0 z-50 mt-1 bg-white border border-input rounded-sm shadow-lg">
+                    <CommandEmpty>{emptyMessage}</CommandEmpty>
+                    {options.length > 0 && (
+                      <CommandGroup>
+                        {options.map((option) => (
+                          <CommandItem
+                            key={`${option.value}-${option.label}`}
+                            onSelect={() => handleSelect(option)}
+                            disabled={option.disabled}
+                            className={cn(
+                              option.disabled &&
+                                "opacity-50 cursor-not-allowed",
+                            )}
+                          >
+                            {renderOption
+                              ? renderOption(option)
+                              : defaultRender(option)}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    )}
+                    {groups.map((group) => (
+                      <CommandGroup
+                        key={group.label}
+                        heading={group.label}
+                        className="max-h-[200px] overflow-y-auto"
+                      >
+                        {group.options.map((option, index) => (
+                          <CommandItem
+                            key={`${option.value}-${option.label}`}
+                            onSelect={() =>
+                              handleSelect(option, getOptionType(group.label))
+                            }
+                            disabled={option.disabled}
+                            className={cn(
+                              option.disabled &&
+                                "opacity-50 cursor-not-allowed",
+                            )}
+                          >
+                            {group.renderOption
+                              ? group.renderOption(option, index)
+                              : renderOption
+                                ? renderOption(option)
+                                : defaultRender(option)}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    ))}
+                  </CommandList>
+                )}
+              </Command>
             </div>
 
             <FormMessage />

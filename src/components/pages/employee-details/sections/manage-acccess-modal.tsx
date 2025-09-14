@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react";
-import { RefreshCw, Copy, X } from "lucide-react";
+import { RefreshCw, Copy } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useMutation } from "@tanstack/react-query";
@@ -21,6 +21,11 @@ import { useQuery } from "@tanstack/react-query";
 import { getJobLevels } from "@/services/job-levels";
 import { getEmployees } from "@/services/employees";
 import { postManageAccessDocument } from "@/services/document/access-control";
+import { ComboboxGroup } from "@/lib/types";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { stringAvatar } from "@/lib/utils";
+import { toast } from "sonner";
+import Image from "next/image";
 
 const accessFormSchema = z.object({
   access_level: z.string(),
@@ -71,7 +76,6 @@ export default function ManageAccessModal({
   const [isLoading, setIsLoading] = React.useState(false);
 
   const selectedGranteeables = form.watch("granteeables");
-  console.log("selectedGranteeables", selectedGranteeables);
   const mutation = useMutation({
     mutationFn: postManageAccessDocument,
     onSuccess: (data) => {
@@ -80,6 +84,7 @@ export default function ManageAccessModal({
       }
       onClose();
       form.reset();
+      toast.success("Access control granted.");
     },
     onError: (error) => {
       console.error("Error updating document access:", error);
@@ -89,27 +94,19 @@ export default function ManageAccessModal({
     },
   });
 
-  const {
-    data: departments,
-    isLoading: isDepartmentsLoading,
-    error: departmentsError,
-  } = useQuery({
+  const { data: departments } = useQuery({
     queryKey: ["department_id"],
     queryFn: () => getDepartment(),
     refetchOnWindowFocus: false,
   });
 
-  const {
-    data: jobLevels,
-    isLoading: isJobLevelsLoading,
-    error: jobLevelsError,
-  } = useQuery({
+  const { data: jobLevels } = useQuery({
     queryKey: ["job_level_id"],
     queryFn: getJobLevels,
     refetchOnWindowFocus: false,
   });
 
-  const { data: employees, isLoading: isLoadingEmployee } = useQuery({
+  const { data: employees } = useQuery({
     queryKey: ["employees"],
     queryFn: () => getEmployees({ search: "" }),
     staleTime: 5 * 60 * 1000,
@@ -185,18 +182,64 @@ export default function ManageAccessModal({
     return [];
   }, [employees?.data]);
 
-  const groupedOptions = [
+  const groupedOptions: ComboboxGroup[] = [
     {
       label: "Employee",
       options: employeesOptions,
+      renderOption: (_, index) => (
+        <div className="flex items-center gap-2">
+          <Avatar className="h-8 w-8">
+            <AvatarImage
+              className="size-8"
+              src={`${process.env.NEXT_PUBLIC_FILE_URL}/${employees?.data.data[index].photo_profile}`}
+              alt={employees?.data.data[index].name}
+            />
+            <AvatarFallback className="text-base font-medium">
+              {stringAvatar(employees?.data.data[index].name ?? "")}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex flex-col">
+            <p className="text-base font-normal text-grayscale-100">
+              {employees?.data.data[index].name}
+            </p>
+            <p className="text-text-disabled text-xs font-normal">
+              {employees?.data.data[index].job_position}
+            </p>
+          </div>
+        </div>
+      ),
     },
     {
       label: "Department",
       options: departmentOptions,
+      renderOption: (option) => (
+        <div className="flex gap-2 items-center">
+          <Avatar className="h-8 w-8 bg-primary-background items-center justify-center">
+            <AvatarImage
+              className="size-5 bg-primary-background"
+              src="/icons/account-company.svg"
+              alt="department"
+            />
+          </Avatar>
+          {option.label}
+        </div>
+      ),
     },
     {
       label: "Job Level",
       options: jobLevelOptions,
+      renderOption: (option) => (
+        <div className="flex gap-2 items-center">
+          <Avatar className="h-8 w-8 bg-primary-background items-center justify-center">
+            <AvatarImage
+              className="size-5 bg-primary-background"
+              src="/icons/Group.svg"
+              alt="job level"
+            />
+          </Avatar>
+          {option.label}
+        </div>
+      ),
     },
   ];
 
@@ -269,22 +312,107 @@ export default function ManageAccessModal({
                 </div>
                 <div>
                   {selectedGranteeables && selectedGranteeables.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mb-2">
-                      {selectedGranteeables.map((item: any, index: number) => (
-                        <div
-                          key={`${item.value}-${item.type}-${index}`}
-                          className="flex items-center bg-gray-100 rounded-sm px-2 py-1 text-sm"
-                        >
-                          <span>{item.label}</span>
-                          <button
-                            type="button"
-                            onClick={() => handleRemove(item.value, item.type)}
-                            className="ml-2 text-gray-500 hover:text-gray-700"
-                          >
-                            <X className="h-3 w-3" />
-                          </button>
-                        </div>
-                      ))}
+                    <div className="space-y-2">
+                      <p className="text-text-disabled text-xs font-normal">
+                        Who has access
+                      </p>
+                      <div className="flex flex-col gap-2 mb-2">
+                        {selectedGranteeables.map(
+                          (
+                            item: {
+                              value: string;
+                              type: string;
+                              label: string;
+                            },
+                            index: number,
+                          ) => (
+                            <div
+                              key={`${item.value}-${item.type}-${index}`}
+                              className="flex items-center px-2 py-1 text-sm justify-between"
+                            >
+                              {item.type === "EmployeeProfile" && (
+                                <div className="flex gap-2 items-center">
+                                  <Avatar className="h-8 w-8">
+                                    <AvatarImage
+                                      className="size-8"
+                                      src={`${process.env.NEXT_PUBLIC_FILE_URL}/${employees?.data.data.filter((obj) => obj.id === Number(item.value))[0].photo_profile}`}
+                                      alt={
+                                        employees?.data.data.filter(
+                                          (obj) =>
+                                            obj.id === Number(item.value),
+                                        )[0].name
+                                      }
+                                    />
+                                    <AvatarFallback className="text-base font-medium">
+                                      {stringAvatar(
+                                        employees?.data.data.filter(
+                                          (obj) =>
+                                            obj.id === Number(item.value),
+                                        )[0].name ?? "",
+                                      )}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <span>{item.label}</span>
+                                  <span className="text-text-disabled">
+                                    (
+                                    {
+                                      employees?.data.data.filter(
+                                        (obj) => obj.id === Number(item.value),
+                                      )[0].id
+                                    }
+                                    )
+                                  </span>
+                                  <span className="text-text-disabled">
+                                    {
+                                      employees?.data.data.filter(
+                                        (obj) => obj.id === Number(item.value),
+                                      )[0].job_position
+                                    }
+                                  </span>
+                                </div>
+                              )}
+                              {item.type === "Departement" && (
+                                <div className="flex gap-2 items-center">
+                                  <Avatar className="h-8 w-8 bg-primary-background items-center justify-center">
+                                    <AvatarImage
+                                      className="size-5 bg-primary-background"
+                                      src="/icons/account-company.svg"
+                                      alt="department"
+                                    />
+                                  </Avatar>
+                                  {item.label}
+                                </div>
+                              )}
+                              {item.type === "JobLevel" && (
+                                <div className="flex gap-2 items-center">
+                                  <Avatar className="h-8 w-8 bg-primary-background items-center justify-center">
+                                    <AvatarImage
+                                      className="size-5 bg-primary-background"
+                                      src="/icons/Group.svg"
+                                      alt="job level"
+                                    />
+                                  </Avatar>
+                                  {item.label}
+                                </div>
+                              )}
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleRemove(item.value, item.type)
+                                }
+                                className="ml-2 text-gray-500 hover:text-gray-700"
+                              >
+                                <Image
+                                  src="/icons/deleteOutlined.svg"
+                                  width={16}
+                                  height={16}
+                                  alt="delete"
+                                />
+                              </button>
+                            </div>
+                          ),
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>
