@@ -66,7 +66,7 @@ export function ComboboxForm({
                     )}
                   >
                     {field.value
-                      ? options.find((item) =>
+                      ? options?.find((item) =>
                           valueType === "number"
                             ? item.value.toString() === field.value.toString()
                             : item.value === field.value,
@@ -82,7 +82,7 @@ export function ComboboxForm({
                   <CommandList>
                     <CommandEmpty>No data found.</CommandEmpty>
                     <CommandGroup>
-                      {options.map((item) => (
+                      {options?.map((item) => (
                         <CommandItem
                           value={item.label}
                           key={item.value}
