@@ -29,24 +29,24 @@ const companySchema = z.object({
   bankAccountHolder: z.string().min(1, 'Bank account holder is required'),
   currency: z.string().min(1, 'Currency is required'),
   logo: z.string().nullable().optional(),
-  workSchedules: z
-    .array(
-      z.object({
-        day_of_week: z.number(),
-        schedules: z.array(
-          z.object({
-            shift_name: z.string(),
-            start_time: z.string(),
-            end_time: z.string(),
-            sequence: z.number(),
-            ends_next_day: z.boolean(),
-            break_start_time: z.string().optional(),
-            break_end_time: z.string().optional(),
-          }),
-        ),
-      }),
-    )
-    .optional(),
+  // workSchedules: z
+  //   .array(
+  //     z.object({
+  //       day_of_week: z.number(),
+  //       schedules: z.array(
+  //         z.object({
+  //           shift_name: z.string(),
+  //           start_time: z.string(),
+  //           end_time: z.string(),
+  //           sequence: z.number(),
+  //           ends_next_day: z.boolean(),
+  //           break_start_time: z.string().optional(),
+  //           break_end_time: z.string().optional(),
+  //         }),
+  //       ),
+  //     }),
+  //   )
+  //   .optional(),
 });
 
 export type CompanyFormValues = z.infer<typeof companySchema>;
@@ -54,15 +54,15 @@ export type CompanyFormValues = z.infer<typeof companySchema>;
 // -------------------------
 // MAPPER API <-> FORM
 // -------------------------
-const DAY_NAMES: Record<number, string> = {
-  1: 'Monday',
-  2: 'Tuesday',
-  3: 'Wednesday',
-  4: 'Thursday',
-  5: 'Friday',
-  6: 'Saturday',
-  7: 'Sunday',
-};
+// const DAY_NAMES: Record<number, string> = {
+//   1: 'Monday',
+//   2: 'Tuesday',
+//   3: 'Wednesday',
+//   4: 'Thursday',
+//   5: 'Friday',
+//   6: 'Saturday',
+//   7: 'Sunday',
+// };
 
 function mapToApiPayload(values: CompanyFormValues): CompanyRequest {
   return {
@@ -79,21 +79,21 @@ function mapToApiPayload(values: CompanyFormValues): CompanyRequest {
     payroll_bank_account_number: values.bankAccountNumber,
     payroll_bank_account_name: values.bankAccountHolder,
     payroll_currency: values.currency,
-    work_schedules: (values.workSchedules ?? [])?.map((day) => ({
-      day_of_week: day.day_of_week,
-      day_name: DAY_NAMES[day.day_of_week] ?? '',
-      has_schedule: (day.schedules?.length ?? 0) > 0,
-      total_shifts: day.schedules?.length ?? 0,
-      schedules: (day.schedules ?? []).map((s) => ({
-        shift_name: s.shift_name,
-        start_time: s.start_time,
-        end_time: s.end_time,
-        sequence: s.sequence,
-        ends_next_day: s.ends_next_day,
-        break_start_time: s.break_start_time,
-        break_end_time: s.break_end_time,
-      })),
-    })),
+    // work_schedules: (values.workSchedules ?? [])?.map((day) => ({
+    //   day_of_week: day.day_of_week,
+    //   day_name: DAY_NAMES[day.day_of_week] ?? '',
+    //   has_schedule: (day.schedules?.length ?? 0) > 0,
+    //   total_shifts: day.schedules?.length ?? 0,
+    //   schedules: (day.schedules ?? []).map((s) => ({
+    //     shift_name: s.shift_name,
+    //     start_time: s.start_time,
+    //     end_time: s.end_time,
+    //     sequence: s.sequence,
+    //     ends_next_day: s.ends_next_day,
+    //     break_start_time: s.break_start_time,
+    //     break_end_time: s.break_end_time,
+    //   })),
+    // })),
   };
 }
 
@@ -112,18 +112,18 @@ function mapFromApiResponse(data: CompanyProfileData): CompanyFormValues {
     bankAccountHolder: data?.payrollInfo?.bankAccountHolder,
     currency: data?.payrollInfo?.currency,
     logo: data?.companyInfo?.logo_url,
-    workSchedules: data?.rawWorkSchedules?.map((day) => ({
-      day_of_week: day.day_of_week,
-      schedules: (day.schedules ?? []).map((s) => ({
-        shift_name: s.shift_name,
-        start_time: s.start_time,
-        end_time: s.end_time,
-        sequence: s.sequence,
-        ends_next_day: s.ends_next_day,
-        break_start_time: s.break_start_time,
-        break_end_time: s.break_end_time,
-      })),
-    })),
+    // workSchedules: data?.rawWorkSchedules?.map((day) => ({
+    //   day_of_week: day.day_of_week,
+    //   schedules: (day.schedules ?? []).map((s) => ({
+    //     shift_name: s.shift_name,
+    //     start_time: s.start_time,
+    //     end_time: s.end_time,
+    //     sequence: s.sequence,
+    //     ends_next_day: s.ends_next_day,
+    //     break_start_time: s.break_start_time,
+    //     break_end_time: s.break_end_time,
+    //   })),
+    // })),
   };
 }
 

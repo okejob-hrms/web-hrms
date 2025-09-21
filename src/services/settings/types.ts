@@ -175,7 +175,7 @@ export interface CompanyRequest {
   payroll_currency: string;
   phone: string;
   website: string;
-  work_schedules: WorkScheduleReq[];
+  // work_schedules: WorkScheduleReq[];
 }
 
 export interface WorkScheduleReq {

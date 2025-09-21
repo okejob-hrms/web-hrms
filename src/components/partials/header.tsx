@@ -5,7 +5,7 @@ import * as React from 'react';
 import { Status, StatusIndicator, StatusLabel } from '../ui/shadcn-io/status';
 import { Separator } from '../ui/separator';
 import Link from 'next/link';
-import { ChevronLeft, Cloud, Menu, X } from 'lucide-react';
+import { Cloud, Menu, X } from 'lucide-react';
 
 import {
   NavigationMenu,
@@ -63,7 +63,7 @@ const menuItems = [
       {
         label: 'Employee Attendance',
         desc: 'Track employee attendance, timesheets, leave requests, and balances.',
-        path: '/employee/attendance/attendance-tracker',
+        path: '/attendance/attendance-tracker',
         icon: '/icons/clock.svg',
       },
       {
@@ -280,7 +280,7 @@ const Header = React.memo(function Header({ showBackNavigate }: HeaderProps) {
 
         {showBackNavigate && (
           <>
-            <Button
+            {/* <Button
               variant="link"
               onClick={() => window.history.back()}
               className="flex items-center gap-2 text-dark"
@@ -290,7 +290,7 @@ const Header = React.memo(function Header({ showBackNavigate }: HeaderProps) {
                 className="text-blue-600"
               />
               <div className="text-xl">Back</div>
-            </Button>
+            </Button> */}
           </>
         )}
       </div>
