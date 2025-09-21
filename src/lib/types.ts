@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Command } from "@/components/ui/command";
 import { Command as CommandPrimitive } from "cmdk";
 import { DayPickerProps } from "react-day-picker";
@@ -197,10 +198,36 @@ export interface UploadButtonProps extends React.ComponentProps<"button"> {
   };
 }
 
+export interface ComboboxOption {
+  label: string;
+  value: string;
+  icon?: React.ReactNode;
+  disabled?: boolean;
+}
+
+export interface ComboboxGroup {
+  label: string;
+  options: ComboboxOption[];
+  renderOption?: (option: ComboboxOption, index: number) => React.ReactNode;
+}
+
 export interface ComboboxProps extends InputFormProps {
-  options: {
-    label: string;
-    value: string;
-    icon?: React.ReactNode;
-  }[];
+  label: string;
+  name: string;
+  labelClassName?: string;
+  formItemClassName?: string;
+  isOptional?: boolean;
+  placeholder?: string;
+  valueType?: "string" | "number";
+  options?: ComboboxOption[];
+  groups?: ComboboxGroup[];
+  emptyMessage?: string;
+  searchPlaceholder?: string;
+  popoverClassName?: string;
+  renderOption?: (
+    option: ComboboxOption,
+    fieldValue: any,
+    isSelected?: boolean,
+    handleSelect?: (option: ComboboxOption) => void,
+  ) => React.ReactNode;
 }

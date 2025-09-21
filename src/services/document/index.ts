@@ -1,19 +1,24 @@
 import { ApiResponse, PaginatedResponse } from "@/lib/types";
 import { api } from "@/lib/api";
-import qs from "qs";
 import { IEmployeeDocumentResponse } from "./types";
 
 interface Params {
-  search?: string;
-  department_ids?: number[];
-  job_level_ids?: number[];
-  job_position_ids?: number[];
-  status?: string;
-  start_date?: string | null;
-  end_date?: string | null;
-  page?: number;
-  per_page?: number;
+  attachments: {
+    type: string;
+    path: string;
+  }[];
+  user_id: number;
 }
+
+export const addEmployeeDocument = (
+  params: Params,
+): Promise<ApiResponse<IEmployeeDocumentResponse>> => {
+  const response = api.post<ApiResponse<IEmployeeDocumentResponse>>(
+    `employees/${params.user_id}/documents`,
+    { json: { attachments: params.attachments } },
+  );
+  return response.json();
+};
 
 export const deleteEmployeeDocument = (
   user_id: number,
@@ -21,15 +26,6 @@ export const deleteEmployeeDocument = (
 ): Promise<ApiResponse<IEmployeeDocumentResponse>> => {
   const response = api.delete<ApiResponse<IEmployeeDocumentResponse>>(
     `employees/${user_id}/documents/${employee_doc_id}`,
-  );
-  return response.json();
-};
-
-export const addEmployeeDocument = (
-  user_id: number,
-): Promise<ApiResponse<IEmployeeDocumentResponse>> => {
-  const response = api.delete<ApiResponse<IEmployeeDocumentResponse>>(
-    `employees/${user_id}/documents`,
   );
   return response.json();
 };
