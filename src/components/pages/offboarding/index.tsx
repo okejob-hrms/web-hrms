@@ -9,40 +9,34 @@ import { ColumnDef, PaginationState } from "@tanstack/react-table";
 import { DataTable } from "@/components/tables/data-table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn, stringAvatar } from "@/lib/utils";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Ellipsis } from "lucide-react";
 import Link from "next/link";
-import { IEmployeeResponse } from "@/services/employees/types";
 import { useQuery } from "@tanstack/react-query";
-import { getEmployees } from "@/services/employees";
 import { Filters } from "./types";
 import { useDebounce } from "@/hooks/use-debounce";
 import { Skeleton } from "@/components/ui/skeleton";
 import Image from "next/image";
 import { InitiateOffboardingEmployee } from "./sections/initiate-offboarding-form";
+import { getOffboardings } from "@/services/employees/offboardings";
+import { IOffboardingResponse } from "@/services/employees/offboardings/types";
+import { Clock } from "lucide-react";
 
-export const columns: ColumnDef<IEmployeeResponse>[] = [
+export const columns: ColumnDef<IOffboardingResponse>[] = [
   {
-    accessorKey: "name",
+    accessorKey: "user_name",
     header: "Name",
     cell: ({ row }) => (
       <div className="flex gap-4 items-center min-w-[150px]">
         <Avatar className="h-10 w-10">
           <AvatarImage
-            src={`${process.env.NEXT_PUBLIC_FILE_URL}/${row.original.photo_profile}`}
+            src={`${process.env.NEXT_PUBLIC_FILE_URL}/${row.original.user_name}`}
           />
           <AvatarFallback className="text-primary-hover bg-primary-background text-base font-medium">
-            {stringAvatar(row.original.name)}
+            {stringAvatar(row.original.user_name)}
           </AvatarFallback>
         </Avatar>
         <div className="flex flex-col">
           <span className="font-semibold text-foreground text-sm">
-            {row.original.name}
+            {row.original.user_name}
           </span>
           <span className="text-text-secondary">{row.original.id}</span>
         </div>
@@ -52,16 +46,22 @@ export const columns: ColumnDef<IEmployeeResponse>[] = [
   {
     accessorKey: "job_position",
     header: "Position",
+    cell: ({ row }) => {
+      return row.original.job_position || "-";
+    },
   },
   {
     accessorKey: "department",
     header: "Department",
+    cell: ({ row }) => {
+      return row.original.department || "-";
+    },
   },
   {
     accessorKey: "start_date",
     header: "Join Date",
     cell: ({ row }) => {
-      const date = new Date(row.original.start_date);
+      const date = new Date(row.original.join_date);
       return date.toLocaleDateString();
     },
   },
@@ -69,23 +69,24 @@ export const columns: ColumnDef<IEmployeeResponse>[] = [
     accessorKey: "status",
     header: "Status",
     cell: ({ row }) => {
-      const status = row.original.status;
+      const status = row.original.status_offboarding;
       return (
         <Badge
           variant="default"
           className={cn(
             "rounded-full",
-            status === 1 ? "bg-success-focused " : "bg-error-focused ",
+            status !== "In Progress"
+              ? "bg-success-focused "
+              : "bg-warning-background ",
           )}
         >
-          <div
+          <Clock color="#FFB84D" />
+          <span
             className={cn(
-              "size-2 rounded-full",
-              status === 1 ? "bg-success" : "bg-error",
+              status !== "In Progress" ? "text-success" : "text-warning-hover",
             )}
-          />
-          <span className={cn(status === 1 ? "text-success" : "text-error")}>
-            {status === 1 ? "Active" : "Inactive"}
+          >
+            {status}
           </span>
         </Badge>
       );
@@ -96,41 +97,14 @@ export const columns: ColumnDef<IEmployeeResponse>[] = [
     header: "",
     cell: ({ row }) => {
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger>
-            <Ellipsis className="text-grayscale-30" />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuItem>
-              <Link
-                href={`/employee/employee-management/${row.original.id}`}
-                className="flex gap-2 justify-between items-center"
-              >
-                <Image
-                  src="/icons/eyeVisibleGrey.svg"
-                  height={16}
-                  width={16}
-                  alt="icon-eye"
-                />
-                Employee Details
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Link
-                href={`/employee/employee-management/edit/${row.original.id}`}
-                className="flex gap-2 justify-between items-center"
-              >
-                <Image
-                  src="/icons/editGrey.svg"
-                  height={16}
-                  width={16}
-                  alt="icon-edit"
-                />
-                Edit
-              </Link>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <Link href={`/employee/off-boarding/${row.original.id}`}>
+          <Image
+            src="/icons/eyeVisibleGrey.svg"
+            width={20}
+            height={20}
+            alt="preview"
+          />
+        </Link>
       );
     },
   },
@@ -142,8 +116,8 @@ export default function EmployeeOffboardingList() {
     pageSize: 10,
   });
   const [filters, setFilters] = React.useState<Filters>({
-    department_ids: [],
-    job_position_ids: [],
+    // department_id: 0,
+    // job_position_id: 0,
     search: "",
   });
 
@@ -151,32 +125,36 @@ export default function EmployeeOffboardingList() {
   const queryParams = React.useMemo(
     () => ({
       ...debouncedFilters,
-      page: pagination.pageIndex + 1,
-      per_page: pagination.pageSize,
+      // page: pagination.pageIndex + 1,
+      // per_page: pagination.pageSize,
+      search: "",
     }),
     [debouncedFilters, pagination],
   );
 
   const { data: employees, isLoading } = useQuery({
-    queryKey: ["employees", queryParams],
-    queryFn: () => getEmployees(queryParams),
+    queryKey: ["offboardings", queryParams],
+    queryFn: () => getOffboardings(queryParams),
+    // queryFn: () => getEmployees(queryParams),
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
 
+  console.log(employees?.data);
+
   const handleFiltersChange = React.useCallback((newFilters: Filters) => {
     setFilters((prev) => ({
       ...prev,
       ...newFilters,
-      department_ids:
-        newFilters.department_ids !== prev.department_ids
-          ? newFilters.department_ids
-          : prev.department_ids,
-      job_position_ids:
-        newFilters.job_position_ids !== prev.job_position_ids
-          ? newFilters.job_position_ids
-          : prev.job_position_ids,
+      department_id:
+        newFilters.department_id !== prev.department_id
+          ? newFilters.department_id
+          : prev.department_id,
+      job_position_id:
+        newFilters.job_position_id !== prev.job_position_id
+          ? newFilters.job_position_id
+          : prev.job_position_id,
     }));
 
     setPagination((prev) => ({
@@ -200,8 +178,8 @@ export default function EmployeeOffboardingList() {
               Employee Offboarding Records
             </h2>
             <Badge className="bg-primary-background text-primary rounded-full">
-              {employees?.data.total || 0} Employee
-              {employees?.data.total !== 1 ? "s" : ""}
+              {employees?.total || 0} Employee
+              {employees?.total !== 1 ? "s" : ""}
             </Badge>
           </div>
           <InitiateOffboardingEmployee />
@@ -216,8 +194,8 @@ export default function EmployeeOffboardingList() {
         ) : (
           <DataTable
             columns={columns}
-            data={employees?.data.data || []}
-            pagination={employees?.data}
+            data={employees?.data || []}
+            pagination={employees}
             paginationState={pagination}
             setPaginationState={handlePaginationChange}
           />

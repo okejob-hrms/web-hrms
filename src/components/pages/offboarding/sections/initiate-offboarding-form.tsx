@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -13,20 +14,46 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { Form } from "@/components/ui/form";
-import { InputForm } from "@/components/ui/input";
 import { MultiSelectForm } from "@/components/ui/multi-select";
+import { SelectForm } from "@/components/ui/select-form";
 import { useDebounce } from "@/hooks/use-debounce";
 import { getEmployees } from "@/services/employees";
-import { useQuery } from "@tanstack/react-query";
+import { createInitiateOffboarding } from "@/services/employees/offboardings";
+import {
+  IMutateOffboardingRequests,
+  MutateOffboardingRequestsSchema,
+} from "@/services/employees/offboardings/types";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import * as React from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+
+const EXIT_INTERVIEW_FORMS = [
+  { label: "Capture Exit Interview v1.0", value: "1" },
+  { label: "Capture Exit Interview v2.0", value: "2" },
+  { label: "Capture Exit Interview v3.0", value: "3" },
+];
 
 export const InitiateOffboardingEmployee = React.memo(
   function InitiateOffboardingEmployee() {
-    const form = useForm();
+    const [isOpen, setIsOpen] = React.useState(false);
     const [searchApprover, setSearchApprover] = React.useState("");
     const debouncedApprover = useDebounce(searchApprover, 300);
+    const queryClient = useQueryClient();
+
+    const form = useForm<IMutateOffboardingRequests>({
+      // resolver: zodResolver(MutateOffboardingRequestsSchema),
+      defaultValues: {
+        user_id: 0,
+        approvers: [],
+        form_id: undefined as unknown as number,
+        effective_resignation_date: "",
+        last_working_date: "",
+      },
+    });
+
     const { data: employees, isLoading: isLoadingEmployees } = useQuery({
       queryKey: ["offboarding-employees", debouncedApprover],
       queryFn: () =>
@@ -45,58 +72,132 @@ export const InitiateOffboardingEmployee = React.memo(
       }
       return [];
     }, [employees?.data]);
+
+    const mutation = useMutation({
+      mutationFn: (params: IMutateOffboardingRequests) =>
+        createInitiateOffboarding(params),
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["offboardings"] });
+        toast.success("New offboarding initiated");
+        form.reset();
+        setIsOpen(false);
+      },
+      onError: (error: any) => {
+        console.error("Mutation error:", error);
+        toast.error("Failed to initiate new offboarding");
+      },
+    });
+
+    const onSubmit = React.useCallback(
+      (values: IMutateOffboardingRequests) => {
+        console.log("on submit offboarding", values);
+        mutation.mutate({
+          ...values,
+          user_id: Number(values.user_id),
+          form_id: Number(values.form_id),
+        });
+      },
+      [mutation],
+    );
+
+    const handleDialogOpenChange = React.useCallback(
+      (open: boolean) => {
+        setIsOpen(open);
+        if (!open) {
+          form.reset();
+          setSearchApprover("");
+        }
+      },
+      [form],
+    );
+
     return (
-      <Dialog>
-        <Form {...form}>
-          <form>
-            <DialogTrigger asChild>
-              <Button variant="default">
-                <Plus /> New Offboarding Process
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="bg-white md:min-w-5xl overflow-y-scroll max-h-[90vh]">
-              <DialogHeader>
-                <DialogTitle>New Offboarding Process</DialogTitle>
-                <DialogDescription>
-                  Select an employee to begin the offboarding procedure and
-                  manage their exit smoothly
-                </DialogDescription>
-              </DialogHeader>
+      <Dialog open={isOpen} onOpenChange={handleDialogOpenChange}>
+        <DialogTrigger asChild>
+          <Button variant="default">
+            <Plus className="mr-2 h-4 w-4" />
+            New Offboarding Process
+          </Button>
+        </DialogTrigger>
+
+        <DialogContent className="bg-white md:min-w-5xl overflow-y-auto max-h-[90vh]">
+          <DialogHeader>
+            <DialogTitle>New Offboarding Process</DialogTitle>
+            <DialogDescription>
+              Select an employee to begin the offboarding procedure and manage
+              their exit smoothly
+            </DialogDescription>
+          </DialogHeader>
+
+          <Form {...form}>
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="flex flex-col gap-4"
+            >
+              <SelectForm
+                name="user_id"
+                label="Employee Name"
+                required
+                options={employeesOptions}
+              />
+
               <div className="flex flex-col gap-2">
-                <InputForm name="name" label="Employee Name" required />
-                <div className="flex flex-col gap-2">
-                  <label className="text-sm text-text-secondary">
-                    Assigned Approver<span className="text-error">*</span>
-                  </label>
-                  <MultiSelectForm
-                    options={employeesOptions}
-                    name="assigned_approver"
-                    maxCount={3}
-                    searchPlaceholder="Search Employee"
-                    hideSelectAll
-                    disabled={isLoadingEmployees}
-                    valueTransformer={(value) => Number(value)}
-                    searchValue={searchApprover}
-                    onSearchChange={setSearchApprover}
-                  />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  <DatePicker
-                    name="resign_date"
-                    label="Effective Resignation Date"
-                  />
-                  <DatePicker name="last_date" label="Last Working Date" />
-                </div>
+                <label className="text-sm font-medium text-gray-700">
+                  Assigned Approver
+                  <span className="text-red-500 ml-1">*</span>
+                </label>
+                <MultiSelectForm
+                  options={employeesOptions}
+                  name="approvers"
+                  maxCount={3}
+                  searchPlaceholder="Search Employee"
+                  hideSelectAll
+                  disabled={isLoadingEmployees}
+                  valueTransformer={(value) => Number(value)}
+                  searchValue={searchApprover}
+                  onSearchChange={setSearchApprover}
+                />
               </div>
-              <DialogFooter>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <DatePicker
+                  name="effective_resignation_date"
+                  label="Effective Resignation Date"
+                />
+                <DatePicker
+                  name="last_working_date"
+                  label="Last Working Date"
+                />
+              </div>
+
+              <SelectForm
+                name="form_id"
+                label="Exit Interview Form"
+                required
+                options={EXIT_INTERVIEW_FORMS}
+              />
+
+              <DialogFooter className="gap-2">
                 <DialogClose asChild>
-                  <Button variant="outline">Cancel</Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={mutation.isPending}
+                  >
+                    Cancel
+                  </Button>
                 </DialogClose>
-                <Button type="submit">Save</Button>
+                <Button
+                  type="submit"
+                  disabled={mutation.isPending}
+                  className="min-w-[100px]"
+                >
+                  {mutation.isPending ? "Saving..." : "Save"}
+                </Button>
               </DialogFooter>
-            </DialogContent>
-          </form>
-        </Form>
+            </form>
+          </Form>
+        </DialogContent>
       </Dialog>
     );
   },
