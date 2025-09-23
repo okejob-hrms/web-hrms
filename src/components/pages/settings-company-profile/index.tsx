@@ -2,47 +2,47 @@
 
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
-import { DataTable } from '@/components/tables/data-table';
-import { ColumnDef } from '@tanstack/react-table';
-import { useIsMobile } from '@/hooks/use-mobile';
+// import { DataTable } from '@/components/tables/data-table';
+// import { ColumnDef } from '@tanstack/react-table';
+// import { useIsMobile } from '@/hooks/use-mobile';
 import { Edit3 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useRouter } from 'next/navigation';
-import { useCompanyProfile, WorkingHour } from './hook';
+import { useCompanyProfile } from './hook';
 
 // =======================
 // Table Columns
 // =======================
-const columns: ColumnDef<WorkingHour>[] = [
-  {
-    id: 'day',
-    header: 'Day',
-    size: 160,
-    cell: ({ row, table }) => {
-      const day = row.original.day;
+// const columns: ColumnDef<WorkingHour>[] = [
+//   {
+//     id: 'day',
+//     header: 'Day',
+//     size: 160,
+//     cell: ({ row, table }) => {
+//       const day = row.original.day;
 
-      // semua row di tabel
-      const allRows = table.getRowModel().rows;
-      // filter row yang sama harinya
-      const sameDayRows = allRows.filter((r) => r.original.day === day);
+//       // semua row di tabel
+//       const allRows = table.getRowModel().rows;
+//       // filter row yang sama harinya
+//       const sameDayRows = allRows.filter((r) => r.original.day === day);
 
-      const firstRowId = sameDayRows[0].id;
+//       const firstRowId = sameDayRows[0].id;
 
-      if (row.id === firstRowId) {
-        return (
-          <td rowSpan={sameDayRows.length} className="px-4 py-2">
-            {day}
-          </td>
-        );
-      }
+//       if (row.id === firstRowId) {
+//         return (
+//           <td rowSpan={sameDayRows.length} className="px-4 py-2">
+//             {day}
+//           </td>
+//         );
+//       }
 
-      return null; // biarin kosong, rowSpan sudah cover
-    },
-  },
-  { accessorKey: 'shift', header: 'Shift', size: 160 },
-  { accessorKey: 'workingHours', header: 'Working Hours', size: 200 },
-  { accessorKey: 'break', header: 'Break', size: 160 },
-];
+//       return null; // biarin kosong, rowSpan sudah cover
+//     },
+//   },
+//   { accessorKey: 'shift', header: 'Shift', size: 160 },
+//   { accessorKey: 'workingHours', header: 'Working Hours', size: 200 },
+//   { accessorKey: 'break', header: 'Break', size: 160 },
+// ];
 
 function InfoItem({ label, value }: { label: string; value: string }) {
   return (
@@ -54,14 +54,13 @@ function InfoItem({ label, value }: { label: string; value: string }) {
 }
 
 export default function SettingsCompanyProfile() {
-  const isMobile = useIsMobile();
   const router = useRouter();
   const { data, isLoading, isError } = useCompanyProfile();
 
   if (isLoading) return <p>Loading...</p>;
   if (isError || !data) return <p>Failed to load company profile</p>;
 
-  const { companyInfo, payrollInfo, workingHours } = data;
+  const { companyInfo, payrollInfo } = data;
 
   return (
     <div className="font-sans min-h-screen bg-gray-50">
@@ -117,13 +116,6 @@ export default function SettingsCompanyProfile() {
             />
             <InfoItem label="Currency" value={payrollInfo.currency} />
           </div>
-
-          <h2 className="font-semibold text-xl">Working Hours</h2>
-          <DataTable
-            columns={columns}
-            data={workingHours}
-            customSize={!isMobile}
-          />
 
           <div className="flex mt-4">
             <Button

@@ -27,19 +27,19 @@ export interface PayrollInfo {
   currency: string;
 }
 
-export interface WorkingHour {
-  day: string;
-  shift: string;
-  workingHours: string;
-  break: string;
-}
+// export interface WorkingHour {
+//   day: string;
+//   shift: string;
+//   workingHours: string;
+//   break: string;
+// }
 
 // hasil transformasi final untuk UI
 export interface CompanyProfileData {
   companyInfo: CompanyInfo;
   payrollInfo: PayrollInfo;
-  workingHours: WorkingHour[];
-  rawWorkSchedules: WorkScheduleReq[];
+  // workingHours: WorkingHour[];
+  // rawWorkSchedules: WorkScheduleReq[];
 }
 
 // =======================
@@ -74,31 +74,31 @@ export function useCompanyProfile() {
         currency: c.payroll_currency,
       };
 
-      // Map WorkingHours
-      const workingHours = c.work_schedules.flatMap((day) =>
-        day.schedules.length > 0
-          ? day.schedules.map((s) => ({
-              day: day.day_name,
-              shift: s.shift_name,
-              workingHours: `${s.start_time} - ${s.end_time}`,
-              break:
-                s.break_start_time && s.break_end_time
-                  ? `${s.break_start_time} - ${s.break_end_time}`
-                  : "-",
-            }))
-          : [
-              {
-                day: day.day_name,
-                shift: "Off",
-                workingHours: "-",
-                break: "-",
-              },
-            ]
-      );
+      // // Map WorkingHours
+      // const workingHours = c.work_schedules.flatMap((day) =>
+      //   day.schedules.length > 0
+      //     ? day.schedules.map((s) => ({
+      //         day: day.day_name,
+      //         shift: s.shift_name,
+      //         workingHours: `${s.start_time} - ${s.end_time}`,
+      //         break:
+      //           s.break_start_time && s.break_end_time
+      //             ? `${s.break_start_time} - ${s.break_end_time}`
+      //             : "-",
+      //       }))
+      //     : [
+      //         {
+      //           day: day.day_name,
+      //           shift: "Off",
+      //           workingHours: "-",
+      //           break: "-",
+      //         },
+      //       ]
+      // );
 
-      const rawWorkSchedules = c.work_schedules;
+      // const rawWorkSchedules = c.work_schedules;
 
-      return { companyInfo, payrollInfo, workingHours, rawWorkSchedules };
+      return { companyInfo, payrollInfo };
     },
   });
 }

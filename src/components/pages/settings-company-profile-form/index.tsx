@@ -24,6 +24,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Plus, Trash2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn, stringAvatar } from '@/lib/utils';
+import TitleContent from '@/components/ui/title';
 
 export default function SettingsCompanyProfileForm() {
   const {
@@ -37,9 +38,9 @@ export default function SettingsCompanyProfileForm() {
   } = useCompanyForm();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const [workSchedules, setWorkSchedules] = useState(
-    dataWorkSchedule?.rawWorkSchedules || [],
-  );
+  // const [workSchedules, setWorkSchedules] = useState(
+  //   dataWorkSchedule?.rawWorkSchedules || [],
+  // );
   const [previewLogo, setPreviewLogo] = useState<string | null | undefined>(
     imagePhoto,
   );
@@ -70,33 +71,33 @@ export default function SettingsCompanyProfileForm() {
   };
 
   const handleSubmit = (values: CompanyFormValues) => {
-    const dataWork = workSchedules.map((day) => ({
-      day_of_week: day.day_of_week,
-      schedules: (day.schedules ?? []).map((s) => ({
-        shift_name: s.shift_name,
-        start_time: s.start_time,
-        end_time: s.end_time,
-        sequence: s.sequence,
-        ends_next_day: s.ends_next_day,
-        break_start_time: s.break_start_time,
-        break_end_time: s.break_end_time,
-      })),
-    }));
+    // const dataWork = workSchedules.map((day) => ({
+    //   day_of_week: day.day_of_week,
+    //   schedules: (day.schedules ?? []).map((s) => ({
+    //     shift_name: s.shift_name,
+    //     start_time: s.start_time,
+    //     end_time: s.end_time,
+    //     sequence: s.sequence,
+    //     ends_next_day: s.ends_next_day,
+    //     break_start_time: s.break_start_time,
+    //     break_end_time: s.break_end_time,
+    //   })),
+    // }));
 
     onSubmit({
       ...values,
-      workSchedules: dataWork,
+      // workSchedules: dataWork,
     });
   };
 
   return (
     <div className="max-w-4xl mx-auto p-6">
-      <h2 className="text-xl font-semibold mb-6">Company Information</h2>
+      <TitleContent label="Company Information" />
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
           {/* Company Logo */}
-          <div>
+          <div className="mt-5">
             <FormLabel>Company Logo</FormLabel>
             <div className="flex items-center gap-4 mt-2">
               <Avatar className="size-20 bg-grayscale-10 items-center justify-center">
@@ -357,10 +358,10 @@ export default function SettingsCompanyProfileForm() {
             />
           </div>
 
-          <h2 className="text-xl font-semibold pt-6 border-t">Working Hours</h2>
+          {/* <h2 className="text-xl font-semibold pt-6 border-t">Working Hours</h2> */}
 
           {/* PART WORKING HOUR  */}
-          {daysOfWeek.map((item, key) => (
+          {/* {daysOfWeek.map((item, key) => (
             <div key={key} className="space-y-3 border-b border-b-gray-50">
               <div className="flex gap-4 items-center">
                 <Checkbox
@@ -632,7 +633,7 @@ export default function SettingsCompanyProfileForm() {
                 </div>
               )}
             </div>
-          ))}
+          ))} */}
 
           <div className="flex flex-row gap-2">
             <Button
