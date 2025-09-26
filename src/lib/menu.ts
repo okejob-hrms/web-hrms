@@ -83,8 +83,13 @@ export const getHideSidebar = (path: string) => {
   ];
 
   const employeeDetailPattern = /^\/employee\/employee-management\/\d+$/;
-  
+  const offboardingDetailPattern = /^\/employee\/off-boarding\/\d+$/;
+
   if (employeeDetailPattern.test(path)) {
+    return true;
+  }
+
+  if (offboardingDetailPattern.test(path)) {
     return true;
   }
 
