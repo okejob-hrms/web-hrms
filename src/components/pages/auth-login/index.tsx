@@ -19,6 +19,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
 import { postLogin } from '@/services/auth';
 import { toast } from 'sonner';
+import Image from 'next/image';
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -45,6 +46,7 @@ export default function AuthLogin() {
 
       if (res.status === 'success') {
         localStorage.setItem('token', res.data.token);
+        localStorage.setItem('user', JSON.stringify(res.data.user));
 
         if (res.data.user.is_first_login) {
           toast.success('Login successful. This is your first login.');
@@ -66,7 +68,7 @@ export default function AuthLogin() {
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-r from-blue-50 to-white">
       <Card className="w-full max-w-md">
         <CardHeader className="flex justify-center">
-          <div className="w-16 h-16 bg-gray-200 rounded-full" />
+          <Image src="/logo.png" alt="logo" width={80} height={80} />
         </CardHeader>
         <CardContent>
           <Form {...form}>

@@ -269,6 +269,8 @@ const HeaderMenu = React.memo(function HeaderMenu() {
 
 const Header = React.memo(function Header({ showBackNavigate }: HeaderProps) {
   const { isOnline, setOnline } = useNetworkStatus();
+  const savedUser = localStorage.getItem('user');
+  const user = savedUser ? JSON.parse(savedUser) : null;
 
   return (
     <header className="w-full flex flex-row justify-between px-4 md:px-10 py-2 items-center bg-white border-b">
@@ -302,7 +304,7 @@ const Header = React.memo(function Header({ showBackNavigate }: HeaderProps) {
           <StatusIndicator />
           <StatusLabel className="text-xs text-text-disabled" />
         </Status>
-        <Button
+        {/* <Button
           variant="ghost"
           onClick={() => setOnline((prev) => !prev)}
           className="text-xs text-text-disabled md:flex hidden"
@@ -318,7 +320,7 @@ const Header = React.memo(function Header({ showBackNavigate }: HeaderProps) {
             <Cloud size={20} />
           )}
           {isOnline ? 'Offline' : 'Online'} Mode
-        </Button>
+        </Button> */}
         <Button className="bg-background rounded-full size-8 p-0">
           <Image
             src="/icons/notification.svg"
@@ -328,7 +330,7 @@ const Header = React.memo(function Header({ showBackNavigate }: HeaderProps) {
           />
         </Button>
         <Separator orientation="vertical" className="hidden md:block" />
-        <Profile />
+        <Profile user={user} />
       </div>
     </header>
   );

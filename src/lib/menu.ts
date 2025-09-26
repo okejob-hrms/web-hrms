@@ -38,7 +38,19 @@ export const menus: Record<string, MenuItem[]> = {
   settings: [
     { name: "Access Control", value: "settings/access-control" },
     { name: "Company Profile", value: "settings/company-profile" },
-    { name: "Time & Attendence", value: "settings/time-attendence" },
+    { name: "Time & Attendence",
+      value: "settings/time-attendence",
+      subItem: [
+        {
+          name: "Attendance Configuration",
+          value: "settings/time-attendance/attendance-configuration",
+        },
+        {
+          name: "Overtime Configuration",
+          value: "settings/time-attendance/overtime-configuration",
+        }
+      ]
+    },
     { name: "Leave Management", value: "settings/leave" },
     { name: "Payroll Management", value: "settings/payroll" },
     { name: "Performance Management", value: "settings/performance" },
@@ -66,7 +78,8 @@ export const getHideSidebar = (path: string) => {
     "/settings/access-control/",
     "/settings/company-profile/edit",
     "/employee/organization/structure/edit",
-    "/attendance/attendance-tracker/"
+    "/attendance/attendance-tracker/",
+    "/settings/time-attendance/attendance-configuration/edit"
   ];
 
   const employeeDetailPattern = /^\/employee\/employee-management\/\d+$/;

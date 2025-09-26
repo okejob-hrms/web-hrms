@@ -1,5 +1,5 @@
 import { api } from "@/lib/api";
-import { IRolesResponse, IPermissionResponse, IEmployee, ICreateRolePayload, ICreateRoleResponse, IRoleDetailResponse, CompanyResponse, CompanyRequest } from "./types";
+import { IRolesResponse, IPermissionResponse, IEmployee, ICreateRolePayload, ICreateRoleResponse, IRoleDetailResponse, CompanyResponse, CompanyRequest, WorkScheduleResponse, AttendanceRequest } from "./types";
 import { PaginatedResponse } from "@/lib/types";
 
 export const getRoles = async (): Promise<IRolesResponse> => {
@@ -60,4 +60,19 @@ export const updateCompanyProfile = async (
       json: payload,
     })
     .json<CompanyResponse>();
+};
+
+export const getWorkingSchedule = async (): Promise<WorkScheduleResponse> => {
+  const response = await api.get("setting/attendance/working-schedules");
+  return response.json();
+};
+
+export const updateAttendanceTime = async (
+  payload: AttendanceRequest
+): Promise<WorkScheduleResponse> => {
+  return api
+    .put(`setting/attendance/working-schedules`, {
+      json: payload,
+    })
+    .json<WorkScheduleResponse>();
 };

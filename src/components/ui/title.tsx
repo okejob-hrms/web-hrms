@@ -14,7 +14,7 @@ const TitleContent: React.FC<TitleContentProps> = ({
   className = '',
 }) => {
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 mb-4">
       <Button
         variant="link"
         onClick={onClick ?? (() => window.history.back())}

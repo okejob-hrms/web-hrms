@@ -1,39 +1,42 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ChevronDown, LogOut } from "lucide-react";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { cn } from "@/lib/utils";
-import { Button } from "./button";
-import { useRouter } from "next/navigation";
+import * as React from 'react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { ChevronDown, LogOut } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
+import { cn } from '@/lib/utils';
+import { Button } from './button';
+import { useRouter } from 'next/navigation';
 
 interface Props {
   className?: string;
+  user?: {
+    name: string;
+  };
 }
 
-const Profile = React.memo(function Profile({ className }: Props) {
+const Profile = React.memo(function Profile({ className, user }: Props) {
   const router = useRouter();
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    router.push("/auth/login");
+    localStorage.removeItem('token');
+    router.push('/auth/login');
   };
 
   return (
-    <div className={cn("flex gap-3 items-center", className)}>
+    <div className={cn('flex gap-3 items-center', className)}>
       <Avatar>
-        <AvatarImage
-          className="size-10"
-          src="https://github.com/shadcn.png"
-          alt="@shadcn"
-        />
-        <AvatarFallback className="size-10">CN</AvatarFallback>
+        <AvatarImage className="size-10" src="" alt="@shadcn" />
+        <AvatarFallback className="size-8">
+          {user?.name.charAt(0)}
+        </AvatarFallback>
       </Avatar>
       <div className="md:flex flex-col gap-1 hidden">
-        <span className="font-semibold tracking-tight text-base">shadcn</span>
+        <span className="font-semibold tracking-tight text-base">
+          {user?.name}
+        </span>
         <span className="leading-none text-xs text-muted-foreground">
-          Human Resource
+          {user?.name}
         </span>
       </div>
       <Popover>

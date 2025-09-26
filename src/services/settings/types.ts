@@ -121,6 +121,17 @@ export interface CompanyResponse {
   data: Company;
 }
 
+export interface WorkScheduleResponse {
+  status: string;
+  message: WorkSchedulePart;
+}
+
+export interface WorkSchedulePart {
+  late_tolerance: number;
+  max_late_tolerance: number;
+  schedules: WorkSchedule[];
+}
+
 export interface Company {
   id: number;
   name: string;
@@ -184,4 +195,10 @@ export interface WorkScheduleReq {
   day_name: string;
   total_shifts: number;
   schedules?: Schedule[];
+}
+
+export interface AttendanceRequest {
+  late_tolerance: number;
+  max_late_tolerance: number;
+  work_schedules: WorkScheduleReq[];
 }
