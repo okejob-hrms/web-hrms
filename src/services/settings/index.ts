@@ -1,5 +1,5 @@
 import { api } from "@/lib/api";
-import { IRolesResponse, IPermissionResponse, IEmployee, ICreateRolePayload, ICreateRoleResponse, IRoleDetailResponse, CompanyResponse, CompanyRequest, WorkScheduleResponse, AttendanceRequest } from "./types";
+import { IRolesResponse, IPermissionResponse, IEmployee, ICreateRolePayload, ICreateRoleResponse, IRoleDetailResponse, CompanyResponse, CompanyRequest, WorkScheduleResponse, AttendanceRequest, ShiftResponse, LateDeductions, DeductionRequest } from "./types";
 import { PaginatedResponse } from "@/lib/types";
 
 export const getRoles = async (): Promise<IRolesResponse> => {
@@ -67,12 +67,52 @@ export const getWorkingSchedule = async (): Promise<WorkScheduleResponse> => {
   return response.json();
 };
 
+export const getShift = async (): Promise<ShiftResponse> => {
+  const response = await api.get("setting/shift");
+  return response.json();
+};
+
 export const updateAttendanceTime = async (
   payload: AttendanceRequest
 ): Promise<WorkScheduleResponse> => {
   return api
-    .put(`setting/attendance/working-schedules`, {
+    .post(`setting/attendance/working-schedules`, {
       json: payload,
     })
     .json<WorkScheduleResponse>();
+};
+
+export const getLateDeduction = async (): Promise<PaginatedResponse<LateDeductions>> => {
+  return api.get("setting/late-deduction").json<PaginatedResponse<LateDeductions>>();
+};
+
+export const postDeduction = async (
+  payload: DeductionRequest
+): Promise<PaginatedResponse<LateDeductions>> => {
+  return api
+    .post(`setting/late-deduction`, {
+      json: payload,
+    })
+    .json<PaginatedResponse<LateDeductions>>();
+};
+
+export const putDeduction = async (
+  id: number,
+  payload: DeductionRequest
+): Promise<PaginatedResponse<LateDeductions>> => {
+  return api
+    .put(`setting/late-deduction/${id}`, {
+      json: payload,
+    })
+    .json<PaginatedResponse<LateDeductions>>();
+};
+
+export const removeDeduction = async (
+  id: number,
+): Promise<PaginatedResponse<LateDeductions>> => {
+  return api
+    .delete(`setting/late-deduction/${id}`, {
+      json: {},
+    })
+    .json<PaginatedResponse<LateDeductions>>();
 };

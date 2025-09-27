@@ -1,8 +1,11 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
-import { getWorkingSchedule } from '@/services/settings';
-import { WorkScheduleReq, WorkScheduleResponse } from '@/services/settings/types';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { getLateDeduction, getShift, getWorkingSchedule, postDeduction, putDeduction, removeDeduction } from '@/services/settings';
+import { DeductionRequest, LateDeductions, ShiftResponse, WorkScheduleReq, WorkScheduleResponse } from '@/services/settings/types';
+import { PaginatedResponse } from '@/lib/types';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
 // =======================
 // Types lokal untuk UI
@@ -42,10 +45,18 @@ export interface AttendanceConfigData {
   rawWorkSchedules: WorkScheduleReq[];
 }
 
+
 // =======================
 // Hook
 // =======================
 export function useAttendance() {
+
+  const { data: shiftData } = useQuery<ShiftResponse>({
+    queryKey: ['shift'],
+    queryFn: getShift,
+    staleTime: 1000 * 60 * 5,
+  });
+  
   return useQuery<WorkScheduleResponse, Error, AttendanceConfigData>({
     queryKey: ['workingSchedule'],
     queryFn: getWorkingSchedule,
@@ -60,7 +71,7 @@ export function useAttendance() {
         day.schedules.length > 0
           ? day.schedules.map((s) => ({
               day: day.day_name,
-              shift: s.shift_name,
+              shift: shiftData?.data.find((a) => a.id === s.shift_id)?.name ?? 'Off',
               workingHours: `${s.start_time} - ${s.end_time}`,
               break:
                 s.break_start_time && s.break_end_time
@@ -79,7 +90,131 @@ export function useAttendance() {
 
       const rawWorkSchedules = c.schedules;
 
-      return { late_tolerance, max_late_tolerance, workingHours, rawWorkSchedules };
+      return {
+        late_tolerance,
+        max_late_tolerance,
+        workingHours,
+        rawWorkSchedules,
+      };
     },
   });
 }
+
+export function useLateDeduction() {
+  const [open, setOpen] = useState(false);
+  const [openDelete, setOpenDelete] = useState(false);
+  const [loadingSave, setLoadingSave] = useState(false);
+  const [selectedData, setSelectedData] = useState<LateDeductions>();
+  const queryClient = useQueryClient();
+
+  // list late deduction
+  const { data: lateDeductionData, refetch: lateDeductionRefetch } = useQuery<
+    PaginatedResponse<LateDeductions>
+  >({
+    queryKey: ["lateDeduction"],
+    queryFn: getLateDeduction,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  // list shift
+  const { data: shiftDataList } = useQuery<ShiftResponse>({
+    queryKey: ["shiftList"],
+    queryFn: getShift,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  // dropdown shift options
+  const shiftOptions =
+    shiftDataList?.data?.map((shift) => ({
+      value: shift.id.toString(),
+      label: shift.name,
+    })) ?? [];
+
+  // mutation untuk save (create/update)
+  const saveMutation = useMutation<
+    PaginatedResponse<LateDeductions>,
+    Error,
+    { id?: number; data: DeductionRequest }
+  >({
+    mutationFn: ({ id, data }) => {
+      if (id) {
+        return putDeduction(id, data);
+      }
+      return postDeduction(data);
+    },
+    onMutate: () => setLoadingSave(true),
+    onSuccess: () => {
+      handleCloseLateDeduction();
+      toast.success("Late deduction saved successfully");
+      queryClient.invalidateQueries({ queryKey: ["lateDeduction"] });
+      lateDeductionRefetch();
+    },
+    onError: (err) => {
+      toast.error(`Failed to save: ${err.message}`);
+    },
+    onSettled: () => setLoadingSave(false),
+  });
+
+  // mutation untuk delete
+  const deleteMutation = useMutation<PaginatedResponse<LateDeductions>, Error, number>({
+    mutationFn: (id) => removeDeduction(id),
+    onSuccess: () => {
+      setOpenDelete(false);
+      setSelectedData(undefined);
+      toast.success("Late deduction deleted successfully");
+      queryClient.invalidateQueries({ queryKey: ["lateDeduction"] });
+      lateDeductionRefetch();
+    },
+    onError: (err) => {
+      toast.error(`Failed to delete: ${err.message}`);
+    },
+  });
+
+
+  const handleEdit = (item: LateDeductions) => {
+    setSelectedData(item);
+    setOpen(true);
+  };
+
+  const handleDeleteClick = (item: LateDeductions) => {
+    setSelectedData(item);
+    setOpenDelete(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (selectedData) {
+      deleteMutation.mutate(selectedData.id);
+    }
+  };
+
+  const handleAdd = () => {
+    setSelectedData(undefined);
+    setOpen(true);
+  };
+
+  const handleSaveLateDeduction = (id: number | undefined, data: DeductionRequest) => {
+    saveMutation.mutate({ id, data });
+  };
+
+  const handleCloseLateDeduction = () => {
+    setOpen(false);
+  };
+
+  return {
+    lateDeductionData,
+    open,
+    setOpen,
+    openDelete,
+    setOpenDelete,
+    handleEdit,
+    handleDeleteClick,
+    handleDeleteConfirm,
+    handleAdd,
+    handleSaveLateDeduction,
+    handleCloseLateDeduction,
+    shiftOptions,
+    loadingSave,
+    selectedData,
+  };
+}
+

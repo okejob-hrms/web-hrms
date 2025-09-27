@@ -162,6 +162,7 @@ export interface WorkSchedule {
 
 export interface Schedule {
   id?: number;
+  shift_id: number;
   sequence: number;
   shift_name: string;
   start_time: string; // format: HH:mm
@@ -170,7 +171,6 @@ export interface Schedule {
   break_start_time?: string;
   break_end_time?: string;
 }
-
 
 export interface CompanyRequest {
   address: string;
@@ -201,4 +201,62 @@ export interface AttendanceRequest {
   late_tolerance: number;
   max_late_tolerance: number;
   work_schedules: WorkScheduleReq[];
+}
+
+export interface ShiftResponse {
+  data: ShiftItem[];
+}
+
+export interface ShiftItem {
+  id: number;
+  tenant_id: number;
+  name: string;
+}
+
+export interface LateDeductions {
+  created_at: string;
+  duration_type: string;
+  duration_type_label: string;
+  ends_on: null;
+  id: number;
+  is_active: boolean;
+  is_leave_impact: boolean;
+  is_payroll_deduction: boolean;
+  leave_impact: string;
+  leave_impact_label: string;
+  max_minutes: null;
+  max_minutes_formatted: null;
+  min_minutes: number;
+  min_minutes_formatted: string;
+  note: string;
+  payroll_amount: string;
+  payroll_amount_formatted: string;
+  priority: number;
+  starts_on: null;
+  tenant_id: number;
+  updated_at: string;
+  shift: ShiftList[];
+}
+
+export interface ShiftList {
+  shift_id: number;
+  late_deduction_id: number;
+  id: number;
+  name: string;
+}
+
+export interface DeductionRequest {
+  duration_type: string;
+  ends_on?: string;
+  is_active: boolean;
+  is_leave_impact: boolean;
+  is_payroll_deduction: boolean;
+  leave_impact: string;
+  max_minutes?: number;
+  min_minutes: number;
+  note?: string;
+  payroll_amount: number;
+  priority?: number | null;
+  shift_id: number[];
+  starts_on?: string;
 }

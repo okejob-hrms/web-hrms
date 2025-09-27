@@ -4,9 +4,9 @@ import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { updateAttendanceTime } from '@/services/settings';
-import { AttendanceRequest } from '@/services/settings/types';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { getShift, updateAttendanceTime } from '@/services/settings';
+import { AttendanceRequest, ShiftResponse } from '@/services/settings/types';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { AttendanceConfigData, useAttendance } from '../settings-time-list/hook';
@@ -15,14 +15,15 @@ import { AttendanceConfigData, useAttendance } from '../settings-time-list/hook'
 // SCHEMA & TYPES
 // -------------------------
 const companySchema = z.object({
-  late_tolerance: z.number().min(1, 'Late tolerance is required'),
-  max_late_tolerance: z.number().min(1, 'Max late is required'),
+  late_tolerance: z.string().min(1, 'Late tolerance must be at least 1'),
+  max_late_tolerance: z.string().min(1, 'Absent after must be at least 1'),
   workSchedules: z
     .array(
       z.object({
         day_of_week: z.number(),
         schedules: z.array(
           z.object({
+            shift_id: z.number(),
             shift_name: z.string(),
             start_time: z.string(),
             end_time: z.string(),
@@ -54,14 +55,15 @@ const DAY_NAMES: Record<number, string> = {
 
 function mapToApiPayload(values: CompanyFormValues): AttendanceRequest {
   return {
-    late_tolerance: 0,
-    max_late_tolerance: 0,
+    late_tolerance: Number(values.late_tolerance),
+    max_late_tolerance: Number(values.max_late_tolerance),
     work_schedules: (values.workSchedules ?? [])?.map((day) => ({
       day_of_week: day.day_of_week,
       day_name: DAY_NAMES[day.day_of_week] ?? '',
       has_schedule: (day.schedules?.length ?? 0) > 0,
       total_shifts: day.schedules?.length ?? 0,
       schedules: (day.schedules ?? []).map((s) => ({
+        shift_id: s.shift_id,
         shift_name: s.shift_name,
         start_time: s.start_time,
         end_time: s.end_time,
@@ -74,24 +76,33 @@ function mapToApiPayload(values: CompanyFormValues): AttendanceRequest {
   };
 }
 
-function mapFromApiResponse(data: AttendanceConfigData): CompanyFormValues {
+
+function mapFromApiResponse(
+  data: AttendanceConfigData,
+  shiftData?: ShiftResponse
+): CompanyFormValues {
   return {
-    late_tolerance: data?.late_tolerance,
-    max_late_tolerance: data?.max_late_tolerance,
+    late_tolerance: String(data?.late_tolerance ?? ''),
+    max_late_tolerance: String(data?.max_late_tolerance ?? ''),
     workSchedules: data?.rawWorkSchedules?.map((day) => ({
       day_of_week: day.day_of_week,
-      schedules: (day.schedules ?? []).map((s) => ({
-        shift_name: s.shift_name,
-        start_time: s.start_time,
-        end_time: s.end_time,
-        sequence: s.sequence,
-        ends_next_day: s.ends_next_day,
-        break_start_time: s.break_start_time,
-        break_end_time: s.break_end_time,
-      })),
+      schedules: (day.schedules ?? []).map((s) => {
+        const shift = shiftData?.data?.find((a) => a.id === s.shift_id);
+        return {
+          shift_id: s.shift_id,
+          shift_name: shift?.name ?? '',
+          start_time: s.start_time,
+          end_time: s.end_time,
+          sequence: s.sequence,
+          ends_next_day: s.ends_next_day,
+          break_start_time: s.break_start_time,
+          break_end_time: s.break_end_time,
+        };
+      }),
     })),
   };
 }
+
 
 const daysOfWeek = [
   'Monday',    
@@ -111,27 +122,33 @@ export function useCompanyForm() {
   const queryClient = useQueryClient();
   const { data, isLoading } = useAttendance();
 
-  const form = useForm<CompanyFormValues>({
-    resolver: zodResolver(companySchema),
-    defaultValues: data ? mapFromApiResponse(data) : {},
+  // Get shift list
+   const { data: shiftData, isLoading: isShiftLoading } = useQuery<ShiftResponse>({
+    queryKey: ['shift'],
+    queryFn: getShift,
+    staleTime: 1000 * 60 * 5,
   });
 
-  // Refill values ketika data berubah
+  const form = useForm<CompanyFormValues>({
+    resolver: zodResolver(companySchema),
+    defaultValues: data && shiftData ? mapFromApiResponse(data, shiftData) : {},
+  });
+
   useEffect(() => {
-    if (data && !isLoading) {
-      form.reset(mapFromApiResponse(data));
+    if (data && shiftData && !isLoading && !isShiftLoading) {
+      form.reset(mapFromApiResponse(data, shiftData));
     }
-  }, [data, isLoading, form]);
+  }, [data, shiftData, isLoading, isShiftLoading, form]);
 
   const mutation = useMutation({
     mutationFn: (values: CompanyFormValues) => 
       updateAttendanceTime(mapToApiPayload(values)),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['companyProfile'] });
-      toast.success("Update company successful.");
+      queryClient.invalidateQueries({ queryKey: ['attendanceConfig'] });
+      toast.success("Update attendance time successful.");
     },
     onError: () => {
-      toast.error("Update company failed.");
+      toast.error("Update attendance time failed.");
     }
   });
 
@@ -154,5 +171,6 @@ export function useCompanyForm() {
     dataWorkSchedule: data,
     handleBack,
     daysOfWeek,
+    shiftData,
   };
 }

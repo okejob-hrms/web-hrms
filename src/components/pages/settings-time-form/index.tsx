@@ -10,22 +10,36 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Form, FormLabel, FormControl } from '@/components/ui/form';
+import {
+  Form,
+  FormLabel,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from '@/components/ui/form';
 import { useState } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Plus, Trash2 } from 'lucide-react';
 import TitleContent from '@/components/ui/title';
 
 export default function SettingsAttendanceConfigurationForm() {
-  const { form, onSubmit, dataWorkSchedule, handleBack, daysOfWeek } =
-    useCompanyForm();
+  const {
+    form,
+    onSubmit,
+    dataWorkSchedule,
+    handleBack,
+    daysOfWeek,
+    shiftData,
+  } = useCompanyForm();
 
   const [workSchedules, setWorkSchedules] = useState(
     dataWorkSchedule?.rawWorkSchedules || [],
   );
 
   const defaultValueNew = {
-    shift_name: 'Night Shift',
+    shift_id: shiftData?.data[0]?.id ?? 0,
+    shift_name: shiftData?.data[0]?.name ?? 'Night Shift',
     start_time: '09:05',
     end_time: '17:00',
     break_start_time: '12:00',
@@ -34,22 +48,23 @@ export default function SettingsAttendanceConfigurationForm() {
   };
 
   const handleSubmit = (values: CompanyFormValues) => {
-    // const dataWork = workSchedules.map((day) => ({
-    //   day_of_week: day.day_of_week,
-    //   schedules: (day.schedules ?? []).map((s) => ({
-    //     shift_name: s.shift_name,
-    //     start_time: s.start_time,
-    //     end_time: s.end_time,
-    //     sequence: s.sequence,
-    //     ends_next_day: s.ends_next_day,
-    //     break_start_time: s.break_start_time,
-    //     break_end_time: s.break_end_time,
-    //   })),
-    // }));
+    const dataWork = workSchedules.map((day) => ({
+      day_of_week: day.day_of_week,
+      schedules: (day.schedules ?? []).map((s) => ({
+        shift_id: shiftData?.data?.find((a) => a.name == s.shift_name)?.id ?? 0,
+        shift_name: s.shift_name,
+        start_time: s.start_time,
+        end_time: s.end_time,
+        sequence: s.sequence,
+        ends_next_day: s.ends_next_day,
+        break_start_time: s.break_start_time,
+        break_end_time: s.break_end_time,
+      })),
+    }));
 
     onSubmit({
       ...values,
-      // workSchedules: dataWork,
+      workSchedules: dataWork,
     });
   };
 
@@ -78,7 +93,10 @@ export default function SettingsAttendanceConfigurationForm() {
                       if (day.has_schedule) {
                         const schedules = [...(day.schedules || [])];
                         if (schedules.length === 0) {
-                          schedules.push({ ...defaultValueNew, sequence: key });
+                          schedules.push({
+                            ...defaultValueNew,
+                            sequence: key + 1,
+                          });
                         }
                         day.schedules = schedules;
                       }
@@ -130,15 +148,12 @@ export default function SettingsAttendanceConfigurationForm() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="Morning Shift">
-                                Morning Shift
-                              </SelectItem>
-                              <SelectItem value="Afternoon Shift">
-                                Afternoon Shift
-                              </SelectItem>
-                              <SelectItem value="Night Shift">
-                                Night Shift
-                              </SelectItem>
+                              {shiftData &&
+                                shiftData.data.map((item, i) => (
+                                  <SelectItem value={String(item.name)} key={i}>
+                                    {item.name}
+                                  </SelectItem>
+                                ))}
                             </SelectContent>
                           </Select>
                         </div>
@@ -335,6 +350,52 @@ export default function SettingsAttendanceConfigurationForm() {
               )}
             </div>
           ))}
+
+          <div className="space-y-3">
+            <h2 className="text-xl font-semibold pt-6 border-t">
+              Grace Period & Absent Threshold
+            </h2>
+
+            {/* Grace Period */}
+            <FormField
+              control={form.control}
+              name="late_tolerance"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Grace Period (Late Tolerance)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="0"
+                      {...field}
+                      className="sm:w-50 w-100"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Absent After */}
+            <FormField
+              control={form.control}
+              name="max_late_tolerance"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Absent After</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="0"
+                      {...field}
+                      type="number"
+                      className="sm:w-50 w-100"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
 
           <div className="flex flex-row gap-2">
             <Button
