@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import * as React from 'react';
+import * as React from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -10,7 +10,7 @@ import {
   RowSelectionState,
   OnChangeFn,
   PaginationState,
-} from '@tanstack/react-table';
+} from "@tanstack/react-table";
 
 import {
   Table,
@@ -19,11 +19,11 @@ import {
   TableHead,
   TableBody,
   TableCell,
-} from '@/components/ui/table';
-import { cn } from '@/lib/utils';
-import { GeneralPagination } from '../ui/pagination';
-import { PaginatedResponse } from '@/lib/types';
-import { Skeleton } from '../ui/skeleton';
+} from "@/components/ui/table";
+import { cn } from "@/lib/utils";
+import { GeneralPagination } from "../ui/pagination";
+import { PaginatedResponse } from "@/lib/types";
+import { Skeleton } from "../ui/skeleton";
 
 interface DataTableProps<TData, TValue = unknown> {
   columns: ColumnDef<TData, TValue>[];
@@ -94,8 +94,8 @@ export function DataTable<TData, TValue>({
           <div className="overflow-x-auto">
             <Table
               className={cn(
-                'w-full',
-                customSize ? 'table-fixed min-w-[800px]' : 'min-w-[800px]',
+                "w-full",
+                customSize ? "table-fixed min-w-[800px]" : "min-w-[800px]",
                 tableClassName,
               )}
             >
@@ -114,10 +114,10 @@ export function DataTable<TData, TValue>({
                             : undefined
                         }
                         className={cn(
-                          'bg-gray-50 p-4 sticky top-0 z-10 text-left font-medium text-text-secondary',
+                          "bg-gray-50 p-4 sticky top-0 z-10 text-left font-medium text-text-secondary",
                           customSize
-                            ? 'break-words whitespace-normal'
-                            : 'min-w-[120px]',
+                            ? "break-words whitespace-normal"
+                            : "min-w-[120px]",
                           tableHeadClassName,
                         )}
                       >
@@ -140,7 +140,7 @@ export function DataTable<TData, TValue>({
                       className="hover:bg-gray-50/50"
                       data-state={
                         enableRowSelection && row.getIsSelected()
-                          ? 'selected'
+                          ? "selected"
                           : undefined
                       }
                     >
@@ -156,10 +156,10 @@ export function DataTable<TData, TValue>({
                               : undefined
                           }
                           className={cn(
-                            'p-4 text-sm',
+                            "p-4 text-sm",
                             customSize
-                              ? 'break-words whitespace-normal'
-                              : 'min-w-[120px]',
+                              ? "break-words whitespace-normal"
+                              : "min-w-[120px]",
                             tableCellClassName,
                           )}
                         >

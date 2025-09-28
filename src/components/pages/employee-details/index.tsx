@@ -61,7 +61,7 @@ export function Tab({ data }: TabProps) {
   ];
   return (
     <Tabs defaultValue={tabs[0].value} className="w-full mx-auto">
-      <TabsList className="p-1 w-full bg-secondary-background min-h-12">
+      <TabsList className="p-1 w-full bg-secondary-background min-h-12 h-9">
         {tabs.map((tab) => (
           <TabsTrigger
             key={tab.value}

@@ -1,5 +1,9 @@
 import { ApiResponse, PaginatedResponse } from "@/lib/types";
-import { IWorkAndHandoverResponse } from "./types";
+import {
+  IEquipmentFacilityHandoverRequest,
+  IWorkAndHandoverResponse,
+  IWorkDocumentHandoverRequest,
+} from "./types";
 import { api } from "@/lib/api";
 
 interface Params {
@@ -14,7 +18,7 @@ export const getHandoverAssetsReturn = async (
   const response = await api.get<
     ApiResponse<PaginatedResponse<IWorkAndHandoverResponse>>
   >(
-    `employee/offboardings/${params.offboarding_id}/handover-assets-return?category=${params.category ?? "work"}`,
+    `employee/offboardings/${params.offboarding_id}/handover-asset-return?category=${params.category ?? "work"}`,
   );
   return response.json();
 };
@@ -23,7 +27,29 @@ export const deleteHandoverAssetsReturn = async (
   params: Params,
 ): Promise<ApiResponse<IWorkAndHandoverResponse>> => {
   const response = await api.get<ApiResponse<IWorkAndHandoverResponse>>(
-    `employee/offboardings/${params.offboarding_id}/handover-assets-return/${params.handover_item_id}`,
+    `employee/offboardings/${params.offboarding_id}/handover-asset-return/${params.handover_item_id}`,
+  );
+  return response.json();
+};
+
+export const storeWorkDocumentHandover = async (
+  offboarding_id: number,
+  params: IWorkDocumentHandoverRequest,
+): Promise<ApiResponse<IWorkAndHandoverResponse>> => {
+  const response = await api.post<ApiResponse<IWorkAndHandoverResponse>>(
+    `employee/offboardings/${offboarding_id}/handover-asset-return`,
+    { json: params },
+  );
+  return response.json();
+};
+
+export const storeEquipmentFacilityHandover = async (
+  offboarding_id: number,
+  params: IEquipmentFacilityHandoverRequest,
+): Promise<ApiResponse<IWorkAndHandoverResponse>> => {
+  const response = await api.post<ApiResponse<IWorkAndHandoverResponse>>(
+    `employee/offboardings/${offboarding_id}/handover-asset-return`,
+    { json: params },
   );
   return response.json();
 };

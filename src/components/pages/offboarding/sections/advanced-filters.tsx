@@ -22,8 +22,8 @@ export const AdvancedFilter = React.memo(function AdvancedFilter({
   onApplyFilters,
 }: ExtendedAdvancedFilterProps) {
   const initValues: Filters = {
-    department_ids: [],
-    job_position_ids: [],
+    department_id: 0,
+    job_position_id: 0,
     search: "",
     start_date: null,
     end_date: null,
@@ -78,10 +78,8 @@ export const AdvancedFilter = React.memo(function AdvancedFilter({
       console.log("onSubmit ", values);
       const normalized: Filters = {
         ...values,
-        department_ids:
-          values.department_ids?.map((item) => Number(item)) || [],
-        job_position_ids:
-          values.job_position_ids?.map((item) => Number(item)) || [],
+        department_id: values.department_id,
+        job_position_id: values.job_position_id,
         start_date: values.start_date
           ? dayjs(values.start_date as unknown as Date).format("YYYY-MM-DD")
           : null,
@@ -139,7 +137,7 @@ export const AdvancedFilter = React.memo(function AdvancedFilter({
                 options={positionOptions}
                 maxCount={1}
                 variant="inverted"
-                name="job_position_ids"
+                name="job_position_id"
               />
             </div>
 
@@ -149,7 +147,7 @@ export const AdvancedFilter = React.memo(function AdvancedFilter({
                 allSelectLabel="All Department"
                 options={departmentOptions}
                 placeholder="All Department"
-                name="department_ids"
+                name="department_id"
                 searchPlaceholder="Search Department"
               />
             </div>

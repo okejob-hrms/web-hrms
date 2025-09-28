@@ -15,22 +15,45 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { TextAreaForm } from "@/components/ui/textarea";
 import { useDebounce } from "@/hooks/use-debounce";
 import { getEmployees } from "@/services/employees";
-import { getHandoverAssetsReturn } from "@/services/employees/offboardings/handover-and-assets";
-import { IWorkAndHandoverResponse } from "@/services/employees/offboardings/handover-and-assets/types";
-import { useQuery } from "@tanstack/react-query";
+import {
+  getHandoverAssetsReturn,
+  storeWorkDocumentHandover,
+} from "@/services/employees/offboardings/handover-and-assets";
+import {
+  IWorkAndHandoverResponse,
+  IWorkDocumentHandoverRequest,
+} from "@/services/employees/offboardings/handover-and-assets/types";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ColumnDef } from "@tanstack/react-table";
 import { Plus } from "lucide-react";
 import * as React from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 
 interface TableProps {
   offboarding_id: number;
 }
 
-export const FormModal = React.memo(function FormModal() {
-  const form = useForm();
+interface FormModalProps {
+  offboarding_id: number;
+}
+
+export const FormModal = React.memo(function FormModal({
+  offboarding_id,
+}: FormModalProps) {
+  const queryClient = useQueryClient();
+  const [open, setOpen] = React.useState(false);
   const [searchEmployee, setSearchEmployee] = React.useState("");
   const debouncedEmployee = useDebounce(searchEmployee, 300);
+
+  const form = useForm<IWorkDocumentHandoverRequest>({
+    defaultValues: {
+      category: "work",
+      name: "",
+      recipients: [],
+    },
+  });
+
   const { data: employees, isLoading: isLoadingEmployees } = useQuery({
     queryKey: ["offboarding-employees", debouncedEmployee],
     queryFn: () =>
@@ -38,6 +61,20 @@ export const FormModal = React.memo(function FormModal() {
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
+  });
+
+  const mutation = useMutation({
+    mutationFn: (data: IWorkDocumentHandoverRequest) =>
+      storeWorkDocumentHandover(offboarding_id, data),
+    onSuccess: () => {
+      toast.success("Work handover created successfully");
+      form.reset();
+      setOpen(false);
+      queryClient.invalidateQueries({ queryKey: ["work-handover"] });
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to create work handover");
+    },
   });
 
   const employeesOptions = React.useMemo(() => {
@@ -50,8 +87,23 @@ export const FormModal = React.memo(function FormModal() {
     return [];
   }, [employees?.data]);
 
+  const handleSubmit = (values: IWorkDocumentHandoverRequest) => {
+    mutation.mutate({
+      ...values,
+      recipients: values.recipients.map((item) => ({
+        user_id: item as unknown as number,
+        status: 1,
+      })),
+    });
+  };
+
+  const handleCancel = () => {
+    form.reset();
+    setOpen(false);
+  };
+
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button className="w-fit">
           Add <Plus />
@@ -61,17 +113,19 @@ export const FormModal = React.memo(function FormModal() {
         <DialogHeader>
           <DialogTitle>Work & Responsibilities Handover</DialogTitle>
         </DialogHeader>
-
         <Form {...form}>
-          <form className="space-y-4">
-            <TextAreaForm label="Works" name="works" required />
+          <form
+            className="space-y-4"
+            onSubmit={form.handleSubmit(handleSubmit)}
+          >
+            <TextAreaForm label="Works" name="name" required />
             <div className="flex flex-col gap-2">
               <label className="text-sm text-text-secondary">
                 Handed Over To<span className="text-error">*</span>
               </label>
               <MultiSelectForm
                 options={employeesOptions}
-                name="handed_over_to"
+                name="recipients"
                 maxCount={3}
                 searchPlaceholder="Search Employee"
                 hideSelectAll
@@ -82,10 +136,20 @@ export const FormModal = React.memo(function FormModal() {
               />
             </div>
             <DialogFooter>
-              <Button type="button" variant="outline">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCancel}
+                disabled={mutation.isPending}
+              >
                 Cancel
               </Button>
-              <Button type="submit">Save</Button>
+              <Button
+                type="submit"
+                disabled={mutation.isPending || !form.formState.isValid}
+              >
+                {mutation.isPending ? "Saving..." : "Save"}
+              </Button>
             </DialogFooter>
           </form>
         </Form>
@@ -112,6 +176,7 @@ export const WorkHandoverTable = React.memo(function WorkHandoverTable({
     },
     enabled: !!offboarding_id,
   });
+
   const columns: ColumnDef<IWorkAndHandoverResponse>[] = React.useMemo(
     () => [
       {
@@ -124,7 +189,9 @@ export const WorkHandoverTable = React.memo(function WorkHandoverTable({
         cell: ({ row }) => (
           <div>
             {row.original.recipients.map((item) => (
-              <span key={item.id}>{item.name}</span>
+              <span key={item.id} className="block">
+                {item.name}
+              </span>
             ))}
           </div>
         ),
@@ -140,13 +207,14 @@ export const WorkHandoverTable = React.memo(function WorkHandoverTable({
     ],
     [],
   );
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex justify-between">
         <h4 className="font-semibold text-lg">
           Work & Responsibilities Handover
         </h4>
-        <FormModal />
+        <FormModal offboarding_id={offboarding_id} />
       </div>
       {isLoading ? (
         <div className="flex flex-col gap-4 items-center w-full">
