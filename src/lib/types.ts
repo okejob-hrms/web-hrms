@@ -90,6 +90,8 @@ export interface OptionFormProps extends InputFormProps {
     label: string;
     value: string;
     icon?: React.ReactNode;
+    subtitle?: string;
+    image?: string;
   }[];
   modalChildren?: React.ReactNode;
   type?: "string" | "number";
