@@ -1,5 +1,5 @@
 import { api } from "@/lib/api";
-import { IRolesResponse, IPermissionResponse, IEmployee, ICreateRolePayload, ICreateRoleResponse, IRoleDetailResponse, CompanyResponse, CompanyRequest, WorkScheduleResponse, AttendanceRequest, ShiftResponse, LateDeductions, DeductionRequest } from "./types";
+import { IRolesResponse, IPermissionResponse, IEmployee, ICreateRolePayload, ICreateRoleResponse, IRoleDetailResponse, CompanyResponse, CompanyRequest, WorkScheduleResponse, AttendanceRequest, ShiftResponse, LateDeductions, DeductionRequest, OvertimeResponse } from "./types";
 import { PaginatedResponse } from "@/lib/types";
 
 export const getRoles = async (): Promise<IRolesResponse> => {
@@ -115,4 +115,9 @@ export const removeDeduction = async (
       json: {},
     })
     .json<PaginatedResponse<LateDeductions>>();
+};
+
+export const getOvertimeConfig = async (): Promise<OvertimeResponse> => {
+  const response = await api.get<OvertimeResponse>("employee/overtime/configuration");
+  return response.json();
 };

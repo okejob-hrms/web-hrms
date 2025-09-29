@@ -260,3 +260,35 @@ export interface DeductionRequest {
   shift_id: number[];
   starts_on?: string;
 }
+
+export interface OvertimeResponse {
+  data: OvertimeList[];
+  message: string;
+  status: string;
+}
+
+export interface OvertimeList {
+  achievement: string;
+  blood_type: string;
+  bpjs: string;
+  citizen_id_address: string;
+  code: string;
+  created_at: string;
+  date_of_birth: string;
+  gender: string;
+  height: string;
+  hobby: string;
+  id: number;
+  id_number: string;
+  marital_status: number;
+  marital_status_label: string;
+  npwp: string;
+  personal_description: string;
+  phone_number: number;
+  photo_profile: string;
+  place_of_birth: string;
+  residential_address: string;
+  updated_at: string;
+  user_id: number;
+  weight: string;
+}

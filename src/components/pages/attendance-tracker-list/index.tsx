@@ -13,48 +13,34 @@ import InfoList from '@/components/ui/info-list';
 import { useAttendance } from './hook';
 
 export default function AttendanceTrackerList() {
-  const { attendances, columns, loading } = useAttendance();
-
   const router = useRouter();
-  const [pagination, setPagination] = React.useState<PaginationState>({
-    pageIndex: 0,
-    pageSize: 10,
-  });
-  const [filters, setFilters] = React.useState<Filters>({
-    department_ids: [],
-    job_position_ids: [],
-    search: '',
-  });
 
-  const debouncedFilters = useDebounce(filters, 300);
-  const queryParams = React.useMemo(
-    () => ({
-      ...debouncedFilters,
-      page: pagination.pageIndex + 1,
-      per_page: pagination.pageSize,
-    }),
-    [debouncedFilters, pagination],
-  );
+  // const [filters, setFilters] = React.useState<Filters>({
+  //   department_ids: [],
+  //   job_position_ids: [],
+  //   search: '',
+  // });
+
+  const {
+    attendances,
+    loading,
+    hasNextPage,
+    hasPreviousPage,
+    pagination,
+    setPagination,
+    columns,
+  } = useAttendance();
 
   const handleFiltersChange = React.useCallback((newFilters: Filters) => {
-    setFilters((prev) => ({
-      ...prev,
-      ...newFilters,
-      department_ids:
-        newFilters.department_ids !== prev.department_ids
-          ? newFilters.department_ids
-          : prev.department_ids,
-      job_position_ids:
-        newFilters.job_position_ids !== prev.job_position_ids
-          ? newFilters.job_position_ids
-          : prev.job_position_ids,
-    }));
-
-    setPagination((prev) => ({
-      ...prev,
-      pageIndex: 0,
-    }));
+    // setFilters((prev) => ({
+    //   ...prev,
+    //   ...newFilters,
+    // }));
+    // reset ke page 1 kalau filter berubah
+    setPagination((prev) => ({ ...prev, pageIndex: 0 }));
   }, []);
+
+  console.log(attendances?.data?.data, attendances?.data, attendances);
 
   return (
     <div className="font-sans min-h-screen flex flex-col space-y-6">
@@ -124,7 +110,14 @@ export default function AttendanceTrackerList() {
               + New Record Attendance
             </Button>
           </div>
-          <DataTable columns={columns} data={attendances} loading={loading} />
+
+          <DataTable
+            columns={columns}
+            data={attendances?.data?.data}
+            pagination={attendances?.data}
+            paginationState={pagination}
+            setPaginationState={setPagination}
+          />
         </div>
       </div>
     </div>

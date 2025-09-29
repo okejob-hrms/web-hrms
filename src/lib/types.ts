@@ -17,6 +17,7 @@ export interface PaginatedResponse<T> {
   prev_page_url: string | null;
   to: number;
   total: number;
+  last_page?: number;
 }
 
 export interface ApiResponse<T> {
