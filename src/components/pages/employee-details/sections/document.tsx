@@ -48,6 +48,7 @@ import { uploadAttachment } from "@/services/attachments";
 import { toast } from "sonner";
 import AppSkeleton from "@/components/partials/app-skeleton";
 import ManageAccessModal from "./manage-acccess-modal";
+import { getEmployeeDetail } from "@/services/employees";
 
 interface DragnDropProps {
   handleDrop:
@@ -339,6 +340,12 @@ const CardItem = React.memo(function CardItem({ file, userId }: CardItemProps) {
   const [isManageAccessOpen, setIsManageAccessOpen] = React.useState(false);
   const queryClient = useQueryClient();
 
+  const { data: employeeDetails } = useQuery({
+    queryKey: ["employee-detail", file.uploaded_by],
+    queryFn: () => getEmployeeDetail(file.uploaded_by),
+  });
+  const employee = employeeDetails?.data;
+
   const { mutate: deleteDocument, isPending: isPendingDelete } = useMutation({
     mutationFn: () => deleteEmployeeDocument(userId, file.id),
     onSuccess: () => {
@@ -495,7 +502,7 @@ const CardItem = React.memo(function CardItem({ file, userId }: CardItemProps) {
         <p className="text-xs text-text-disabled mt-1">{file.uploaded_at}</p>
         <p className="text-text-disabled text-xs">
           uploaded by{" "}
-          <span className="text-text-secondary">{file.uploaded_by}</span>
+          <span className="text-text-secondary">{employee?.user.name}</span>
         </p>
       </div>
     </div>

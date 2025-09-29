@@ -79,7 +79,7 @@ export interface IMutateEmployeeRequests {
   job_level_id: number;
   department_id: number;
   primary_direct_report_id: number;
-  additional_direct_report_id?: number;
+  additional_direct_report_id?: number | null;
   team_members: {
     team_id: number;
   }[];
