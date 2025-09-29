@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ApiResponse, PaginatedResponse } from "@/lib/types";
 import {
   IMutateEmployeeRequests,
@@ -68,17 +69,30 @@ export const createEmployee = (
   return response.json();
 };
 
-export const updateEmployee = (
+export const updateEmployee = async (
   params: IMutateEmployeeRequests,
   id: number,
 ): Promise<ApiResponse<ICreateEmployeeResponse>> => {
-  const response = api.put<ApiResponse<ICreateEmployeeResponse>>(
-    `employees/${id}`,
-    {
-      json: params,
-    },
-  );
-  return response.json();
+  try {
+    const response = await api.put<ApiResponse<ICreateEmployeeResponse>>(
+      `employees/${id}`,
+      {
+        json: params,
+      },
+    );
+    return response.json();
+  } catch (error: any) {
+    if (error.name === "HTTPError") {
+      const errorResponse = await error.response.json();
+      const enhancedError = new Error(error.message);
+      (enhancedError as any).response = {
+        json: () => Promise.resolve(errorResponse),
+        status: error.response.status,
+      };
+      throw enhancedError;
+    }
+    throw error;
+  }
 };
 
 export const deleteEmployee = (

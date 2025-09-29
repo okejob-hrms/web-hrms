@@ -548,6 +548,9 @@ export const FamilyInformationSection =
         {
           accessorKey: "highest_education",
           header: "Highest Education Level",
+          cell: ({ row }) => (
+            <span>{row.original.highest_education_label}</span>
+          ),
         },
         {
           accessorKey: "email",

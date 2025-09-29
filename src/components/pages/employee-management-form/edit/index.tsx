@@ -29,10 +29,14 @@ import { useRouter } from "next/navigation";
 import EmployeeUpdateModal from "../sections/edit-modal";
 import ArchieveEmployeeModal from "../sections/archieve-employee-modal";
 import AppSkeleton from "@/components/partials/app-skeleton";
-import { WorkExperienceSection } from "../sections/work-experience-section";
 
 interface Props {
   employee_profile_id: number;
+}
+
+interface ApiErrorResponse {
+  message: string;
+  errors?: Record<string, string[]>;
 }
 
 export const EditEmployeeForm = React.memo(function EditEmployee({
@@ -58,9 +62,34 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
         router.push("/employee/employee-management");
       },
       onError: (error: any) => {
-        toast.error(
-          `Failed to edit employee: ${error.message || "Unknown error"}`,
-        );
+        if (error?.response) {
+          try {
+            error.response
+              .json()
+              .then((errorData: ApiErrorResponse) => {
+                if (errorData.errors) {
+                  Object.entries(errorData.errors).forEach(
+                    ([fieldName, messages]) => {
+                      form.setError(fieldName as any, {
+                        type: "server",
+                        message: messages[0],
+                      });
+                    },
+                  );
+                }
+                toast.error(errorData.message || "Failed to update employee");
+              })
+              .catch(() => {
+                toast.error("Failed to update employee: Server error");
+              });
+          } catch (parseError) {
+            toast.error("Failed to update employee: Server error");
+          }
+        } else {
+          toast.error(
+            `Failed to edit employee: ${error.message || "Unknown error"}`,
+          );
+        }
       },
     });
 
@@ -312,7 +341,8 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
 
         if (
           values.additional_direct_report_id &&
-          values.additional_direct_report_id !== 0
+          values.additional_direct_report_id !== 0 &&
+          values.additional_direct_report_id !== null
         ) {
           conditionalParams.additional_direct_report_id = Number(
             values.additional_direct_report_id,
@@ -340,7 +370,6 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
         if (numValue !== value.primary_direct_report_id) {
           form.setValue("primary_direct_report_id", numValue);
         }
-        console.log("primary changed:", value.primary_direct_report_id);
       }
 
       if (
@@ -351,7 +380,6 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
         if (numValue !== value.additional_direct_report_id) {
           form.setValue("additional_direct_report_id", numValue);
         }
-        console.log("additional changed:", value.additional_direct_report_id);
       }
     });
 
@@ -362,16 +390,8 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
     const isValid = await form.trigger();
     const formData = form.getValues();
 
-    // const processedData = {
-    //   ...formData,
-    //   primary_direct_report_id: Number(formData.primary_direct_report_id) || 0,
-    //   additional_direct_report_id: Number(formData.additional_direct_report_id) || 0,
-    // };
-
-    // console.log("submitted ", processedData)
     console.log("# ERROR EDIT ", form.formState.errors);
     if (!isValid) {
-      console.log("Form validation failed");
       return;
     }
     onSubmit(formData);
