@@ -23,8 +23,8 @@ export const Toolbar = React.memo(function Toolbar({
   onFiltersChange,
 }: ToolbarProps) {
   const initValues = {
-    department_ids: [],
-    job_position_ids: [],
+    department_id: 0,
+    job_position_id: 0,
     search: "",
   };
   const [isAdvanced, setIsAdvanced] = React.useState(false);
@@ -35,11 +35,11 @@ export const Toolbar = React.memo(function Toolbar({
 
   const departmentIds = useWatch({
     control: form.control,
-    name: "department_ids",
+    name: "department_id",
   });
   const jobPositionIds = useWatch({
     control: form.control,
-    name: "job_position_ids",
+    name: "job_position_id",
   });
 
   const { data: departments } = useQuery({
@@ -91,10 +91,8 @@ export const Toolbar = React.memo(function Toolbar({
       console.log("Basic filter submit:", values);
       onFiltersChange({
         ...values,
-        department_ids: values.department_ids?.flatMap((item) => Number(item)),
-        job_position_ids: values.job_position_ids?.flatMap((item) =>
-          Number(item),
-        ),
+        department_id: values.department_id,
+        job_position_id: values.job_position_id,
       });
     },
     [onFiltersChange],
@@ -163,7 +161,7 @@ export const Toolbar = React.memo(function Toolbar({
             <MultiSelectForm
               placeholder="All Position"
               options={positionOptions}
-              name="job_position_ids"
+              name="job_position_id"
               maxCount={1}
               searchPlaceholder="Search Position"
               allSelectLabel="All Position"
@@ -175,7 +173,7 @@ export const Toolbar = React.memo(function Toolbar({
             <MultiSelectForm
               placeholder="All Department"
               options={departmentOptions}
-              name="department_ids"
+              name="department_id"
               maxCount={1}
               searchPlaceholder="Search Department"
               allSelectLabel="All Department"

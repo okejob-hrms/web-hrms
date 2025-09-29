@@ -40,7 +40,7 @@ export const employeeManagementFormScheme = z.object({
   department_id: z.string().min(1, "required"),
   job_level_id: z.string().min(1, "required"),
   primary_direct_report_id: z.number().min(1, "required"),
-  additional_direct_report_id: z.number(),
+  additional_direct_report_id: z.number().optional().nullable(),
   team_members: z.string(),
   start_date: z.date(),
   end_date: z.date().optional(),

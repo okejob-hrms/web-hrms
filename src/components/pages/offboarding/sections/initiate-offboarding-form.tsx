@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Form } from "@/components/ui/form";
 import { MultiSelectForm } from "@/components/ui/multi-select";
-import { SelectForm } from "@/components/ui/select-form";
+import { SelectEmployeeForm, SelectForm } from "@/components/ui/select-form";
 import { useDebounce } from "@/hooks/use-debounce";
 import { getEmployees } from "@/services/employees";
 import { createInitiateOffboarding } from "@/services/employees/offboardings";
@@ -68,6 +68,8 @@ export const InitiateOffboardingEmployee = React.memo(
         return employees.data.data.map((item) => ({
           label: item.name,
           value: item.id.toString(),
+          subtitle: item.job_position,
+          image: item.photo_profile,
         }));
       }
       return [];
@@ -134,7 +136,7 @@ export const InitiateOffboardingEmployee = React.memo(
               onSubmit={form.handleSubmit(onSubmit)}
               className="flex flex-col gap-4"
             >
-              <SelectForm
+              <SelectEmployeeForm
                 name="user_id"
                 label="Employee Name"
                 required

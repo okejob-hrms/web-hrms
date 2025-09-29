@@ -29,6 +29,7 @@ export interface IFamilyResponse {
   occupation: string;
   company: string;
   highest_education: number;
+  highest_education_label: string;
   updated_at: string;
   created_at: string;
   id: number;

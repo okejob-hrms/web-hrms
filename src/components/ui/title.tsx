@@ -1,6 +1,6 @@
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import { ChevronLeft } from 'lucide-react';
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft } from "lucide-react";
 
 interface TitleContentProps {
   label: string;
@@ -11,7 +11,7 @@ interface TitleContentProps {
 const TitleContent: React.FC<TitleContentProps> = ({
   label,
   onClick,
-  className = '',
+  className = "",
 }) => {
   return (
     <div className="flex items-center gap-2 mb-4">
@@ -21,7 +21,7 @@ const TitleContent: React.FC<TitleContentProps> = ({
         className={`text-dark ${className} bg-primary-background w-[38px] h-[38px] flex items-center justify-center`}
       >
         <ChevronLeft
-          style={{ height: '24px', width: '24px' }}
+          style={{ height: "24px", width: "24px" }}
           className="text-primary"
         />
       </Button>

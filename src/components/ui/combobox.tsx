@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, ChevronDownIcon } from "lucide-react";
+import { Check, ChevronDownIcon, X } from "lucide-react";
 import { useFormContext } from "react-hook-form";
 import { useState } from "react";
 
@@ -36,16 +36,40 @@ export function ComboboxForm({
   isOptional,
   placeholder = "Select",
   options,
-  valueType = "string", // Add this prop to specify if value should be number or string
-}: ComboboxProps & { valueType?: "string" | "number" }) {
+  valueType = "string",
+  allowClear = true,
+}: ComboboxProps & {
+  valueType?: "string" | "number";
+  allowClear?: boolean;
+}) {
   const { control, setValue } = useFormContext();
   const [open, setOpen] = useState(false);
+
+  const clearSelection = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setValue(name, valueType === "number" ? null : "");
+    console.log(`${name} : cleared`);
+  };
 
   return (
     <FormField
       control={control}
       name={name}
       render={({ field }) => {
+        const hasValue =
+          field.value !== undefined &&
+          field.value !== null &&
+          field.value !== "";
+
+        const selectedOption = hasValue
+          ? options?.find((item) =>
+              valueType === "number"
+                ? item.value.toString() === field.value.toString()
+                : item.value === field.value,
+            )
+          : null;
+
         return (
           <FormItem className={cn("flex flex-col", formItemClassName)}>
             <FormLabel className={cn("text-sm font-normal", labelClassName)}>
@@ -65,14 +89,22 @@ export function ComboboxForm({
                       "w-full justify-between rounded-sm font-normal text-black border-input h-10",
                     )}
                   >
-                    {field.value
-                      ? options?.find((item) =>
-                          valueType === "number"
-                            ? item.value.toString() === field.value.toString()
-                            : item.value === field.value,
-                        )?.label
-                      : placeholder}
-                    <ChevronDownIcon className="size-4 opacity-50" />
+                    <span className="truncate">
+                      {selectedOption?.label || placeholder}
+                    </span>
+                    <div className="flex items-center gap-1">
+                      {allowClear && hasValue && (
+                        <button
+                          type="button"
+                          onClick={clearSelection}
+                          className="flex items-center justify-center hover:bg-gray-100 rounded p-1"
+                          tabIndex={-1}
+                        >
+                          <X className="size-3 opacity-50 hover:opacity-100" />
+                        </button>
+                      )}
+                      <ChevronDownIcon className="size-4 opacity-50" />
+                    </div>
                   </Button>
                 </FormControl>
               </PopoverTrigger>
@@ -82,6 +114,18 @@ export function ComboboxForm({
                   <CommandList>
                     <CommandEmpty>No data found.</CommandEmpty>
                     <CommandGroup>
+                      {allowClear && hasValue && (
+                        <CommandItem
+                          onSelect={() => {
+                            setValue(name, valueType === "number" ? null : "");
+                            console.log(`${name} : cleared`);
+                            setOpen(false);
+                          }}
+                          className="text-muted-foreground"
+                        >
+                          Clear selection
+                        </CommandItem>
+                      )}
                       {options?.map((item) => (
                         <CommandItem
                           value={item.label}
@@ -102,7 +146,8 @@ export function ComboboxForm({
                               "ml-auto size-4",
                               (
                                 valueType === "number"
-                                  ? item.value === field.value?.toString()
+                                  ? item.value.toString() ===
+                                    field.value?.toString()
                                   : item.value === field.value
                               )
                                 ? "opacity-100"
