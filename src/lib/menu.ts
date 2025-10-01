@@ -79,7 +79,8 @@ export const getHideSidebar = (path: string) => {
     "/settings/company-profile/edit",
     "/employee/organization/structure/edit",
     "/attendance/attendance-tracker/",
-    "/settings/time-attendance/attendance-configuration/edit"
+    "/settings/time-attendance/attendance-configuration/edit",
+    "/settings/time-attendance/overtime-configuration/edit"
   ];
 
   const employeeDetailPattern = /^\/employee\/employee-management\/\d+$/;
