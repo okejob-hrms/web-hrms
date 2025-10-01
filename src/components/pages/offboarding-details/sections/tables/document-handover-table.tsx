@@ -79,8 +79,8 @@ const EmployeeProfile = React.memo(function EmployeeProfile({
           {stringAvatar(data.data.user.name)}
         </AvatarFallback>
       </Avatar>
-      <span className="text-base text-black">{data.data.user.name}</span>
-      <span className="text-base text-text-disabled">
+      <span className="text-black">{data.data.user.name}</span>
+      <span className="text-text-disabled">
         ({data.data.user.id}){data.data.employment.job_position.name}
       </span>
     </div>

@@ -21,6 +21,7 @@ export interface IWorkAndHandoverResponse {
   name: string;
   notes: string;
   status: number;
+  status_label: string;
   expected_return_date: string | null;
   received_at: string | null;
   meta: {
