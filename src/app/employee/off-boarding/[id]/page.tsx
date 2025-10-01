@@ -35,7 +35,7 @@ export default function OffboardingDetailPage({
 
   return (
     <div className="font-sans min-h-screen">
-      <EmployeeDetailsSection data={employeeDetails.data} />
+      <EmployeeDetailsSection data={employeeDetails.data} offboarding_id={id} />
       <OffboardingDetail id={id} />
     </div>
   );

@@ -196,7 +196,7 @@ export const employeeManagementFormDefaultValues = {
   status: "",
   team_members: "",
   primary_direct_report_id: 0,
-  additional_direct_report_id: 0,
+  additional_direct_report_id: null,
   base_salary: 0,
   salary_nett: 0,
   bank_id: "",

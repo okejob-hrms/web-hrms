@@ -5,29 +5,35 @@ import { ExitInterviewForm } from "./exit-interview-form";
 import { WorkingAndAssets } from "./working-and-assets";
 import { FinalSalaryBenefits } from "./final-salary-benefits";
 
-const tabs = [
-  {
-    name: "Interview Schedule",
-    value: "interview-schedule",
-    children: <InterviewScheduleForm />,
-  },
-  {
-    name: "Exit Interview Form",
-    value: "exit-interview-form",
-    children: <ExitInterviewForm />,
-  },
-  {
-    name: "Work Handover & Asset Return",
-    value: "work-and-assets",
-    children: <WorkingAndAssets />,
-  },
-  {
-    name: "Final Salary & Benefits",
-    value: "completion",
-    children: <FinalSalaryBenefits />,
-  },
-];
-export const OffboardingTab = React.memo(function OffboardingTab() {
+interface Props {
+  offboarding_id: number;
+}
+
+export const OffboardingTab = React.memo(function OffboardingTab({
+  offboarding_id,
+}: Props) {
+  const tabs = [
+    {
+      name: "Interview Schedule",
+      value: "interview-schedule",
+      children: <InterviewScheduleForm offboarding_id={offboarding_id} />,
+    },
+    {
+      name: "Exit Interview Form",
+      value: "exit-interview-form",
+      children: <ExitInterviewForm />,
+    },
+    {
+      name: "Work Handover & Asset Return",
+      value: "work-and-assets",
+      children: <WorkingAndAssets />,
+    },
+    {
+      name: "Final Salary & Benefits",
+      value: "completion",
+      children: <FinalSalaryBenefits />,
+    },
+  ];
   return (
     <Tabs
       orientation="vertical"

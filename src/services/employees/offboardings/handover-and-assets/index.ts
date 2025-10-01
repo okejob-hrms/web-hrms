@@ -26,7 +26,7 @@ export const getHandoverAssetsReturn = async (
 export const deleteHandoverAssetsReturn = async (
   params: Params,
 ): Promise<ApiResponse<IWorkAndHandoverResponse>> => {
-  const response = await api.get<ApiResponse<IWorkAndHandoverResponse>>(
+  const response = await api.delete<ApiResponse<IWorkAndHandoverResponse>>(
     `employee/offboardings/${params.offboarding_id}/handover-asset-return/${params.handover_item_id}`,
   );
   return response.json();

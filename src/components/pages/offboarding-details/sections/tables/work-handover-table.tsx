@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import DataTable from "@/components/tables/data-table";
+import { RowActions } from "@/components/tables/row-actions";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -14,8 +16,10 @@ import { MultiSelectForm } from "@/components/ui/multi-select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TextAreaForm } from "@/components/ui/textarea";
 import { useDebounce } from "@/hooks/use-debounce";
-import { getEmployees } from "@/services/employees";
+import { cn, stringAvatar } from "@/lib/utils";
+import { getEmployeeDetail, getEmployees } from "@/services/employees";
 import {
+  deleteHandoverAssetsReturn,
   getHandoverAssetsReturn,
   storeWorkDocumentHandover,
 } from "@/services/employees/offboardings/handover-and-assets";
@@ -25,10 +29,17 @@ import {
 } from "@/services/employees/offboardings/handover-and-assets/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ColumnDef } from "@tanstack/react-table";
-import { Plus } from "lucide-react";
+import { Edit3, MoreHorizontal, Plus, Trash2 } from "lucide-react";
 import * as React from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import DeleteDialog from "../modals/delete-modal";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface TableProps {
   offboarding_id: number;
@@ -36,13 +47,70 @@ interface TableProps {
 
 interface FormModalProps {
   offboarding_id: number;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
+
+const EmployeeProfile = React.memo(function EmployeeProfile({
+  userId,
+}: {
+  userId: number;
+}) {
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["employee-detail", userId],
+    queryFn: () => getEmployeeDetail(userId),
+  });
+
+  if (isLoading) {
+    return <Skeleton className="h-4 w-32" />;
+  }
+
+  if (isError || !data?.data?.user?.name) {
+    return <span className="text-gray-400">-</span>;
+  }
+
+  return (
+    <div className="flex gap-1 items-center">
+      <Avatar className="h-5 w-5">
+        <AvatarImage
+          className="size-5"
+          src={`${process.env.NEXT_PUBLIC_FILE_URL}/${data.data.photo_profile}`}
+          alt={data.data.user.name}
+        />
+        <AvatarFallback className="text-[10px] font-medium">
+          {stringAvatar(data.data.user.name)}
+        </AvatarFallback>
+      </Avatar>
+      <span className="text-base text-black">{data.data.user.name}</span>
+      <span className="text-base text-text-disabled">
+        ({data.data.user.id}){data.data.employment.job_position.name}
+      </span>
+    </div>
+  );
+});
+
+const RecipientsList = React.memo(function RecipientsList({
+  recipients,
+}: {
+  recipients: Array<{ id: number; user_id: number }>;
+}) {
+  return (
+    <div className="space-y-1">
+      {recipients.map((item) => (
+        <div key={item.id} className="block">
+          <EmployeeProfile userId={item.user_id} />
+        </div>
+      ))}
+    </div>
+  );
+});
 
 export const FormModal = React.memo(function FormModal({
   offboarding_id,
+  open,
+  onOpenChange,
 }: FormModalProps) {
   const queryClient = useQueryClient();
-  const [open, setOpen] = React.useState(false);
   const [searchEmployee, setSearchEmployee] = React.useState("");
   const debouncedEmployee = useDebounce(searchEmployee, 300);
 
@@ -69,7 +137,7 @@ export const FormModal = React.memo(function FormModal({
     onSuccess: () => {
       toast.success("Work handover created successfully");
       form.reset();
-      setOpen(false);
+      onOpenChange(false);
       queryClient.invalidateQueries({ queryKey: ["work-handover"] });
     },
     onError: (error: any) => {
@@ -81,7 +149,7 @@ export const FormModal = React.memo(function FormModal({
     if (employees?.data?.data) {
       return employees.data.data.map((item) => ({
         label: item.name,
-        value: item.id.toString(),
+        value: item.user_id.toString(),
       }));
     }
     return [];
@@ -99,17 +167,18 @@ export const FormModal = React.memo(function FormModal({
 
   const handleCancel = () => {
     form.reset();
-    setOpen(false);
+    onOpenChange(false);
   };
 
+  React.useEffect(() => {
+    if (!open) {
+      form.reset();
+    }
+  }, [open, form]);
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="w-fit">
-          Add <Plus />
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="bg-white md:min-w-5xl overflow-y-scroll max-h-[90vh]">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="bg-white md:min-w-5xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Work & Responsibilities Handover</DialogTitle>
         </DialogHeader>
@@ -161,6 +230,15 @@ export const FormModal = React.memo(function FormModal({
 export const WorkHandoverTable = React.memo(function WorkHandoverTable({
   offboarding_id,
 }: TableProps) {
+  const [selectedItem, setSelectedItem] =
+    React.useState<IWorkAndHandoverResponse | null>(null);
+  const [isFormModalOpen, setFormModalOpen] = React.useState(false);
+  const [isDeleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
+  const [openDropdownId, setOpenDropdownId] = React.useState<number | null>(
+    null,
+  );
+  const queryClient = useQueryClient();
+
   const { data, isLoading } = useQuery({
     queryKey: offboarding_id
       ? ["work-handover", offboarding_id]
@@ -177,35 +255,151 @@ export const WorkHandoverTable = React.memo(function WorkHandoverTable({
     enabled: !!offboarding_id,
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: (params: {
+      handover_item_id: number;
+      offboarding_id: number;
+    }) => deleteHandoverAssetsReturn(params),
+    onSuccess: () => {
+      toast.success("Work handover deleted successfully");
+      setDeleteDialogOpen(false);
+      setSelectedItem(null);
+      queryClient.invalidateQueries({ queryKey: ["work-handover"] });
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to delete work handover");
+    },
+  });
+
+  const handleDeleteConfirm = () => {
+    if (!selectedItem) return;
+
+    const params = {
+      handover_item_id: selectedItem.id,
+      offboarding_id,
+    };
+    deleteMutation.mutate(params);
+  };
+
+  const handleOpenDeleteDialog = (item: IWorkAndHandoverResponse) => {
+    setSelectedItem(item);
+    setDeleteDialogOpen(true);
+    setOpenDropdownId(null);
+  };
+
+  const handleCloseDeleteDialog = () => {
+    setDeleteDialogOpen(false);
+    setSelectedItem(null);
+  };
+
+  const handleOpenEditDialog = (item: IWorkAndHandoverResponse) => {
+    setOpenDropdownId(null);
+    console.log("Edit item:", item);
+  };
+
   const columns: ColumnDef<IWorkAndHandoverResponse>[] = React.useMemo(
     () => [
       {
         accessorKey: "name",
         header: "Works",
+        size: 300,
       },
       {
         accessorKey: "recipients",
         header: "Handed Over To",
-        cell: ({ row }) => (
-          <div>
-            {row.original.recipients.map((item) => (
-              <span key={item.id} className="block">
-                {item.name}
-              </span>
-            ))}
-          </div>
-        ),
+        cell: ({ row }) => {
+          return <RecipientsList recipients={row.original.recipients} />;
+        },
+        size: 400,
       },
       {
         accessorKey: "status",
         header: "Status",
+        cell: ({ row }) => {
+          return (
+            <div className="space-y-1">
+              {row.original.recipients.map((item) => (
+                <div
+                  key={item.id}
+                  className={cn(
+                    "text-center text-xs rounded-full px-1.5 py-1",
+                    item.status === 3 || item.status === 6
+                      ? "bg-success-background text-success-hover"
+                      : item.status === 1 ||
+                          item.status === 2 ||
+                          item.status === 5
+                        ? "bg-warning-background text-warning-hover"
+                        : "bg-error-background text-error-hover",
+                  )}
+                >
+                  {item.status_label}
+                </div>
+              ))}
+            </div>
+          );
+        },
+        size: 200,
       },
       {
         accessorKey: "received_at",
         header: "Received Date",
+        cell: ({ row }) => {
+          return <span>{row.original.received_at ?? "-"}</span>;
+        },
+        size: 150,
+      },
+      {
+        id: "actions",
+        cell: ({ row }) => {
+          const item = row.original;
+          return (
+            <DropdownMenu
+              open={openDropdownId === item.id}
+              onOpenChange={(open) => setOpenDropdownId(open ? item.id : null)}
+            >
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="h-8 w-8 p-0"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
+                >
+                  <span className="sr-only">Open menu</span>
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="bg-white">
+                <DropdownMenuItem
+                  className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 cursor-pointer select-none"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    handleOpenDeleteDialog(item);
+                  }}
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Delete
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 cursor-pointer select-none"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    handleOpenEditDialog(item);
+                  }}
+                >
+                  <Edit3 className="w-4 h-4" />
+                  Edit
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          );
+        },
+        size: 80,
       },
     ],
-    [],
+    [openDropdownId],
   );
 
   return (
@@ -214,8 +408,11 @@ export const WorkHandoverTable = React.memo(function WorkHandoverTable({
         <h4 className="font-semibold text-lg">
           Work & Responsibilities Handover
         </h4>
-        <FormModal offboarding_id={offboarding_id} />
+        <Button className="w-fit" onClick={() => setFormModalOpen(true)}>
+          Add <Plus className="w-4 h-4 ml-2" />
+        </Button>
       </div>
+
       {isLoading ? (
         <div className="flex flex-col gap-4 items-center w-full">
           <Skeleton className="h-12 w-full" />
@@ -224,14 +421,28 @@ export const WorkHandoverTable = React.memo(function WorkHandoverTable({
           </div>
         </div>
       ) : (
-        <DataTable
-          columns={columns}
-          data={data?.data.data || []}
-          tableClassName="table-fixed w-full"
-          tableCellClassName="w-1/9 text-clip text-balance"
-          tableHeadClassName="w-1/9 text-clip text-balance"
-        />
+        <div className="overflow-x-auto w-full">
+          <DataTable
+            columns={columns}
+            data={(data?.data as unknown as IWorkAndHandoverResponse[]) || []}
+            tableClassName="min-w-full"
+            customSize
+          />
+        </div>
       )}
+
+      <FormModal
+        offboarding_id={offboarding_id}
+        open={isFormModalOpen}
+        onOpenChange={setFormModalOpen}
+      />
+
+      <DeleteDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={handleCloseDeleteDialog}
+        onDelete={handleDeleteConfirm}
+        isLoading={deleteMutation.isPending}
+      />
     </div>
   );
 });
