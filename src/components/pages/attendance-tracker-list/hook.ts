@@ -41,7 +41,7 @@ export function useAttendance() {
   });
 
   const { data: stat } = useQuery<AttendanceSummary>({
-    queryKey: ["attendanceStat"],
+    queryKey: ["attendanceStats"],
     queryFn: getAttendanceStat,
     staleTime: 1000 * 60 * 5,
   });
@@ -49,6 +49,7 @@ export function useAttendance() {
   const { data: statEmployee } = useQuery<AttendanceSummaryDetail>({
     queryKey: ["attendanceStatUser", selectedId],
     queryFn: () => getAttendanceStatEmployee(selectedId),
+    enabled: !!selectedId,
     staleTime: 1000 * 60 * 5,
   });
 
@@ -60,6 +61,7 @@ export function useAttendance() {
   } = useQuery({
     queryKey: ["attendanceDetail", selectedId],
     queryFn: () => getAttendanceDetail(selectedId),
+    enabled: !!selectedId,
     placeholderData: keepPreviousData,
   });
 
@@ -120,7 +122,7 @@ export function useAttendance() {
     hasPreviousPage,
     pagination,
     setPagination,
-    stat,
+    stat: stat?.data,
     setOpenDetail,
     openDetail,
     setSelectedData,

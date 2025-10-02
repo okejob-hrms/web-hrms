@@ -24,6 +24,7 @@ import {
   Edit3,
   Ellipsis,
   Eye,
+  Minus,
   Search,
   Trash,
   X,
@@ -47,6 +48,8 @@ import { Form } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
 import { DatePicker } from '@/components/ui/date-picker';
 import dayjs from 'dayjs';
+import { getLocationName } from '@/lib/geocode';
+import { LocationBadge } from '@/components/ui/location-badge';
 
 export default function AttendanceTrackerList() {
   const router = useRouter();
@@ -147,6 +150,7 @@ export default function AttendanceTrackerList() {
       cell: ({ row }) => {
         const status = row.original.latest_attendance?.status_label;
         const { variant, className, label } = getStatusAttendance(status);
+        if (!row.original.latest_attendance?.status_label) return '-';
 
         return (
           <Badge variant={variant} className={className}>
@@ -244,54 +248,54 @@ export default function AttendanceTrackerList() {
       <div className="grid xl:grid-cols-3 grid-cols-1 gap-6">
         <InfoList
           title="Late Clock In"
-          increase={stat?.late_clock_in?.change || 0}
+          increase={stat?.late_clock_in?.change}
           compare="vs"
           time="yesterday"
-          value={stat?.late_clock_in?.current || 0}
+          value={stat?.late_clock_in?.current}
         />
         <InfoList
           title="Early Clock In"
-          increase={stat?.early_clock_in?.change || 0}
+          increase={stat?.early_clock_in?.change}
           compare="vs"
           time="yesterday"
-          value={stat?.early_clock_in?.current || 0}
+          value={stat?.early_clock_in?.current}
         />
         <InfoList
           title="Early Clock Out"
-          increase={stat?.early_clock_out?.change || 0}
+          increase={stat?.early_clock_out?.change}
           compare="vs"
           time="yesterday"
-          value={stat?.early_clock_out?.current || 0}
+          value={stat?.early_clock_out?.current}
         />
       </div>
       <div className="grid xl:grid-cols-4 grid-cols-1 gap-6">
         <InfoList
           title="On Time"
-          increase={stat?.on_time?.change || 0}
+          increase={stat?.on_time?.change}
           compare="vs"
           time="yesterday"
-          value={stat?.on_time?.current || 0}
+          value={stat?.on_time?.current}
         />
         <InfoList
           title="Overtime"
-          increase={stat?.overtime?.change || 0}
+          increase={stat?.overtime?.change}
           compare="vs"
           time="yesterday"
-          value={stat?.overtime?.current || 0}
+          value={stat?.overtime?.current}
         />
         <InfoList
           title="Absent"
-          increase={stat?.absent?.change || 0}
+          increase={stat?.absent?.change}
           compare="vs"
           time="yesterday"
-          value={stat?.absent?.current || 0}
+          value={stat?.absent?.current}
         />
         <InfoList
           title="Day Off"
-          increase={stat?.day_off?.change || 0}
+          increase={stat?.day_off?.change}
           compare="vs"
           time="yesterday"
-          value={stat?.day_off?.current || 0}
+          value={stat?.day_off?.current}
         />
       </div>
       <div className="flex flex-col justify-between gap-6 mt-5">
@@ -348,7 +352,7 @@ export default function AttendanceTrackerList() {
           />
 
           <Sheet open={openDetail} onOpenChange={setOpenDetail}>
-            <SheetContent className="md:min-w-[500px] w-full bg-white">
+            <SheetContent className="md:min-w-3xl w-full bg-white">
               <SheetHeader>
                 <SheetTitle>Attendance Details</SheetTitle>
                 <SheetDescription>This is the details view.</SheetDescription>
@@ -422,12 +426,8 @@ export default function AttendanceTrackerList() {
                 </div>
               </div>
 
-              <div className="bg-gray-100 p-6 space-y-6 flex-1">
+              <div className="bg-gray-100 p-6 space-y-6 flex-1 overflow-y-auto max-h-[550px]">
                 {detailData?.data.data.map((item, key) => {
-                  const { variant, className, label } = getStatusAttendance(
-                    item.status_label,
-                  );
-
                   return (
                     <div
                       className="border rounded-md p-4 bg-white space-y-5"
@@ -437,28 +437,47 @@ export default function AttendanceTrackerList() {
                         <div className="text-primary font-bold">
                           {item.attendance_date}
                         </div>
-                        <Badge variant={variant} className={className}>
-                          {label}
+                        <Badge
+                          variant="default"
+                          className="bg-blue-50 border-primary text-primary"
+                        >
+                          {item.metadata.shift_name}
                         </Badge>
                       </div>
-                      <div className="flex sm:flex-row flex-col gap-4 justify-between">
-                        <div className="flex flex-col">
-                          <span>
-                            {item.clock.in_at || '-'} —{' '}
-                            {item.clock.out_at || '-'}
-                          </span>
-                          <span className="text-muted-foreground text-xs">
-                            Duration {item.duration || '-'}
-                          </span>
+                      <div className="flex sm:flex-row flex-col gap-4 justify-between items-center">
+                        <div className="flex flex-row gap-2 justify-between items-center">
+                          <div className="flex flex-col">
+                            <span className="text-muted-foreground text-xs">
+                              Clock-In
+                            </span>
+                            <span>{item.clock.in_at || '-'}</span>
+                          </div>
+                          <Minus className="text-muted-foreground" size={20} />
+                          <div className="flex flex-col">
+                            <span className="text-muted-foreground text-xs">
+                              {item.duration || '-'}
+                            </span>
+                          </div>
+                          <Minus className="text-muted-foreground" size={20} />
+                          <div className="flex flex-col">
+                            <span className="text-muted-foreground text-xs text-end">
+                              Clock-Out
+                            </span>
+                            <span className="text-warning text-end">
+                              {item.clock.out_at || '-'}
+                            </span>
+                          </div>
                         </div>
 
                         <div className="flex flex-col">
-                          <span className="text-muted-foreground">
-                            Duration
+                          <span className="text-muted-foreground text-md">
+                            Attendance Approval
                           </span>
                           <div className="flex gap-4">
                             <Button
-                              variant="destructive"
+                              variant="outline"
+                              size="sm"
+                              className="bg-white text-red-500 border-red-500"
                               onClick={() => {
                                 setOpenReject(true);
                                 setSelectedId(String(item.id));
@@ -469,6 +488,7 @@ export default function AttendanceTrackerList() {
                             </Button>
                             <Button
                               variant="default"
+                              size="sm"
                               onClick={() => {
                                 setOpenApprove(true);
                                 setSelectedId(String(item.id));
@@ -481,18 +501,21 @@ export default function AttendanceTrackerList() {
                         </div>
                       </div>
                       <div className="flex flex-col gap-3 py-2 border-t">
-                        <div className="flex flex-col space-y-2">
-                          <span className="text-muted-foreground">
+                        <div className="flex flex-col space-y-1">
+                          <span className="text-muted-foreground text-md">
                             Location
                           </span>
-                          <Badge variant="default">
-                            {item.location.latitude}, {item.location.longitude}
-                          </Badge>
+                          <LocationBadge
+                            lat={Number(item.location.latitude)}
+                            lng={Number(item.location.longitude)}
+                          />
                         </div>
-                        <div className="flex flex-col space-y-2">
-                          <span className="text-muted-foreground">Notes</span>
+                        <div className="flex flex-col space-y-1">
+                          <span className="text-muted-foreground text-md">
+                            Notes
+                          </span>
 
-                          <span className="text-muted-foreground">
+                          <span className="text-muted-foreground text-md">
                             {item.notes ?? '-'}
                           </span>
                         </div>
