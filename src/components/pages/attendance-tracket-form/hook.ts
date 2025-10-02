@@ -40,6 +40,10 @@ type AttendancePayload = Omit<AttendanceFormValues, "attendance_date" | "user_id
 // HOOK
 // -------------------------
 export function useAttendenceForm() {
+  const defaultMap = {
+    lat: -6.2088,
+    lng: 106.8456,
+  }
   const router = useRouter();
   const [openMap, setOpenMap] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -187,5 +191,6 @@ export function useAttendenceForm() {
     handleDetailData,
     isLoading,
     setIsLoading,
+    defaultMap,
   };
 }

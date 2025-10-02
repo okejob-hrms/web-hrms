@@ -19,7 +19,9 @@ export function LocationBadge({ lat, lng }: { lat: number; lng: number }) {
 
   return (
     <Badge variant="default" className="bg-blue-50 border-primary text-primary">
-      <MapPin />
+      <div className="w-6">
+        <MapPin size={16} />
+      </div>
       <div className="whitespace-normal break-words max-w-full">{location}</div>
     </Badge>
   );

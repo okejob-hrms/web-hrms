@@ -352,13 +352,13 @@ export default function AttendanceTrackerList() {
           />
 
           <Sheet open={openDetail} onOpenChange={setOpenDetail}>
-            <SheetContent className="md:min-w-3xl w-full bg-white">
+            <SheetContent className="md:min-w-2xl w-full bg-white">
               <SheetHeader>
                 <SheetTitle>Attendance Details</SheetTitle>
                 <SheetDescription>This is the details view.</SheetDescription>
               </SheetHeader>
-              <div className="space-y-2 px-6">
-                <div className="flex sm:flex-row flex-col justify-between gap-4">
+              <div className="px-6">
+                <div className="flex sm:flex-row flex-col justify-between gap-4 mb-3">
                   <div className="flex items-center gap-2 flex-1">
                     <Avatar className="h-12 w-12">
                       <AvatarImage
@@ -426,7 +426,7 @@ export default function AttendanceTrackerList() {
                 </div>
               </div>
 
-              <div className="bg-gray-100 p-6 space-y-6 flex-1 overflow-y-auto max-h-[550px]">
+              <div className="bg-gray-100 p-6 space-y-6 flex-1 overflow-y-auto border-t">
                 {detailData?.data.data.map((item, key) => {
                   return (
                     <div
@@ -469,8 +469,8 @@ export default function AttendanceTrackerList() {
                           </div>
                         </div>
 
-                        <div className="flex flex-col">
-                          <span className="text-muted-foreground text-md">
+                        <div className="flex flex-col space-y-2">
+                          <span className="text-muted-foreground text-xs">
                             Attendance Approval
                           </span>
                           <div className="flex gap-4">
@@ -502,7 +502,7 @@ export default function AttendanceTrackerList() {
                       </div>
                       <div className="flex flex-col gap-3 py-2 border-t">
                         <div className="flex flex-col space-y-1">
-                          <span className="text-muted-foreground text-md">
+                          <span className="text-muted-foreground text-sm">
                             Location
                           </span>
                           <LocationBadge
@@ -511,11 +511,11 @@ export default function AttendanceTrackerList() {
                           />
                         </div>
                         <div className="flex flex-col space-y-1">
-                          <span className="text-muted-foreground text-md">
+                          <span className="text-muted-foreground text-sm">
                             Notes
                           </span>
 
-                          <span className="text-muted-foreground text-md">
+                          <span className="text-muted-foreground text-sm">
                             {item.notes ?? '-'}
                           </span>
                         </div>
