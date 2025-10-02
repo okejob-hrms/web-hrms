@@ -2,104 +2,332 @@
 
 import * as React from 'react';
 import { DataTable } from '@/components/tables/data-table';
-import { PaginationState } from '@tanstack/react-table';
+import { ColumnDef } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
-import { Toolbar } from './sections/toolbar';
 import { Separator } from '@/components/ui/separator';
 import { Filters } from './types';
-import { useDebounce } from '@/hooks/use-debounce';
 import InfoList from '@/components/ui/info-list';
 import { useAttendance } from './hook';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Attendance } from '@/services/attendance/types';
+import { stringAvatar } from '@/lib/utils';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  Check,
+  Clock4Icon,
+  Edit3,
+  Ellipsis,
+  Eye,
+  Search,
+  Trash,
+  X,
+  XCircle,
+} from 'lucide-react';
+import Link from 'next/link';
+import { Badge } from '@/components/ui/badge';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
+import { getStatusAttendance } from '@/lib/helpers';
+import AttendanceApproveModal from './sections/approve-modal';
+import AttendanceRejectModal from './sections/reject-modal';
+import AttendanceDeleteModal from './sections/delete-modal';
+import { InputForm } from '@/components/ui/input';
+import { Form } from '@/components/ui/form';
+import { useForm } from 'react-hook-form';
+import { DatePicker } from '@/components/ui/date-picker';
+import dayjs from 'dayjs';
 
 export default function AttendanceTrackerList() {
   const router = useRouter();
 
-  // const [filters, setFilters] = React.useState<Filters>({
-  //   department_ids: [],
-  //   job_position_ids: [],
-  //   search: '',
-  // });
-
   const {
     attendances,
-    loading,
-    hasNextPage,
-    hasPreviousPage,
     pagination,
     setPagination,
-    columns,
+    stat,
+    selectedData,
+    setSelectedData,
+    openDetail,
+    setOpenDetail,
+    setSelectedId,
+    refetchDetail,
+    detailData,
+    handleGoDetailEmployee,
+    statEmployee,
+    handleApprove,
+    handleReject,
+    handleDelete,
+    setOpenApprove,
+    openApprove,
+    setOpenReject,
+    openReject,
+    setOpenDelete,
+    openDelete,
+    setFilters,
+    filters,
   } = useAttendance();
 
-  const handleFiltersChange = React.useCallback((newFilters: Filters) => {
-    // setFilters((prev) => ({
-    //   ...prev,
-    //   ...newFilters,
-    // }));
-    // reset ke page 1 kalau filter berubah
-    setPagination((prev) => ({ ...prev, pageIndex: 0 }));
-  }, []);
+  const columns: ColumnDef<Attendance>[] = [
+    {
+      accessorKey: 'name',
+      header: 'Name',
+      cell: ({ row }) => (
+        <div className="flex gap-4 items-center min-w-[150px]">
+          <Avatar className="h-10 w-10">
+            <AvatarImage src={`${row.original.avatar}`} />
+            <AvatarFallback className="text-primary-hover bg-primary-background text-base font-medium">
+              {stringAvatar(row.original.name ?? '')}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex flex-col">
+            <span className="font-semibold text-foreground text-sm">
+              {row.original.name}
+            </span>
+            <span className="text-text-secondary">
+              {row.original.id_number}
+            </span>
+          </div>
+        </div>
+      ),
+    },
 
-  console.log(attendances?.data?.data, attendances?.data, attendances);
+    {
+      accessorKey: 'latest_attendance',
+      header: 'Check-In & Out',
+      size: 200,
+      cell: ({ row }) => {
+        const att = row.original.latest_attendance;
+        if (!att) return '-';
+
+        return (
+          <div className="flex flex-col">
+            <span>
+              {att.clock.in_at || '-'} — {att.clock.out_at || '-'}
+            </span>
+            <span className="text-muted-foreground text-xs">
+              Duration {att.duration || '-'}
+            </span>
+            {att.clock.duration && (
+              <span className="text-muted-foreground text-xs">
+                Overtime {att.clock.duration}
+              </span>
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: 'latest_attendance.metadata.shift_name',
+      header: 'Shift',
+      size: 200,
+      cell: ({ row }) =>
+        row.original.latest_attendance?.metadata?.shift_name || '-',
+    },
+    {
+      accessorKey: 'latest_attendance.notes',
+      header: 'Notes',
+      size: 200,
+      cell: ({ row }) => row.original.latest_attendance?.notes || '-',
+    },
+    {
+      accessorKey: 'latest_attendance.status_label',
+      header: 'Status',
+      size: 160,
+      cell: ({ row }) => {
+        const status = row.original.latest_attendance?.status_label;
+        const { variant, className, label } = getStatusAttendance(status);
+
+        return (
+          <Badge variant={variant} className={className}>
+            {label}
+          </Badge>
+        );
+      },
+    },
+    {
+      accessorKey: 'menu',
+      header: '',
+      cell: ({ row }) => {
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger>
+              <Ellipsis className="text-grayscale-30" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem>
+                <button
+                  onClick={() => {
+                    setOpenDetail(true);
+                    setSelectedId(String(row.original.id));
+                    setSelectedData(row.original);
+                    refetchDetail();
+                  }}
+                  className="flex gap-2"
+                >
+                  <Eye />
+                  Attendance Details
+                </button>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <button
+                  onClick={() => {
+                    setOpenApprove(true);
+                    setSelectedId(String(row.original?.latest_attendance?.id));
+                  }}
+                  className="flex gap-2"
+                >
+                  <Clock4Icon />
+                  Approve Attendance
+                </button>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <button
+                  onClick={() => {
+                    setOpenReject(true);
+                    setSelectedId(String(row.original?.latest_attendance?.id));
+                  }}
+                  className="flex gap-2"
+                >
+                  <XCircle />
+                  Reject Attendance
+                </button>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Link
+                  href={`/attendance/attendance-tracker/${row.original.id}`}
+                  className="flex gap-2 justify-between items-center"
+                >
+                  <Edit3 />
+                  Edit Attendance Record
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <button
+                  onClick={() => {
+                    setOpenDelete(true);
+                    setSelectedId(String(row.original?.latest_attendance?.id));
+                  }}
+                  className="flex gap-2"
+                >
+                  <Trash />
+                  Delete Attendance
+                </button>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      },
+    },
+  ];
+
+  const form = useForm<Filters>({
+    defaultValues: {
+      search: '',
+      date: '',
+    },
+  });
 
   return (
-    <div className="font-sans min-h-screen flex flex-col space-y-6">
+    <div className="font-sans min-h-screen flex flex-col space-y-6 px-6">
       <h2 className="font-semibold text-xl">Summary</h2>
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid xl:grid-cols-3 grid-cols-1 gap-6">
         <InfoList
           title="Late Clock In"
-          increase="-5"
+          increase={stat?.late_clock_in?.change || 0}
           compare="vs"
           time="yesterday"
-          value={20}
+          value={stat?.late_clock_in?.current || 0}
         />
         <InfoList
-          title="Easy Clock In"
-          increase="-5"
+          title="Early Clock In"
+          increase={stat?.early_clock_in?.change || 0}
           compare="vs"
           time="yesterday"
-          value={80}
+          value={stat?.early_clock_in?.current || 0}
         />
         <InfoList
           title="Early Clock Out"
-          increase="+10"
+          increase={stat?.early_clock_out?.change || 0}
           compare="vs"
           time="yesterday"
-          value={125}
+          value={stat?.early_clock_out?.current || 0}
         />
       </div>
-      <div className="grid grid-cols-4 gap-6">
+      <div className="grid xl:grid-cols-4 grid-cols-1 gap-6">
         <InfoList
           title="On Time"
-          increase="+10"
+          increase={stat?.on_time?.change || 0}
           compare="vs"
           time="yesterday"
-          value={125}
+          value={stat?.on_time?.current || 0}
         />
         <InfoList
           title="Overtime"
-          increase="-5"
+          increase={stat?.overtime?.change || 0}
           compare="vs"
           time="yesterday"
-          value={20}
+          value={stat?.overtime?.current || 0}
         />
         <InfoList
           title="Absent"
-          increase="-5"
+          increase={stat?.absent?.change || 0}
           compare="vs"
           time="yesterday"
-          value={80}
+          value={stat?.absent?.current || 0}
         />
         <InfoList
           title="Day Off"
-          increase="-5"
+          increase={stat?.day_off?.change || 0}
           compare="vs"
           time="yesterday"
-          value={80}
+          value={stat?.day_off?.current || 0}
         />
       </div>
       <div className="flex flex-col justify-between gap-6 mt-5">
-        <Toolbar onFiltersChange={handleFiltersChange} />
+        <Form {...form}>
+          <form className="flex flex-col md:flex-row md:items-end gap-2 md:h-10">
+            <InputForm
+              name="search"
+              placeholder="Search by Employee Name or Email"
+              icon={<Search className="size-5 text-grayscale-20" />}
+              iconPosition="right"
+              value={filters.search}
+              onChange={(e) => {
+                setFilters((prev) => ({
+                  ...prev,
+                  search: e.target.value,
+                }));
+                setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+              }}
+            />
+
+            <Separator orientation="vertical" />
+
+            <DatePicker
+              className="min-w-[180px]"
+              name="date"
+              onChange={(e) => {
+                setFilters((prev) => ({
+                  ...prev,
+                  date: e ? dayjs(e).format('YYYY-MM-DD') : '',
+                }));
+                setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+              }}
+            />
+          </form>
+        </Form>
+
         <Separator />
         <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6">
           <div className="flex md:flex-row flex-col justify-between w-full md:items-center items-start gap-4">
@@ -117,6 +345,181 @@ export default function AttendanceTrackerList() {
             pagination={attendances?.data}
             paginationState={pagination}
             setPaginationState={setPagination}
+          />
+
+          <Sheet open={openDetail} onOpenChange={setOpenDetail}>
+            <SheetContent className="md:min-w-[500px] w-full bg-white">
+              <SheetHeader>
+                <SheetTitle>Attendance Details</SheetTitle>
+                <SheetDescription>This is the details view.</SheetDescription>
+              </SheetHeader>
+              <div className="space-y-2 px-6">
+                <div className="flex sm:flex-row flex-col justify-between gap-4">
+                  <div className="flex items-center gap-2 flex-1">
+                    <Avatar className="h-12 w-12">
+                      <AvatarImage
+                        className="size-12"
+                        src={`${selectedData?.avatar}`}
+                        alt={selectedData?.name}
+                      />
+                      <AvatarFallback className="text-base font-medium">
+                        {stringAvatar(selectedData?.name || '')}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col">
+                      <span className="text-foreground text-base">
+                        {selectedData?.name}
+                      </span>
+                      <span className="text-text-disabled text-xs">
+                        {selectedData?.email ?? '-'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    onClick={() =>
+                      handleGoDetailEmployee(Number(selectedData?.id_number))
+                    }
+                  >
+                    <Eye />
+                    Employee Details
+                  </Button>
+                </div>
+
+                <div className="py-3 flex sm:flex-row flex-col justify-between">
+                  <div className="gap-2">
+                    <div className="font-semibold text-xs">Late Check In</div>
+                    <h3 className="text-primary font-bold">
+                      {statEmployee?.clock_in?.late}
+                    </h3>
+                  </div>
+                  <div className="gap-2">
+                    <div className="font-semibold text-xs">Early Clock Out</div>
+                    <h3 className="text-primary font-bold">
+                      {statEmployee?.clock_out?.early}
+                    </h3>
+                  </div>
+                  <div className="gap-2">
+                    <div className="font-semibold text-xs">Overtime</div>
+                    <h3 className="text-primary font-bold">
+                      {statEmployee?.overtime}
+                    </h3>
+                  </div>
+                  <div className="gap-2">
+                    <div className="font-semibold text-xs">Absent</div>
+                    <h3 className="text-primary font-bold">
+                      {Math.round(statEmployee?.absent || 0)}
+                    </h3>
+                  </div>
+                  <div className="gap-2">
+                    <div className="font-semibold text-xs">Day Off</div>
+                    <h3 className="text-primary font-bold">
+                      {statEmployee?.day_off?.used}/
+                      {statEmployee?.day_off?.quota}
+                    </h3>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gray-100 p-6 space-y-6 flex-1">
+                {detailData?.data.data.map((item, key) => {
+                  const { variant, className, label } = getStatusAttendance(
+                    item.status_label,
+                  );
+
+                  return (
+                    <div
+                      className="border rounded-md p-4 bg-white space-y-5"
+                      key={key}
+                    >
+                      <div className="flex sm:flex-row flex-col gap-4">
+                        <div className="text-primary font-bold">
+                          {item.attendance_date}
+                        </div>
+                        <Badge variant={variant} className={className}>
+                          {label}
+                        </Badge>
+                      </div>
+                      <div className="flex sm:flex-row flex-col gap-4 justify-between">
+                        <div className="flex flex-col">
+                          <span>
+                            {item.clock.in_at || '-'} —{' '}
+                            {item.clock.out_at || '-'}
+                          </span>
+                          <span className="text-muted-foreground text-xs">
+                            Duration {item.duration || '-'}
+                          </span>
+                        </div>
+
+                        <div className="flex flex-col">
+                          <span className="text-muted-foreground">
+                            Duration
+                          </span>
+                          <div className="flex gap-4">
+                            <Button
+                              variant="destructive"
+                              onClick={() => {
+                                setOpenReject(true);
+                                setSelectedId(String(item.id));
+                              }}
+                            >
+                              <X />
+                              Reject
+                            </Button>
+                            <Button
+                              variant="default"
+                              onClick={() => {
+                                setOpenApprove(true);
+                                setSelectedId(String(item.id));
+                              }}
+                            >
+                              <Check />
+                              Approve
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex flex-col gap-3 py-2 border-t">
+                        <div className="flex flex-col space-y-2">
+                          <span className="text-muted-foreground">
+                            Location
+                          </span>
+                          <Badge variant="default">
+                            {item.location.latitude}, {item.location.longitude}
+                          </Badge>
+                        </div>
+                        <div className="flex flex-col space-y-2">
+                          <span className="text-muted-foreground">Notes</span>
+
+                          <span className="text-muted-foreground">
+                            {item.notes ?? '-'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </SheetContent>
+          </Sheet>
+
+          <AttendanceApproveModal
+            onUpdate={() => handleApprove()}
+            isOpen={openApprove}
+            setIsOpen={(e) => setOpenApprove(e)}
+          />
+
+          <AttendanceRejectModal
+            onUpdate={() => handleReject()}
+            isOpen={openReject}
+            setIsOpen={(e) => setOpenReject(e)}
+          />
+
+          <AttendanceDeleteModal
+            onUpdate={() => handleDelete()}
+            isOpen={openDelete}
+            setIsOpen={(e) => setOpenDelete(e)}
           />
         </div>
       </div>

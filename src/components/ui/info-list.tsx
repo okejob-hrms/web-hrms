@@ -5,7 +5,7 @@ import * as React from 'react';
 
 type InfoListProps = {
   title: string;
-  increase?: string;
+  increase?: number;
   compare?: string;
   time?: string;
   value: number;
@@ -28,7 +28,7 @@ export default function InfoList({
               {increase && (
                 <div className="flex flex-row gap-2">
                   <Badge
-                    className={`${increase.includes('-') ? 'bg-warning-background text-orange-500' : 'bg-success-background text-success'} rounded-xl`}
+                    className={`${String(increase).includes('-') ? 'bg-warning-background text-orange-500' : 'bg-success-background text-success'} rounded-xl`}
                   >
                     {increase}
                   </Badge>

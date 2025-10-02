@@ -1,5 +1,5 @@
-import * as React from "react";
-import { useFormContext } from "react-hook-form";
+import * as React from 'react';
+import { useFormContext } from 'react-hook-form';
 import {
   FormControl,
   FormDescription,
@@ -7,15 +7,15 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { cn } from "@/lib/utils";
-import { InputFormProps, InputProps } from "@/lib/types";
+} from '@/components/ui/form';
+import { cn } from '@/lib/utils';
+import { InputFormProps, InputProps } from '@/lib/types';
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ icon, iconPosition = "left", className, ...props }, ref) => {
+  ({ icon, iconPosition = 'left', className, ...props }, ref) => {
     return (
       <div className={`relative w-full ${className}`}>
-        {icon && iconPosition === "left" && (
+        {icon && iconPosition === 'left' && (
           <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
             {icon}
           </span>
@@ -23,21 +23,21 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         <input
           ref={ref}
           className={`
-            flex h-10 w-full rounded-sm border border-input
+            h-10 w-full rounded-sm border border-input
             px-3 py-2 text-sm ring-offset-background
             file:border-0 file:bg-transparent file:text-sm file:font-medium
             placeholder:text-text-disabled
             focus-visible:outline-none focus-visible:ring-2 
             focus-visible:ring-ring focus-visible:ring-offset-2
             disabled:cursor-not-allowed disabled:opacity-50
-            ${icon && iconPosition === "left" ? "pl-10" : ""}
-            ${icon && iconPosition === "right" ? "pr-10" : ""}
-            ${props.disabled && "bg-grayscale-30"}
+            ${icon && iconPosition === 'left' ? 'pl-10' : ''}
+            ${icon && iconPosition === 'right' ? 'pr-10' : ''}
+            ${props.disabled && 'bg-grayscale-30'}
           `}
           {...props}
         />
 
-        {icon && iconPosition === "right" && (
+        {icon && iconPosition === 'right' && (
           <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
             {icon}
           </span>
@@ -47,7 +47,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
   },
 );
 
-Input.displayName = "Input";
+Input.displayName = 'Input';
 
 const InputForm: React.FC<InputFormProps> = ({
   name,
@@ -67,10 +67,10 @@ const InputForm: React.FC<InputFormProps> = ({
       control={control}
       name={name}
       render={({ field }) => (
-        <FormItem className={cn("", props.className)}>
+        <FormItem className={cn('', props.className)}>
           {label && (
             <FormLabel
-              className={cn("text-sm font-normal gap-0", labelClassName)}
+              className={cn('text-sm font-normal gap-0', labelClassName)}
             >
               {label}
               {required && <span className="text-error">*</span>}
@@ -83,23 +83,23 @@ const InputForm: React.FC<InputFormProps> = ({
             <Input
               {...field}
               placeholder={placeholder}
-              className={cn("", inputClassName)}
-              type={props.type || "text"}
+              className={cn('', inputClassName)}
+              type={props.type || 'text'}
               disabled={props.disabled}
               autoComplete={props.autoComplete}
               onChange={(e) => {
                 if (
-                  props.type === "number" ||
-                  name === "height" ||
-                  name === "weight"
+                  props.type === 'number' ||
+                  name === 'height' ||
+                  name === 'weight'
                 ) {
                   const value = e.target.value;
-                  field.onChange(value === "" ? "" : Number(value));
+                  field.onChange(value === '' ? '' : Number(value));
                 } else {
                   field.onChange(e.target.value);
                 }
               }}
-              value={field.value ?? ""}
+              value={field.value ?? ''}
               {...props}
             />
           </FormControl>

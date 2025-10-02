@@ -1,9 +1,9 @@
-import { AlertDialogFooter } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
   AlertDialogContent,
   AlertDialogTitle,
+  AlertDialogFooter,
 } from '@/components/ui/alert-dialog';
 import Image from 'next/image';
 

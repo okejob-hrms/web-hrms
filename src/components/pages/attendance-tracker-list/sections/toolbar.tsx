@@ -1,15 +1,15 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import { InputForm } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
-import { Search, Settings } from 'lucide-react';
+import { Search } from 'lucide-react';
 import * as React from 'react';
 // import { MultiSelectForm } from '@/components/ui/multi-select';
 import { Filters } from '../types';
 import { AdvancedFilter } from './advanced-filters';
-import { useForm, useWatch } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { Form } from '@/components/ui/form';
+import { DatePicker } from '@/components/ui/date-picker';
 
 interface ToolbarProps {
   onFiltersChange: (filters: Filters) => void;
@@ -19,23 +19,13 @@ export const Toolbar = React.memo(function Toolbar({
   onFiltersChange,
 }: ToolbarProps) {
   const initValues = {
-    department_ids: [],
-    job_position_ids: [],
+    date: '',
     search: '',
   };
   const [isAdvanced, setIsAdvanced] = React.useState(false);
   const form = useForm<Filters>({
     defaultValues: initValues,
     mode: 'onChange',
-  });
-
-  const departmentIds = useWatch({
-    control: form.control,
-    name: 'department_ids',
-  });
-  const jobPositionIds = useWatch({
-    control: form.control,
-    name: 'job_position_ids',
   });
 
   const debouncedSubmit = React.useRef<NodeJS.Timeout | null>(null);
@@ -45,10 +35,6 @@ export const Toolbar = React.memo(function Toolbar({
       console.log('Basic filter submit:', values);
       onFiltersChange({
         ...values,
-        department_ids: values.department_ids?.flatMap((item) => Number(item)),
-        job_position_ids: values.job_position_ids?.flatMap((item) =>
-          Number(item),
-        ),
       });
     },
     [onFiltersChange],
@@ -70,7 +56,7 @@ export const Toolbar = React.memo(function Toolbar({
         clearTimeout(debouncedSubmit.current);
       }
     };
-  }, [departmentIds, jobPositionIds, form, onSubmit]);
+  }, [form, onSubmit]);
 
   const handleAdvancedFilters = (filters: Filters) => {
     console.log('Advanced filters applied:', filters);
@@ -106,28 +92,13 @@ export const Toolbar = React.memo(function Toolbar({
         <div className="flex flex-col md:flex-row md:items-end gap-2 md:h-10">
           <InputForm
             name="search"
-            placeholder="Search by Employee Name or ID"
+            placeholder="Search by Employee Name or Email"
             icon={<Search className="size-5 text-grayscale-20" />}
             iconPosition="right"
             onKeyDown={handleSearchKeyPress}
           />
           <Separator orientation="vertical" />
-          <InputForm
-            type="datetime"
-            name="search"
-            placeholder="Search by Employee Name or ID"
-            icon={<Search className="size-5 text-grayscale-20" />}
-            iconPosition="right"
-            onKeyDown={handleSearchKeyPress}
-          />
-          <Button
-            variant="ghost"
-            className="text-primary"
-            type="button"
-            onClick={() => setIsAdvanced(true)}
-          >
-            <Settings /> Advanced Search
-          </Button>
+          <DatePicker name="date" label="" />
         </div>
       </form>
     </Form>

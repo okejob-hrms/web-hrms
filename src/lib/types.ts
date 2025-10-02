@@ -18,6 +18,8 @@ export interface PaginatedResponse<T> {
   to: number;
   total: number;
   last_page?: number;
+  next?: string | null;
+  prev?: string | null;
 }
 
 export interface ApiResponse<T> {
@@ -118,6 +120,7 @@ export type DatePickerProps = DayPickerProps & {
   value?: string;
   required?: boolean;
   placeholder?: string;
+  onChange?: (value?: Date) => void;
 };
 
 export interface TextareaFormProps

@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import { useFormContext } from "react-hook-form";
+import * as React from 'react';
+import { useFormContext } from 'react-hook-form';
 import {
   FormControl,
   FormDescription,
@@ -9,19 +9,19 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+} from '@/components/ui/form';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
-import { CalendarIcon, XCircle } from "lucide-react";
-import { Calendar } from "@/components/ui/calendar";
-import { BasicDatePickerProps, DatePickerProps } from "@/lib/types";
-import dayjs from "dayjs";
-import localizedFormat from "dayjs/plugin/localizedFormat";
+} from '@/components/ui/popover';
+import { CalendarIcon, XCircle } from 'lucide-react';
+import { Calendar } from '@/components/ui/calendar';
+import { BasicDatePickerProps, DatePickerProps } from '@/lib/types';
+import dayjs from 'dayjs';
+import localizedFormat from 'dayjs/plugin/localizedFormat';
 
 dayjs.extend(localizedFormat);
 
@@ -33,6 +33,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
   labelClassName,
   // required,
   placeholder,
+  onChange,
   ...props
 }) => {
   const { control } = useFormContext();
@@ -47,12 +48,13 @@ export const DatePicker: React.FC<DatePickerProps> = ({
 
         const handleClear = () => {
           field.onChange(null);
+          onChange?.(undefined);
         };
 
         return (
-          <FormItem className={cn("", props.className)}>
+          <FormItem className={cn('', props.className)}>
             {label && (
-              <FormLabel className={cn("text-sm font-normal", labelClassName)}>
+              <FormLabel className={cn('text-sm font-normal', labelClassName)}>
                 {label}
                 {isOptional && (
                   <span className="text-text-disabled"> (optional)</span>
@@ -70,9 +72,9 @@ export const DatePicker: React.FC<DatePickerProps> = ({
                       className="data-[empty=true]:text-muted-foreground justify-between text-left font-normal border-input h-10 rounded-sm text-foreground w-full pr-16"
                     >
                       {hasValue ? (
-                        dayjs(props.value || field.value).format("ll")
+                        dayjs(props.value || field.value).format('ll')
                       ) : (
-                        <span>{placeholder ?? "Pick a date"}</span>
+                        <span>{placeholder ?? 'Pick a date'}</span>
                       )}
                       <CalendarIcon className="h-4 w-4 text-muted-foreground" />
                     </Button>
@@ -84,6 +86,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
                       onSelect={(date) => {
                         field.onChange(date);
                         setIsOpen(false);
+                        onChange?.(date);
                       }}
                       captionLayout="dropdown"
                     />
@@ -130,9 +133,9 @@ export const BasicDatePicker: React.FC<BasicDatePickerProps> = (props) => {
               className="data-[empty=true]:text-muted-foreground justify-between text-left font-normal border-input h-10 rounded-sm text-foreground w-full pr-16"
             >
               {hasValue ? (
-                dayjs(props.value).format("ll")
+                dayjs(props.value).format('ll')
               ) : (
-                <span>{props.placeholder ?? "Pick a date"}</span>
+                <span>{props.placeholder ?? 'Pick a date'}</span>
               )}
               <CalendarIcon className="h-4 w-4 text-muted-foreground" />
             </Button>

@@ -14,28 +14,96 @@ import { AttendanceFormValues, useAttendenceForm } from './hook';
 import TitleContent from '@/components/ui/title';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogFooter,
+} from '@/components/ui/alert-dialog';
+import MapPicker from '@/components/ui/map';
+import { MapPinIcon } from 'lucide-react';
+import { DatePicker } from '@/components/ui/date-picker';
+import { SelectEmployeeForm } from '@/components/ui/select-form';
+import EmployeeUpdateModal from './sections/edit-modal';
 
-export default function AttendanceTrackerForm() {
-  const { form, onSubmit, handleBack } = useAttendenceForm();
+type AttendanceTrackerFormProps = {
+  id?: string;
+};
+
+export default function AttendanceTrackerForm({
+  id,
+}: AttendanceTrackerFormProps) {
+  const {
+    form,
+    onSubmit,
+    handleBack,
+    shiftData,
+    setOpenMap,
+    openMap,
+    handleSetMap,
+    selectedMap,
+    setSelectedMap,
+    map,
+    employeesOptions,
+    handleDetailData,
+  } = useAttendenceForm();
 
   const handleSubmit = (values: AttendanceFormValues) => {
-    onSubmit({ ...values });
+    onSubmit({ ...values, longitude: map.lng, latitude: map.lat });
   };
+
+  React.useEffect(() => {
+    if (id) {
+      handleDetailData(id);
+    }
+  }, [id]);
 
   return (
     <div className="max-w-4xl mx-auto font-sans min-h-screen flex flex-col space-y-6">
-      <TitleContent label="Add Attendance Record" />
+      <TitleContent label={`${id ? 'Edit' : 'Add'} Attendance Record`} />
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
-          <div className="grid grid-cols-2 gap-4">
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <div className="grid sm:grid-cols-2 grid-cols-1 gap-4">
+            <SelectEmployeeForm
+              name="user_id"
+              label="Employee Name"
+              required
+              options={employeesOptions}
+            />
+          </div>
+
+          <div className="grid sm:grid-cols-4 grid-cols-1 gap-4">
+            <DatePicker name="attendance_date" label="Date" />
+
             <FormField
               control={form.control}
-              name="employee_id"
+              name="shift_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Employee Name</FormLabel>
+                  <FormLabel>Shift</FormLabel>
                   <FormControl>
-                    <Input placeholder="Company Name" {...field} />
+                    <Select
+                      onValueChange={(val) => field.onChange(Number(val))}
+                      value={String(field.value)}
+                      defaultValue={String(field.value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select option" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {shiftData?.data.map((item, i) => (
+                          <SelectItem value={String(item.id)} key={i}>
+                            {item.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -43,23 +111,7 @@ export default function AttendanceTrackerForm() {
             />
           </div>
 
-          <div className="grid grid-cols-4 gap-4">
-            <FormField
-              control={form.control}
-              name="employee_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Date</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid sm:grid-cols-4 grid-cols-1 gap-4">
             <FormField
               control={form.control}
               name="clock_in_at"
@@ -88,6 +140,21 @@ export default function AttendanceTrackerForm() {
             />
           </div>
 
+          <div className="grid sm:grid-cols-4 grid-cols-1 gap-4">
+            <div className="space-y-2">
+              <FormLabel>Location</FormLabel>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setOpenMap(true)}
+                className="min-w-[100px]"
+              >
+                <MapPinIcon />
+                Select Location
+              </Button>
+            </div>
+          </div>
+
           <FormField
             control={form.control}
             name="note"
@@ -111,12 +178,43 @@ export default function AttendanceTrackerForm() {
             >
               Cancel
             </Button>
-            <Button type="submit" className="min-w-[100px]">
-              Save
-            </Button>
+            {id ? (
+              <EmployeeUpdateModal
+                onUpdate={() => form.handleSubmit(handleSubmit)()}
+              />
+            ) : (
+              <Button type="submit" className="min-w-[100px]">
+                Save
+              </Button>
+            )}
           </div>
         </form>
       </Form>
+
+      <AlertDialog open={openMap} onOpenChange={setOpenMap}>
+        <AlertDialogContent className="w-full max-w-md sm:max-w-md text-center bg-white">
+          <div className="flex flex-col items-center justify-center mb-4">
+            <MapPicker location={selectedMap} setLocation={setSelectedMap} />
+          </div>
+          <AlertDialogFooter className="flex flex-row gap-2 w-full justify-center">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpenMap(false)}
+              className="min-w-[100px]"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={() => handleSetMap()}
+              className="min-w-[100px]"
+            >
+              Save Location
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
