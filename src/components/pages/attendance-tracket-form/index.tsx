@@ -26,11 +26,13 @@ import {
   AlertDialogContent,
   AlertDialogFooter,
 } from '@/components/ui/alert-dialog';
-import MapPicker from '@/components/ui/map';
 import { MapPinIcon } from 'lucide-react';
 import { DatePicker } from '@/components/ui/date-picker';
 import { SelectEmployeeForm } from '@/components/ui/select-form';
 import EmployeeUpdateModal from './sections/edit-modal';
+import dynamic from 'next/dynamic';
+
+const MapPicker = dynamic(() => import('@/components/ui/map'), { ssr: false });
 
 type AttendanceTrackerFormProps = {
   id?: string;
@@ -52,6 +54,7 @@ export default function AttendanceTrackerForm({
     map,
     employeesOptions,
     handleDetailData,
+    isLoading,
   } = useAttendenceForm();
 
   const handleSubmit = (values: AttendanceFormValues) => {
@@ -181,9 +184,14 @@ export default function AttendanceTrackerForm({
             {id ? (
               <EmployeeUpdateModal
                 onUpdate={() => form.handleSubmit(handleSubmit)()}
+                isLoading={isLoading}
               />
             ) : (
-              <Button type="submit" className="min-w-[100px]">
+              <Button
+                type="submit"
+                className="min-w-[100px]"
+                isLoading={isLoading}
+              >
                 Save
               </Button>
             )}
@@ -209,6 +217,7 @@ export default function AttendanceTrackerForm({
               type="button"
               onClick={() => handleSetMap()}
               className="min-w-[100px]"
+              isLoading={isLoading}
             >
               Save Location
             </Button>

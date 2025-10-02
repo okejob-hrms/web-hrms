@@ -1,7 +1,7 @@
 'use client';
 
-import AttendanceTrackerForm from '@/components/pages/attendance-tracket-form';
 import React from 'react';
+import AttendanceTrackerForm from '@/components/pages/attendance-tracket-form';
 
 export default function AttendanceTrackerAdd() {
   return (

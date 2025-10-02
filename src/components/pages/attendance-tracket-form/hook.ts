@@ -42,6 +42,7 @@ type AttendancePayload = Omit<AttendanceFormValues, "attendance_date" | "user_id
 export function useAttendenceForm() {
   const router = useRouter();
   const [openMap, setOpenMap] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [selectedId, setSelectedId] = useState<string>('');
   const [map, setMap] = useState({
     lat: 0,
@@ -78,7 +79,6 @@ export function useAttendenceForm() {
     placeholderData: keepPreviousData,
   });
 
-
   const employeesOptions = useMemo(() => {
     if (employeesList?.data?.data) {
       return employeesList.data.data.map((item) => ({
@@ -90,7 +90,6 @@ export function useAttendenceForm() {
     }
     return [];
   }, [employeesList?.data]);
-
 
   const mapResponseToForm = (data: AttendanceDetail): AttendanceFormValues => {
     return {
@@ -107,8 +106,6 @@ export function useAttendenceForm() {
     };
   };
 
-  
-  
   const form = useForm<AttendanceFormValues>({
     resolver: zodResolver(attendanceSchema),
     defaultValues:{},
@@ -119,7 +116,6 @@ export function useAttendenceForm() {
       const detail = detailData.data.data[0];
       form.reset(mapResponseToForm(detail));
 
-      // update map lokasi di sini
       setSelectedMap({
         lat: Number(detail.location.latitude),
         lng: Number(detail.location.longitude),
@@ -127,36 +123,39 @@ export function useAttendenceForm() {
     }
   }, [detailData, form]);
 
-  const mutation = useMutation<unknown, unknown, { selectedId?: string; payload: AttendancePayload }>({
-    mutationFn: ({ selectedId, payload }) => {
+  const mutation = useMutation<unknown, unknown, { selectedId?: string; attendanceId:string; payload: AttendancePayload }>({
+    mutationFn: ({ selectedId,attendanceId,  payload }) => {
       if (selectedId) {
-        return putAttendance(selectedId, payload);
+        return putAttendance(attendanceId, payload);
       }
       return postAttendance(payload);
     },
     onSuccess: (_, { selectedId }) => {
       queryClient.invalidateQueries({ queryKey: ['attendanceDetail'] });
       toast.success(selectedId ? "Update attendance successful." : "Create attendance successful.");
+      setIsLoading(false);
       router.push('/attendance/attendance-tracker');
     },
     onError: (_, { selectedId }) => {
       toast.error(selectedId ? "Update attendance failed." : "Create attendance failed.");
+      setIsLoading(false);
     },
   });
 
 
   const onSubmit = (values: AttendanceFormValues) => {
+    setIsLoading(true);
     let payload: AttendancePayload & { status?: number } = {
       ...values,
       attendance_date: dayjs(values.attendance_date).format("YYYY-MM-DD"),
-      user_id: Number(values.user_id),
+      user_id: Number(values.user_id) + 1,
     };
 
     if (selectedId) {
       payload = { ...payload, status: 0 };
     }
 
-    mutation.mutate({ selectedId: String(detailData?.data.data[0].id), payload });
+    mutation.mutate({ selectedId,  attendanceId: String(detailData?.data.data[0].id), payload });
   };
 
   const handleBack = () => {
@@ -186,5 +185,7 @@ export function useAttendenceForm() {
     map,
     employeesOptions,
     handleDetailData,
+    isLoading,
+    setIsLoading,
   };
 }

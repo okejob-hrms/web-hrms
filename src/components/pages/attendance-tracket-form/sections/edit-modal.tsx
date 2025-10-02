@@ -14,9 +14,10 @@ import Image from 'next/image';
 
 interface Props {
   onUpdate: () => void;
+  isLoading: boolean;
 }
 
-export default function EmployeeUpdateModal({ onUpdate }: Props) {
+export default function EmployeeUpdateModal({ onUpdate, isLoading }: Props) {
   const [isOpen, setIsOpen] = useState(false);
 
   const handleUpdate = async (e: React.MouseEvent) => {
@@ -42,6 +43,7 @@ export default function EmployeeUpdateModal({ onUpdate }: Props) {
         type="button"
         onClick={() => setIsOpen(true)}
         className="md:min-w-[100px]"
+        isLoading={isLoading}
       >
         Update
       </Button>
