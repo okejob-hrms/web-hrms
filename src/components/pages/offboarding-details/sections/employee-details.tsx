@@ -10,6 +10,7 @@ dayjs.extend(localizedFormat);
 
 interface Props {
   data: IEmployeeDetailsResponse;
+  offboarding_id: number;
 }
 
 interface DirectReportEmployee {
@@ -35,7 +36,7 @@ const safeGet = (value: string | number): string => {
 };
 
 export const EmployeeDetailsSection = React.memo(
-  function EmployeeDetailsSection({ data }: Props) {
+  function EmployeeDetailsSection({ data, offboarding_id }: Props) {
     const [primaryDirectReports, setPrimaryDirectReports] = React.useState<
       DirectReportEmployee[]
     >([]);
@@ -308,7 +309,7 @@ export const EmployeeDetailsSection = React.memo(
           </div>
           <Separator className="md:col-span-3" />
         </div>
-        <OffboardingTab />
+        <OffboardingTab offboarding_id={offboarding_id} />
       </div>
     );
   },

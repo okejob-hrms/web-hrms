@@ -2,6 +2,18 @@ import { IEmployeeResponse } from "../../types";
 import { z } from "zod";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
+export interface WorkRecipient {
+  id: number;
+  handover_item_id: number;
+  user_id: number;
+  status: number;
+  updated_by: number | null;
+  received_at: string | null;
+  remarks: string | null;
+  created_at: string;
+  updated_at: string;
+  status_label: string;
+}
 export interface IWorkAndHandoverResponse {
   id: number;
   offboarding_id: number;
@@ -9,6 +21,7 @@ export interface IWorkAndHandoverResponse {
   name: string;
   notes: string;
   status: number;
+  status_label: string;
   expected_return_date: string | null;
   received_at: string | null;
   meta: {
@@ -21,7 +34,7 @@ export interface IWorkAndHandoverResponse {
   };
   created_at: string;
   updated_at: string;
-  recipients: IEmployeeResponse[];
+  recipients: WorkRecipient[];
 }
 
 const recipientSchema = z.object({

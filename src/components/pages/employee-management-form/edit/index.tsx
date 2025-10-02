@@ -221,11 +221,13 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
               (item) => item.relationship_type === "primary",
             )[0]?.employee_profile_id || 0,
           ),
-          additional_direct_report_id: Number(
-            employeeDetails.reporting_relationships.filter(
-              (item) => item.relationship_type === "secondary",
-            )[0]?.employee_profile_id || 0,
-          ),
+          additional_direct_report_id: (() => {
+            const secondaryReport =
+              employeeDetails.reporting_relationships.filter(
+                (item) => item.relationship_type === "secondary",
+              )[0]?.employee_profile_id;
+            return secondaryReport ? Number(secondaryReport) : null;
+          })(),
         }),
       };
 
@@ -341,7 +343,7 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
 
         if (
           values.additional_direct_report_id &&
-          values.additional_direct_report_id !== 0 &&
+          values.additional_direct_report_id > 0 &&
           values.additional_direct_report_id !== null
         ) {
           conditionalParams.additional_direct_report_id = Number(
@@ -374,10 +376,17 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
 
       if (
         name === "additional_direct_report_id" &&
-        value.additional_direct_report_id
+        value.additional_direct_report_id !== null &&
+        value.additional_direct_report_id !== undefined
       ) {
         const numValue = Number(value.additional_direct_report_id);
-        if (numValue !== value.additional_direct_report_id) {
+        // Prevent setting to 0
+        if (numValue === 0 || isNaN(numValue)) {
+          form.setValue("additional_direct_report_id", null);
+        } else if (
+          numValue > 0 &&
+          numValue !== value.additional_direct_report_id
+        ) {
           form.setValue("additional_direct_report_id", numValue);
         }
       }
