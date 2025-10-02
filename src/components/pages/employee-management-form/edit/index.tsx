@@ -29,14 +29,10 @@ import { useRouter } from "next/navigation";
 import EmployeeUpdateModal from "../sections/edit-modal";
 import ArchieveEmployeeModal from "../sections/archieve-employee-modal";
 import AppSkeleton from "@/components/partials/app-skeleton";
+import { ApiErrorResponse } from "@/lib/types";
 
 interface Props {
   employee_profile_id: number;
-}
-
-interface ApiErrorResponse {
-  message: string;
-  errors?: Record<string, string[]>;
 }
 
 export const EditEmployeeForm = React.memo(function EditEmployee({
