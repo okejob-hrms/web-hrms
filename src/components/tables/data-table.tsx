@@ -29,6 +29,7 @@ interface DataTableProps<TData, TValue = unknown> {
   columns: ColumnDef<TData, TValue>[];
   data?: TData[];
   tableClassName?: string;
+  wrapperTableClassName?: string;
   tableHeadClassName?: string;
   tableCellClassName?: string;
   customSize?: boolean;
@@ -45,6 +46,7 @@ export function DataTable<TData, TValue>({
   columns,
   data = [],
   tableClassName,
+  wrapperTableClassName,
   tableHeadClassName,
   tableCellClassName,
   customSize = false,
@@ -91,7 +93,7 @@ export function DataTable<TData, TValue>({
             </div>
           </>
         ) : (
-          <div className="overflow-x-auto">
+          <div className={cn("overflow-x-auto", wrapperTableClassName)}>
             <Table
               className={cn(
                 "w-full",

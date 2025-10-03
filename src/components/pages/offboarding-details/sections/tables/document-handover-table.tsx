@@ -26,10 +26,12 @@ import {
   deleteHandoverAssetsReturn,
   getHandoverAssetsReturn,
   storeWorkDocumentHandover,
+  updateWorkDocumentHandover,
 } from "@/services/employees/offboardings/handover-and-assets";
 import {
   IWorkAndHandoverResponse,
   IWorkDocumentHandoverRequest,
+  WorkRecipient,
 } from "@/services/employees/offboardings/handover-and-assets/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ColumnDef } from "@tanstack/react-table";
@@ -38,6 +40,14 @@ import * as React from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import DeleteDialog from "../modals/delete-modal";
+import Image from "next/image";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface TableProps {
   offboarding_id: number;
@@ -47,6 +57,7 @@ interface FormModalProps {
   offboarding_id: number;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  editData?: IWorkAndHandoverResponse | null;
 }
 
 const EmployeeProfile = React.memo(function EmployeeProfile({
@@ -68,8 +79,8 @@ const EmployeeProfile = React.memo(function EmployeeProfile({
   }
 
   return (
-    <div className="flex gap-1 items-center">
-      <Avatar className="h-5 w-5">
+    <div className="flex gap-1 items-center min-w-0">
+      <Avatar className="h-5 w-5 flex-shrink-0">
         <AvatarImage
           className="size-5"
           src={`${process.env.NEXT_PUBLIC_FILE_URL}/${data.data.photo_profile}`}
@@ -79,10 +90,14 @@ const EmployeeProfile = React.memo(function EmployeeProfile({
           {stringAvatar(data.data.user.name)}
         </AvatarFallback>
       </Avatar>
-      <span className="text-black">{data.data.user.name}</span>
-      <span className="text-text-disabled">
-        ({data.data.user.id}){data.data.employment.job_position.name}
-      </span>
+      <div className="flex flex-col sm:flex-row sm:items-center gap-1 min-w-0 flex-1">
+        <span className="text-black truncate text-sm sm:text-base">
+          {data.data.user.name}
+        </span>
+        <span className="text-text-disabled text-xs sm:text-sm truncate">
+          ({data.data.user.id}) {data.data.employment.job_position.name}
+        </span>
+      </div>
     </div>
   );
 });
@@ -93,7 +108,7 @@ const RecipientsList = React.memo(function RecipientsList({
   recipients: Array<{ id: number; user_id: number }>;
 }) {
   return (
-    <div className="space-y-1">
+    <div className="space-y-2">
       {recipients.map((item) => (
         <div key={item.id} className="block">
           <EmployeeProfile userId={item.user_id} />
@@ -104,13 +119,21 @@ const RecipientsList = React.memo(function RecipientsList({
 });
 
 export const FormModal = React.memo(function FormModal({
+  editData,
   offboarding_id,
   open,
   onOpenChange,
 }: FormModalProps) {
   const queryClient = useQueryClient();
   const [searchEmployee, setSearchEmployee] = React.useState("");
+  const [defaultRecipients, setDefaultRecipients] = React.useState<string[]>(
+    [],
+  );
+  const [selectedRecipients, setSelectedRecipients] = React.useState<
+    WorkRecipient[]
+  >([]);
   const debouncedEmployee = useDebounce(searchEmployee, 300);
+  const isEditMode = !!editData;
 
   const form = useForm<IWorkDocumentHandoverRequest>({
     defaultValues: {
@@ -129,7 +152,7 @@ export const FormModal = React.memo(function FormModal({
     refetchOnWindowFocus: false,
   });
 
-  const mutation = useMutation({
+  const createMutation = useMutation({
     mutationFn: (data: IWorkDocumentHandoverRequest) =>
       storeWorkDocumentHandover(offboarding_id, data),
     onSuccess: () => {
@@ -143,24 +166,44 @@ export const FormModal = React.memo(function FormModal({
     },
   });
 
+  const updateMutation = useMutation({
+    mutationFn: (data: IWorkDocumentHandoverRequest) =>
+      updateWorkDocumentHandover(offboarding_id, data, editData!.id),
+    onSuccess: () => {
+      toast.success("Document handover updated successfully");
+      form.reset();
+      onOpenChange(false);
+      queryClient.invalidateQueries({ queryKey: ["document-handover"] });
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to update document handover");
+    },
+  });
+
   const employeesOptions = React.useMemo(() => {
     if (employees?.data?.data) {
       return employees.data.data.map((item) => ({
         label: item.name,
-        value: item.user_id.toString(),
+        value: item.id.toString(),
       }));
     }
     return [];
   }, [employees?.data]);
 
   const handleSubmit = (values: IWorkDocumentHandoverRequest) => {
-    mutation.mutate({
+    const payload = {
       ...values,
-      recipients: values.recipients.map((item) => ({
-        user_id: item as unknown as number,
-        status: 1,
+      recipients: selectedRecipients.map((recipient) => ({
+        user_id: recipient.user_id,
+        status: recipient.status || 1,
       })),
-    });
+    };
+
+    if (isEditMode) {
+      updateMutation.mutate(payload);
+    } else {
+      createMutation.mutate(payload);
+    }
   };
 
   const handleCancel = () => {
@@ -168,22 +211,58 @@ export const FormModal = React.memo(function FormModal({
     onOpenChange(false);
   };
 
-  // Reset form when modal closes
   React.useEffect(() => {
-    if (!open) {
-      form.reset();
+    if (open && editData) {
+      const recipientIds = editData.recipients.map((r) => r.user_id.toString());
+      setDefaultRecipients(recipientIds);
+
+      form.reset({
+        category: "document",
+        name: editData.name || "",
+        recipients: recipientIds as any,
+      });
+
+      if (editData.recipients) {
+        setSelectedRecipients(editData.recipients);
+      }
+    } else if (open) {
+      setDefaultRecipients([]);
+      setSelectedRecipients([]);
+      form.reset({
+        category: "document",
+        name: "",
+        recipients: [],
+      });
     }
-  }, [open, form]);
+  }, [open, editData, form]);
+
+  const handleRemove = (userId: number) => {
+    setSelectedRecipients((prev) =>
+      prev.filter((recipient) => recipient.user_id !== userId),
+    );
+
+    const currentRecipients = form.getValues("recipients") || [];
+    const updatedRecipients = currentRecipients.filter(
+      (item) => Number(item) !== userId,
+    );
+    form.setValue("recipients", updatedRecipients);
+
+    setDefaultRecipients((prev) => prev.filter((id) => Number(id) !== userId));
+  };
+
+  const isPending = createMutation.isPending || updateMutation.isPending;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-white md:min-w-5xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Document Handover</DialogTitle>
+          <DialogTitle className="text-lg sm:text-xl">
+            {isEditMode ? "Edit" : "Add"} Document Handover
+          </DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form
-            className="space-y-4"
+            className="space-y-4 p-1"
             onSubmit={form.handleSubmit(handleSubmit)}
           >
             <InputForm label="Document Name" name="name" required />
@@ -201,22 +280,78 @@ export const FormModal = React.memo(function FormModal({
                 valueTransformer={(value) => Number(value)}
                 searchValue={searchEmployee}
                 onSearchChange={setSearchEmployee}
+                defaultValue={defaultRecipients}
               />
             </div>
-            <DialogFooter>
+            <div className="flex flex-col w-full space-y-3">
+              {selectedRecipients.map((item) => (
+                <div
+                  className="flex flex-col sm:flex-row sm:items-center gap-3 p-1 pb-2 border-b-2"
+                  key={item.user_id}
+                >
+                  <div className="flex-1 min-w-0">
+                    <EmployeeProfile userId={item.user_id} />
+                  </div>
+                  <div className="flex gap-2 items-center flex-wrap">
+                    <Select
+                      value={item.status?.toString() || "1"}
+                      onValueChange={(value) => {
+                        setSelectedRecipients((prev) =>
+                          prev.map((recipient) =>
+                            recipient.user_id === item.user_id
+                              ? { ...recipient, status: Number(value) }
+                              : recipient,
+                          ),
+                        );
+                      }}
+                    >
+                      <SelectTrigger className="min-w-[120px]">
+                        <SelectValue placeholder="Select Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">Pending</SelectItem>
+                        <SelectItem value="2">Waiting Approval</SelectItem>
+                        <SelectItem value="3">Received</SelectItem>
+                        <SelectItem value="4">Rejected</SelectItem>
+                        <SelectItem value="5">Awaiting Return</SelectItem>
+                        <SelectItem value="6">Returned</SelectItem>
+                        <SelectItem value="7">Lost</SelectItem>
+                        <SelectItem value="8">Damaged</SelectItem>
+                        <SelectItem value="9">Cancelled</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <button
+                      type="button"
+                      onClick={() => handleRemove(item.user_id)}
+                      className="text-gray-500 hover:text-gray-700 p-1 rounded hover:bg-gray-200 transition-colors"
+                    >
+                      <Image
+                        src="/icons/deleteOutlined.svg"
+                        width={16}
+                        height={16}
+                        alt="delete"
+                      />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <DialogFooter className="flex flex-col sm:flex-row md:gap-4 sm:gap-0">
               <Button
                 type="button"
                 variant="outline"
                 onClick={handleCancel}
-                disabled={mutation.isPending}
+                disabled={isPending}
+                className="w-full sm:w-auto order-2 sm:order-1"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
-                disabled={mutation.isPending || !form.formState.isValid}
+                disabled={isPending || !form.formState.isValid}
+                className="w-full sm:w-auto order-1 sm:order-2"
               >
-                {mutation.isPending ? "Saving..." : "Save"}
+                {isPending ? "Saving..." : "Save"}
               </Button>
             </DialogFooter>
           </form>
@@ -233,6 +368,8 @@ export const DocumentHandoverTable = React.memo(function DocumentHandoverTable({
     React.useState<IWorkAndHandoverResponse | null>(null);
   const [isFormModalOpen, setFormModalOpen] = React.useState(false);
   const [isDeleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
+  const [editItem, setEditItem] =
+    React.useState<IWorkAndHandoverResponse | null>(null);
   const [openDropdownId, setOpenDropdownId] = React.useState<number | null>(
     null,
   );
@@ -283,7 +420,7 @@ export const DocumentHandoverTable = React.memo(function DocumentHandoverTable({
   const handleOpenDeleteDialog = (item: IWorkAndHandoverResponse) => {
     setSelectedItem(item);
     setDeleteDialogOpen(true);
-    setOpenDropdownId(null); // Close dropdown when opening dialog
+    setOpenDropdownId(null);
   };
 
   const handleCloseDeleteDialog = () => {
@@ -292,9 +429,21 @@ export const DocumentHandoverTable = React.memo(function DocumentHandoverTable({
   };
 
   const handleOpenEditDialog = (item: IWorkAndHandoverResponse) => {
-    setOpenDropdownId(null); // Close dropdown when opening edit
-    // TODO: Implement edit functionality
-    console.log("Edit item:", item);
+    setEditItem(item);
+    setFormModalOpen(true);
+    setOpenDropdownId(null);
+  };
+
+  const handleAddNew = () => {
+    setEditItem(null);
+    setFormModalOpen(true);
+  };
+
+  const handleCloseFormModal = (open: boolean) => {
+    if (!open) {
+      setEditItem(null);
+    }
+    setFormModalOpen(open);
   };
 
   const columns: ColumnDef<IWorkAndHandoverResponse>[] = React.useMemo(
@@ -302,7 +451,11 @@ export const DocumentHandoverTable = React.memo(function DocumentHandoverTable({
       {
         accessorKey: "name",
         header: "Document Name",
-        size: 300,
+        cell: ({ row }) => (
+          <div className="min-w-[150px] max-w-[300px] break-words">
+            {row.original.name}
+          </div>
+        ),
       },
       {
         accessorKey: "recipients",
@@ -317,12 +470,12 @@ export const DocumentHandoverTable = React.memo(function DocumentHandoverTable({
         header: "Status",
         cell: ({ row }) => {
           return (
-            <div className="space-y-1">
+            <div className="space-y-1 min-w-[120px]">
               {row.original.recipients.map((item) => (
                 <div
                   key={item.id}
                   className={cn(
-                    "text-center text-xs rounded-full px-1.5 py-1",
+                    "text-center text-xs rounded-full px-1.5 py-1 truncate",
                     item.status === 3 || item.status === 6
                       ? "bg-success-background text-success-hover"
                       : item.status === 1 ||
@@ -338,15 +491,17 @@ export const DocumentHandoverTable = React.memo(function DocumentHandoverTable({
             </div>
           );
         },
-        size: 200,
       },
       {
         accessorKey: "received_at",
         header: "Received Date",
         cell: ({ row }) => {
-          return <span>{row.original.received_at ?? "-"}</span>;
+          return (
+            <div className="min-w-[100px]">
+              <span className="text-sm">{row.original.received_at ?? "-"}</span>
+            </div>
+          );
         },
-        size: 150,
       },
       {
         id: "actions",
@@ -369,18 +524,10 @@ export const DocumentHandoverTable = React.memo(function DocumentHandoverTable({
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-white">
-                <DropdownMenuItem
-                  className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 cursor-pointer select-none"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    handleOpenDeleteDialog(item);
-                  }}
-                >
-                  <Trash2 className="w-4 h-4" />
-                  Delete
-                </DropdownMenuItem>
+              <DropdownMenuContent
+                align="end"
+                className="bg-white min-w-[120px]"
+              >
                 <DropdownMenuItem
                   className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 cursor-pointer select-none"
                   onClick={(e) => {
@@ -390,7 +537,18 @@ export const DocumentHandoverTable = React.memo(function DocumentHandoverTable({
                   }}
                 >
                   <Edit3 className="w-4 h-4" />
-                  Edit
+                  <span>Edit</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 cursor-pointer select-none"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    handleOpenDeleteDialog(item);
+                  }}
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span>Delete</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -403,11 +561,15 @@ export const DocumentHandoverTable = React.memo(function DocumentHandoverTable({
   );
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex justify-between">
-        <h4 className="font-semibold text-lg">Document Handover</h4>
-        <Button className="w-fit" onClick={() => setFormModalOpen(true)}>
-          Add <Plus className="w-4 h-4 ml-2" />
+    <div className="flex flex-col gap-4 w-full">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+        <h4 className="font-semibold text-lg sm:text-xl">Document Handover</h4>
+        <Button
+          className="w-full sm:w-fit flex items-center justify-center gap-2"
+          onClick={handleAddNew}
+        >
+          <Plus className="w-4 h-4" />
+          Add New
         </Button>
       </div>
 
@@ -415,24 +577,25 @@ export const DocumentHandoverTable = React.memo(function DocumentHandoverTable({
         <div className="flex flex-col gap-4 items-center w-full">
           <Skeleton className="h-12 w-full" />
           <div className="space-y-2 w-full">
-            <Skeleton className="h-30 w-full" />
+            <Skeleton className="h-20 w-full" />
+            <Skeleton className="h-20 w-full" />
           </div>
         </div>
       ) : (
-        <div className="overflow-x-auto w-full">
-          <DataTable
-            columns={columns}
-            data={(data?.data as unknown as IWorkAndHandoverResponse[]) || []}
-            tableClassName="min-w-full"
-            customSize
-          />
-        </div>
+        <DataTable
+          columns={columns}
+          data={(data?.data as unknown as IWorkAndHandoverResponse[]) || []}
+          tableClassName="min-w-full"
+          wrapperTableClassName="overflow-x-hidden"
+          customSize
+        />
       )}
 
       <FormModal
         offboarding_id={offboarding_id}
         open={isFormModalOpen}
-        onOpenChange={setFormModalOpen}
+        onOpenChange={handleCloseFormModal}
+        editData={editItem}
       />
 
       <DeleteDialog

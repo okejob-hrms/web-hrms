@@ -42,7 +42,7 @@ export const OffboardingTab = React.memo(function OffboardingTab({
     >
       <div className="flex flex-col gap-4 border border-grayscale-10 rounded-b-sm rounded-md p-4 min-w-fit">
         <p className="font-semibold text-gray-900 text-xs">Completion</p>
-        <TabsList className=" grid grid-cols-1 p-0 bg-transparent">
+        <TabsList className="grid grid-cols-1 p-0 bg-transparent h-fit">
           {tabs.map((tab) => (
             <TabsTrigger
               key={tab.value}
