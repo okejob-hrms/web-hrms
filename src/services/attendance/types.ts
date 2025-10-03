@@ -107,13 +107,15 @@ interface AttendanceStat {
 }
 
 export interface AttendanceSummary {
-  on_time: AttendanceStat;
-  late_clock_in: AttendanceStat;
-  early_clock_in: AttendanceStat;
-  early_clock_out: AttendanceStat;
-  overtime: AttendanceStat;
-  absent: AttendanceStat;
-  day_off: AttendanceStat;
+  data: {
+    on_time: AttendanceStat;
+    late_clock_in: AttendanceStat;
+    early_clock_in: AttendanceStat;
+    early_clock_out: AttendanceStat;
+    overtime: AttendanceStat;
+    absent: AttendanceStat;
+    day_off: AttendanceStat;
+  }
 }
 
 export interface AttendanceSummaryDetail {

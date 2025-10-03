@@ -8,7 +8,7 @@ type InfoListProps = {
   increase?: number;
   compare?: string;
   time?: string;
-  value: number;
+  value?: number;
 };
 
 export default function InfoList({

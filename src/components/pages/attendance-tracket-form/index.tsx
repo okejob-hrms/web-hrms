@@ -31,6 +31,7 @@ import { DatePicker } from '@/components/ui/date-picker';
 import { SelectEmployeeForm } from '@/components/ui/select-form';
 import EmployeeUpdateModal from './sections/edit-modal';
 import dynamic from 'next/dynamic';
+import { LocationBadge } from '@/components/ui/location-badge';
 
 const MapPicker = dynamic(() => import('@/components/ui/map'), { ssr: false });
 
@@ -55,6 +56,7 @@ export default function AttendanceTrackerForm({
     employeesOptions,
     handleDetailData,
     isLoading,
+    defaultMap,
   } = useAttendenceForm();
 
   const handleSubmit = (values: AttendanceFormValues) => {
@@ -143,9 +145,18 @@ export default function AttendanceTrackerForm({
             />
           </div>
 
-          <div className="grid sm:grid-cols-4 grid-cols-1 gap-4">
+          <div className="grid sm:grid-cols-4 grid-cols-1 gap-2">
+            <FormLabel>Location</FormLabel>
+            <div className="col-span-4">
+              {selectedMap.lat !== defaultMap.lat &&
+                selectedMap.lng !== defaultMap.lng && (
+                  <LocationBadge
+                    lat={Number(selectedMap.lat)}
+                    lng={Number(selectedMap.lng)}
+                  />
+                )}
+            </div>
             <div className="space-y-2">
-              <FormLabel>Location</FormLabel>
               <Button
                 type="button"
                 variant="outline"
