@@ -309,15 +309,9 @@ export const FormModal = React.memo(function FormModal({
                         <SelectValue placeholder="Select Status" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="1">Pending</SelectItem>
-                        <SelectItem value="2">Waiting Approval</SelectItem>
-                        <SelectItem value="3">Received</SelectItem>
-                        <SelectItem value="4">Rejected</SelectItem>
-                        <SelectItem value="5">Awaiting Return</SelectItem>
-                        <SelectItem value="6">Returned</SelectItem>
-                        <SelectItem value="7">Lost</SelectItem>
-                        <SelectItem value="8">Damaged</SelectItem>
-                        <SelectItem value="9">Cancelled</SelectItem>
+                        <SelectItem value="1">Waiting Approval</SelectItem>
+                        <SelectItem value="2">Received</SelectItem>
+                        <SelectItem value="3">Rejected</SelectItem>
                       </SelectContent>
                     </Select>
                     <button
@@ -476,11 +470,9 @@ export const DocumentHandoverTable = React.memo(function DocumentHandoverTable({
                   key={item.id}
                   className={cn(
                     "text-center text-xs rounded-full px-1.5 py-1 truncate",
-                    item.status === 3 || item.status === 6
+                    item.status === 2
                       ? "bg-success-background text-success-hover"
-                      : item.status === 1 ||
-                          item.status === 2 ||
-                          item.status === 5
+                      : item.status === 1
                         ? "bg-warning-background text-warning-hover"
                         : "bg-error-background text-error-hover",
                   )}

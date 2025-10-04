@@ -24,6 +24,7 @@ import {
   deleteHandoverAssetsReturn,
   getHandoverAssetsReturn,
   storeEquipmentFacilityHandover,
+  updateEquipmentFacilityHandover,
 } from "@/services/employees/offboardings/handover-and-assets";
 import {
   IEquipmentFacilityHandoverRequest,
@@ -45,14 +46,17 @@ interface FormModalProps {
   offboarding_id: number;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  editData?: IWorkAndHandoverResponse | null;
 }
 
 export const FormModal = React.memo(function FormModal({
+  editData,
   offboarding_id,
   open,
   onOpenChange,
 }: FormModalProps) {
   const queryClient = useQueryClient();
+  const isEditMode = !!editData;
 
   const form = useForm<IEquipmentFacilityHandoverRequest>({
     defaultValues: {
@@ -63,7 +67,7 @@ export const FormModal = React.memo(function FormModal({
     },
   });
 
-  const mutation = useMutation({
+  const createMutation = useMutation({
     mutationFn: (data: IEquipmentFacilityHandoverRequest) =>
       storeEquipmentFacilityHandover(offboarding_id, data),
     onSuccess: () => {
@@ -77,11 +81,26 @@ export const FormModal = React.memo(function FormModal({
     },
   });
 
+  const updateMutation = useMutation({
+    mutationFn: (data: IEquipmentFacilityHandoverRequest) =>
+      updateEquipmentFacilityHandover(offboarding_id, data, editData!.id),
+    onSuccess: () => {
+      toast.success("Facility return updated successfully");
+      form.reset();
+      onOpenChange(false);
+      queryClient.invalidateQueries({ queryKey: ["facility-handover"] });
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to update facility return");
+    },
+  });
+
   const handleSubmit = (values: IEquipmentFacilityHandoverRequest) => {
-    mutation.mutate({
-      ...values,
-      category: "facility",
-    });
+    if (isEditMode) {
+      updateMutation.mutate(values);
+    } else {
+      createMutation.mutate(values);
+    }
   };
 
   const handleCancel = () => {
@@ -89,18 +108,33 @@ export const FormModal = React.memo(function FormModal({
     onOpenChange(false);
   };
 
-  // Reset form when modal closes
   React.useEffect(() => {
-    if (!open) {
-      form.reset();
+    if (open && editData) {
+      form.reset({
+        category: "facility",
+        name: editData.name || "",
+        notes: editData.notes || "",
+        status: editData.status || 1,
+      });
+    } else if (open) {
+      form.reset({
+        category: "facility",
+        name: "",
+        notes: "",
+        status: 1,
+      });
     }
-  }, [open, form]);
+  }, [open, editData, form]);
+
+  const isPending = createMutation.isPending || updateMutation.isPending;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-white md:min-w-5xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Facilities Return</DialogTitle>
+          <DialogTitle className="text-lg sm:text-xl">
+            {isEditMode ? "Edit" : "Add"} Facilities Return
+          </DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form
@@ -125,20 +159,22 @@ export const FormModal = React.memo(function FormModal({
                 { label: "Cancelled", value: "9" },
               ]}
             />
-            <DialogFooter>
+            <DialogFooter className="flex flex-col sm:flex-row md:gap-4 sm:gap-0">
               <Button
                 type="button"
                 variant="outline"
                 onClick={handleCancel}
-                disabled={mutation.isPending}
+                disabled={isPending}
+                className="w-full sm:w-auto order-2 sm:order-1"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
-                disabled={mutation.isPending || !form.formState.isValid}
+                disabled={isPending || !form.formState.isValid}
+                className="w-full sm:w-auto order-1 sm:order-2"
               >
-                {mutation.isPending ? "Saving..." : "Save"}
+                {isPending ? "Saving..." : "Save"}
               </Button>
             </DialogFooter>
           </form>
@@ -155,6 +191,8 @@ export const FacilitiesReturnTable = React.memo(function FacilitiesReturnTable({
     React.useState<IWorkAndHandoverResponse | null>(null);
   const [isFormModalOpen, setFormModalOpen] = React.useState(false);
   const [isDeleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
+  const [editItem, setEditItem] =
+    React.useState<IWorkAndHandoverResponse | null>(null);
   const [openDropdownId, setOpenDropdownId] = React.useState<number | null>(
     null,
   );
@@ -205,7 +243,7 @@ export const FacilitiesReturnTable = React.memo(function FacilitiesReturnTable({
   const handleOpenDeleteDialog = (item: IWorkAndHandoverResponse) => {
     setSelectedItem(item);
     setDeleteDialogOpen(true);
-    setOpenDropdownId(null); // Close dropdown when opening dialog
+    setOpenDropdownId(null);
   };
 
   const handleCloseDeleteDialog = () => {
@@ -214,9 +252,21 @@ export const FacilitiesReturnTable = React.memo(function FacilitiesReturnTable({
   };
 
   const handleOpenEditDialog = (item: IWorkAndHandoverResponse) => {
-    setOpenDropdownId(null); // Close dropdown when opening edit
-    // TODO: Implement edit functionality
-    console.log("Edit item:", item);
+    setEditItem(item);
+    setFormModalOpen(true);
+    setOpenDropdownId(null);
+  };
+
+  const handleAddNew = () => {
+    setEditItem(null);
+    setFormModalOpen(true);
+  };
+
+  const handleCloseFormModal = (open: boolean) => {
+    if (!open) {
+      setEditItem(null);
+    }
+    setFormModalOpen(open);
   };
 
   const columns: ColumnDef<IWorkAndHandoverResponse>[] = React.useMemo(
@@ -224,12 +274,20 @@ export const FacilitiesReturnTable = React.memo(function FacilitiesReturnTable({
       {
         accessorKey: "name",
         header: "Facility Name",
-        size: 250,
+        cell: ({ row }) => (
+          <div className="min-w-[150px] max-w-[300px] break-words">
+            {row.original.name}
+          </div>
+        ),
       },
       {
         accessorKey: "notes",
         header: "Notes",
-        size: 300,
+        cell: ({ row }) => (
+          <div className="min-w-[150px] max-w-[300px] break-words">
+            {row.original.notes}
+          </div>
+        ),
       },
       {
         accessorKey: "status",
@@ -239,7 +297,7 @@ export const FacilitiesReturnTable = React.memo(function FacilitiesReturnTable({
           return (
             <div
               className={cn(
-                "text-center text-xs rounded-full px-1.5 py-1 w-fit",
+                "text-center text-xs rounded-full px-1.5 py-1 w-fit truncate",
                 item.status === 3 || item.status === 6
                   ? "bg-success-background text-success-hover"
                   : item.status === 1 || item.status === 2 || item.status === 5
@@ -257,9 +315,12 @@ export const FacilitiesReturnTable = React.memo(function FacilitiesReturnTable({
         accessorKey: "received_at",
         header: "Received Date",
         cell: ({ row }) => {
-          return <span>{row.original.received_at ?? "-"}</span>;
+          return (
+            <div className="min-w-[100px]">
+              <span className="text-sm">{row.original.received_at ?? "-"}</span>
+            </div>
+          );
         },
-        size: 150,
       },
       {
         id: "actions",
@@ -282,18 +343,10 @@ export const FacilitiesReturnTable = React.memo(function FacilitiesReturnTable({
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-white">
-                <DropdownMenuItem
-                  className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 cursor-pointer select-none"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    handleOpenDeleteDialog(item);
-                  }}
-                >
-                  <Trash2 className="w-4 h-4" />
-                  Delete
-                </DropdownMenuItem>
+              <DropdownMenuContent
+                align="end"
+                className="bg-white min-w-[120px]"
+              >
                 <DropdownMenuItem
                   className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 cursor-pointer select-none"
                   onClick={(e) => {
@@ -303,7 +356,18 @@ export const FacilitiesReturnTable = React.memo(function FacilitiesReturnTable({
                   }}
                 >
                   <Edit3 className="w-4 h-4" />
-                  Edit
+                  <span>Edit</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 cursor-pointer select-none"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    handleOpenDeleteDialog(item);
+                  }}
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span>Delete</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -316,11 +380,15 @@ export const FacilitiesReturnTable = React.memo(function FacilitiesReturnTable({
   );
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex justify-between">
-        <h4 className="font-semibold text-lg">Facilities Return</h4>
-        <Button className="w-fit" onClick={() => setFormModalOpen(true)}>
-          Add <Plus className="w-4 h-4 ml-2" />
+    <div className="flex flex-col gap-4 w-full">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+        <h4 className="font-semibold text-lg sm:text-xl">Facilities Return</h4>
+        <Button
+          className="w-full sm:w-fit flex items-center justify-center gap-2"
+          onClick={handleAddNew}
+        >
+          <Plus className="w-4 h-4" />
+          Add New
         </Button>
       </div>
 
@@ -328,7 +396,8 @@ export const FacilitiesReturnTable = React.memo(function FacilitiesReturnTable({
         <div className="flex flex-col gap-4 items-center w-full">
           <Skeleton className="h-12 w-full" />
           <div className="space-y-2 w-full">
-            <Skeleton className="h-30 w-full" />
+            <Skeleton className="h-20 w-full" />
+            <Skeleton className="h-20 w-full" />
           </div>
         </div>
       ) : (
@@ -345,7 +414,8 @@ export const FacilitiesReturnTable = React.memo(function FacilitiesReturnTable({
       <FormModal
         offboarding_id={offboarding_id}
         open={isFormModalOpen}
-        onOpenChange={setFormModalOpen}
+        onOpenChange={handleCloseFormModal}
+        editData={editItem}
       />
 
       <DeleteDialog

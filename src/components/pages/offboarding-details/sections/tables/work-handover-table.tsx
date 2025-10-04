@@ -480,11 +480,9 @@ export const WorkHandoverTable = React.memo(function WorkHandoverTable({
                   key={item.id}
                   className={cn(
                     "text-center text-xs rounded-full px-1.5 py-1 truncate",
-                    item.status === 3 || item.status === 6
+                    item.status === 2
                       ? "bg-success-background text-success-hover"
-                      : item.status === 1 ||
-                          item.status === 2 ||
-                          item.status === 5
+                      : item.status === 1
                         ? "bg-warning-background text-warning-hover"
                         : "bg-error-background text-error-hover",
                   )}
