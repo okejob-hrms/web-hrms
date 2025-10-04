@@ -110,7 +110,13 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
           <BankInformationSection />
           <AttachmentsSection />
           <div className="flex gap-2 my-8 justify-between md:justify-start w-full">
-            <Button variant="outline" className="md:max-w-36 w-[50%]">
+            <Button
+              variant="outline"
+              className="md:max-w-36 w-[50%]"
+              type="button"
+              disabled={isPending}
+              onClick={() => router.push("/employee/employee-management")}
+            >
               Cancel
             </Button>
             <Button isLoading={isPending} className="md:max-w-36 w-[50%]">
