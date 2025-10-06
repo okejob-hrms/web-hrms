@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { api } from "@/lib/api";
 import { IJobLevelForm, JobLevel } from "./types";
 import { ApiResponse, PaginatedResponse } from "@/lib/types";
@@ -6,10 +7,23 @@ import { PaginationState } from "@tanstack/react-table";
 export const postJobLevel = async (
   payload: IJobLevelForm,
 ): Promise<ApiResponse<JobLevel>> => {
-  const response = await api.post<ApiResponse<JobLevel>>("job-positions", {
-    json: { payload },
-  });
-  return response.json();
+  try {
+    const response = await api.post<ApiResponse<JobLevel>>("job-levels", {
+      json: payload,
+    });
+    return response.json();
+  } catch (error: any) {
+    if (error.name === "HTTPError") {
+      const errorResponse = await error.response.json();
+      const enhancedError = new Error(error.message);
+      (enhancedError as any).response = {
+        json: () => Promise.resolve(errorResponse),
+        status: error.response.status,
+      };
+      throw enhancedError;
+    }
+    throw error;
+  }
 };
 
 export const getJobLevels = async (): Promise<PaginatedResponse<JobLevel>> => {
@@ -23,10 +37,23 @@ export const getJobLevels = async (): Promise<PaginatedResponse<JobLevel>> => {
 export const postJobLevelManagement = async (
   payload: IJobLevelForm,
 ): Promise<ApiResponse<JobLevel>> => {
-  const response = await api.post<ApiResponse<JobLevel>>("job-levels", {
-    json: payload,
-  });
-  return response.json();
+  try {
+    const response = await api.post<ApiResponse<JobLevel>>("job-levels", {
+      json: payload,
+    });
+    return response.json();
+  } catch (error: any) {
+    if (error.name === "HTTPError") {
+      const errorResponse = await error.response.json();
+      const enhancedError = new Error(error.message);
+      (enhancedError as any).response = {
+        json: () => Promise.resolve(errorResponse),
+        status: error.response.status,
+      };
+      throw enhancedError;
+    }
+    throw error;
+  }
 };
 
 export const getJobLevelsPagination = async (

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { api } from "@/lib/api";
 import { IPositionForm, JobPositionResponse } from "./types";
 import { ApiResponse, PaginatedResponse } from "@/lib/types";
@@ -6,11 +7,24 @@ import { PaginationState } from "@tanstack/react-table";
 export const postJobPosition = async (
   payload: IPositionForm,
 ): Promise<ApiResponse<JobPositionResponse>> => {
-  const response = await api.post<ApiResponse<JobPositionResponse>>(
-    "job-positions",
-    { json: { payload } },
-  );
-  return response.json();
+  try {
+    const response = await api.post<ApiResponse<JobPositionResponse>>(
+      "job-positions",
+      { json: payload },
+    );
+    return response.json();
+  } catch (error: any) {
+    if (error.name === "HTTPError") {
+      const errorResponse = await error.response.json();
+      const enhancedError = new Error(error.message);
+      (enhancedError as any).response = {
+        json: () => Promise.resolve(errorResponse),
+        status: error.response.status,
+      };
+      throw enhancedError;
+    }
+    throw error;
+  }
 };
 
 export const getJobPosition = async (): Promise<
