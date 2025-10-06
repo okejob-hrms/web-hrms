@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { api } from "@/lib/api";
 import { ApiResponse, PaginatedResponse } from "@/lib/types";
 import qs from "qs";
@@ -13,11 +14,24 @@ interface Params {
 export const postCreateWorkExperience = async (
   params: Params,
 ): Promise<ApiResponse<IResponseWorkExperience>> => {
-  const response = await api.post<ApiResponse<IResponseWorkExperience>>(
-    `employees/${params.employee_profile_id ? `${params.employee_profile_id}/` : ""}work-experiences`,
-    { json: params.payload },
-  );
-  return response.json();
+  try {
+    const response = await api.post<ApiResponse<IResponseWorkExperience>>(
+      `employees/${params.employee_profile_id ? `${params.employee_profile_id}/` : ""}work-experiences`,
+      { json: params.payload },
+    );
+    return response.json();
+  } catch (error: any) {
+    if (error.name === "HTTPError") {
+      const errorResponse = await error.response.json();
+      const enhancedError = new Error(error.message);
+      (enhancedError as any).response = {
+        json: () => Promise.resolve(errorResponse),
+        status: error.response.status,
+      };
+      throw enhancedError;
+    }
+    throw error;
+  }
 };
 
 export const getWorkExperiences = async (
@@ -34,11 +48,24 @@ export const getWorkExperiences = async (
 export const putUpdateWorkExperience = async (
   params: Params,
 ): Promise<ApiResponse<IResponseWorkExperience>> => {
-  const response = await api.put<ApiResponse<IResponseWorkExperience>>(
-    `employees/${params.employee_profile_id}/work-experiences/${params.id}`,
-    { json: params.payload },
-  );
-  return response.json();
+  try {
+    const response = await api.put<ApiResponse<IResponseWorkExperience>>(
+      `employees/${params.employee_profile_id}/work-experiences/${params.id}`,
+      { json: params.payload },
+    );
+    return response.json();
+  } catch (error: any) {
+    if (error.name === "HTTPError") {
+      const errorResponse = await error.response.json();
+      const enhancedError = new Error(error.message);
+      (enhancedError as any).response = {
+        json: () => Promise.resolve(errorResponse),
+        status: error.response.status,
+      };
+      throw enhancedError;
+    }
+    throw error;
+  }
 };
 
 export const deleteWorkExperience = async (

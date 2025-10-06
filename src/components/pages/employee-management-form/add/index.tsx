@@ -69,8 +69,8 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
         start_date: dayjs(values.start_date).format("YYYY-MM-DD"),
         end_date: dayjs(values.end_date).format("YYYY-MM-DD"),
         allowances: values.allowances.map((item) => ({
-          allowance_type_id: Number(item.allowance_type_id),
-          allowance_value: Number(item.allowance_value),
+          allowance_type_id: Number(item?.allowance_type_id),
+          allowance_value: Number(item?.allowance_value),
         })),
         phone_number: Number(convertPhoneToNumber(values.phone_number)),
         bank_id: Number(values.bank_id),
@@ -88,6 +88,12 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
             values.additional_direct_report_id,
           ),
         }),
+        ...(values.attachments &&
+          values.attachments.filter((item) => {
+            if (item.type !== undefined && item.path !== undefined) {
+              return { type: item.type, path: item.path };
+            }
+          })),
       };
       console.log(params);
       mutate(params);

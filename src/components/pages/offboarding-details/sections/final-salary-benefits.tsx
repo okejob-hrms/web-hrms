@@ -20,8 +20,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { getShowFinalSalary } from "@/services/employees/offboardings/final-salary";
+import { useQuery } from "@tanstack/react-query";
 import * as React from "react";
 import { useForm } from "react-hook-form";
+
+interface Props {
+  offboarding_id: number;
+}
 
 export const ModalForm = React.memo(function InitiateOffboardingEmployee() {
   const form = useForm();
@@ -59,7 +65,17 @@ export const ModalForm = React.memo(function InitiateOffboardingEmployee() {
   );
 });
 
-export const FinalSalaryBenefits = React.memo(function FinalSalaryBenefits() {
+export const FinalSalaryBenefits = React.memo(function FinalSalaryBenefits({
+  offboarding_id,
+}: Props) {
+  const { data: salary } = useQuery({
+    queryKey: ["salary", offboarding_id],
+    queryFn: () => getShowFinalSalary(offboarding_id),
+    enabled: !!offboarding_id,
+  });
+
+  console.log("data salary", salary?.data);
+
   return (
     <div className="space-y-4 w-full">
       <div className="border rounded-xl border-grayscale-20 shadow-sm shadow-[#1018281A] w-full">

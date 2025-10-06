@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { api } from "@/lib/api";
 import { ApiResponse, PaginatedResponse } from "@/lib/types";
 import qs from "qs";
@@ -13,11 +14,24 @@ interface Params {
 export const postCreateContactReference = async (
   params: Params,
 ): Promise<ApiResponse<IContactReferenceResponse>> => {
-  const response = await api.post<ApiResponse<IContactReferenceResponse>>(
-    `employees/${params.employee_profile_id ? `${params.employee_profile_id}/` : ""}contact-references`,
-    { json: params.payload },
-  );
-  return response.json();
+  try {
+    const response = await api.post<ApiResponse<IContactReferenceResponse>>(
+      `employees/${params.employee_profile_id ? `${params.employee_profile_id}/` : ""}contact-references`,
+      { json: params.payload },
+    );
+    return response.json();
+  } catch (error: any) {
+    if (error.name === "HTTPError") {
+      const errorResponse = await error.response.json();
+      const enhancedError = new Error(error.message);
+      (enhancedError as any).response = {
+        json: () => Promise.resolve(errorResponse),
+        status: error.response.status,
+      };
+      throw enhancedError;
+    }
+    throw error;
+  }
 };
 
 export const getContactReferences = async (
@@ -34,11 +48,24 @@ export const getContactReferences = async (
 export const putUpdateContactReference = async (
   params: Params,
 ): Promise<ApiResponse<IContactReferenceResponse>> => {
-  const response = await api.put<ApiResponse<IContactReferenceResponse>>(
-    `employees/${params.employee_profile_id}/contact-references/${params.id}`,
-    { json: params.payload },
-  );
-  return response.json();
+  try {
+    const response = await api.put<ApiResponse<IContactReferenceResponse>>(
+      `employees/${params.employee_profile_id}/contact-references/${params.id}`,
+      { json: params.payload },
+    );
+    return response.json();
+  } catch (error: any) {
+    if (error.name === "HTTPError") {
+      const errorResponse = await error.response.json();
+      const enhancedError = new Error(error.message);
+      (enhancedError as any).response = {
+        json: () => Promise.resolve(errorResponse),
+        status: error.response.status,
+      };
+      throw enhancedError;
+    }
+    throw error;
+  }
 };
 
 export const deleteContactReference = async (

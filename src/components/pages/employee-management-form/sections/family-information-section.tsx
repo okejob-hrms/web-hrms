@@ -46,6 +46,7 @@ import {
 import Image from "next/image";
 import dayjs from "dayjs";
 import { cn } from "@/lib/utils";
+import { ApiErrorResponse } from "@/lib/types";
 
 const formatDate = (dateString: string): string => {
   return new Date(dateString).toLocaleDateString("id-ID", {
@@ -245,12 +246,24 @@ const FamilyFormModal = ({
       onSuccess?.();
     },
     onError: (error: any) => {
-      console.error("Mutation error:", error);
-      toast.error(
-        `Failed to ${isEdit ? "update" : "add"} family information: ${
-          error?.response?.data?.message || error.message || "Unknown error"
-        }`,
-      );
+      if (error?.response) {
+        try {
+          error.response
+            .json()
+            .then((errorData: ApiErrorResponse) => {
+              toast.error(errorData.message || "Failed to save family.");
+            })
+            .catch(() => {
+              toast.error("Failed to save family: Server error");
+            });
+        } catch (parseError) {
+          toast.error("Failed to save family: Server error : " + parseError);
+        }
+      } else {
+        toast.error(
+          `Failed to save family: ${error.message || "Unknown error"}`,
+        );
+      }
     },
   });
 
@@ -363,28 +376,6 @@ const FamilyFormModal = ({
                 disabled={mutation.isPending}
               />
             </div>
-
-            {Object.keys(form.formState.errors).length > 0 && (
-              <div className="text-red-500 text-sm mt-2">
-                <p>Please fix the following errors:</p>
-                <ul className="list-disc ml-4">
-                  {Object.entries(form.formState.errors).map(
-                    ([field, error]) => (
-                      <li key={field}>
-                        {field}: {error?.message}
-                      </li>
-                    ),
-                  )}
-                </ul>
-              </div>
-            )}
-
-            {mutation.isError && (
-              <div className="text-red-500 text-sm mt-2">
-                Error:{" "}
-                {mutation.error?.message || "Failed to save family information"}
-              </div>
-            )}
 
             <DialogFooter>
               <Button

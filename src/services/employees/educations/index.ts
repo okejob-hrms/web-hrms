@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { api } from "@/lib/api";
 import { ApiResponse, PaginatedResponse } from "@/lib/types";
 import qs from "qs";
@@ -17,11 +18,24 @@ interface Params {
 export const postCreateEducation = async (
   params: Params,
 ): Promise<ApiResponse<IEducationResponse>> => {
-  const response = await api.post<ApiResponse<IEducationResponse>>(
-    `employees/${params.employee_profile_id ? `${params.employee_profile_id}/` : ""}educations`,
-    { json: params.payload },
-  );
-  return response.json();
+  try {
+    const response = await api.post<ApiResponse<IEducationResponse>>(
+      `employees/${params.employee_profile_id ? `${params.employee_profile_id}/` : ""}educations`,
+      { json: params.payload },
+    );
+    return response.json();
+  } catch (error: any) {
+    if (error.name === "HTTPError") {
+      const errorResponse = await error.response.json();
+      const enhancedError = new Error(error.message);
+      (enhancedError as any).response = {
+        json: () => Promise.resolve(errorResponse),
+        status: error.response.status,
+      };
+      throw enhancedError;
+    }
+    throw error;
+  }
 };
 
 export const getEducations = async (
@@ -38,11 +52,24 @@ export const getEducations = async (
 export const putUpdateEducation = async (
   params: Params,
 ): Promise<ApiResponse<IEducationResponse>> => {
-  const response = await api.put<ApiResponse<IEducationResponse>>(
-    `employees/${params.employee_profile_id}/educations/${params.id}`,
-    { json: params.payload },
-  );
-  return response.json();
+  try {
+    const response = await api.put<ApiResponse<IEducationResponse>>(
+      `employees/${params.employee_profile_id}/educations/${params.id}`,
+      { json: params.payload },
+    );
+    return response.json();
+  } catch (error: any) {
+    if (error.name === "HTTPError") {
+      const errorResponse = await error.response.json();
+      const enhancedError = new Error(error.message);
+      (enhancedError as any).response = {
+        json: () => Promise.resolve(errorResponse),
+        status: error.response.status,
+      };
+      throw enhancedError;
+    }
+    throw error;
+  }
 };
 
 export const deleteEducation = async (

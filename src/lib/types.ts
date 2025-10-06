@@ -71,7 +71,10 @@ export interface IDocument {
   size: number;
   path: string;
   disk: string;
-  uploaded_by: number;
+  uploaded_by: {
+    id: number;
+    name: string;
+  };
   uploaded_at: string;
   created_at: string;
   updated_at: string;
@@ -207,6 +210,7 @@ export interface UploadButtonProps extends React.ComponentProps<"button"> {
     path: string;
     mime_type: string;
   };
+  error?: string;
 }
 
 export interface ComboboxOption {

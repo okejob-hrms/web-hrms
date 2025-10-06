@@ -44,6 +44,7 @@ import Image from "next/image";
 import dayjs from "dayjs";
 import localizedFormat from "dayjs/plugin/localizedFormat";
 import { cn } from "@/lib/utils";
+import { ApiErrorResponse } from "@/lib/types";
 
 dayjs.extend(localizedFormat);
 
@@ -238,12 +239,28 @@ const FormalEducationFormModal = ({
       onSuccess?.();
     },
     onError: (error: any) => {
-      console.error("Mutation error:", error);
-      toast.error(
-        `Failed to ${isEdit ? "update" : "add"} formal education: ${
-          error?.response?.data?.message || error.message || "Unknown error"
-        }`,
-      );
+      if (error?.response) {
+        try {
+          error.response
+            .json()
+            .then((errorData: ApiErrorResponse) => {
+              toast.error(
+                errorData.message || "Failed to save formal education.",
+              );
+            })
+            .catch(() => {
+              toast.error("Failed to save formal education: Server error");
+            });
+        } catch (parseError) {
+          toast.error(
+            "Failed to save formal education: Server error : " + parseError,
+          );
+        }
+      } else {
+        toast.error(
+          `Failed to save formal education: ${error.message || "Unknown error"}`,
+        );
+      }
     },
   });
 
@@ -310,7 +327,7 @@ const FormalEducationFormModal = ({
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
               <InputForm
                 name="institution"
                 label="School"
@@ -338,14 +355,14 @@ const FormalEducationFormModal = ({
                   GPA
                   <span className="text-error">*</span>
                 </FormLabel>
-                <div className="flex items-center gap-2 w-full">
+                <div className="flex items-start gap-2 w-full">
                   <InputForm
                     name="gpa"
                     required
                     type="number"
                     disabled={mutation.isPending}
                   />
-                  <span className="text-text-disabled">/</span>
+                  <span className="text-text-disabled h-full text-2xl">/</span>
                   <InputForm
                     name="max_gpa"
                     type="number"
@@ -355,28 +372,6 @@ const FormalEducationFormModal = ({
                 </div>
               </div>
             </div>
-
-            {Object.keys(form.formState.errors).length > 0 && (
-              <div className="text-red-500 text-sm mt-2">
-                <p>Please fix the following errors:</p>
-                <ul className="list-disc ml-4">
-                  {Object.entries(form.formState.errors).map(
-                    ([field, error]) => (
-                      <li key={field}>
-                        {field}: {error?.message}
-                      </li>
-                    ),
-                  )}
-                </ul>
-              </div>
-            )}
-
-            {mutation.isError && (
-              <div className="text-red-500 text-sm mt-2">
-                Error:{" "}
-                {mutation.error?.message || "Failed to save formal education"}
-              </div>
-            )}
 
             <DialogFooter>
               <Button

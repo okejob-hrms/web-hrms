@@ -132,6 +132,7 @@ function UploadButton({
   required,
   name,
   defaultFile,
+  error,
 }: UploadButtonProps) {
   const ref = React.useRef<HTMLInputElement>(null);
   const [isInitialized, setIsInitialized] = React.useState(false);
@@ -187,7 +188,14 @@ function UploadButton({
   return (
     <div className="flex flex-col gap-3 max-w-full">
       <div className="flex items-center gap-1">
-        <span className="text-sm font-medium">{label}</span>
+        <span
+          className={cn(
+            "text-sm font-medium",
+            error ? "text-error" : "text-black",
+          )}
+        >
+          {label}
+        </span>
         {required && (
           <span className="text-red-500 text-sm" aria-label="Required field">
             *
@@ -230,7 +238,7 @@ function UploadButton({
           </>
         )}
       </Button>
-
+      <span className="text-error">{error}</span>
       <input
         type="file"
         ref={ref}

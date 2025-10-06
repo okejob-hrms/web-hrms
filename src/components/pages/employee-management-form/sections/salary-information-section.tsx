@@ -63,13 +63,12 @@ export const SalaryInformationSection = React.memo(
             [...Array(allowanceForm)].map((_, index) => (
               <div
                 key={index}
-                className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-3 w-full"
+                className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-3 w-full items-start"
               >
                 <SelectForm
                   name={`allowances.${index}.allowance_type_id`}
                   label="Allowance Type"
                   options={allowanceTypesOptions}
-                  required
                 />
                 <div className="flex gap-2 items-end">
                   <InputForm
@@ -79,7 +78,6 @@ export const SalaryInformationSection = React.memo(
                       watchedAllowances &&
                       !watchedAllowances[index]?.allowance_type_id
                     }
-                    required
                     className="w-full"
                     iconPosition="left"
                     type="number"

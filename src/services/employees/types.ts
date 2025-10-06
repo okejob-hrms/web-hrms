@@ -88,7 +88,7 @@ export interface IMutateEmployeeRequests {
   status: string;
   base_salary: number;
   salary_nett: number;
-  allowances: {
+  allowances?: {
     allowance_type_id: number;
     allowance_value: number;
   }[];
@@ -97,8 +97,8 @@ export interface IMutateEmployeeRequests {
   account_name: string;
 
   attachments: {
-    type: string;
-    path: string;
+    type?: string;
+    path?: string;
   }[];
   work_experiences?: {
     id: number;

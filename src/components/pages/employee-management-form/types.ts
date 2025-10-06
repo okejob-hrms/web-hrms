@@ -41,17 +41,20 @@ export const employeeManagementFormScheme = z.object({
   job_level_id: z.string().min(1, "required"),
   primary_direct_report_id: z.number().min(1, "required"),
   additional_direct_report_id: z.number().optional().nullable(),
-  team_members: z.string(),
+  team_members: z.string().min(1, "required"),
   start_date: z.date(),
   end_date: z.date().optional(),
   status: z.string(),
   base_salary: z.number(),
   salary_nett: z.number().min(1, "required"),
   allowances: z.array(
-    z.object({
-      allowance_type_id: z.string().min(1, "required"),
-      allowance_value: z.number().min(1, "required"),
-    }),
+    z
+      .object({
+        allowance_type_id: z.string().optional().nullable(),
+        allowance_value: z.number().optional().nullable(),
+      })
+      .optional()
+      .nullable(),
   ),
 
   bank_id: z.string().min(1, "required"),
@@ -208,6 +211,8 @@ export const employeeManagementFormDefaultValues = {
     { type: "personal_id", path: "" },
     { type: "health_insurance_card", path: "" },
     { type: "bank_account_book", path: "" },
+    { type: "family_card", path: "" },
+    { type: "driver_license", path: "" },
     { type: "other", path: "" },
   ],
 };

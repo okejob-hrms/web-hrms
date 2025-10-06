@@ -31,7 +31,7 @@ export const OffboardingTab = React.memo(function OffboardingTab({
     {
       name: "Final Salary & Benefits",
       value: "completion",
-      children: <FinalSalaryBenefits />,
+      children: <FinalSalaryBenefits offboarding_id={offboarding_id} />,
     },
   ];
   return (

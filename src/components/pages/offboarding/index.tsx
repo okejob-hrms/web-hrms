@@ -18,7 +18,7 @@ import Image from "next/image";
 import { InitiateOffboardingEmployee } from "./sections/initiate-offboarding-form";
 import { getOffboardings } from "@/services/employees/offboardings";
 import { IOffboardingResponse } from "@/services/employees/offboardings/types";
-import { Clock } from "lucide-react";
+import { Clock, Dot } from "lucide-react";
 
 export const columns: ColumnDef<IOffboardingResponse>[] = [
   {
@@ -75,15 +75,30 @@ export const columns: ColumnDef<IOffboardingResponse>[] = [
           variant="default"
           className={cn(
             "rounded-full",
-            status !== "In Progress"
-              ? "bg-success-focused "
-              : "bg-warning-background ",
+            status === "In Progress"
+              ? "bg-warning-background"
+              : status === "Completed"
+                ? "bg-success-focused"
+                : "bg-error-focused",
           )}
         >
-          <Clock color="#FFB84D" />
+          {status === "In Progress" ? (
+            <Clock color="#FFB84D" />
+          ) : (
+            <div
+              className={cn(
+                status === "Completed" ? "bg-success" : "bg-error",
+                "h-2 w-2 rounded-full",
+              )}
+            />
+          )}
           <span
             className={cn(
-              status !== "In Progress" ? "text-success" : "text-warning-hover",
+              status === "In Progress"
+                ? "text-warning-hover"
+                : status === "Completed"
+                  ? "text-success"
+                  : "text-error",
             )}
           >
             {status}

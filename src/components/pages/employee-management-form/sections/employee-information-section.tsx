@@ -214,11 +214,6 @@ export const AddNewPositionModal: React.FC = () => {
               disabled={addPosition.isPending}
             />
             {error && <div className="text-error text-sm">{error}</div>}
-            {addPosition.isError && (
-              <div className="text-error text-sm">
-                Error: {addPosition.error?.message || "Failed to save position"}
-              </div>
-            )}
           </div>
 
           <DialogFooter>
@@ -337,13 +332,6 @@ export const AddNewDepartmentModal: React.FC = () => {
             />
           </div>
 
-          {addDepartment.isError && (
-            <div className="text-error text-sm">
-              Error:{" "}
-              {addDepartment.error?.message || "Failed to save department"}
-            </div>
-          )}
-
           <DialogFooter>
             <Button
               type="button"
@@ -455,12 +443,6 @@ export const AddNewTeamModal: React.FC = () => {
             />
           </div>
 
-          {addTeam.isError && (
-            <div className="text-error text-sm">
-              Error: {addTeam.error?.message || "Failed to save team"}
-            </div>
-          )}
-
           <DialogFooter>
             <Button
               type="button"
@@ -494,8 +476,8 @@ export const EmployeeinformationSection = React.memo(
       { relationship_type: "primary", direct_report_id: [] },
       { relationship_type: "secondary", direct_report_id: [] },
     ];
-    const [primarySearch, setPrimarySearch] = React.useState("");
-    const [secondarySearch, setSecondarySearch] = React.useState("");
+    const [primarySearch] = React.useState("");
+    const [secondarySearch] = React.useState("");
     const debouncedPrimarySearch = useDebounce(primarySearch, 300);
     const debouncedSecondarySearch = useDebounce(secondarySearch, 300);
     const {

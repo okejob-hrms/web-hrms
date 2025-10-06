@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { UploadButton } from "@/components/ui/button";
 import * as React from "react";
+import { useFormContext } from "react-hook-form";
 
 const attachmentTypes = [
   { name: "cv", label: "CV", required: true },
@@ -42,11 +44,14 @@ interface AttachmentsSectionProps {
 export const AttachmentsSection = React.memo(function AttachmentsSection({
   employee_documents,
 }: AttachmentsSectionProps) {
+  const form = useFormContext();
+  const errors = form.formState.errors["attachments"] as any;
+
   return (
     <React.Fragment>
       <h2 className="font-semibold text-lg leading-5 mb-3">Attachments</h2>
       <div className="grid grid-cols-2 gap-4">
-        {attachmentTypes.map((attachment) => {
+        {attachmentTypes.map((attachment, index) => {
           const document = employee_documents?.find(
             (doc) => doc.type === attachment.name,
           );
@@ -57,6 +62,7 @@ export const AttachmentsSection = React.memo(function AttachmentsSection({
               label={attachment.label}
               required={attachment.required}
               defaultFile={document || undefined}
+              error={errors && errors[index]?.path.message}
             />
           );
         })}
