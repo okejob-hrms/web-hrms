@@ -111,7 +111,7 @@ function mapFromApiResponse(data: CompanyProfileData): CompanyFormValues {
     bankAccountNumber: data?.payrollInfo?.bankAccountNumber,
     bankAccountHolder: data?.payrollInfo?.bankAccountHolder,
     currency: data?.payrollInfo?.currency,
-    logo: data?.companyInfo?.logo_url,
+    logo: data?.companyInfo?.logo,
     // workSchedules: data?.rawWorkSchedules?.map((day) => ({
     //   day_of_week: day.day_of_week,
     //   schedules: (day.schedules ?? []).map((s) => ({
@@ -144,7 +144,7 @@ export function useCompanyForm() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { data, isLoading } = useCompanyProfile();
-  const [imagePhoto, setImagePhoto] = useState(data?.companyInfo.logo_url);
+  const [imagePhoto, setImagePhoto] = useState(`https://bucket.okejobhub.fun/${data?.companyInfo.logo}`);
 
   const form = useForm<CompanyFormValues>({
     resolver: zodResolver(companySchema),
@@ -164,6 +164,7 @@ export function useCompanyForm() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['companyProfile'] });
       toast.success("Update company successful.");
+      router.push('/settings/company-profile')
     },
     onError: () => {
       toast.error("Update company failed.");

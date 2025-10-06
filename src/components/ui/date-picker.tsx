@@ -25,15 +25,17 @@ import localizedFormat from 'dayjs/plugin/localizedFormat';
 
 dayjs.extend(localizedFormat);
 
-export const DatePicker: React.FC<DatePickerProps> = ({
+export const DatePicker: React.FC<
+  DatePickerProps & { onChangeExtra?: (date?: Date) => void }
+> = ({
   name,
   label,
   description,
   isOptional,
   labelClassName,
-  // required,
   placeholder,
   onChange,
+  onChangeExtra,
   ...props
 }) => {
   const { control } = useFormContext();
@@ -49,6 +51,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
         const handleClear = () => {
           field.onChange(null);
           onChange?.(undefined);
+          onChangeExtra?.(undefined);
         };
 
         return (
@@ -87,6 +90,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
                         field.onChange(date);
                         setIsOpen(false);
                         onChange?.(date);
+                        onChangeExtra?.(date);
                       }}
                       captionLayout="dropdown"
                     />

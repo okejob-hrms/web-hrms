@@ -73,7 +73,13 @@ export default function SettingsAttendanceConfigurationForm() {
       <TitleContent label="Attendance Configuration" />
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSubmit(form.getValues());
+          }}
+          className="space-y-8"
+        >
           <h2 className="text-xl font-semibold pt-6">Working Hours</h2>
 
           {/* PART WORKING HOUR  */}
@@ -120,8 +126,6 @@ export default function SettingsAttendanceConfigurationForm() {
                           <FormLabel>Shift</FormLabel>
                           <Select
                             onValueChange={(newShiftName) => {
-                              console.log(newShiftName);
-
                               setWorkSchedules((prev) => {
                                 const updated = [...prev];
                                 const day = { ...updated[key] };

@@ -104,6 +104,12 @@ export default function AttendanceTrackerList() {
         </div>
       ),
     },
+    {
+      accessorKey: 'latest_attendance.attendance_date',
+      header: 'Date',
+      size: 200,
+      cell: ({ row }) => row.original.latest_attendance?.attendance_date || '-',
+    },
 
     {
       accessorKey: 'latest_attendance',
@@ -123,7 +129,7 @@ export default function AttendanceTrackerList() {
             </span>
             {att.clock.duration && (
               <span className="text-muted-foreground text-xs">
-                Overtime {att.clock.duration}
+                Overtime {att.clock.overtime_duration_fomated}
               </span>
             )}
           </div>
