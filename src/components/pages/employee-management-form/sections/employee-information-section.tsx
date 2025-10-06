@@ -15,63 +15,79 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { InputForm } from "@/components/ui/input";
-import { TextAreaForm } from "@/components/ui/textarea";
-import { useForm, useFormContext } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Form } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { useFormContext } from "react-hook-form";
 import { getDepartment, postDepartment } from "@/services/department";
-import {
-  departmentFormScheme,
-  IDepartmentForm,
-} from "@/services/department/types";
-import {
-  IPositionForm,
-  positionFormScheme,
-} from "@/services/job-position/types";
+import { IDepartmentForm } from "@/services/department/types";
+import { IPositionForm } from "@/services/job-position/types";
 import { getJobPosition, postJobPosition } from "@/services/job-position";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getJobLevels, postJobLevel } from "@/services/job-levels";
 import { toast } from "sonner";
 import { getTeam, postTeam } from "@/services/team";
-import { ITeamForm, teamFormScheme } from "@/services/team/types";
+import { ITeamForm } from "@/services/team/types";
 import { getEmployees } from "@/services/employees";
 import { useDebounce } from "@/hooks/use-debounce";
 import { ComboboxForm } from "@/components/ui/combobox";
+import { Label } from "@/components/ui/label";
+import { ApiErrorResponse } from "@/lib/types";
 
 export const AddNewJobLevelModal: React.FC = () => {
   const [open, setOpen] = React.useState(false);
+  const [name, setName] = React.useState("");
+  const [error, setError] = React.useState("");
   const queryClient = useQueryClient();
-
-  const form = useForm<IPositionForm>({
-    resolver: zodResolver(positionFormScheme),
-    defaultValues: {
-      name: "",
-    },
-  });
 
   const addJobLevel = useMutation({
     mutationFn: (values: IPositionForm) => postJobLevel(values),
     onSuccess: () => {
       toast.success("Job level added successfully!");
-      queryClient.invalidateQueries({ queryKey: ["job-levels"] });
-      setOpen(false);
-      form.reset();
+      queryClient.invalidateQueries({ queryKey: ["job_level_id"] });
+      handleClose();
     },
     onError: (error: any) => {
-      toast.error(
-        `Failed to add job level: ${error.message || "Unknown error"}`,
-      );
+      if (error?.response) {
+        try {
+          error.response
+            .json()
+            .then((errorData: ApiErrorResponse) => {
+              toast.error(errorData.message || "Failed to add new job level");
+              setError(errorData.message || "Failed to add new job level");
+            })
+            .catch(() => {
+              toast.error("Failed to add new job level: Server error");
+              setError("Failed to add new job level: Server error");
+            });
+        } catch (parseError) {
+          toast.error(
+            "Failed to add new job level: Server error : " + parseError,
+          );
+          setError("Failed to add new job level: Server error : " + parseError);
+        }
+      } else {
+        toast.error(
+          `Failed to add new job level: ${error.message || "Unknown error"}`,
+        );
+      }
     },
   });
 
-  const onSubmit = (values: IPositionForm) => {
-    addJobLevel.mutate(values);
+  const handleSubmit = () => {
+    setError("");
+
+    if (!name) {
+      setError("Job level is required");
+      return;
+    }
+
+    addJobLevel.mutate({ name: name, status: "1" });
   };
 
-  const handleCancel = () => {
+  const handleClose = () => {
     setOpen(false);
-    form.reset();
+    setName("");
+    setError("");
     addJobLevel.reset();
   };
 
@@ -89,36 +105,42 @@ export const AddNewJobLevelModal: React.FC = () => {
         <DialogHeader>
           <DialogTitle>Create New Job Level</DialogTitle>
         </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <InputForm
-              name="name"
-              label="Job Level"
-              required
+        <div className="space-y-4">
+          <div className="grid w-full items-center gap-3">
+            <div className="flex">
+              <Label htmlFor="job-level-name" className="text-sm font-normal">
+                Job Level
+              </Label>
+              <span className="text-error">*</span>
+            </div>
+            <Input
+              id="job-level-name"
+              placeholder="Job Level"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               disabled={addJobLevel.isPending}
             />
-            {addJobLevel.isError && (
-              <div className="text-error text-sm mt-2">
-                Error:{" "}
-                {addJobLevel.error?.message || "Failed to save job level"}
-              </div>
-            )}
+            {error && <div className="text-error text-sm">{error}</div>}
+          </div>
 
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleCancel}
-                disabled={addJobLevel.isPending}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={addJobLevel.isPending}>
-                {addJobLevel.isPending ? "Saving..." : "Save"}
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleClose}
+              disabled={addJobLevel.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleSubmit}
+              disabled={addJobLevel.isPending}
+            >
+              {addJobLevel.isPending ? "Saving..." : "Save"}
+            </Button>
+          </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );
@@ -126,22 +148,16 @@ export const AddNewJobLevelModal: React.FC = () => {
 
 export const AddNewPositionModal: React.FC = () => {
   const [open, setOpen] = React.useState(false);
+  const [name, setName] = React.useState("");
+  const [error, setError] = React.useState("");
   const queryClient = useQueryClient();
-
-  const form = useForm<IPositionForm>({
-    resolver: zodResolver(positionFormScheme),
-    defaultValues: {
-      name: "",
-    },
-  });
 
   const addPosition = useMutation({
     mutationFn: (values: IPositionForm) => postJobPosition(values),
     onSuccess: () => {
       toast.success("Position added successfully!");
-      queryClient.invalidateQueries({ queryKey: ["job-position"] });
-      setOpen(false);
-      form.reset();
+      queryClient.invalidateQueries({ queryKey: ["job_position_id"] });
+      handleClose();
     },
     onError: (error: any) => {
       toast.error(
@@ -150,13 +166,21 @@ export const AddNewPositionModal: React.FC = () => {
     },
   });
 
-  const onSubmit = (values: IPositionForm) => {
-    addPosition.mutate(values);
+  const handleSubmit = () => {
+    setError("");
+
+    if (!name) {
+      setError("Name is required");
+      return;
+    }
+
+    addPosition.mutate({ name: name, status: "1" });
   };
 
-  const handleCancel = () => {
+  const handleClose = () => {
     setOpen(false);
-    form.reset();
+    setName("");
+    setError("");
     addPosition.reset();
   };
 
@@ -174,37 +198,47 @@ export const AddNewPositionModal: React.FC = () => {
         <DialogHeader>
           <DialogTitle>Create New Position</DialogTitle>
         </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <InputForm
-              name="name"
-              label="Position Name"
-              required
+        <div className="space-y-4">
+          <div className="grid w-full items-center gap-3">
+            <div className="flex">
+              <Label htmlFor="position-name" className="text-sm font-normal">
+                Position Name
+              </Label>
+              <span className="text-error">*</span>
+            </div>
+            <Input
+              id="position-name"
+              placeholder="Position Name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               disabled={addPosition.isPending}
             />
-
-            {/* Show error message if mutation fails */}
+            {error && <div className="text-error text-sm">{error}</div>}
             {addPosition.isError && (
-              <div className="text-error text-sm mt-2">
+              <div className="text-error text-sm">
                 Error: {addPosition.error?.message || "Failed to save position"}
               </div>
             )}
+          </div>
 
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleCancel}
-                disabled={addPosition.isPending}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={addPosition.isPending}>
-                {addPosition.isPending ? "Saving..." : "Save"}
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleClose}
+              disabled={addPosition.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleSubmit}
+              disabled={addPosition.isPending}
+            >
+              {addPosition.isPending ? "Saving..." : "Save"}
+            </Button>
+          </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );
@@ -212,23 +246,17 @@ export const AddNewPositionModal: React.FC = () => {
 
 export const AddNewDepartmentModal: React.FC = () => {
   const [open, setOpen] = React.useState(false);
+  const [name, setName] = React.useState("");
+  const [description, setDescription] = React.useState("");
+  const [error, setError] = React.useState("");
   const queryClient = useQueryClient();
-
-  const form = useForm<IDepartmentForm>({
-    resolver: zodResolver(departmentFormScheme),
-    defaultValues: {
-      name: "",
-      description: "",
-    },
-  });
 
   const addDepartment = useMutation({
     mutationFn: (values: IDepartmentForm) => postDepartment(values),
     onSuccess: () => {
       toast.success("Department added successfully!");
-      queryClient.invalidateQueries({ queryKey: ["departments"] });
-      setOpen(false);
-      form.reset();
+      queryClient.invalidateQueries({ queryKey: ["department_id"] });
+      handleClose();
     },
     onError: (error: any) => {
       toast.error(
@@ -237,13 +265,25 @@ export const AddNewDepartmentModal: React.FC = () => {
     },
   });
 
-  const onSubmit = (values: IDepartmentForm) => {
-    addDepartment.mutate(values);
+  const handleSubmit = () => {
+    setError("");
+
+    if (!name.trim()) {
+      setError("Department name is required");
+      return;
+    }
+
+    addDepartment.mutate({
+      name: name.trim(),
+      description: description.trim(),
+    });
   };
 
-  const handleCancel = () => {
+  const handleClose = () => {
     setOpen(false);
-    form.reset();
+    setName("");
+    setDescription("");
+    setError("");
     addDepartment.reset();
   };
 
@@ -261,44 +301,67 @@ export const AddNewDepartmentModal: React.FC = () => {
         <DialogHeader>
           <DialogTitle>Create New Department</DialogTitle>
         </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <InputForm
-              name="name"
-              label="Department Name"
-              required
+        <div className="space-y-4">
+          <div className="grid w-full items-center gap-3">
+            <div className="flex">
+              <Label htmlFor="department-name" className="text-sm font-normal">
+                Department Name
+              </Label>
+              <span className="text-error">*</span>
+            </div>
+            <Input
+              id="department-name"
+              placeholder="Department Name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               disabled={addDepartment.isPending}
             />
-            <TextAreaForm
-              name="description"
-              label="Description"
-              isOptional
+            {error && <div className="text-error text-sm">{error}</div>}
+          </div>
+
+          <div className="grid w-full items-center gap-3">
+            <Label
+              htmlFor="department-description"
+              className="text-sm font-normal"
+            >
+              Description{" "}
+              <span className="text-muted-foreground">(Optional)</span>
+            </Label>
+            <Textarea
+              id="department-description"
+              placeholder="Description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
               disabled={addDepartment.isPending}
+              rows={4}
             />
+          </div>
 
-            {/* Show error message if mutation fails */}
-            {addDepartment.isError && (
-              <div className="text-error text-sm mt-2">
-                Error:{" "}
-                {addDepartment.error?.message || "Failed to save department"}
-              </div>
-            )}
+          {addDepartment.isError && (
+            <div className="text-error text-sm">
+              Error:{" "}
+              {addDepartment.error?.message || "Failed to save department"}
+            </div>
+          )}
 
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleCancel}
-                disabled={addDepartment.isPending}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={addDepartment.isPending}>
-                {addDepartment.isPending ? "Saving..." : "Save"}
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleClose}
+              disabled={addDepartment.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleSubmit}
+              disabled={addDepartment.isPending}
+            >
+              {addDepartment.isPending ? "Saving..." : "Save"}
+            </Button>
+          </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );
@@ -306,37 +369,42 @@ export const AddNewDepartmentModal: React.FC = () => {
 
 export const AddNewTeamModal: React.FC = () => {
   const [open, setOpen] = React.useState(false);
+  const [name, setName] = React.useState("");
+  const [description, setDescription] = React.useState("");
+  const [error, setError] = React.useState("");
   const queryClient = useQueryClient();
-
-  const form = useForm<ITeamForm>({
-    resolver: zodResolver(teamFormScheme),
-    defaultValues: {
-      name: "",
-      description: "",
-    },
-  });
 
   const addTeam = useMutation({
     mutationFn: (values: ITeamForm) => postTeam(values),
     onSuccess: () => {
       toast.success("Team added successfully!");
-
-      queryClient.invalidateQueries({ queryKey: ["teams"] });
-      setOpen(false);
-      form.reset();
+      queryClient.invalidateQueries({ queryKey: ["team_id"] });
+      handleClose();
     },
     onError: (error: any) => {
       toast.error(`Failed to add team: ${error.message || "Unknown error"}`);
     },
   });
 
-  const onSubmit = (values: ITeamForm) => {
-    addTeam.mutate(values);
+  const handleSubmit = () => {
+    setError("");
+
+    if (!name.trim()) {
+      setError("Team name is required");
+      return;
+    }
+
+    addTeam.mutate({
+      name: name.trim(),
+      description: description.trim(),
+    });
   };
 
-  const handleCancel = () => {
+  const handleClose = () => {
     setOpen(false);
-    form.reset();
+    setName("");
+    setDescription("");
+    setError("");
     addTeam.reset();
   };
 
@@ -354,43 +422,63 @@ export const AddNewTeamModal: React.FC = () => {
         <DialogHeader>
           <DialogTitle>Create New Team</DialogTitle>
         </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <InputForm
-              name="name"
-              label="Team Name"
-              required
+        <div className="space-y-4">
+          <div className="grid w-full items-center gap-3">
+            <div className="flex">
+              <Label htmlFor="team-name" className="text-sm font-normal">
+                Team Name
+              </Label>
+              <span className="text-error">*</span>
+            </div>
+            <Input
+              id="team-name"
+              placeholder="Team Name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               disabled={addTeam.isPending}
             />
-            <TextAreaForm
-              name="description"
-              label="Description"
-              isOptional
+            {error && <div className="text-error text-sm">{error}</div>}
+          </div>
+
+          <div className="grid w-full items-center gap-3">
+            <Label htmlFor="team-description" className="text-sm font-normal">
+              Description{" "}
+              <span className="text-muted-foreground">(Optional)</span>
+            </Label>
+            <Textarea
+              id="team-description"
+              placeholder="Description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
               disabled={addTeam.isPending}
+              rows={4}
             />
+          </div>
 
-            {/* Show error message if mutation fails */}
-            {addTeam.isError && (
-              <div className="text-error text-sm mt-2">
-                Error: {addTeam.error?.message || "Failed to save team"}
-              </div>
-            )}
+          {addTeam.isError && (
+            <div className="text-error text-sm">
+              Error: {addTeam.error?.message || "Failed to save team"}
+            </div>
+          )}
 
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleCancel}
-                disabled={addTeam.isPending}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={addTeam.isPending}>
-                {addTeam.isPending ? "Saving..." : "Save"}
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleClose}
+              disabled={addTeam.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleSubmit}
+              disabled={addTeam.isPending}
+            >
+              {addTeam.isPending ? "Saving..." : "Save"}
+            </Button>
+          </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );

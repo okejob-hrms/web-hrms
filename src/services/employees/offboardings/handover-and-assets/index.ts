@@ -53,3 +53,27 @@ export const storeEquipmentFacilityHandover = async (
   );
   return response.json();
 };
+
+export const updateWorkDocumentHandover = async (
+  offboarding_id: number,
+  params: IWorkDocumentHandoverRequest,
+  handover_item_id: number,
+): Promise<ApiResponse<IWorkAndHandoverResponse>> => {
+  const response = await api.put<ApiResponse<IWorkAndHandoverResponse>>(
+    `employee/offboardings/${offboarding_id}/handover-asset-return/${handover_item_id}`,
+    { json: params },
+  );
+  return response.json();
+};
+
+export const updateEquipmentFacilityHandover = async (
+  offboarding_id: number,
+  params: IEquipmentFacilityHandoverRequest,
+  handover_item_id: number,
+): Promise<ApiResponse<IWorkAndHandoverResponse>> => {
+  const response = await api.put<ApiResponse<IWorkAndHandoverResponse>>(
+    `employee/offboardings/${offboarding_id}/handover-asset-return/${handover_item_id}`,
+    { json: params },
+  );
+  return response.json();
+};
