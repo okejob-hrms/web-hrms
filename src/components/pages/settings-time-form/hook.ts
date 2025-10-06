@@ -79,7 +79,6 @@ function mapToApiPayload(values: CompanyFormValues): AttendanceRequest {
 
 function mapFromApiResponse(
   data: AttendanceConfigData,
-  shiftData?: ShiftResponse
 ): CompanyFormValues {
   return {
     late_tolerance: String(data?.late_tolerance ?? ''),
@@ -87,10 +86,9 @@ function mapFromApiResponse(
     workSchedules: data?.rawWorkSchedules?.map((day) => ({
       day_of_week: day.day_of_week,
       schedules: (day.schedules ?? []).map((s) => {
-        const shift = shiftData?.data?.find((a) => a.id === s.shift_id);
         return {
           shift_id: s.shift_id,
-          shift_name: shift?.name ?? '',
+          shift_name: s.shift_name,
           start_time: s.start_time,
           end_time: s.end_time,
           sequence: s.sequence,
@@ -131,14 +129,14 @@ export function useCompanyForm() {
 
   const form = useForm<CompanyFormValues>({
     resolver: zodResolver(companySchema),
-    defaultValues: data && shiftData ? mapFromApiResponse(data, shiftData) : {},
+    defaultValues: data && shiftData ? mapFromApiResponse(data,) : {},
   });
 
   useEffect(() => {
-    if (data && shiftData && !isLoading && !isShiftLoading) {
-      form.reset(mapFromApiResponse(data, shiftData));
+    if (data && !isLoading && !isShiftLoading) {
+      form.reset(mapFromApiResponse(data));
     }
-  }, [data, shiftData, isLoading, isShiftLoading, form]);
+  }, [data, isLoading, isShiftLoading, form]);
 
   const mutation = useMutation({
     mutationFn: (values: CompanyFormValues) => 
@@ -146,6 +144,7 @@ export function useCompanyForm() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['attendanceConfig'] });
       toast.success("Update attendance time successful.");
+      router.push('/settings/time-attendance/attendance-configuration');
     },
     onError: () => {
       toast.error("Update attendance time failed.");

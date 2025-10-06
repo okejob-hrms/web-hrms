@@ -121,3 +121,8 @@ export const getOvertimeConfig = async (): Promise<OvertimeResponse> => {
   const response = await api.get<OvertimeResponse>("employee/overtime/configuration");
   return response.json();
 };
+
+export const getShiftToday = async (date: string): Promise<ShiftResponse> => {
+  const response = await api.get(`setting/shift?date=${date}`);
+  return response.json();
+};

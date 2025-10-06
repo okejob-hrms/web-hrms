@@ -170,6 +170,10 @@ export interface Schedule {
   ends_next_day: boolean;
   break_start_time?: string;
   break_end_time?: string;
+  shift?: {
+    id: number;
+    name: string;
+  }
 }
 
 export interface CompanyRequest {

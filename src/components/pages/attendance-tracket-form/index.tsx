@@ -32,6 +32,7 @@ import { SelectEmployeeForm } from '@/components/ui/select-form';
 import EmployeeUpdateModal from './sections/edit-modal';
 import dynamic from 'next/dynamic';
 import { LocationBadge } from '@/components/ui/location-badge';
+import dayjs from 'dayjs';
 
 const MapPicker = dynamic(() => import('@/components/ui/map'), { ssr: false });
 
@@ -57,6 +58,7 @@ export default function AttendanceTrackerForm({
     handleDetailData,
     isLoading,
     defaultMap,
+    setSelectedDate,
   } = useAttendenceForm();
 
   const handleSubmit = (values: AttendanceFormValues) => {
@@ -84,7 +86,13 @@ export default function AttendanceTrackerForm({
           </div>
 
           <div className="grid sm:grid-cols-4 grid-cols-1 gap-4">
-            <DatePicker name="attendance_date" label="Date" />
+            <DatePicker
+              name="attendance_date"
+              label="Date"
+              onChangeExtra={(date) => {
+                if (date) setSelectedDate(dayjs(date).format('YYYY-MM-DD'));
+              }}
+            />
 
             <FormField
               control={form.control}

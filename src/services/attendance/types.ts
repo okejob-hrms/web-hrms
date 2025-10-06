@@ -17,6 +17,7 @@ export interface LatestAttendance {
     in_at: string | null;
     out_at: string | null;
     duration: string | null;
+    overtime_duration_fomated?: string | null;
   };
   duration: string | null;
   location: {

@@ -88,7 +88,16 @@ export function useAttendance() {
             ]
       );
 
-      const rawWorkSchedules = c.schedules;
+      const rawWorkSchedules = c.schedules.map((day) => ({
+        ...day,
+        schedules: day.schedules.map((s) => ({
+          ...s,
+          shift_name:
+            s.shift?.name ??
+            shiftData?.data.find((sh) => sh.id === s.shift_id)?.name ??
+            'Unknown',
+        })),
+      }));
 
       return {
         late_tolerance,
@@ -97,6 +106,8 @@ export function useAttendance() {
         rawWorkSchedules,
       };
     },
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
   });
 }
 

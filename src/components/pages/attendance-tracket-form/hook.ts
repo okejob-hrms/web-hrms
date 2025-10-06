@@ -6,7 +6,7 @@ import * as z from 'zod';
 import { useRouter } from 'next/navigation';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ShiftResponse } from '@/services/settings/types';
-import { getShift } from '@/services/settings';
+import { getShift, getShiftToday } from '@/services/settings';
 import { useEffect, useMemo, useState } from 'react';
 import { getEmployees } from '@/services/employees';
 import dayjs from 'dayjs';
@@ -48,6 +48,7 @@ export function useAttendenceForm() {
   const [openMap, setOpenMap] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedId, setSelectedId] = useState<string>('');
+  const [selectedDate, setSelectedDate] = useState<string>('');
   const [map, setMap] = useState({
     lat: 0,
     lng: 0,
@@ -59,8 +60,8 @@ export function useAttendenceForm() {
   const queryClient = useQueryClient();
 
    const { data: shiftData } = useQuery<ShiftResponse>({
-    queryKey: ['shift'],
-    queryFn: getShift,
+    queryKey: ['shift', selectedDate],
+    queryFn: () => getShiftToday(selectedDate),
     staleTime: 1000 * 60 * 5,
   });
 
@@ -119,6 +120,7 @@ export function useAttendenceForm() {
     if (detailData?.data?.data?.length) {
       const detail = detailData.data.data[0];
       form.reset(mapResponseToForm(detail));
+      setSelectedDate(detail.attendance_date);
 
       setSelectedMap({
         lat: Number(detail.location.latitude),
@@ -192,5 +194,6 @@ export function useAttendenceForm() {
     isLoading,
     setIsLoading,
     defaultMap,
+    setSelectedDate,
   };
 }
