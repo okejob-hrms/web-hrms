@@ -24,6 +24,8 @@ import { getShowFinalSalary } from "@/services/employees/offboardings/final-sala
 import { useQuery } from "@tanstack/react-query";
 import * as React from "react";
 import { useForm } from "react-hook-form";
+import { CompleteOffboardingModal } from "./modals/complete-offboarding";
+import { CancelOffboardingModal } from "./modals/cancel-offboarding";
 
 interface Props {
   offboarding_id: number;
@@ -98,11 +100,15 @@ export const FinalSalaryBenefits = React.memo(function FinalSalaryBenefits({
           <TableBody>
             <TableRow>
               <TableCell className="py-4 px-6">Base Nett Salary</TableCell>
-              <TableCell className="py-4 px-6">Rp 24.000.000,00</TableCell>
+              <TableCell className="py-4 px-6">{"-"}</TableCell>
             </TableRow>
             <TableRow>
               <TableCell className="py-4 px-6">Overtime</TableCell>
-              <TableCell className="py-4 px-6">Rp 24.000.000,00</TableCell>
+              <TableCell className="py-4 px-6">
+                {salary?.data?.overtime_amount
+                  ? `Rp ${salary?.data?.overtime_amount}`
+                  : "-"}
+              </TableCell>
             </TableRow>
             <TableRow>
               <TableCell className="py-4 px-6">Allowance</TableCell>
@@ -110,7 +116,7 @@ export const FinalSalaryBenefits = React.memo(function FinalSalaryBenefits({
             </TableRow>
             <TableRow>
               <TableCell className="py-4 px-6">Severance Pay</TableCell>
-              <TableCell className="py-4 px-6">Rp 24.000.000,00</TableCell>
+              <TableCell className="py-4 px-6">{"-"}</TableCell>
             </TableRow>
             <TableRow>
               <TableCell className="py-4 px-6">Leave Compensation</TableCell>
@@ -118,21 +124,37 @@ export const FinalSalaryBenefits = React.memo(function FinalSalaryBenefits({
             </TableRow>
             <TableRow>
               <TableCell className="py-4 px-6">Bonus</TableCell>
-              <TableCell className="py-4 px-6">Rp 24.000.000,00</TableCell>
+              <TableCell className="py-4 px-6">
+                {salary?.data?.bonus_amount
+                  ? `Rp ${salary?.data?.bonus_amount}`
+                  : "-"}
+              </TableCell>
             </TableRow>
             <TableRow>
               <TableCell className="py-4 px-6">Reimbursement</TableCell>
-              <TableCell className="py-4 px-6">Rp 24.000.000,00</TableCell>
+              <TableCell className="py-4 px-6">
+                {salary?.data?.reimbursement_amount
+                  ? `Rp ${salary?.data?.reimbursement_amount}`
+                  : "-"}
+              </TableCell>
             </TableRow>
             <TableRow>
               <TableCell className="py-4 px-6">Deduction</TableCell>
-              <TableCell className="py-4 px-6">Rp 24.000.000,00</TableCell>
+              <TableCell className="py-4 px-6">
+                {salary?.data?.deduction_amount
+                  ? `Rp ${salary?.data?.deduction_amount}`
+                  : "-"}
+              </TableCell>
             </TableRow>
           </TableBody>
           <TableFooter className="bg-primary-background">
             <TableRow>
               <TableCell className="py-4 px-6">Total Gross Pay</TableCell>
-              <TableCell className="py-4 px-6">$2,500.00</TableCell>
+              <TableCell className="py-4 px-6">
+                {salary?.data?.total_amount
+                  ? `Rp ${salary?.data?.total_amount}`
+                  : "-"}
+              </TableCell>
             </TableRow>
           </TableFooter>
         </Table>
@@ -152,15 +174,8 @@ export const FinalSalaryBenefits = React.memo(function FinalSalaryBenefits({
         </Alert>
       </div>
       <div className="flex gap-4">
-        <Button type="submit" variant="outline">
-          Complete Offboarding Process
-        </Button>
-        <Button
-          variant="ghost"
-          className="text-error hover:bg-error-background hover:text-error"
-        >
-          Cancel Offboarding Process
-        </Button>
+        <CompleteOffboardingModal offboardingId={offboarding_id} />
+        <CancelOffboardingModal offboardingId={offboarding_id} />
       </div>
     </div>
   );

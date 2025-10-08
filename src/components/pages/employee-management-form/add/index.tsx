@@ -83,11 +83,18 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
         ...(values.primary_direct_report_id !== 0 && {
           primary_direct_report_id: Number(values.primary_direct_report_id),
         }),
-        ...(values.additional_direct_report_id !== 0 && {
-          additional_direct_report_id: Number(
-            values.additional_direct_report_id,
-          ),
-        }),
+        ...(values.primary_direct_report_id !== 0
+          ? {
+              primary_direct_report_id: Number(values.primary_direct_report_id),
+            }
+          : { primary_direct_report_id: null }),
+        ...(values.additional_direct_report_id !== 0
+          ? {
+              additional_direct_report_id: Number(
+                values.additional_direct_report_id,
+              ),
+            }
+          : { additional_direct_report_id: null }),
         ...(values.attachments &&
           values.attachments.filter((item) => {
             if (item.type !== undefined && item.path !== undefined) {

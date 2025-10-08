@@ -28,7 +28,7 @@ import "@xyflow/react/dist/style.css";
 import { transformDataForFlow } from "../data-transformer";
 import { CustomNode } from "./custom-node";
 import { CustomControls } from "./custom-controls";
-import { flattenOrgData } from "../utis";
+import { flattenOrgData } from "../utils";
 
 import {
   getOrgChart,
@@ -40,7 +40,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const dagreGraph = new dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
 const nodeWidth = 220;
 const nodeHeight = 140;
 
@@ -49,6 +48,7 @@ const getLayoutedElements = (
   edges: Edge[],
   direction: "TB" | "LR" = "TB"
 ) => {
+  const dagreGraph = new dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
   const isHorizontal = direction === "LR";
   dagreGraph.setGraph({ rankdir: direction });
 
@@ -64,6 +64,7 @@ const getLayoutedElements = (
 
   const newNodes = nodes.map((node) => {
     const nodeWithPosition = dagreGraph.node(node.id);
+    console.log("nodeWithPosition", nodeWithPosition, node);
     const newNode = {
       ...node,
       targetPosition: isHorizontal ? "left" : "top",
@@ -73,6 +74,7 @@ const getLayoutedElements = (
         y: nodeWithPosition.y - nodeHeight / 2,
       },
     };
+    console.log("newNode", newNode);
 
     return newNode;
   });
@@ -168,6 +170,9 @@ export default function OrganizationChartEdit() {
     setNodes(layoutedNodes as Node<NodeCardData>[]);
     setEdges(layoutedEdges);
   }, [chartEmployees]);
+
+  console.log("layoutedNodes", nodes);
+  console.log("layoutedEdges", edges);
 
   const handleModalSave = (formValues: AssignEmployeeFormValues) => {
     assignManager(formValues);

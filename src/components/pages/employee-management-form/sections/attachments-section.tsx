@@ -34,7 +34,10 @@ interface AttachmentsSectionProps {
     size: number;
     path: string;
     disk: string;
-    uploaded_by: number;
+    uploaded_by: {
+      id: number;
+      name: string;
+    };
     uploaded_at: string;
     created_at: string;
     updated_at: string;
