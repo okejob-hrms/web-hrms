@@ -264,12 +264,8 @@ export const PersonalInformationSection = React.memo(
           </div>
 
           <InputForm name="id_number" label="ID Number" required />
-          <InputForm name="npwp" label="Taxpayer ID Number (NPWP)" required />
-          <InputForm
-            name="bpjs"
-            label="Health Insurance Number (BPJS)"
-            required
-          />
+          <InputForm name="npwp" label="Taxpayer ID Number (NPWP)" />
+          <InputForm name="bpjs" label="Health Insurance Number (BPJS)" />
 
           <TextAreaForm name="citizen_id_address" label="Citizen ID Address" />
           <TextAreaForm name="residential_address" label="Residental Address" />

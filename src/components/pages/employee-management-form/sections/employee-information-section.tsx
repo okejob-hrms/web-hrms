@@ -21,9 +21,12 @@ import { useFormContext } from "react-hook-form";
 import { getDepartment, postDepartment } from "@/services/department";
 import { IDepartmentForm } from "@/services/department/types";
 import { IPositionForm } from "@/services/job-position/types";
-import { getJobPosition, postJobPosition } from "@/services/job-position";
+import {
+  getJobPositionPagination,
+  postJobPosition,
+} from "@/services/job-position";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getJobLevels, postJobLevel } from "@/services/job-levels";
+import { getJobLevelsPagination, postJobLevel } from "@/services/job-levels";
 import { toast } from "sonner";
 import { getTeam, postTeam } from "@/services/team";
 import { ITeamForm } from "@/services/team/types";
@@ -160,9 +163,29 @@ export const AddNewPositionModal: React.FC = () => {
       handleClose();
     },
     onError: (error: any) => {
-      toast.error(
-        `Failed to add position: ${error.message || "Unknown error"}`,
-      );
+      if (error?.response) {
+        try {
+          error.response
+            .json()
+            .then((errorData: ApiErrorResponse) => {
+              toast.error(errorData.message || "Failed to add new position");
+              setError(errorData.message || "Failed to add new position");
+            })
+            .catch(() => {
+              toast.error("Failed to add new position: Server error");
+              setError("Failed to add new position: Server error");
+            });
+        } catch (parseError) {
+          toast.error(
+            "Failed to add new position: Server error : " + parseError,
+          );
+          setError("Failed to add new position: Server error : " + parseError);
+        }
+      } else {
+        toast.error(
+          `Failed to add new position: ${error.message || "Unknown error"}`,
+        );
+      }
     },
   });
 
@@ -254,9 +277,31 @@ export const AddNewDepartmentModal: React.FC = () => {
       handleClose();
     },
     onError: (error: any) => {
-      toast.error(
-        `Failed to add department: ${error.message || "Unknown error"}`,
-      );
+      if (error?.response) {
+        try {
+          error.response
+            .json()
+            .then((errorData: ApiErrorResponse) => {
+              toast.error(errorData.message || "Failed to add new department");
+              setError(errorData.message || "Failed to add new department");
+            })
+            .catch(() => {
+              toast.error("Failed to add new department: Server error");
+              setError("Failed to add new department: Server error");
+            });
+        } catch (parseError) {
+          toast.error(
+            "Failed to add new department: Server error : " + parseError,
+          );
+          setError(
+            "Failed to add new department: Server error : " + parseError,
+          );
+        }
+      } else {
+        toast.error(
+          `Failed to add new department: ${error.message || "Unknown error"}`,
+        );
+      }
     },
   });
 
@@ -370,7 +415,27 @@ export const AddNewTeamModal: React.FC = () => {
       handleClose();
     },
     onError: (error: any) => {
-      toast.error(`Failed to add team: ${error.message || "Unknown error"}`);
+      if (error?.response) {
+        try {
+          error.response
+            .json()
+            .then((errorData: ApiErrorResponse) => {
+              toast.error(errorData.message || "Failed to add new team");
+              setError(errorData.message || "Failed to add new team");
+            })
+            .catch(() => {
+              toast.error("Failed to add new team: Server error");
+              setError("Failed to add new team: Server error");
+            });
+        } catch (parseError) {
+          toast.error("Failed to add new team: Server error : " + parseError);
+          setError("Failed to add new team: Server error : " + parseError);
+        }
+      } else {
+        toast.error(
+          `Failed to add new team: ${error.message || "Unknown error"}`,
+        );
+      }
     },
   });
 
@@ -486,7 +551,7 @@ export const EmployeeinformationSection = React.memo(
       error: departmentsError,
     } = useQuery({
       queryKey: ["department_id"],
-      queryFn: () => getDepartment(),
+      queryFn: () => getDepartment({ pageSize: 10000, pageIndex: 0 }),
       retry: (failureCount, error: any) => {
         if (error?.response?.status >= 400) return false;
         return failureCount < 3;
@@ -501,7 +566,11 @@ export const EmployeeinformationSection = React.memo(
       error: jobLevelsError,
     } = useQuery({
       queryKey: ["job_level_id"],
-      queryFn: getJobLevels,
+      queryFn: () =>
+        getJobLevelsPagination({
+          pageSize: 10000,
+          pageIndex: 0,
+        }),
       retry: (failureCount, error: any) => {
         if (error?.response?.status >= 400) return false;
         return failureCount < 3;
@@ -516,7 +585,11 @@ export const EmployeeinformationSection = React.memo(
       error: positionsError,
     } = useQuery({
       queryKey: ["job_position_id"],
-      queryFn: getJobPosition,
+      queryFn: () =>
+        getJobPositionPagination({
+          pageSize: 10000,
+          pageIndex: 0,
+        }),
       retry: (failureCount, error: any) => {
         if (error?.response?.status >= 400) return false;
         return failureCount < 3;
@@ -531,7 +604,7 @@ export const EmployeeinformationSection = React.memo(
       error: teamsError,
     } = useQuery({
       queryKey: ["team_id"],
-      queryFn: () => getTeam(),
+      queryFn: () => getTeam({ pageSize: 10000, pageIndex: 0 }),
       retry: (failureCount, error: any) => {
         if (error?.response?.status >= 400) return false;
         return failureCount < 3;

@@ -18,7 +18,7 @@ import Image from "next/image";
 import { InitiateOffboardingEmployee } from "./sections/initiate-offboarding-form";
 import { getOffboardings } from "@/services/employees/offboardings";
 import { IOffboardingResponse } from "@/services/employees/offboardings/types";
-import { Clock, Dot } from "lucide-react";
+import { Clock } from "lucide-react";
 
 export const columns: ColumnDef<IOffboardingResponse>[] = [
   {

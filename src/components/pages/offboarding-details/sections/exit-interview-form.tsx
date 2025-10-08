@@ -8,6 +8,8 @@ import { Textarea, TextAreaForm } from "@/components/ui/textarea";
 import Image from "next/image";
 import React from "react";
 import { useForm } from "react-hook-form";
+import { CompleteOffboardingModal } from "./modals/complete-offboarding";
+import { CancelOffboardingModal } from "./modals/cancel-offboarding";
 
 export const AlertProcess = React.memo(function InterviewScheduleForm() {
   return (
@@ -207,15 +209,8 @@ export const ExitInterviewForm = React.memo(function ExitInterviewForm() {
             </div>
           </div>
           <div className="flex gap-4">
-            <Button type="submit" variant="outline">
-              Complete Offboarding Process
-            </Button>
-            <Button
-              variant="ghost"
-              className="text-error hover:bg-error-background hover:text-error"
-            >
-              Cancel Offboarding Process
-            </Button>
+            {/* <CompleteOffboardingModal offboardingId={offboarding_id} />
+            <CancelOffboardingModal offboardingId={offboarding_id} /> */}
           </div>
         </form>
       </Form>

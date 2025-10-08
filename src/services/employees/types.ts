@@ -63,8 +63,8 @@ export interface IMutateEmployeeRequests {
   height: number;
   weight: number;
   id_number: string;
-  npwp: string;
-  bpjs: string;
+  npwp?: string | null;
+  bpjs?: string | null;
   citizen_id_address: string;
   residential_address: string;
   hobby: string;
@@ -78,7 +78,7 @@ export interface IMutateEmployeeRequests {
   job_position_id: number;
   job_level_id: number;
   department_id: number;
-  primary_direct_report_id: number;
+  primary_direct_report_id?: number | null;
   additional_direct_report_id?: number | null;
   team_members: {
     team_id: number;
@@ -86,7 +86,7 @@ export interface IMutateEmployeeRequests {
   start_date: string;
   end_date?: string;
   status: string;
-  base_salary: number;
+  base_salary: number | null;
   salary_nett: number;
   allowances?: {
     allowance_type_id: number;

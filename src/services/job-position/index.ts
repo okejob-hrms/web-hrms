@@ -32,7 +32,11 @@ export const getJobPosition = async (): Promise<
 > => {
   const response = await api.get<PaginatedResponse<JobPositionResponse>>(
     "job-positions",
-    // JSON.stringify(payload),
+    {
+      searchParams: {
+        per_page: 10000,
+      },
+    },
   );
   return response.json();
 };
