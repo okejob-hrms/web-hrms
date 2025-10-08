@@ -15,6 +15,8 @@ import {
 } from "@/services/employees/offboardings/complete-offboarding";
 import { toast } from "sonner";
 import { ApiErrorResponse } from "@/lib/types";
+import { CompleteOffboardingModal } from "./modals/complete-offboarding";
+import { CancelOffboardingModal } from "./modals/cancel-offboarding";
 
 export const WorkingAndAssets = React.memo(function WorkingAndAssets() {
   const pathname = usePathname();
@@ -93,20 +95,8 @@ export const WorkingAndAssets = React.memo(function WorkingAndAssets() {
       <EquipmentReturnTable offboarding_id={offboardingId} />
       <FacilitiesReturnTable offboarding_id={offboardingId} />
       <div className="flex gap-4">
-        <Button
-          type="submit"
-          variant="outline"
-          onClick={() => completeMutation.mutate()}
-        >
-          Complete Offboarding Proces
-        </Button>
-        <Button
-          variant="ghost"
-          className="text-error hover:bg-error-background hover:text-error"
-          onClick={() => cancelledMutation.mutate()}
-        >
-          Cancel Offboarding Process
-        </Button>
+        <CompleteOffboardingModal offboardingId={offboardingId} />
+        <CancelOffboardingModal offboardingId={offboardingId} />
       </div>
     </div>
   );

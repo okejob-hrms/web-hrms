@@ -376,11 +376,8 @@ const CardItem = React.memo(function CardItem({ file, userId }: CardItemProps) {
       <DocumentPreview file={file} />
       <div className="p-4 bg-white rounded-b-md">
         <div className="flex justify-between gap-2">
-          <p
-            className="text-text-secondary text-sm truncate"
-            title={file.filename}
-          >
-            {file.filename}
+          <p className="text-text-secondary text-sm truncate" title={file.type}>
+            {file.type}
           </p>
           <DropdownMenu
             open={dropdownOpen}
@@ -489,7 +486,7 @@ const CardItem = React.memo(function CardItem({ file, userId }: CardItemProps) {
             onClose={() => setIsManageAccessOpen(false)}
             onSave={() => {}}
             disabled={isPendingDelete}
-            employeeDocumentId={file.employee_profile_id}
+            employeeDocumentId={file.id}
           />
         </div>
         <p className="text-xs text-text-disabled mt-1">{file.uploaded_at}</p>

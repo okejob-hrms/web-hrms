@@ -20,8 +20,11 @@ import { getDepartment } from "@/services/department";
 import { useQuery } from "@tanstack/react-query";
 import { getJobLevels } from "@/services/job-levels";
 import { getEmployees } from "@/services/employees";
-import { postManageAccessDocument } from "@/services/document/access-control";
-import { ComboboxGroup } from "@/lib/types";
+import {
+  getManageAccessDocument,
+  postManageAccessDocument,
+} from "@/services/document/access-control";
+import { ApiErrorResponse, ComboboxGroup } from "@/lib/types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { stringAvatar } from "@/lib/utils";
 import { toast } from "sonner";
@@ -86,8 +89,27 @@ export default function ManageAccessModal({
       form.reset();
       toast.success("Access control granted.");
     },
-    onError: (error) => {
-      console.error("Error updating document access:", error);
+    onError: (error: any) => {
+      if (error?.response) {
+        try {
+          error.response
+            .json()
+            .then((errorData: ApiErrorResponse) => {
+              toast.error(errorData.message || "Failed to save manage access");
+            })
+            .catch(() => {
+              toast.error("Failed to save manage access: Server error");
+            });
+        } catch (parseError) {
+          toast.error(
+            "Failed to save manage access: Server error : " + parseError,
+          );
+        }
+      } else {
+        toast.error(
+          `Failed to save manage access: ${error.message || "Unknown error"}`,
+        );
+      }
     },
     onSettled: () => {
       setIsLoading(false);
@@ -113,6 +135,16 @@ export default function ManageAccessModal({
     gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
+
+  const { data: manageAccess } = useQuery({
+    queryKey: ["manage_access"],
+    queryFn: () => getManageAccessDocument(employeeDocumentId),
+    refetchOnWindowFocus: false,
+  });
+
+  React.useEffect(() => {
+    console.log("manage access ", manageAccess);
+  }, [manageAccess]);
 
   const handleSubmit = async (data: AccessFormValues) => {
     if (disabled || isLoading) return;
