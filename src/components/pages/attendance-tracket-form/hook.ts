@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useRouter } from 'next/navigation';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ShiftResponse } from '@/services/settings/types';
+import { ShiftByDayResponse, ShiftResponse } from '@/services/settings/types';
 import { getShift, getShiftToday } from '@/services/settings';
 import { useEffect, useMemo, useState } from 'react';
 import { getEmployees } from '@/services/employees';
@@ -59,7 +59,7 @@ export function useAttendenceForm() {
   });
   const queryClient = useQueryClient();
 
-   const { data: shiftData } = useQuery<ShiftResponse>({
+   const { data: shiftData } = useQuery<ShiftByDayResponse>({
     queryKey: ['shift', selectedDate],
     queryFn: () => getShiftToday(selectedDate),
     staleTime: 1000 * 60 * 5,

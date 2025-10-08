@@ -211,6 +211,21 @@ export interface ShiftResponse {
   data: ShiftItem[];
 }
 
+export interface ShiftByDayResponse {
+  data: {
+    shifts: ShiftItemByDay[];
+  };
+}
+
+export interface ShiftItemByDay {
+  schedule_id: number;
+  shift: {
+    id: number;
+    name: string;
+  };
+  start_time: string;
+}
+
 export interface ShiftItem {
   id: number;
   tenant_id: number;
