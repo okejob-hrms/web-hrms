@@ -26,7 +26,16 @@ export const menus: Record<string, MenuItem[]> = {
         },
       ],
     },
-    { name: "Offboarding", value: "employee/off-boarding" },
+    {
+      name: "Offboarding",
+      value: "employee/off-boarding",
+      subItem: [
+        {
+          name: "Salary Adjustment",
+          value: "employee/off-boarding/salary-adjustment",
+        },
+      ],
+    },
   ],
 
   attendance: [
@@ -38,7 +47,8 @@ export const menus: Record<string, MenuItem[]> = {
   settings: [
     { name: "Access Control", value: "settings/access-control" },
     { name: "Company Profile", value: "settings/company-profile" },
-    { name: "Time & Attendence",
+    {
+      name: "Time & Attendence",
       value: "settings/time-attendence",
       subItem: [
         {
@@ -48,8 +58,8 @@ export const menus: Record<string, MenuItem[]> = {
         {
           name: "Overtime Configuration",
           value: "settings/time-attendance/overtime-configuration",
-        }
-      ]
+        },
+      ],
     },
     { name: "Leave Management", value: "settings/leave" },
     { name: "Payroll Management", value: "settings/payroll" },
@@ -80,17 +90,24 @@ export const getHideSidebar = (path: string) => {
     "/employee/organization/structure/edit",
     "/attendance/attendance-tracker/",
     "/settings/time-attendance/attendance-configuration/edit",
-    "/settings/time-attendance/overtime-configuration/edit"
+    "/settings/time-attendance/overtime-configuration/edit",
+    "/employee/off-boarding/salary-adjustment",
   ];
 
   const employeeDetailPattern = /^\/employee\/employee-management\/\d+$/;
   const offboardingDetailPattern = /^\/employee\/off-boarding\/\d+$/;
+  const salaryAdjustmentPattern =
+    /^\/employee\/off-boarding\/\d+\/salary-adjustment$/;
 
   if (employeeDetailPattern.test(path)) {
     return true;
   }
 
   if (offboardingDetailPattern.test(path)) {
+    return true;
+  }
+
+  if (salaryAdjustmentPattern.test(path)) {
     return true;
   }
 
@@ -101,6 +118,7 @@ export const getHideSidebar = (path: string) => {
 
   return false;
 };
+
 export const getBreadcrumbs = (pathname: string) => {
   const segments = pathname.split("/").filter(Boolean);
 

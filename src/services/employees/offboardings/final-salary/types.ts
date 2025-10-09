@@ -15,3 +15,25 @@ export interface IFinalSalaryResponse {
   status_label: string;
   notes: string | null;
 }
+
+import { z } from "zod";
+
+export const MutateFinalSalaryRequestSchema = z.object({
+  overtime_amount: z.number().nullable(),
+  bonus_amount: z.number().nullable(),
+  reimbursement_amount: z.number().nullable(),
+  deduction_amount: z.number().nullable(),
+  notes: z.string().nullable(),
+  allowances: z
+    .array(
+      z.object({
+        allowance_type_id: z.number(),
+        amount: z.number(),
+      }),
+    )
+    .nullable(),
+});
+
+export type IMutateFinalSalaryRequest = z.infer<
+  typeof MutateFinalSalaryRequestSchema
+>;

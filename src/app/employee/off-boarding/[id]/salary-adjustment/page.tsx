@@ -4,9 +4,9 @@ import { EmployeeDetailsSection } from "@/components/pages/offboarding-details/s
 import AppSkeleton from "@/components/partials/app-skeleton";
 import { getEmployeeDetail } from "@/services/employees";
 import { useQuery } from "@tanstack/react-query";
-import { OffboardingTab } from "@/components/pages/offboarding-details/sections/offboarding-tab";
+import { SalaryAdjustmentForm } from "@/components/pages/offboarding-details/sections/salary-adjustment-form";
 
-export default function OffboardingDetailPage({
+export default function OffboardingSalaryAdjustmentPage({
   params,
 }: {
   params: Promise<{ id: number }>;
@@ -36,7 +36,7 @@ export default function OffboardingDetailPage({
   return (
     <div className="font-sans min-h-screen space-y-4">
       <EmployeeDetailsSection data={employeeDetails.data} offboarding_id={id} />
-      <OffboardingTab offboarding_id={id} />
+      <SalaryAdjustmentForm offboarding_id={id} />
     </div>
   );
 }

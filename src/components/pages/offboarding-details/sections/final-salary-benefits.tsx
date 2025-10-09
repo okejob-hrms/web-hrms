@@ -18,6 +18,9 @@ import dayjs from "dayjs";
 import "dayjs/locale/id";
 import { AssignPayrunsModal } from "./modals/assign-payruns-modal";
 import { CancelPayrunsModal } from "./modals/cancel-payruns-modal";
+import { Button } from "@/components/ui/button";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 interface Props {
   offboarding_id: number;
@@ -26,6 +29,7 @@ interface Props {
 export const FinalSalaryBenefits = React.memo(function FinalSalaryBenefits({
   offboarding_id,
 }: Props) {
+  const router = useRouter();
   const { data: salary } = useQuery({
     queryKey: ["salary", offboarding_id],
     queryFn: () => getShowFinalSalary(offboarding_id),
@@ -41,6 +45,17 @@ export const FinalSalaryBenefits = React.memo(function FinalSalaryBenefits({
           <h4 className="font-semibold text-xl text-gray-900">
             Final Salary & Benefits
           </h4>
+          <Button
+            className="font-semibold text-white text-sm hover:text-white"
+            onClick={() =>
+              router.push(
+                `/employee/off-boarding/${offboarding_id}/salary-adjustment`,
+              )
+            }
+          >
+            <Image src="/icons/edit.svg" width={24} height={24} alt="edit" />{" "}
+            Salary Adjustment
+          </Button>
         </div>
         <Table>
           <TableHeader>
