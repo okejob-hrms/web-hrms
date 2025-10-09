@@ -44,3 +44,27 @@ export const postCancelledOffboarding = async (offboarding_id: number) => {
     throw error;
   }
 };
+
+export const postAssignPayruns = async (
+  offboarding_id: number,
+  date: string,
+) => {
+  try {
+    const response = await api.post(
+      `employee/offboardings/${offboarding_id}/final-salary/assign-to-payrun`,
+      { json: { assigned_payrun_date: date } },
+    );
+    return response.json();
+  } catch (error: any) {
+    if (error.name === "HTTPError") {
+      const errorResponse = await error.response.json();
+      const enhancedError = new Error(error.message);
+      (enhancedError as any).response = {
+        json: () => Promise.resolve(errorResponse),
+        status: error.response.status,
+      };
+      throw enhancedError;
+    }
+    throw error;
+  }
+};
