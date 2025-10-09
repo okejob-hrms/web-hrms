@@ -27,13 +27,23 @@ export const MutateFinalSalaryRequestSchema = z.object({
   allowances: z
     .array(
       z.object({
-        allowance_type_id: z.number(),
-        amount: z.number(),
+        allowance_type_id: z.number().optional().nullable(),
+        amount: z.number().optional().nullable(),
       }),
     )
+    .optional()
     .nullable(),
 });
 
 export type IMutateFinalSalaryRequest = z.infer<
   typeof MutateFinalSalaryRequestSchema
 >;
+
+export const defaultFinalSalaryAdjustmentForm: IMutateFinalSalaryRequest = {
+  overtime_amount: null,
+  bonus_amount: null,
+  reimbursement_amount: null,
+  deduction_amount: null,
+  notes: null,
+  allowances: null,
+};

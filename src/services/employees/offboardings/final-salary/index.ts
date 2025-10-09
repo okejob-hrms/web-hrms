@@ -30,7 +30,7 @@ export const postFinalSalary = async (
   payload: IMutateFinalSalaryRequest,
 ): Promise<ApiResponse<IFinalSalaryResponse>> => {
   try {
-    const response = await api.get(
+    const response = await api.post(
       `employee/offboardings/${offboarding_id}/final-salary`,
       { json: payload },
     );
