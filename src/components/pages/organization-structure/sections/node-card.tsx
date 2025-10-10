@@ -7,7 +7,7 @@ import { Edit, Plus, Trash2, Ellipsis } from "lucide-react";
 
 type NodeCardData = {
   employee: EmployeeNode;
-  onAddChild: (id: string, handle: "top" | "bottom") => void;
+  onAddChild: (employee: EmployeeNode, handle: "top" | "bottom") => void;
   onEdit: (employee: EmployeeNode) => void;
   onDelete: (employee: EmployeeNode) => void;
   isEditMode: boolean;
@@ -144,7 +144,7 @@ export const NodeCard = ({ data }: { data: NodeCardData }) => {
       </div>
       {isEditMode && (
         <button
-          onClick={() => onAddChild(employeeId, "bottom")}
+          onClick={() => onAddChild(employee, "bottom")}
           className="flex items-center justify-center w-5 h-5 rounded-full bg-primary text-white shadow hover:bg-primary/80"
         >
           <Plus className="w-3 h-3" />

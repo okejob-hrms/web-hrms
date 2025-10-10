@@ -8,6 +8,7 @@ import {
   HeaderBreadcumb,
   HeaderMenu,
 } from '@/components/partials/header';
+import { cn } from "@/lib/utils";
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { ModuleSidebar } from '@/components/partials/module-sidebar';
 import AppSkeleton from './app-skeleton';
@@ -18,6 +19,8 @@ import { getBreadcrumbs, getGenerateTitle, getHideSidebar } from '@/lib/menu';
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const hideSidebar = getHideSidebar(pathname) || false;
+  const noPaddingPages = ["/employee/organization/structure/edit"]; // add more if needed
+  const removePadding = noPaddingPages.includes(pathname);
   const isAuthPage = pathname.startsWith('/auth');
   const breadcrumbs = getBreadcrumbs(pathname);
 
@@ -67,7 +70,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <HeaderMenu />
           <HeaderBreadcumb items={breadcrumbs} />
           {hideSidebar ? (
-            <div className="md:py-10 py-4 flex justify-center bg-white min-h-screen">
+            <div
+            className={cn(
+              "flex justify-center bg-white min-h-screen",
+              !removePadding && "md:py-10 py-4"
+            )}
+          >
               <main className="w-full">
                 {loading ? (
                   <div className="md:px-10 px-4">
