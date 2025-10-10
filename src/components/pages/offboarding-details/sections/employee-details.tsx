@@ -309,7 +309,7 @@ export const EmployeeDetailsSection = React.memo(
           </div>
           <Separator className="md:col-span-3" />
         </div>
-        <OffboardingTab offboarding_id={offboarding_id} />
+        {/* <OffboardingTab offboarding_id={offboarding_id} /> */}
       </div>
     );
   },

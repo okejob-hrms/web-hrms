@@ -110,9 +110,9 @@ export default function AttendanceTrackerForm({
                         <SelectValue placeholder="Select option" />
                       </SelectTrigger>
                       <SelectContent>
-                        {shiftData?.data.map((item, i) => (
-                          <SelectItem value={String(item.id)} key={i}>
-                            {item.name}
+                        {shiftData?.data?.shifts?.map((item, i) => (
+                          <SelectItem value={String(item.shift.id)} key={i}>
+                            {item.shift.name}
                           </SelectItem>
                         ))}
                       </SelectContent>

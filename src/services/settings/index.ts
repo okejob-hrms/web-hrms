@@ -1,5 +1,5 @@
 import { api } from "@/lib/api";
-import { IRolesResponse, IPermissionResponse, IEmployee, ICreateRolePayload, ICreateRoleResponse, IRoleDetailResponse, CompanyResponse, CompanyRequest, WorkScheduleResponse, AttendanceRequest, ShiftResponse, LateDeductions, DeductionRequest, OvertimeResponse } from "./types";
+import { IRolesResponse, IPermissionResponse, IEmployee, ICreateRolePayload, ICreateRoleResponse, IRoleDetailResponse, CompanyResponse, CompanyRequest, WorkScheduleResponse, AttendanceRequest, ShiftResponse, LateDeductions, DeductionRequest, OvertimeResponse, ShiftByDayResponse } from "./types";
 import { PaginatedResponse } from "@/lib/types";
 
 export const getRoles = async (): Promise<IRolesResponse> => {
@@ -122,7 +122,7 @@ export const getOvertimeConfig = async (): Promise<OvertimeResponse> => {
   return response.json();
 };
 
-export const getShiftToday = async (date: string): Promise<ShiftResponse> => {
-  const response = await api.get(`setting/shift?date=${date}`);
+export const getShiftToday = async (date: string): Promise<ShiftByDayResponse> => {
+  const response = await api.get(`setting/shift/shift-date?date=${date}`);
   return response.json();
 };

@@ -48,10 +48,17 @@ import { Form } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
 import { DatePicker } from '@/components/ui/date-picker';
 import dayjs from 'dayjs';
-import { getLocationName } from '@/lib/geocode';
 import { LocationBadge } from '@/components/ui/location-badge';
 
-export default function AttendanceTrackerList() {
+interface AttendanceTrackerListProps {
+  hidePannel?: boolean;
+  relativeUser?: string;
+}
+
+export const AttendanceTrackerList = ({
+  hidePannel = false,
+  relativeUser,
+}: AttendanceTrackerListProps) => {
   const router = useRouter();
 
   const {
@@ -248,95 +255,111 @@ export default function AttendanceTrackerList() {
     },
   });
 
+  React.useEffect(() => {
+    if (relativeUser) {
+      setFilters((prev) => ({
+        ...prev,
+        search: relativeUser,
+      }));
+      setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+    }
+  }, [relativeUser]);
+
   return (
     <div className="font-sans min-h-screen flex flex-col space-y-6 px-6">
-      <h2 className="font-semibold text-xl">Summary</h2>
-      <div className="grid xl:grid-cols-3 grid-cols-1 gap-6">
-        <InfoList
-          title="Late Clock In"
-          increase={stat?.late_clock_in?.change}
-          compare="vs"
-          time="yesterday"
-          value={stat?.late_clock_in?.current}
-        />
-        <InfoList
-          title="Early Clock In"
-          increase={stat?.early_clock_in?.change}
-          compare="vs"
-          time="yesterday"
-          value={stat?.early_clock_in?.current}
-        />
-        <InfoList
-          title="Early Clock Out"
-          increase={stat?.early_clock_out?.change}
-          compare="vs"
-          time="yesterday"
-          value={stat?.early_clock_out?.current}
-        />
-      </div>
-      <div className="grid xl:grid-cols-4 grid-cols-1 gap-6">
-        <InfoList
-          title="On Time"
-          increase={stat?.on_time?.change}
-          compare="vs"
-          time="yesterday"
-          value={stat?.on_time?.current}
-        />
-        <InfoList
-          title="Overtime"
-          increase={stat?.overtime?.change}
-          compare="vs"
-          time="yesterday"
-          value={stat?.overtime?.current}
-        />
-        <InfoList
-          title="Absent"
-          increase={stat?.absent?.change}
-          compare="vs"
-          time="yesterday"
-          value={stat?.absent?.current}
-        />
-        <InfoList
-          title="Day Off"
-          increase={stat?.day_off?.change}
-          compare="vs"
-          time="yesterday"
-          value={stat?.day_off?.current}
-        />
-      </div>
+      {!hidePannel && (
+        <>
+          <h2 className="font-semibold text-xl">Summary</h2>
+          <div className="grid xl:grid-cols-3 grid-cols-1 gap-6">
+            <InfoList
+              title="Late Clock In"
+              increase={stat?.late_clock_in?.change}
+              compare="vs"
+              time="yesterday"
+              value={stat?.late_clock_in?.current}
+            />
+            <InfoList
+              title="Early Clock In"
+              increase={stat?.early_clock_in?.change}
+              compare="vs"
+              time="yesterday"
+              value={stat?.early_clock_in?.current}
+            />
+            <InfoList
+              title="Early Clock Out"
+              increase={stat?.early_clock_out?.change}
+              compare="vs"
+              time="yesterday"
+              value={stat?.early_clock_out?.current}
+            />
+          </div>
+          <div className="grid xl:grid-cols-4 grid-cols-1 gap-6">
+            <InfoList
+              title="On Time"
+              increase={stat?.on_time?.change}
+              compare="vs"
+              time="yesterday"
+              value={stat?.on_time?.current}
+            />
+            <InfoList
+              title="Overtime"
+              increase={stat?.overtime?.change}
+              compare="vs"
+              time="yesterday"
+              value={stat?.overtime?.current}
+            />
+            <InfoList
+              title="Absent"
+              increase={stat?.absent?.change}
+              compare="vs"
+              time="yesterday"
+              value={stat?.absent?.current}
+            />
+            <InfoList
+              title="Day Off"
+              increase={stat?.day_off?.change}
+              compare="vs"
+              time="yesterday"
+              value={stat?.day_off?.current}
+            />
+          </div>
+        </>
+      )}
       <div className="flex flex-col justify-between gap-6 mt-5">
-        <Form {...form}>
-          <form className="flex flex-col md:flex-row md:items-end gap-2 md:h-10">
-            <InputForm
-              name="search"
-              placeholder="Search by Employee Name or Email"
-              icon={<Search className="size-5 text-grayscale-20" />}
-              iconPosition="right"
-              value={filters.search}
-              onChange={(e) => {
-                setFilters((prev) => ({
-                  ...prev,
-                  search: e.target.value,
-                }));
-                setPagination((prev) => ({ ...prev, pageIndex: 0 }));
-              }}
-            />
+        {!hidePannel && (
+          <Form {...form}>
+            <form className="flex flex-col md:flex-row md:items-end gap-2 md:h-10">
+              <InputForm
+                name="search"
+                placeholder="Search by Employee Name or Email"
+                icon={<Search className="size-5 text-grayscale-20" />}
+                iconPosition="right"
+                value={filters.search}
+                onChange={(e) => {
+                  setFilters((prev) => ({
+                    ...prev,
+                    search: e.target.value,
+                  }));
+                  setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+                }}
+              />
 
-            <Separator orientation="vertical" />
+              <Separator orientation="vertical" />
 
-            <DatePicker
-              className="min-w-[180px]"
-              name="date"
-              onChange={(e) => {
-                setFilters((prev) => ({
-                  ...prev,
-                  date: e ? dayjs(e).format('YYYY-MM-DD') : '',
-                }));
-                setPagination((prev) => ({ ...prev, pageIndex: 0 }));
-              }}
-            />
-          </form>
-        </Form>
+              <DatePicker
+                className="min-w-[180px]"
+                name="date"
+                onChange={(e) => {
+                  setFilters((prev) => ({
+                    ...prev,
+                    date: e ? dayjs(e).format('YYYY-MM-DD') : '',
+                  }));
+                  setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+                }}
+              />
+            </form>
+          </Form>
+        )}
 
         <Separator />
         <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6">
@@ -554,4 +577,4 @@ export default function AttendanceTrackerList() {
       </div>
     </div>
   );
-}
+};
