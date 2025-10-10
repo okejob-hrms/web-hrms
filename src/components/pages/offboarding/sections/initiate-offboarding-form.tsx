@@ -57,7 +57,11 @@ export const InitiateOffboardingEmployee = React.memo(
     const { data: employees, isLoading: isLoadingEmployees } = useQuery({
       queryKey: ["offboarding-employees", debouncedApprover],
       queryFn: () =>
-        getEmployees(debouncedApprover ? { search: debouncedApprover } : {}),
+        getEmployees(
+          debouncedApprover
+            ? { search: debouncedApprover, per_page: 10000 }
+            : { per_page: 10000 },
+        ),
       staleTime: 5 * 60 * 1000,
       gcTime: 10 * 60 * 1000,
       refetchOnWindowFocus: false,
@@ -67,7 +71,7 @@ export const InitiateOffboardingEmployee = React.memo(
       if (employees?.data?.data) {
         return employees.data.data.map((item) => ({
           label: item.name,
-          value: item.id.toString(),
+          value: item.user_id.toString(),
           subtitle: item.job_position,
           image: item.photo_profile,
         }));

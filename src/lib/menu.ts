@@ -29,12 +29,6 @@ export const menus: Record<string, MenuItem[]> = {
     {
       name: "Offboarding",
       value: "employee/off-boarding",
-      subItem: [
-        {
-          name: "Salary Adjustment",
-          value: "employee/off-boarding/salary-adjustment",
-        },
-      ],
     },
   ],
 
