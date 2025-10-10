@@ -5,8 +5,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useRouter } from 'next/navigation';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ShiftByDayResponse, ShiftResponse } from '@/services/settings/types';
-import { getShift, getShiftToday } from '@/services/settings';
+import { ShiftByDayResponse } from '@/services/settings/types';
+import { getShiftToday } from '@/services/settings';
 import { useEffect, useMemo, useState } from 'react';
 import { getEmployees } from '@/services/employees';
 import dayjs from 'dayjs';
@@ -72,7 +72,8 @@ export function useAttendenceForm() {
       per_page: 50000,}),
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
-    refetchOnWindowFocus: false,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
   });
 
   const {
@@ -99,10 +100,8 @@ export function useAttendenceForm() {
   const mapResponseToForm = (data: AttendanceDetail): AttendanceFormValues => {
     return {
       user_id: String(Number(selectedId) - 1) ?? "",
-      attendance_date: data.attendance_date
-        ? dayjs(data.attendance_date).toDate()
-        : new Date(),
-      shift_id: data.shift_id ?? 0,
+      attendance_date: dayjs(data.attendance_date).toDate(),
+      shift_id: data.metadata.shift_id ?? 0,
       clock_in_at: data.clock.in_at ?? "",
       clock_out_at: data.clock.out_at ?? "",
       latitude: Number(data.location.latitude) ?? undefined,
@@ -119,8 +118,8 @@ export function useAttendenceForm() {
   useEffect(() => {
     if (detailData?.data?.data?.length) {
       const detail = detailData.data.data[0];
-      form.reset(mapResponseToForm(detail));
       setSelectedDate(detail.attendance_date);
+      form.reset(mapResponseToForm(detail));
 
       setSelectedMap({
         lat: Number(detail.location.latitude),
