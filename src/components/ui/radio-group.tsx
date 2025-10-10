@@ -1,19 +1,19 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import * as RadioGroupPrimitive from "@radix-ui/react-radio-group";
-import { CircleIcon } from "lucide-react";
-import { useFormContext } from "react-hook-form";
+import * as React from 'react';
+import * as RadioGroupPrimitive from '@radix-ui/react-radio-group';
+import { CircleIcon } from 'lucide-react';
+import { useFormContext } from 'react-hook-form';
 import {
   FormControl,
   FormField,
   FormItem,
   FormLabel,
-} from "@/components/ui/form";
-import { Label } from "@/components/ui/label";
-import { OptionFormProps } from "@/lib/types";
+} from '@/components/ui/form';
+import { Label } from '@/components/ui/label';
+import { OptionFormProps } from '@/lib/types';
 
-import { cn } from "@/lib/utils";
+import { cn } from '@/lib/utils';
 
 function RadioGroup({
   className,
@@ -22,7 +22,7 @@ function RadioGroup({
   return (
     <RadioGroupPrimitive.Root
       data-slot="radio-group"
-      className={cn("grid gap-3", className)}
+      className={cn('grid gap-3', className)}
       {...props}
     />
   );
@@ -36,7 +36,7 @@ function RadioGroupItem({
     <RadioGroupPrimitive.Item
       data-slot="radio-group-item"
       className={cn(
-        "border-input text-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50",
+        'border-input text-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 aspect-square size-4 shrink-0 rounded-full border shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50',
         className,
       )}
       {...props}
@@ -57,8 +57,14 @@ function RadioForm({
   isOptional,
   labelClassName,
   options,
-}: OptionFormProps) {
+  value,
+  onChange,
+}: OptionFormProps & {
+  value?: string;
+  onChange?: (val: string) => void;
+}) {
   const { control } = useFormContext();
+
   return (
     <FormField
       control={control}
@@ -66,7 +72,7 @@ function RadioForm({
       render={({ field }) => (
         <FormItem>
           {label && (
-            <FormLabel className={cn("text-sm font-normal", labelClassName)}>
+            <FormLabel className={cn('text-sm font-normal', labelClassName)}>
               {label}
               {isOptional && (
                 <span className="text-text-disabled"> (optional)</span>
@@ -75,9 +81,12 @@ function RadioForm({
           )}
           <FormControl>
             <RadioGroup
-              defaultValue={options[0].value}
-              onValueChange={field.onChange}
-              value={field.value}
+              // pakai value dari prop kalau dikasih, fallback ke field.value
+              value={value ?? field.value ?? ''}
+              onValueChange={(val) => {
+                field.onChange(val);
+                onChange?.(val); // trigger onChange custom kalau ada
+              }}
               className="flex"
             >
               {options.map((item) => (

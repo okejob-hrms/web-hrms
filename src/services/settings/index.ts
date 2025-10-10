@@ -1,5 +1,5 @@
 import { api } from "@/lib/api";
-import { IRolesResponse, IPermissionResponse, IEmployee, ICreateRolePayload, ICreateRoleResponse, IRoleDetailResponse, CompanyResponse, CompanyRequest, WorkScheduleResponse, AttendanceRequest, ShiftResponse, LateDeductions, DeductionRequest, OvertimeResponse, ShiftByDayResponse } from "./types";
+import { IRolesResponse, IPermissionResponse, IEmployee, ICreateRolePayload, ICreateRoleResponse, IRoleDetailResponse, CompanyResponse, CompanyRequest, WorkScheduleResponse, AttendanceRequest, ShiftResponse, LateDeductions, DeductionRequest, ShiftByDayResponse, OvertimeApiModel } from "./types";
 import { PaginatedResponse } from "@/lib/types";
 
 export const getRoles = async (): Promise<IRolesResponse> => {
@@ -117,12 +117,22 @@ export const removeDeduction = async (
     .json<PaginatedResponse<LateDeductions>>();
 };
 
-export const getOvertimeConfig = async (): Promise<OvertimeResponse> => {
-  const response = await api.get<OvertimeResponse>("employee/overtime/configuration");
+export const getOvertimeConfig = async (): Promise<OvertimeApiModel> => {
+  const response = await api.get<OvertimeApiModel>("employee/overtime/configuration");
   return response.json();
 };
 
 export const getShiftToday = async (date: string): Promise<ShiftByDayResponse> => {
   const response = await api.get(`setting/shift/shift-date?date=${date}`);
   return response.json();
+};
+
+export const postOvertimeConfig = async (
+  payload: OvertimeApiModel
+): Promise<OvertimeApiModel> => {
+  return api
+    .post(`employee/overtime/configuration`, {
+      json: payload,
+    })
+    .json<OvertimeApiModel>();
 };

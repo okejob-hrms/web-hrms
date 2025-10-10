@@ -2,14 +2,14 @@
 
 import * as React from "react";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getAttendance, getAttendanceStat, getAttendanceDetail, getAttendanceStatEmployee, putAttendanceStatus, deleteAttendance } from "@/services/attendance";
+import { deleteOvertime, getOvertime, putOvertimeStatus } from "@/services/overtime";
 import { PaginationState } from "@tanstack/react-table";
-import { Attendance, AttendanceSummary, AttendanceSummaryDetail } from "@/services/attendance/types";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Filters } from "./types";
+import { OvertimeListItem, RequestOvertimeStatus } from "@/services/overtime/types";
+import dayjs from "dayjs";
 
-export function useAttendance() {
+export function useOvertime() {
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: 0,
     pageSize: 10,
@@ -18,121 +18,104 @@ export function useAttendance() {
   const [openApprove, setOpenApprove] = React.useState(false);
   const [openDelete, setOpenDelete] = React.useState(false);
   const [openReject, setOpenReject] = React.useState(false);
-  const [selectedData, setSelectedData] = React.useState<Attendance>();
+  const [openEdit, setOpenEdit] = React.useState(false);
+  const [selectedData, setSelectedData] = React.useState<OvertimeListItem>();
+
   const [selectedId, setSelectedId] = React.useState<string>('');
   const [filters, setFilters] = React.useState<Filters>({
     date: '',
     search: '',
+    status: 1,
   });
-  const router = useRouter();
   const queryClient = useQueryClient();
 
   const {
-    data: paginatedData,
+    data: overtimeData,
     isLoading,
     isFetching,
     isRefetching,
   } = useQuery({
-    queryKey: ["attendance", pagination, filters.search, filters.date],
-    queryFn: () => getAttendance(pagination, filters),
+    queryKey: ["overtime", pagination, filters.search, filters.date, filters.status],
+    queryFn: () => getOvertime(pagination, filters),
     placeholderData: keepPreviousData,
     refetchOnMount: "always",
     refetchOnWindowFocus: true,
   });
-
-  const { data: stat } = useQuery<AttendanceSummary>({
-    queryKey: ["attendanceStats"],
-    queryFn: getAttendanceStat,
-    staleTime: 1000 * 60 * 5,
-  });
-
-  const { data: statEmployee } = useQuery<AttendanceSummaryDetail>({
-    queryKey: ["attendanceStatUser", selectedId],
-    queryFn: () => getAttendanceStatEmployee(selectedId),
-    enabled: !!selectedId,
-    staleTime: 1000 * 60 * 5,
-  });
-
-  // Query untuk detail attendance
-  const {
-    data: detailData,
-    isLoading: isDetailLoading,
-    refetch: refetchDetail,
-  } = useQuery({
-    queryKey: ["attendanceDetail", selectedId],
-    queryFn: () => getAttendanceDetail(selectedId),
-    enabled: !!selectedId,
-    placeholderData: keepPreviousData,
-  });
-
+  
   const { mutate: updateStatus } = useMutation({
-    mutationFn: ({ id, status }: { id: number; status: number }) =>
-      putAttendanceStatus(id, { status }),
+    mutationFn: ({ id, payload }: { id: number; payload: RequestOvertimeStatus }) =>
+      putOvertimeStatus(id, payload),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["attendance"] });
-      queryClient.invalidateQueries({ queryKey: ["attendanceDetail", selectedId] });
-      toast.success('Success update attendance status');
+      queryClient.invalidateQueries({ queryKey: ["overtime"] });
+      toast.success('Success update overtime status');
       setOpenApprove(false);
       setOpenReject(false);
       setOpenDetail(false);
+      setOpenEdit(false);
     },
     onError: () => {
-      toast.error('Failed update attendance status');
+      toast.error('Failed update overtime status');
     }
   });
   
-  const { mutate: removeAttendance } = useMutation({
-    mutationFn: (id: number) => deleteAttendance(id),
+  const { mutate: removeOvertime } = useMutation({
+    mutationFn: (id: number) => deleteOvertime(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["attendance"] });
-      toast.success("Success delete attendance");
+      queryClient.invalidateQueries({ queryKey: ["overtime"] });
+      toast.success("Success delete overtime");
       setOpenDelete(false);
     },
     onError: () => {
-      toast.error("Failed delete attendance");
+      toast.error("Failed delete overtime");
     },
   });
 
-  const hasNextPage = !!paginatedData?.data?.next_page_url;
-  const hasPreviousPage = !!paginatedData?.data?.prev_page_url;
-
-  const handleGoDetailEmployee = (id:number) => {
-    router.push(`/employee/employee-management/${id}`)
-  }
-
   const handleApprove = () => {
     if (!selectedId) return;
-    updateStatus({ id: Number(selectedId), status: 1 });
+    const dataPayload = {
+      user_id: selectedData?.employee?.id ?? 0,
+      overtime_date: dayjs(selectedData?.overtime_date).format('YYYY-MM-DD'),
+      request_date: dayjs(selectedData?.request_date).format('YYYY-MM-DD'),
+      start_time: selectedData?.start_time ?? '00:00',
+      end_time: selectedData?.end_time ?? '00:00',
+      notes: selectedData?.notes ?? "",
+    }
+    updateStatus({ id: Number(selectedId), payload: dataPayload });
   };
 
   const handleReject = () => {
     if (!selectedId) return;
-    updateStatus({ id: Number(selectedId), status: 2 });
+    const dataPayload = {
+      user_id: selectedData?.employee?.id ?? 0,
+      overtime_date: dayjs(selectedData?.overtime_date).format('YYYY-MM-DD'),
+      request_date: dayjs(selectedData?.request_date).format('YYYY-MM-DD'),
+      start_time: selectedData?.start_time ?? '00:00',
+      end_time: selectedData?.end_time ?? '00:00',
+      notes: selectedData?.notes ?? "",
+    }
+    updateStatus({ id: Number(selectedId), payload: dataPayload });
   };
 
   const handleDelete = () => {
     if (!selectedId) return;
-    removeAttendance(Number(selectedId));
+    removeOvertime(Number(selectedId));
   };
 
+  const handleEdit = (data: RequestOvertimeStatus) => {
+    if (!selectedId) return;
+    updateStatus({ id: Number(selectedId), payload: data });
+  }
+
   return {
-    attendances: paginatedData,
+    attendances: overtimeData,
     loading: isLoading || isFetching || isRefetching,
-    hasNextPage,
-    hasPreviousPage,
     pagination,
     setPagination,
-    stat: stat?.data,
     setOpenDetail,
     openDetail,
     setSelectedData,
     selectedData,
-    detailData,
-    isDetailLoading,
     setSelectedId,
-    refetchDetail,
-    handleGoDetailEmployee,
-    statEmployee: statEmployee?.data,
     handleApprove,
     handleReject,
     handleDelete,
@@ -144,5 +127,8 @@ export function useAttendance() {
     openDelete,
     filters,
     setFilters,
+    openEdit,
+    setOpenEdit,
+    handleEdit,
   };
 }

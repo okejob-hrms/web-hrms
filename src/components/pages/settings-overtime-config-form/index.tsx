@@ -1,16 +1,8 @@
 'use client';
 
-import { CompanyFormValues, useCompanyForm } from './hook';
+import { OvertimeConfigValues, useOvertimeConfigForm } from './hook';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import {
   Form,
   FormField,
@@ -19,49 +11,259 @@ import {
   FormControl,
   FormMessage,
 } from '@/components/ui/form';
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Plus, Trash2 } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { cn, stringAvatar } from '@/lib/utils';
+import { Edit3, Ellipsis, Plus, Trash } from 'lucide-react';
 import TitleContent from '@/components/ui/title';
 import { RadioForm } from '@/components/ui/radio-group';
 import { ColumnDef } from '@tanstack/react-table';
 import DataTable from '@/components/tables/data-table';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { toast } from 'sonner';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Exception, TieringRule } from '@/services/settings/types';
+import { Switch } from '@/components/ui/switch';
 
 export default function SettingsOvertimeConfigForm() {
-  const {
-    form,
-    onSubmit,
-    dataWorkSchedule,
-    handleBack,
-    uploadLogo,
-    imagePhoto,
-  } = useCompanyForm();
+  const { form, onSubmit, isLoading, handleBack, data } =
+    useOvertimeConfigForm();
+  const [openTier, setOpenTier] = useState(false);
+  const [openExceptions, setOpenExceptions] = useState(false);
+  const [listTier, setListTier] = useState<TieringRule[]>(
+    data?.tiering_rules || [],
+  );
+  const [editIndex, setEditIndex] = useState<number | null>(null);
 
-  const defaultValueNew = {
-    shift_name: 'Night Shift',
-    start_time: '09:05',
-    end_time: '17:00',
-    break_start_time: '12:00',
-    break_end_time: '13:00',
-    ends_next_day: false,
-  };
+  const [listExceptions, setListExceptions] = useState<Exception[]>(
+    data?.exceptions || [],
+  );
+  const [tierField, setTierField] = useState({
+    from_hour: '',
+    to_hour: '',
+    rate: '',
+  });
+  const [exceptionsField, setExceptionsField] = useState({
+    day: '',
+    rate: '',
+  });
 
-  const handleSubmit = (values: CompanyFormValues) => {
+  const handleSubmit = (values: OvertimeConfigValues) => {
+    // console.log(values);
     onSubmit({
       ...values,
     });
   };
 
-  const columns: ColumnDef<[]>[] = [
-    { accessorKey: 'total_hour', header: 'Total Hour', size: 160 },
-    { accessorKey: 'workingHours', header: 'Rate', size: 200 },
+  //MANAGE TIER
+  const handleSaveTier = () => {
+    if (!tierField?.from_hour || !tierField?.to_hour || !tierField?.rate) {
+      toast.error('Please fill all data');
+      return;
+    }
+
+    if (editIndex !== null) {
+      // EDIT MODE
+      setListTier((prev) =>
+        prev.map((item, i) => (i === editIndex ? tierField : item)),
+      );
+      toast.success('Tier updated');
+    } else {
+      // ADD MODE
+      setListTier((prev) => [...prev, tierField]);
+      toast.success('Tier added');
+    }
+
+    setTierField({
+      from_hour: '',
+      to_hour: '',
+      rate: '',
+    });
+    setEditIndex(null);
+    setOpenTier(false);
+  };
+
+  const handleDeleteTier = (index: number) => {
+    setListTier((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  //MANAGE EXCEPTION
+  const handleSaveExceptions = () => {
+    if (!exceptionsField?.day || !exceptionsField?.rate) {
+      toast.error('Please fill all data');
+      return;
+    }
+
+    if (editIndex !== null) {
+      // EDIT MODE
+      setListExceptions((prev) =>
+        prev.map((item, i) => (i === editIndex ? exceptionsField : item)),
+      );
+      toast.success('Tier updated');
+    } else {
+      // ADD MODE
+      setListExceptions((prev) => [...prev, exceptionsField]);
+      toast.success('Tier added');
+    }
+
+    setTierField({
+      from_hour: '',
+      to_hour: '',
+      rate: '',
+    });
+    setEditIndex(null);
+    setOpenTier(false);
+  };
+
+  const handleDeleteExceptions = (index: number) => {
+    setListExceptions((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const columns: ColumnDef<TieringRule>[] = [
+    {
+      accessorKey: 'from_hour',
+      header: 'Timing Hour',
+      size: 200,
+      cell: ({ row }) => {
+        return (
+          <div className="flex gap-1">
+            <span className="font-bold">{row.original.from_hour}</span>
+            <span className="font-bold">
+              {row.original.to_hour && `- ${row.original.to_hour}`}
+            </span>
+            <span className="text-gray">Hour</span>
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: 'rate',
+      header: 'Rate',
+      size: 200,
+      cell: ({ row }) => {
+        return (
+          <div className="flex gap-1">
+            <span className="font-bold">{row.original.rate}</span>
+            <span className="text-gray">x Hourly Rate</span>
+          </div>
+        );
+      },
+    },
+
+    {
+      accessorKey: 'menu',
+      header: '',
+      cell: ({ row }) => {
+        const index = row.index;
+
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger>
+              <Ellipsis className="text-grayscale-30" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem>
+                <button
+                  onClick={() => {
+                    setOpenTier(true);
+                    setTierField({
+                      from_hour: row.original.from_hour,
+                      to_hour: row.original.to_hour,
+                      rate: row.original.rate,
+                    });
+                    setEditIndex(index);
+                  }}
+                  className="flex gap-2"
+                >
+                  <Edit3 />
+                  Edit
+                </button>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <button
+                  onClick={() => handleDeleteTier(index)}
+                  className="flex gap-2"
+                >
+                  <Trash />
+                  Delete
+                </button>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      },
+    },
   ];
 
-  const columnsOvertime: ColumnDef<[]>[] = [
-    { accessorKey: 'total_hour', header: 'Day', size: 160 },
-    { accessorKey: 'workingHours', header: 'Rate', size: 200 },
+  const columnsOvertime: ColumnDef<Exception>[] = [
+    { accessorKey: 'day', header: 'Day', size: 160 },
+    {
+      accessorKey: 'rate',
+      header: 'Rate',
+      size: 200,
+      cell: ({ row }) => {
+        return (
+          <div className="flex gap-1">
+            <span className="font-bold">{row.original.rate}</span>
+            <span className="text-gray">x Hourly Rate</span>
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: 'menu',
+      header: '',
+      cell: ({ row }) => {
+        const index = row.index;
+
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger>
+              <Ellipsis className="text-grayscale-30" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem>
+                <button
+                  onClick={() => {
+                    setOpenExceptions(true);
+                    setExceptionsField({
+                      day: row.original.day,
+                      rate: row.original.rate,
+                    });
+                    setEditIndex(index);
+                  }}
+                  className="flex gap-2"
+                >
+                  <Edit3 />
+                  Edit
+                </button>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <button
+                  onClick={() => handleDeleteExceptions(index)}
+                  className="flex gap-2"
+                >
+                  <Trash />
+                  Delete
+                </button>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      },
+    },
   ];
 
   return (
@@ -69,13 +271,19 @@ export default function SettingsOvertimeConfigForm() {
       <TitleContent label="Overtime Configuration" />
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSubmit(form.getValues());
+          }}
+          className="space-y-8"
+        >
           <div className="grid grid-cols-1 gap-4">
             <h3 className="font-bold">Formula & Rate Coefficient</h3>
             {/* Company Name */}
             <FormField
               control={form.control}
-              name="companyName"
+              name="working_hours_divisor"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
@@ -87,11 +295,12 @@ export default function SettingsOvertimeConfigForm() {
                       name={field.name}
                       label="Formula"
                       options={[
-                        { label: 'Per Month', value: 'per_month' },
-                        { label: 'Per Year', value: 'per_year' },
+                        { label: '160 Hours/Month', value: '160' },
+                        { label: '173 Hours/Month', value: '173' },
+                        { label: '180 Hours/Month', value: '180' },
                       ]}
-                      value={field.value}
-                      onChange={field.onChange}
+                      value={String(field.value)}
+                      onChange={(val) => field.onChange(Number(val))}
                       onBlur={field.onBlur}
                     />
                   </FormControl>
@@ -103,31 +312,32 @@ export default function SettingsOvertimeConfigForm() {
             <div className="flex flex-row justify-between items-center">
               <h3 className="font-semibold">Tiering Rules</h3>
               <Button
+                type="button"
                 variant="default"
                 className="flex flex-row gap-6"
-                onClick={() => {}}
+                onClick={() => setOpenTier(true)}
               >
                 <Plus />
                 Add Tiering Rules
               </Button>
             </div>
-            <DataTable columns={columns} data={[]} />
+            <DataTable columns={columns} data={listTier} />
 
             <h3 className="font-bold">Limits & Thresholds</h3>
 
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-2 gap-8">
               {/* Maximum Overtime Hours */}
               <div className="space-y-4">
                 <FormField
                   control={form.control}
-                  name="companyName"
+                  name="max_daily_hours"
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-center gap-3">
                       <FormControl>
                         <Checkbox
                           checked={!!field.value}
-                          onCheckedChange={
-                            (checked) => field.onChange(checked ? 0 : undefined) // default 0 saat aktif
+                          onCheckedChange={(checked) =>
+                            field.onChange(checked ? 0 : undefined)
                           }
                         />
                       </FormControl>
@@ -153,7 +363,7 @@ export default function SettingsOvertimeConfigForm() {
 
                 <FormField
                   control={form.control}
-                  name="companyName"
+                  name="max_weekly_hours"
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-center gap-3">
                       <FormControl>
@@ -186,7 +396,7 @@ export default function SettingsOvertimeConfigForm() {
 
                 <FormField
                   control={form.control}
-                  name="companyName"
+                  name="max_monthly_hours"
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-center gap-3">
                       <FormControl>
@@ -222,7 +432,7 @@ export default function SettingsOvertimeConfigForm() {
               <div className="space-y-6">
                 <FormField
                   control={form.control}
-                  name="test"
+                  name="auto_reject"
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-start gap-3">
                       <FormControl>
@@ -247,7 +457,7 @@ export default function SettingsOvertimeConfigForm() {
 
                 <FormField
                   control={form.control}
-                  name="test"
+                  name="prorate_by_minutes"
                   render={({ field }) => (
                     <FormItem className="flex flex-col gap-1">
                       <FormLabel>
@@ -255,18 +465,12 @@ export default function SettingsOvertimeConfigForm() {
                         <span className="text-red-500">*</span>
                       </FormLabel>
                       <FormControl>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-3">
                           <span className="text-sm text-gray-600">No</span>
-                          <input
-                            type="checkbox"
-                            role="switch"
+                          <Switch
                             checked={field.value}
-                            onChange={(e) => field.onChange(e.target.checked)}
-                            className="peer sr-only"
+                            onCheckedChange={field.onChange}
                           />
-                          <div className="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full bg-gray-300 peer-checked:bg-blue-600 transition-colors">
-                            <span className="absolute left-1 top-1 h-4 w-4 rounded-full bg-white transition-transform peer-checked:translate-x-5" />
-                          </div>
                           <span className="text-sm text-blue-600 font-medium">
                             Yes
                           </span>
@@ -287,7 +491,7 @@ export default function SettingsOvertimeConfigForm() {
             <div className="flex flex-row gap-4 items-center">
               <FormField
                 control={form.control}
-                name="industry"
+                name="weekend_rate"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
@@ -295,7 +499,12 @@ export default function SettingsOvertimeConfigForm() {
                       <span className="text-red-500">*</span>
                     </FormLabel>
                     <FormControl>
-                      <Input placeholder="0" {...field} />
+                      <Input
+                        type="number"
+                        value={field.value ?? ''}
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                        placeholder="0"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -307,7 +516,7 @@ export default function SettingsOvertimeConfigForm() {
             <div className="flex flex-row gap-4 items-center">
               <FormField
                 control={form.control}
-                name="industry"
+                name="public_holiday_rate"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
@@ -315,7 +524,12 @@ export default function SettingsOvertimeConfigForm() {
                       <span className="text-red-500">*</span>
                     </FormLabel>
                     <FormControl>
-                      <Input placeholder="0" {...field} />
+                      <Input
+                        type="number"
+                        value={field.value ?? ''}
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                        placeholder="0"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -327,32 +541,166 @@ export default function SettingsOvertimeConfigForm() {
             <div className="flex flex-row justify-between items-center">
               <h3 className="font-semibold">Special Exceptions</h3>
               <Button
+                type="button"
                 variant="default"
                 className="flex flex-row gap-6"
-                onClick={() => {}}
+                onClick={() => setOpenExceptions(true)}
               >
                 <Plus />
                 Add Exception
               </Button>
             </div>
-            <DataTable columns={columnsOvertime} data={[]} />
+            <DataTable columns={columnsOvertime} data={listExceptions} />
           </div>
 
           <div className="flex flex-row gap-2">
             <Button
               type="button"
               variant="outline"
-              onClick={handleBack}
+              onClick={() => handleBack()}
               className="min-w-[100px]"
             >
               Cancel
             </Button>
-            <Button type="submit" className="min-w-[100px]">
+            <Button
+              type="submit"
+              className="min-w-[100px]"
+              isLoading={isLoading}
+            >
               Save
             </Button>
           </div>
         </form>
       </Form>
+
+      <AlertDialog open={openTier} onOpenChange={setOpenTier}>
+        <AlertDialogContent className="max-w-md mx-auto bg-white rounded-lg shadow-lg p-6">
+          <AlertDialogHeader className="text-center items-center justify-center">
+            <AlertDialogTitle className="text-lg font-semibold text-black mb-2">
+              Add Tiering Rules
+            </AlertDialogTitle>
+          </AlertDialogHeader>
+          <div className="w-full space-y-1">
+            <label className="text-sm font-medium text-gray-700">
+              Total Hours Range
+            </label>
+            <div className="flex items-center gap-3">
+              <Input
+                type="number"
+                placeholder="0"
+                value={tierField.from_hour}
+                onChange={(e) =>
+                  setTierField((prev) => ({
+                    ...prev,
+                    start: e.target.value,
+                  }))
+                }
+              />
+              <span className="text-gray-500">-</span>
+              <Input
+                type="number"
+                placeholder="0"
+                value={tierField.to_hour}
+                onChange={(e) =>
+                  setTierField((prev) => ({
+                    ...prev,
+                    to_hour: e.target.value,
+                  }))
+                }
+              />
+            </div>
+          </div>
+          <div className="w-full space-y-1">
+            <label className="text-sm font-medium text-gray-700">Rate</label>
+            <div className="flex items-center gap-3">
+              <Input
+                type="number"
+                placeholder="0"
+                value={tierField.rate}
+                onChange={(e) =>
+                  setTierField((prev) => ({
+                    ...prev,
+                    rate: e.target.value,
+                  }))
+                }
+              />
+              <div className="text-gray-500 w-50">x hourly rate</div>
+            </div>
+          </div>
+
+          <AlertDialogFooter className="flex justify-between gap-3 w-full">
+            <AlertDialogCancel
+              onClick={() => setOpenTier(false)}
+              className="flex-1 border text-primary border-primary bg-white hover:bg-blue-50 rounded-md py-2 font-medium"
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleSaveTier}
+              className="flex-1 bg-primary text-white rounded-md py-2 font-medium"
+            >
+              Save
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={openExceptions} onOpenChange={setOpenExceptions}>
+        <AlertDialogContent className="max-w-md mx-auto bg-white rounded-lg shadow-lg p-6">
+          <AlertDialogHeader className="text-center items-center justify-center">
+            <AlertDialogTitle className="text-lg font-semibold text-black mb-2">
+              Add Exceptions
+            </AlertDialogTitle>
+          </AlertDialogHeader>
+          <div className="w-full space-y-1">
+            <label className="text-sm font-medium text-gray-700">Day</label>
+            <div className="flex items-center gap-3">
+              <Input
+                placeholder="Type your day exceptions"
+                value={exceptionsField.day}
+                onChange={(e) =>
+                  setExceptionsField((prev) => ({
+                    ...prev,
+                    day: e.target.value,
+                  }))
+                }
+              />
+            </div>
+          </div>
+          <div className="w-full space-y-1">
+            <label className="text-sm font-medium text-gray-700">Rate</label>
+            <div className="flex items-center gap-3">
+              <Input
+                type="number"
+                placeholder="0"
+                value={exceptionsField.rate}
+                onChange={(e) =>
+                  setExceptionsField((prev) => ({
+                    ...prev,
+                    rate: e.target.value,
+                  }))
+                }
+              />
+              <div className="text-gray-500 w-50">x hourly rate</div>
+            </div>
+          </div>
+
+          <AlertDialogFooter className="flex justify-between gap-3 w-full">
+            <AlertDialogCancel
+              onClick={() => setOpenTier(false)}
+              className="flex-1 border text-primary border-primary bg-white hover:bg-blue-50 rounded-md py-2 font-medium"
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleSaveExceptions}
+              className="flex-1 bg-primary text-white rounded-md py-2 font-medium"
+            >
+              Save
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

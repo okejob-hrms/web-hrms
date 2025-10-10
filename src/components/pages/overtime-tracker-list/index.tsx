@@ -6,9 +6,8 @@ import { ColumnDef } from '@tanstack/react-table';
 import { Separator } from '@/components/ui/separator';
 import { Filters } from './types';
 import InfoList from '@/components/ui/info-list';
-import { useAttendance } from './hook';
+import { useOvertime } from './hook';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Attendance } from '@/services/attendance/types';
 import { cn, stringAvatar } from '@/lib/utils';
 import {
   DropdownMenu,
@@ -28,7 +27,7 @@ import {
   XCircle,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { getStatusAttendance } from '@/lib/helpers';
+import { getStatusOvertime } from '@/lib/helpers';
 import OvertimeApproveModal from './sections/approve-modal';
 import OvertimeRejectModal from './sections/reject-modal';
 import OvertimeDeleteModal from './sections/delete-modal';
@@ -38,22 +37,22 @@ import { useForm } from 'react-hook-form';
 import { DatePicker } from '@/components/ui/date-picker';
 import dayjs from 'dayjs';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  OvertimeListItem,
+  RequestOvertimeStatus,
+} from '@/services/overtime/types';
+import OvertimeDetailModal from './sections/detail-modal';
+import OvertimeEditModal from './sections/edit-modal';
 
 export default function OvertimeTrackerList() {
   const {
     attendances,
     pagination,
     setPagination,
-    stat,
-    selectedData,
     setSelectedData,
     openDetail,
     setOpenDetail,
     setSelectedId,
-    refetchDetail,
-    detailData,
-    handleGoDetailEmployee,
-    statEmployee,
     handleApprove,
     handleReject,
     handleDelete,
@@ -65,78 +64,105 @@ export default function OvertimeTrackerList() {
     openDelete,
     setFilters,
     filters,
-  } = useAttendance();
+    setOpenEdit,
+    openEdit,
+    handleEdit,
+  } = useOvertime();
+  const [detail, setDetail] = React.useState<OvertimeListItem>();
+  const [formData, setFormData] = React.useState<RequestOvertimeStatus>({
+    user_id: 0,
+    overtime_date: '',
+    request_date: '',
+    start_time: '',
+    end_time: '',
+    notes: '',
+  });
 
-  const columns: ColumnDef<Attendance>[] = [
+  React.useEffect(() => {
+    setFormData({
+      user_id: detail?.employee?.id ?? 0,
+      overtime_date: dayjs(detail?.overtime_date).format('YYYY-MM-DD'),
+      request_date: dayjs(detail?.request_date).format('YYYY-MM-DD'),
+      start_time: detail?.start_time ?? '00:00',
+      end_time: detail?.end_time ?? '00:00',
+      notes: detail?.notes ?? '',
+    });
+  }, [detail]);
+  const columns: ColumnDef<OvertimeListItem>[] = [
     {
-      accessorKey: 'name',
+      accessorKey: 'employee.name',
       header: 'Name',
       cell: ({ row }) => (
         <div className="flex gap-4 items-center min-w-[150px]">
           <Avatar className="h-10 w-10">
-            <AvatarImage src={`${row.original.avatar}`} />
+            <AvatarImage src={`${row.original.employee?.avatar_url}`} />
             <AvatarFallback className="text-primary-hover bg-primary-background text-base font-medium">
-              {stringAvatar(row.original.name ?? '')}
+              {stringAvatar(row.original.employee?.name ?? '')}
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-col">
             <span className="font-semibold text-foreground text-sm">
-              {row.original.name}
+              {row.original.employee?.name}
             </span>
             <span className="text-text-secondary">
-              #{row.original.id_number}
+              #{row.original.employee?.id}
             </span>
           </div>
         </div>
       ),
     },
+
     {
-      accessorKey: 'latest_attendance.attendance_date',
+      accessorKey: 'overtime_date',
       header: 'Overtime Date',
       size: 200,
-      cell: ({ row }) => row.original.latest_attendance?.attendance_date || '-',
+      cell: ({ row }) =>
+        dayjs(row.original.overtime_date).format('MMMM D, YYYY') || '-',
     },
 
     {
-      accessorKey: 'latest_attendance.attendance_date',
+      accessorKey: 'request_date',
       header: 'Request Date',
       size: 200,
-      cell: ({ row }) => row.original.latest_attendance?.attendance_date || '-',
+      cell: ({ row }) =>
+        dayjs(row.original.request_date).format('MMMM D, YYYY') || '-',
     },
 
     {
-      accessorKey: 'latest_attendance',
+      accessorKey: 'duration',
       header: 'Duration',
       cell: ({ row }) => {
-        const att = row.original.latest_attendance;
+        const att = row.original;
         if (!att) return '-';
 
         return (
           <div className="flex flex-col w-max-2xl">
             <span className="text-muted-foreground text-xs">
-              {att.duration || '-'}
+              {att.duration + 'm' || '-'}
             </span>
             <span className="text-primary">
-              {att.clock.in_at || '-'} — {att.clock.out_at || '-'}
+              {att.start_time || '-'} — {att.end_time || '-'}
             </span>
           </div>
         );
       },
     },
+
     {
-      accessorKey: 'latest_attendance.notes',
+      accessorKey: 'notes',
       header: 'Notes',
       size: 200,
-      cell: ({ row }) => row.original.latest_attendance?.notes || '-',
+      cell: ({ row }) => row.original.notes || '-',
     },
+
     {
-      accessorKey: 'latest_attendance.status_label',
+      accessorKey: 'status',
       header: 'Status',
       size: 160,
       cell: ({ row }) => {
-        const status = row.original.latest_attendance?.status_label;
-        const { variant, className, label } = getStatusAttendance(status);
-        if (!row.original.latest_attendance?.status_label) return '-';
+        const status = row.original.status;
+        const { variant, className, label } = getStatusOvertime(status);
+        if (!row.original.status) return '-';
 
         return (
           <Badge variant={variant} className={className}>
@@ -145,6 +171,7 @@ export default function OvertimeTrackerList() {
         );
       },
     },
+
     {
       accessorKey: 'menu',
       header: '',
@@ -158,10 +185,10 @@ export default function OvertimeTrackerList() {
               <DropdownMenuItem>
                 <button
                   onClick={() => {
-                    setOpenDetail(true);
                     setSelectedId(String(row.original.id));
+                    setDetail(row.original);
                     setSelectedData(row.original);
-                    refetchDetail();
+                    setOpenDetail(true);
                   }}
                   className="flex gap-2"
                 >
@@ -169,47 +196,56 @@ export default function OvertimeTrackerList() {
                   Overtime Request Details
                 </button>
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <button
-                  onClick={() => {
-                    setOpenApprove(true);
-                    setSelectedId(String(row.original?.latest_attendance?.id));
-                  }}
-                  className="flex gap-2"
-                >
-                  <Clock4Icon />
-                  Approve Request
-                </button>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <button
-                  onClick={() => {
-                    setOpenReject(true);
-                    setSelectedId(String(row.original?.latest_attendance?.id));
-                  }}
-                  className="flex gap-2"
-                >
-                  <XCircle />
-                  Reject Request
-                </button>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <button
-                  onClick={() => {
-                    setOpenReject(true);
-                    setSelectedId(String(row.original?.latest_attendance?.id));
-                  }}
-                  className="flex gap-2"
-                >
-                  <Edit3 />
-                  Edit Overtime Request
-                </button>
-              </DropdownMenuItem>
+              {row.original.status === 1 && (
+                <>
+                  <DropdownMenuItem>
+                    <button
+                      onClick={() => {
+                        setOpenApprove(true);
+                        setSelectedId(String(row.original?.id));
+                        setSelectedData(row.original);
+                      }}
+                      className="flex gap-2"
+                    >
+                      <Clock4Icon />
+                      Approve Request
+                    </button>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <button
+                      onClick={() => {
+                        setOpenReject(true);
+                        setSelectedId(String(row.original?.id));
+                        setSelectedData(row.original);
+                      }}
+                      className="flex gap-2"
+                    >
+                      <XCircle />
+                      Reject Request
+                    </button>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <button
+                      onClick={() => {
+                        setOpenEdit(true);
+                        setSelectedId(String(row.original?.id));
+                        setSelectedData(row.original);
+                        setDetail(row.original);
+                        setOpenDetail(true);
+                      }}
+                      className="flex gap-2"
+                    >
+                      <Edit3 />
+                      Edit Overtime Request
+                    </button>
+                  </DropdownMenuItem>
+                </>
+              )}
               <DropdownMenuItem>
                 <button
                   onClick={() => {
                     setOpenDelete(true);
-                    setSelectedId(String(row.original?.latest_attendance?.id));
+                    setSelectedId(String(row.original?.id));
                   }}
                   className="flex gap-2"
                 >
@@ -234,17 +270,17 @@ export default function OvertimeTrackerList() {
   const tabs = [
     {
       name: 'Waiting for approval',
-      value: 'waiting',
+      value: 1,
       icon: <Clock4Icon />,
     },
     {
       name: 'Approved',
-      value: 'approved',
+      value: 2,
       icon: <ClockArrowUpIcon />,
     },
     {
       name: 'Rejected',
-      value: 'rejected',
+      value: 3,
       icon: <ClockAlertIcon />,
     },
   ];
@@ -257,33 +293,43 @@ export default function OvertimeTrackerList() {
           title="New Overtime Request"
           compare="vs"
           time="yesterday"
-          value={stat?.on_time?.current}
+          value={attendances?.summary.new_requests.today}
         />
         <InfoList
           title="Pending Overtime Request"
           compare=""
           time=""
-          value={stat?.overtime?.current}
+          value={attendances?.summary.pending}
         />
         <InfoList
           title="Approved Overtime Request"
           compare=""
           time=""
-          value={stat?.on_time?.current}
+          value={attendances?.summary.approved}
         />
         <InfoList
           title="Rejected Overtime Request"
           compare=""
           time=""
-          value={stat?.day_off?.current}
+          value={attendances?.summary.rejected}
         />
       </div>
-      <Tabs defaultValue={tabs[0].value} className="w-full mx-auto">
+
+      <Tabs
+        defaultValue={String(tabs[0].value)}
+        className="w-full mx-auto"
+        onValueChange={(value) =>
+          setFilters((prev) => ({
+            ...prev,
+            status: Number(value),
+          }))
+        }
+      >
         <TabsList className="p-1 w-full bg-secondary-background min-h-12">
           {tabs.map((tab) => (
             <TabsTrigger
               key={tab.value}
-              value={tab.value}
+              value={String(tab.value)}
               className={cn(
                 'px-2.5 sm:px-3 text-secondary-hover',
                 'data-[state=active]:bg-secondary data-[state=active]:text-white',
@@ -296,6 +342,7 @@ export default function OvertimeTrackerList() {
           ))}
         </TabsList>
       </Tabs>
+
       <div className="flex flex-col justify-between gap-6 mt-5">
         <Form {...form}>
           <form className="flex flex-col md:flex-row md:items-end gap-2 md:h-10">
@@ -338,10 +385,18 @@ export default function OvertimeTrackerList() {
 
           <DataTable
             columns={columns}
-            data={attendances?.data?.data}
+            data={attendances?.data.data}
             pagination={attendances?.data}
             paginationState={pagination}
             setPaginationState={setPagination}
+          />
+
+          <OvertimeDetailModal
+            onUpdate={() => handleApprove()}
+            onReject={() => handleReject()}
+            isOpen={openDetail}
+            setIsOpen={(e) => setOpenDetail(e)}
+            data={detail}
           />
 
           <OvertimeApproveModal
@@ -360,6 +415,15 @@ export default function OvertimeTrackerList() {
             onUpdate={() => handleDelete()}
             isOpen={openDelete}
             setIsOpen={(e) => setOpenDelete(e)}
+          />
+
+          <OvertimeEditModal
+            onUpdate={() => handleEdit(formData)}
+            isOpen={openEdit}
+            setIsOpen={(e) => setOpenEdit(e)}
+            data={detail}
+            formData={formData}
+            setFormData={setFormData}
           />
         </div>
       </div>

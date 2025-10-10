@@ -226,6 +226,34 @@ export function getStatusAttendance(status?: string): StatusConfig {
   return { variant, className, label: status };
 }
 
+export function getStatusOvertime(status?: number): StatusConfig {
+  if (!status) {
+    return {
+      variant: 'default',
+      label: '-',
+    };
+  }
+
+  let variant: BadgeVariant = 'default';
+  let className = '';
+
+  switch (status) {
+    case 1:
+      variant = 'secondary';
+      className = 'bg-yellow-100 text-yellow-700';
+      break;
+    case 2:
+      variant = 'default';
+      className = 'bg-green-100 text-green-700';
+      break;
+    case 3:
+      variant = 'destructive';
+      break;
+  }
+
+  return { variant, className, label: status === 1 ? 'Waiting for Approval' : status === 2 ? 'Approved' : 'Rejected'  };
+}
+
 export async function getLocationDetail(lat: string, lng: string) {
   const res = await fetch(
     `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`

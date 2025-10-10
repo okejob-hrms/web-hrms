@@ -280,34 +280,26 @@ export interface DeductionRequest {
   starts_on?: string;
 }
 
-export interface OvertimeResponse {
-  data: OvertimeList[];
-  message: string;
-  status: string;
+export interface OvertimeApiModel {
+  auto_reject: boolean;
+  exceptions: Exception[];
+  max_daily_hours: number;
+  max_monthly_hours: number;
+  max_weekly_hours: number;
+  prorate_by_minutes: boolean;
+  public_holiday_rate: number;
+  tiering_rules: TieringRule[];
+  weekend_rate: number;
+  working_hours_divisor: number;
 }
 
-export interface OvertimeList {
-  achievement: string;
-  blood_type: string;
-  bpjs: string;
-  citizen_id_address: string;
-  code: string;
-  created_at: string;
-  date_of_birth: string;
-  gender: string;
-  height: string;
-  hobby: string;
-  id: number;
-  id_number: string;
-  marital_status: number;
-  marital_status_label: string;
-  npwp: string;
-  personal_description: string;
-  phone_number: number;
-  photo_profile: string;
-  place_of_birth: string;
-  residential_address: string;
-  updated_at: string;
-  user_id: number;
-  weight: string;
+export interface Exception {
+  day: string;
+  rate: string;
+}
+
+export interface TieringRule {
+  from_hour: string;
+  to_hour: string;
+  rate: string;
 }

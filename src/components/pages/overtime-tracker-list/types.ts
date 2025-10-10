@@ -3,6 +3,7 @@ export interface Filters {
   // job_position_ids?: number[];
   search?: string;
   date?: string;
+  status?: number;
   // start_date?: string | null;
   // end_date?: string | null;
 }
