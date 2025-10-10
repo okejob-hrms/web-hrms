@@ -2,7 +2,7 @@
 // assign-employee-modal.tsx
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -53,15 +53,14 @@ interface AssignEmployeeModalProps {
   onOpenChange: (open: boolean) => void;
   handleSave: (values: AssignEmployeeFormValues) => void;
   chartEmployees: EmployeeNode[];
-  parentId?: string;
+  parentEmployee?: EmployeeNode | null;
 }
 
 export default function AssignEmployeeModal({
   open,
   onOpenChange,
   handleSave,
-  chartEmployees,
-  parentId,
+  parentEmployee,
 }: AssignEmployeeModalProps) {
   const [selectedEmployee, setSelectedEmployee] =
     useState<IEmployeeResponse | null>(null);
@@ -71,9 +70,6 @@ export default function AssignEmployeeModal({
     mode: "onChange",
   });
 
-  // const watchedDepartmentId = form.watch("department");
-  // const watchedJobPositionId = form.watch("position");
-  // const watchedJobLevelId = form.watch("jobLevel");
   const {
     data: departments,
     isLoading: isDepartmentsLoading,
@@ -134,39 +130,52 @@ export default function AssignEmployeeModal({
     refetchOnWindowFocus: false,
   });
 
-  const { data: employeesOptionsForm, isLoading: isLoadingEmployees } =
-    useQuery({
-      queryKey: [
-        "employees",
-        // watchedDepartmentId,
-        // watchedJobPositionId,
-        // watchedJobLevelId,
-      ],
-      queryFn: () => getEmployees({}),
-      //   {
-      //   department_ids: [Number(watchedDepartmentId)],
-      //   job_position_ids: [Number(watchedJobPositionId)],
-      //   job_level_ids: [Number(watchedJobLevelId)],
-      // }
-      staleTime: 5 * 60 * 1000,
-      gcTime: 10 * 60 * 1000,
-      refetchOnWindowFocus: false,
-      // enabled: !!(
-      //   watchedDepartmentId ||
-      //   watchedJobPositionId ||
-      //   watchedJobLevelId
-      // ),
-    });
+  const [primarySearch, setPrimarySearch] = React.useState("");
+  const [secondarySearch, setSecondarySearch] = React.useState("");
+  const debouncedPrimarySearch = useDebounce(primarySearch, 300);
+  const debouncedSecondarySearch = useDebounce(secondarySearch, 300);
 
-  const employeesOptions = React.useMemo(() => {
-    if (employeesOptionsForm?.data?.data) {
-      return employeesOptionsForm.data.data.map((item) => ({
+  const { data: primaryEmployees, isLoading: isLoadingPrimary } = useQuery({
+    queryKey: ["employees", "primary", debouncedPrimarySearch],
+    queryFn: () =>
+      getEmployees(
+        debouncedPrimarySearch ? { search: debouncedPrimarySearch, per_page: 100000 } : {per_page: 100000}
+      ),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+  
+  const { data: secondaryEmployees, isLoading: isLoadingSecondary } = useQuery({
+    queryKey: ["employees", "secondary", debouncedSecondarySearch],
+    queryFn: () =>
+      getEmployees(
+        debouncedSecondarySearch ? { search: debouncedSecondarySearch, per_page: 100000 } : {per_page: 100000}
+      ),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
+  const primaryOptions = React.useMemo(() => {
+    if (primaryEmployees?.data?.data) {
+      return primaryEmployees.data.data.map((item) => ({
         label: item.name,
         value: item.id.toString(),
       }));
     }
     return [];
-  }, [employeesOptionsForm?.data]);
+  }, [primaryEmployees?.data]);
+
+  const secondaryOptions = React.useMemo(() => {
+    if (secondaryEmployees?.data?.data) {
+      return secondaryEmployees.data.data.map((item) => ({
+        label: item.name,
+        value: item.id.toString(),
+      }));
+    }
+    return [];
+  }, [secondaryEmployees?.data]);
 
   const departmentOptions = React.useMemo(() => {
     if (departments?.data?.data) {
@@ -289,67 +298,16 @@ export default function AssignEmployeeModal({
                             {employees.map((employee) => (
                               <CommandItem
                                 key={employee.id}
-                                value={employee.name}
+                                value={`${employee.name}-${employee.id}`}
                                 onSelect={async () => {
                                   setSelectedEmployee(employee);
-                                  form.setValue(
-                                    "employee_id",
-                                    String(employee.id)
-                                  );
-                                  form.setValue(
-                                    "department_id",
-                                    String(employee.department_id)
-                                  );
-                                  form.setValue(
-                                    "job_position_id",
-                                    String(employee.job_position_id)
-                                  );
-                                  form.setValue(
-                                    "job_level_id",
-                                    String(employee.job_level_id)
-                                  );
-
-                                  const employeeOnChart = chartEmployees.find(
-                                    (chartEmp) =>
-                                      chartEmp.employeeId ===
-                                      String(employee.id)
-                                  );
-
-                                  const primaryReports = employeeOnChart
-                                    ? employeeOnChart.primary_direct_report.map(
-                                        (report) => String(report.id)
-                                      )
-                                    : [];
-
-                                  if (parentId) {
-                                    primaryReports.push(parentId);
-                                  }
-
-                                  const uniquePrimaryReports = [
-                                    ...new Set(primaryReports),
-                                  ];
-
-                                  form.setValue(
-                                    "primary_direct_report",
-                                    uniquePrimaryReports[0]
-                                  );
-
-                                  if (employeeOnChart) {
-                                    form.setValue(
-                                      "additional_direct_report",
-                                      employeeOnChart.secondary_direct_report.map(
-                                        (report) => String(report.id)
-                                      )[0]
-                                    );
-                                    form.setValue(
-                                      "team_id",
-                                      employeeOnChart.team_members.map((team) =>
-                                        String(team.id)
-                                      )
-                                    );
-
-                                    await form.trigger();
-                                  }
+                                  form.reset({
+                                    employee_id: employee.id.toString(),
+                                    department_id: String(employee.department_id),
+                                    job_position_id: String(employee.job_position_id),
+                                    job_level_id: String(employee.job_level_id),
+                                    primary_direct_report: parentEmployee?.employeeId,
+                                  });
                                 }}
                               >
                                 <Avatar className="h-8 w-8 mr-2">
@@ -469,8 +427,10 @@ export default function AssignEmployeeModal({
                       <ComboboxForm
                         label="Primary Direct Report"
                         defaultValue={field.value}
-                        options={employeesOptions}
-                        disabled={isLoadingEmployees}
+                        options={primaryOptions}
+                        disabled={isLoadingPrimary}
+                        onSearchChange={setPrimarySearch}
+                        valueType="string"
                         {...field}
                       />
                     )}
@@ -483,8 +443,10 @@ export default function AssignEmployeeModal({
                       <ComboboxForm
                         label="Additional Direct Report"
                         defaultValue={field.value}
-                        options={employeesOptions}
-                        disabled={isLoadingEmployees}
+                        options={secondaryOptions}
+                        disabled={isLoadingSecondary}
+                        onSearchChange={setSecondarySearch}
+                        valueType="string"
                         isOptional
                         {...field}
                       />

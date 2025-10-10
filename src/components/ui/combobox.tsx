@@ -2,7 +2,7 @@
 
 import { Check, ChevronDownIcon, X } from "lucide-react";
 import { useFormContext } from "react-hook-form";
-import { useState } from "react";
+import { SetStateAction, Dispatch, useState } from "react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -38,12 +38,16 @@ export function ComboboxForm({
   options,
   valueType = "string",
   allowClear = true,
+  onSearchChange,
 }: ComboboxProps & {
+  onSearchChange?: Dispatch<SetStateAction<string>>;
   valueType?: "string" | "number";
   allowClear?: boolean;
 }) {
   const { control, setValue } = useFormContext();
   const [open, setOpen] = useState(false);
+
+  const [searchTerm, setSearchTerm] = useState("");
 
   const clearSelection = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -78,7 +82,16 @@ export function ComboboxForm({
                 <span className="text-text-disabled"> (optional)</span>
               )}
             </FormLabel>
-            <Popover open={open} onOpenChange={setOpen}>
+            <Popover
+              open={open}
+              onOpenChange={(isOpen) => {
+                setOpen(isOpen);
+                if (!isOpen) {
+                  setSearchTerm("");
+                  onSearchChange?.("");
+                }
+              }}
+              >
               <PopoverTrigger asChild>
                 <FormControl>
                   <Button
@@ -110,7 +123,11 @@ export function ComboboxForm({
               </PopoverTrigger>
               <PopoverContent className="w-full p-0">
                 <Command>
-                  <CommandInput placeholder="Search..." className="h-9" />
+                  <CommandInput placeholder="Search..." className="h-9" value={searchTerm}
+                    onValueChange={(search) => {
+                      setSearchTerm(search);
+                      onSearchChange?.(search);
+                    }} />
                   <CommandList>
                     <CommandEmpty>No data found.</CommandEmpty>
                     <CommandGroup>

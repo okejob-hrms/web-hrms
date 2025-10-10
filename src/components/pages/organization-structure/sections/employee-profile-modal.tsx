@@ -2,7 +2,7 @@
 // sections/employee-profile-modal.tsx
 "use client";
 
-import React, { useState } from "react";
+import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -16,8 +16,8 @@ import { useForm, UseFormReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import {
-  assignEmployeeFormScheme,
-  AssignEmployeeFormValues,
+  editEmployeeFormScheme,
+  EditEmployeeFormValues,
   EmployeeNode,
 } from "../types";
 import { Edit } from "lucide-react";
@@ -30,6 +30,7 @@ import { getJobLevels } from "@/services/job-levels";
 import { getJobPosition } from "@/services/job-position";
 import { getTeam } from "@/services/team";
 import { getEmployees } from "@/services/employees";
+import { useDebounce } from "@/hooks/use-debounce";
 import { ComboboxForm } from "@/components/ui/combobox";
 
 interface EmployeeProfileModalProps {
@@ -37,7 +38,7 @@ interface EmployeeProfileModalProps {
   onOpenChange: (open: boolean) => void;
   handleClose: () => void;
   employeeData: EmployeeNode | null;
-  handleSave: (data: AssignEmployeeFormValues) => void;
+  handleSave: (data: EditEmployeeFormValues) => void;
   chartEmployees: EmployeeNode[];
 }
 
@@ -110,17 +111,15 @@ const DetailView = ({
       <div className="flex flex-col gap-2">
         <label className="text-sm text-gray-500">Primary Direct Report</label>
         <div className="font-medium text-gray-900">
-          {primaryReports.length > 0
-            ? primaryReports.map((report, index) => (
-                <React.Fragment key={report?.employeeId}>
-                  <span className="font-semibold">{report?.name}</span>
-                  <span className="text-text-disabled">
-                    {" "}
-                    ({report?.job_position})
-                  </span>
-                  {index < primaryReports.length - 1 && "; "}
-                </React.Fragment>
-              ))
+          {employeeData.primary_direct_report.length > 0
+            ? <React.Fragment key={employeeData.primary_direct_report[0]?.id}>
+            <span className="font-semibold">{employeeData.primary_direct_report[0]?.name}</span>
+            {/* IF NEEDED & BE READY */}
+            {/* <span className="text-text-disabled">
+              {" "}
+              ({employeeData.primary_direct_report[0]?.job_position})
+            </span> */}
+          </React.Fragment>
             : "None"}
         </div>
       </div>
@@ -130,17 +129,15 @@ const DetailView = ({
           Additional Direct Report
         </label>
         <div className="font-medium text-gray-900">
-          {additionalReports.length > 0
-            ? additionalReports.map((report, index) => (
-                <React.Fragment key={report?.employeeId}>
-                  <span className="font-semibold">{report?.name}</span>
-                  <span className="text-text-disabled">
-                    {" "}
-                    ({report?.job_position})
-                  </span>
-                  {index < additionalReports.length - 1 && "; "}
-                </React.Fragment>
-              ))
+          {employeeData.secondary_direct_report.length > 0
+            ? <React.Fragment key={employeeData.secondary_direct_report[0]?.id}>
+                <span className="font-semibold">{employeeData.secondary_direct_report[0]?.name}</span>
+                {/* IF NEEDED & BE READY */}
+                {/* <span className="text-text-disabled">
+                  {" "}
+                  ({employeeData.secondary_direct_report[0]?.job_position})
+                </span> */}
+              </React.Fragment>
             : "None"}
         </div>
       </div>
@@ -169,7 +166,9 @@ const EditView = ({
   positionOptions,
   jobLevelOptions,
   teamOptions,
-  employeesOptions,
+  // employeesOptions,
+  primaryOptions,
+  secondaryOptions,
   isLoadingEmployees,
   isDepartmentsLoading,
   isJobLevelsLoading,
@@ -179,14 +178,18 @@ const EditView = ({
   jobLevelsError,
   positionsError,
   teamsError,
+  setPrimarySearch,
+  setSecondarySearch,
 }: {
-  form: UseFormReturn<AssignEmployeeFormValues>;
+  form: UseFormReturn<EditEmployeeFormValues>;
   employeeData: EmployeeNode;
   departmentOptions: { label: string; value: string }[];
   positionOptions: { label: string; value: string }[];
   jobLevelOptions: { label: string; value: string }[];
   teamOptions: { label: string; value: string }[];
-  employeesOptions: { label: string; value: string }[];
+  // employeesOptions: { label: string; value: string }[];
+  primaryOptions: { label: string; value: string }[];
+  secondaryOptions: { label: string; value: string }[];
   isLoadingEmployees?: boolean;
   isDepartmentsLoading?: boolean;
   isJobLevelsLoading?: boolean;
@@ -196,6 +199,8 @@ const EditView = ({
   jobLevelsError?: any;
   positionsError?: any;
   teamsError?: any;
+  setPrimarySearch?: Dispatch<SetStateAction<string>>;
+  setSecondarySearch?: Dispatch<SetStateAction<string>>;
 }) => {
   return (
     <div className="space-y-4">
@@ -283,8 +288,10 @@ const EditView = ({
           <ComboboxForm
             label="Primary Direct Report"
             defaultValue={field.value}
-            options={employeesOptions}
+            options={primaryOptions}
             disabled={isLoadingEmployees}
+            onSearchChange={setPrimarySearch}
+            valueType="string"
             {...field}
           />
         )}
@@ -297,8 +304,10 @@ const EditView = ({
           <ComboboxForm
             label="Additional Direct Report"
             defaultValue={field.value}
-            options={employeesOptions}
+            options={secondaryOptions}
             disabled={isLoadingEmployees}
+            onSearchChange={setSecondarySearch}
+            valueType="string"
             isOptional
             {...field}
           />
@@ -341,39 +350,43 @@ export default function EmployeeProfileModal({
 }: EmployeeProfileModalProps) {
   const [isEditMode, setIsEditMode] = useState(false);
 
-  const form = useForm<AssignEmployeeFormValues>({
-    resolver: zodResolver(assignEmployeeFormScheme),
+  const form = useForm<EditEmployeeFormValues>({
+    resolver: zodResolver(editEmployeeFormScheme),
     mode: "onChange",
   });
-  const onSubmit = (data: AssignEmployeeFormValues) => {
+  const onSubmit = (data: EditEmployeeFormValues) => {
     handleSave(data);
     onOpenChange(false);
     setIsEditMode(false);
   };
 
-  const { data: employeesOptionsForm, isLoading: isLoadingEmployees } =
-    useQuery({
-      queryKey: [
-        "employees",
-        // watchedDepartmentId,
-        // watchedJobPositionId,
-        // watchedJobLevelId,
-      ],
-      queryFn: () => getEmployees({}),
-      //   {
-      //   department_ids: [Number(watchedDepartmentId)],
-      //   job_position_ids: [Number(watchedJobPositionId)],
-      //   job_level_ids: [Number(watchedJobLevelId)],
-      // }
-      staleTime: 5 * 60 * 1000,
-      gcTime: 10 * 60 * 1000,
-      refetchOnWindowFocus: false,
-      // enabled: !!(
-      //   watchedDepartmentId ||
-      //   watchedJobPositionId ||
-      //   watchedJobLevelId
-      // ),
-    });
+  const [primarySearch, setPrimarySearch] = React.useState("");
+  const [secondarySearch, setSecondarySearch] = React.useState("");
+  const debouncedPrimarySearch = useDebounce(primarySearch, 300);
+  const debouncedSecondarySearch = useDebounce(secondarySearch, 300);
+
+  const { data: primaryEmployees, isLoading: isLoadingPrimary } = useQuery({
+    queryKey: ["employees", "primary", debouncedPrimarySearch],
+    queryFn: () =>
+      getEmployees(
+        debouncedPrimarySearch ? { search: debouncedPrimarySearch, per_page: 100000 } : {per_page: 100000}
+      ),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+  
+  const { data: secondaryEmployees, isLoading: isLoadingSecondary } = useQuery({
+    queryKey: ["employees", "secondary", debouncedSecondarySearch],
+    queryFn: () =>
+      getEmployees(
+        debouncedSecondarySearch ? { search: debouncedSecondarySearch, per_page: 100000 } : {per_page: 100000}
+      ),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
   const {
     data: departments,
     isLoading: isDepartmentsLoading,
@@ -434,15 +447,25 @@ export default function EmployeeProfileModal({
     refetchOnWindowFocus: false,
   });
 
-  const employeesOptions = React.useMemo(() => {
-    if (employeesOptionsForm?.data?.data) {
-      return employeesOptionsForm.data.data.map((item) => ({
+  const primaryOptions = React.useMemo(() => {
+    if (primaryEmployees?.data?.data) {
+      return primaryEmployees.data.data.map((item) => ({
         label: item.name,
         value: item.id.toString(),
       }));
     }
     return [];
-  }, [employeesOptionsForm?.data]);
+  }, [primaryEmployees?.data]);
+
+  const secondaryOptions = React.useMemo(() => {
+    if (secondaryEmployees?.data?.data) {
+      return secondaryEmployees.data.data.map((item) => ({
+        label: item.name,
+        value: item.id.toString(),
+      }));
+    }
+    return [];
+  }, [secondaryEmployees?.data]);
 
   const departmentOptions = React.useMemo(() => {
     if (departments?.data?.data) {
@@ -515,11 +538,12 @@ export default function EmployeeProfileModal({
                   employeeData={employeeData}
                   form={form}
                   departmentOptions={departmentOptions}
-                  employeesOptions={employeesOptions}
+                  primaryOptions={primaryOptions}
+                  secondaryOptions={secondaryOptions}
                   jobLevelOptions={jobLevelOptions}
                   positionOptions={positionOptions}
                   teamOptions={teamOptions}
-                  isLoadingEmployees={isLoadingEmployees}
+                  isLoadingEmployees={isLoadingPrimary || isLoadingSecondary}
                   isDepartmentsLoading={isDepartmentsLoading}
                   isJobLevelsLoading={isJobLevelsLoading}
                   isPositionsLoading={isPositionsLoading}
@@ -528,6 +552,8 @@ export default function EmployeeProfileModal({
                   isTeamsLoading={isTeamsLoading}
                   positionsError={positionsError}
                   teamsError={teamsError}
+                  setPrimarySearch={setPrimarySearch}
+                  setSecondarySearch={setSecondarySearch}
                 />
               ) : (
                 <DetailView

@@ -5,6 +5,7 @@
 import Image from "next/image";
 import {
   AssignEmployeeFormValues,
+  EditEmployeeFormValues,
   EmployeeNode,
   initialChartData,
   NodeCardData,
@@ -33,6 +34,7 @@ import { flattenOrgData } from "../utils";
 import {
   getOrgChart,
   postAssignEmployee,
+  postEditEmployee,
 } from "@/services/employees/organization-structure";
 import { useRouter } from "next/navigation";
 import { EmployeeListSidebar } from "./employee-list-sidebar";
@@ -64,7 +66,6 @@ const getLayoutedElements = (
 
   const newNodes = nodes.map((node) => {
     const nodeWithPosition = dagreGraph.node(node.id);
-    console.log("nodeWithPosition", nodeWithPosition, node);
     const newNode = {
       ...node,
       targetPosition: isHorizontal ? "left" : "top",
@@ -74,7 +75,6 @@ const getLayoutedElements = (
         y: nodeWithPosition.y - nodeHeight / 2,
       },
     };
-    console.log("newNode", newNode);
 
     return newNode;
   });
@@ -104,7 +104,8 @@ export default function OrganizationChartEdit() {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [selectedEmployeeDetails, setSelectedEmployeeDetails] =
     useState<EmployeeNode | null>(null);
-  const [selectedParentId, setSelectedParentId] = useState("");
+    const [selectedParentEmployee, setselectedParentEmployee] =
+    useState<EmployeeNode | null>(null);
   const {
     data: fetchedEmployees,
     isLoading,
@@ -126,8 +127,8 @@ export default function OrganizationChartEdit() {
   }, [fetchedEmployees]);
 
   useEffect(() => {
-    const onAddChild = (employeeId: string) => {
-      setSelectedParentId(employeeId);
+    const onAddChild = (employee: EmployeeNode) => {
+      setselectedParentEmployee(employee);
       setAssignEmployeeOpen(true);
     };
     const onEdit = async (employee: EmployeeNode) => {
@@ -171,9 +172,6 @@ export default function OrganizationChartEdit() {
     setEdges(layoutedEdges);
   }, [chartEmployees]);
 
-  console.log("layoutedNodes", nodes);
-  console.log("layoutedEdges", edges);
-
   const handleModalSave = (formValues: AssignEmployeeFormValues) => {
     assignManager(formValues);
   };
@@ -186,12 +184,23 @@ export default function OrganizationChartEdit() {
     setAssignEmployeeOpen(true);
   };
 
-  const handleModalEditSave = (formValues: AssignEmployeeFormValues) => {
-    assignManager(formValues);
+  const handleModalEditSave = (formValues: EditEmployeeFormValues) => {
+    editManager(formValues);
   };
 
   const { mutate: assignManager } = useMutation({
     mutationFn: postAssignEmployee,
+    onSuccess: () => {
+      toast.success("Assign Manager Successfully Updated!");
+      queryClient.invalidateQueries({ queryKey: ["organizationChart"] });
+    },
+    onError: (error) => {
+      toast.error(`Failed to create/edit employee: ${error.message}`);
+    },
+  });
+
+  const { mutate: editManager } = useMutation({
+    mutationFn: postEditEmployee,
     onSuccess: () => {
       toast.success("Assign Manager Successfully Updated!");
       queryClient.invalidateQueries({ queryKey: ["organizationChart"] });
@@ -279,7 +288,7 @@ export default function OrganizationChartEdit() {
         handleSave={handleModalSave}
         onOpenChange={setAssignEmployeeOpen}
         chartEmployees={chartEmployees}
-        parentId={selectedParentId}
+        parentEmployee={selectedParentEmployee}
       />
 
       {selectedEmployeeDetails && (

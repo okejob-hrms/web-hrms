@@ -13,6 +13,7 @@ import { SalaryAdjustmentModal } from "./modals/salary-adjustment-modal";
 import z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
+  defaultFinalSalaryAdjustmentForm,
   IMutateFinalSalaryRequest,
   MutateFinalSalaryRequestSchema,
 } from "@/services/employees/offboardings/final-salary/types";
@@ -32,6 +33,7 @@ export const SalaryAdjustmentForm = React.memo(function SalaryAdjustmentForm({
   const router = useRouter();
   const form = useForm<z.infer<typeof MutateFinalSalaryRequestSchema>>({
     resolver: zodResolver(MutateFinalSalaryRequestSchema),
+    defaultValues: defaultFinalSalaryAdjustmentForm,
   });
   const [allowanceForm, setAllowanceForm] = React.useState(1);
   // const watchedAllowances = form.watch("allowances");
@@ -56,7 +58,7 @@ export const SalaryAdjustmentForm = React.memo(function SalaryAdjustmentForm({
     mutationFn: (params: IMutateFinalSalaryRequest) =>
       postFinalSalary(offboarding_id, params),
     onSuccess: () => {
-      toast.success("Edit employee successfully!");
+      toast.success("Salary adjustment successfully!");
       queryClient.invalidateQueries({ queryKey: ["employees"] });
       router.push("/employee/employee-management");
     },
@@ -76,17 +78,19 @@ export const SalaryAdjustmentForm = React.memo(function SalaryAdjustmentForm({
                   },
                 );
               }
-              toast.error(errorData.message || "Failed to update employee");
+              toast.error(
+                errorData.message || "Failed to update salary adjustment",
+              );
             })
             .catch(() => {
-              toast.error("Failed to update employee: Server error");
+              toast.error("Failed to update salary adjustment: Server error");
             });
         } catch (parseError) {
-          toast.error("Failed to update employee: Server error");
+          toast.error("Failed to update salary adjustment: Server error");
         }
       } else {
         toast.error(
-          `Failed to edit employee: ${error.message || "Unknown error"}`,
+          `Failed to update salary adjustment: ${error.message || "Unknown error"}`,
         );
       }
     },
@@ -95,6 +99,20 @@ export const SalaryAdjustmentForm = React.memo(function SalaryAdjustmentForm({
   const onSubmit = React.useCallback(
     (values: z.infer<typeof MutateFinalSalaryRequestSchema>) => {
       console.log("values", values);
+      const {
+        overtime_amount,
+        bonus_amount,
+        reimbursement_amount,
+        deduction_amount,
+        notes,
+      } = values;
+      mutate({
+        overtime_amount,
+        bonus_amount,
+        reimbursement_amount,
+        deduction_amount,
+        notes,
+      });
     },
     [mutate],
   );

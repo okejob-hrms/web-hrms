@@ -140,8 +140,8 @@ export default function EmployeeOffboardingList() {
   const queryParams = React.useMemo(
     () => ({
       ...debouncedFilters,
-      // page: pagination.pageIndex + 1,
-      // per_page: pagination.pageSize,
+      page: pagination.pageIndex + 1,
+      per_page: pagination.pageSize,
       search: "",
     }),
     [debouncedFilters, pagination],
@@ -156,7 +156,7 @@ export default function EmployeeOffboardingList() {
     refetchOnWindowFocus: false,
   });
 
-  console.log(employees?.data);
+  console.log(employees);
 
   const handleFiltersChange = React.useCallback((newFilters: Filters) => {
     setFilters((prev) => ({
@@ -179,7 +179,11 @@ export default function EmployeeOffboardingList() {
   }, []);
 
   const handlePaginationChange = React.useCallback((updater: any) => {
-    setPagination(updater);
+    try {
+      setPagination(updater);
+    } catch (error) {
+      console.log("error handle pagination ", error);
+    }
   }, []);
 
   return (

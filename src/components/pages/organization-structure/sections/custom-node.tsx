@@ -7,7 +7,7 @@ import { EmployeeNode } from "../types";
 
 type CustomNodeData = {
   employee: EmployeeNode;
-  onAddChild: (id: string, handle: "top" | "bottom") => void;
+  onAddChild: (employee: EmployeeNode, handle: "top" | "bottom") => void;
   onEdit: (employee: EmployeeNode) => void;
   onDelete: (employee: EmployeeNode) => void;
   isEditMode: boolean;

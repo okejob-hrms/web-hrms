@@ -16,10 +16,23 @@ export const assignEmployeeFormScheme = z.object({
   start_date: z.string().optional(),
 });
 
+export type EditEmployeeFormValues = z.infer<typeof editEmployeeFormScheme>;
+
+export const editEmployeeFormScheme = z.object({
+  employee_id: z.string().min(1, "Employee name is required"),
+  department_id: z.string().min(1, "Department is required"),
+  job_position_id: z.string().min(1, "Position is required"),
+  job_level_id: z.string().min(1, "Job Level is required"),
+  primary_direct_report: z.string().optional(),
+  additional_direct_report: z.string().optional(),
+  team_id: z.array(z.string()).optional(),
+  start_date: z.string().optional(),
+});
+
 export type NodeCardData = {
   employee: EmployeeNode;
   isEditMode: boolean;
-  onAddChild?: (id: string, handle: "top" | "bottom") => void;
+  onAddChild?: (employee: EmployeeNode, handle: "top" | "bottom") => void;
   onEdit?: (
     employee: EmployeeNode,
     employeeDetail: IEmployeeDetailsResponse | null
