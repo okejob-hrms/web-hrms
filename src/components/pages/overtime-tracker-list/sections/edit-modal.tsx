@@ -11,10 +11,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { stringAvatar } from '@/lib/utils';
 import dayjs from 'dayjs';
-import {
-  OvertimeListItem,
-  RequestOvertimeStatus,
-} from '@/services/overtime/types';
+import { OvertimeListItem, RequestOvertime } from '@/services/overtime/types';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 
@@ -23,8 +20,8 @@ interface Props {
   isOpen: boolean;
   setIsOpen: (x: boolean) => void;
   data: OvertimeListItem | undefined;
-  formData: RequestOvertimeStatus;
-  setFormData: React.Dispatch<React.SetStateAction<RequestOvertimeStatus>>;
+  formData: RequestOvertime;
+  setFormData: React.Dispatch<React.SetStateAction<RequestOvertime>>;
 }
 
 export default function OvertimeEditModal({

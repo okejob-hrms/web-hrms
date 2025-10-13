@@ -2,11 +2,11 @@
 
 import * as React from "react";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { deleteOvertime, getOvertime, putOvertimeStatus } from "@/services/overtime";
+import { deleteOvertime, getOvertime, putOvertime, putOvertimeStatus } from "@/services/overtime";
 import { PaginationState } from "@tanstack/react-table";
 import { toast } from "sonner";
 import { Filters } from "./types";
-import { OvertimeListItem, RequestOvertimeStatus } from "@/services/overtime/types";
+import { OvertimeListItem, RequestOvertime, RequestOvertimeStatus } from "@/services/overtime/types";
 import dayjs from "dayjs";
 
 export function useOvertime() {
@@ -57,6 +57,22 @@ export function useOvertime() {
       toast.error('Failed update overtime status');
     }
   });
+
+  const { mutate: updateOvertime } = useMutation({
+    mutationFn: ({ id, payload }: { id: number; payload: RequestOvertime }) =>
+      putOvertime(id, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["overtime"] });
+      toast.success('Success update overtime request');
+      setOpenApprove(false);
+      setOpenReject(false);
+      setOpenDetail(false);
+      setOpenEdit(false);
+    },
+    onError: () => {
+      toast.error('Failed update overtime request');
+    }
+  });
   
   const { mutate: removeOvertime } = useMutation({
     mutationFn: (id: number) => deleteOvertime(id),
@@ -71,14 +87,9 @@ export function useOvertime() {
   });
 
   const handleApprove = () => {
-    if (!selectedId) return;
+        if (!selectedId) return;
     const dataPayload = {
-      user_id: selectedData?.employee?.id ?? 0,
-      overtime_date: dayjs(selectedData?.overtime_date).format('YYYY-MM-DD'),
-      request_date: dayjs(selectedData?.request_date).format('YYYY-MM-DD'),
-      start_time: selectedData?.start_time ?? '00:00',
-      end_time: selectedData?.end_time ?? '00:00',
-      notes: selectedData?.notes ?? "",
+      status: 2,
     }
     updateStatus({ id: Number(selectedId), payload: dataPayload });
   };
@@ -86,12 +97,7 @@ export function useOvertime() {
   const handleReject = () => {
     if (!selectedId) return;
     const dataPayload = {
-      user_id: selectedData?.employee?.id ?? 0,
-      overtime_date: dayjs(selectedData?.overtime_date).format('YYYY-MM-DD'),
-      request_date: dayjs(selectedData?.request_date).format('YYYY-MM-DD'),
-      start_time: selectedData?.start_time ?? '00:00',
-      end_time: selectedData?.end_time ?? '00:00',
-      notes: selectedData?.notes ?? "",
+      status: 2,
     }
     updateStatus({ id: Number(selectedId), payload: dataPayload });
   };
@@ -101,9 +107,15 @@ export function useOvertime() {
     removeOvertime(Number(selectedId));
   };
 
-  const handleEdit = (data: RequestOvertimeStatus) => {
+  const handleEdit = (data: RequestOvertime) => {
     if (!selectedId) return;
-    updateStatus({ id: Number(selectedId), payload: data });
+    const dataConvert: RequestOvertime = {
+      ...data,
+      start_time: data.start_time.slice(0, 5),
+      end_time: data.end_time.slice(0, 5),
+    };
+
+    updateOvertime({ id: Number(selectedId), payload: dataConvert });
   }
 
   return {

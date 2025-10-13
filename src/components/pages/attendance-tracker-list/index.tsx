@@ -49,7 +49,6 @@ import { Form } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
 import { DatePicker } from '@/components/ui/date-picker';
 import dayjs from 'dayjs';
-import { LocationBadge } from '@/components/ui/location-badge';
 
 interface AttendanceTrackerListProps {
   hidePannel?: boolean;
