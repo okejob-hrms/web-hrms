@@ -24,6 +24,7 @@ import {
   Edit3,
   Ellipsis,
   Eye,
+  MapPin,
   Minus,
   Search,
   Trash,
@@ -48,7 +49,6 @@ import { Form } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
 import { DatePicker } from '@/components/ui/date-picker';
 import dayjs from 'dayjs';
-import { LocationBadge } from '@/components/ui/location-badge';
 
 interface AttendanceTrackerListProps {
   hidePannel?: boolean;
@@ -196,30 +196,39 @@ export const AttendanceTrackerList = ({
                   Attendance Details
                 </button>
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <button
-                  onClick={() => {
-                    setOpenApprove(true);
-                    setSelectedId(String(row.original?.latest_attendance?.id));
-                  }}
-                  className="flex gap-2"
-                >
-                  <Clock4Icon />
-                  Approve Attendance
-                </button>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <button
-                  onClick={() => {
-                    setOpenReject(true);
-                    setSelectedId(String(row.original?.latest_attendance?.id));
-                  }}
-                  className="flex gap-2"
-                >
-                  <XCircle />
-                  Reject Attendance
-                </button>
-              </DropdownMenuItem>
+              {row.original.latest_attendance?.status !== 1 && (
+                <DropdownMenuItem>
+                  <button
+                    onClick={() => {
+                      setOpenApprove(true);
+                      setSelectedId(
+                        String(row.original?.latest_attendance?.id),
+                      );
+                    }}
+                    className="flex gap-2"
+                  >
+                    <Clock4Icon />
+                    Approve Attendance
+                  </button>
+                </DropdownMenuItem>
+              )}
+              {row.original.latest_attendance?.status !== 2 && (
+                <DropdownMenuItem>
+                  <button
+                    onClick={() => {
+                      setOpenReject(true);
+                      setSelectedId(
+                        String(row.original?.latest_attendance?.id),
+                      );
+                    }}
+                    className="flex gap-2"
+                  >
+                    <XCircle />
+                    Reject Attendance
+                  </button>
+                </DropdownMenuItem>
+              )}
+
               <DropdownMenuItem>
                 <Link
                   href={`/attendance/attendance-tracker/${row.original.id}`}
@@ -457,6 +466,9 @@ export const AttendanceTrackerList = ({
 
               <div className="bg-gray-100 p-6 space-y-6 flex-1 overflow-y-auto border-t">
                 {detailData?.data.data.map((item, key) => {
+                  const status = item?.status_label;
+                  const { variant, className, label } =
+                    getStatusAttendance(status);
                   return (
                     <div
                       className="border rounded-md p-4 bg-white space-y-5"
@@ -471,6 +483,10 @@ export const AttendanceTrackerList = ({
                           className="bg-blue-50 border-primary text-primary"
                         >
                           {item.metadata.shift_name}
+                        </Badge>
+
+                        <Badge variant={variant} className={className}>
+                          {label}
                         </Badge>
                       </div>
                       <div className="flex sm:flex-row flex-col gap-4 justify-between items-center">
@@ -503,29 +519,33 @@ export const AttendanceTrackerList = ({
                             Attendance Approval
                           </span>
                           <div className="flex gap-4">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="bg-white text-red-500 border-red-500"
-                              onClick={() => {
-                                setOpenReject(true);
-                                setSelectedId(String(item.id));
-                              }}
-                            >
-                              <X />
-                              Reject
-                            </Button>
-                            <Button
-                              variant="default"
-                              size="sm"
-                              onClick={() => {
-                                setOpenApprove(true);
-                                setSelectedId(String(item.id));
-                              }}
-                            >
-                              <Check />
-                              Approve
-                            </Button>
+                            {item.status !== 2 && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="bg-white text-red-500 border-red-500"
+                                onClick={() => {
+                                  setOpenReject(true);
+                                  setSelectedId(String(item.id));
+                                }}
+                              >
+                                <X />
+                                Reject
+                              </Button>
+                            )}
+                            {item.status !== 1 && (
+                              <Button
+                                variant="default"
+                                size="sm"
+                                onClick={() => {
+                                  setOpenApprove(true);
+                                  setSelectedId(String(item.id));
+                                }}
+                              >
+                                <Check />
+                                Approve
+                              </Button>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -534,10 +554,17 @@ export const AttendanceTrackerList = ({
                           <span className="text-muted-foreground text-sm">
                             Location
                           </span>
-                          <LocationBadge
-                            lat={Number(item.location.latitude)}
-                            lng={Number(item.location.longitude)}
-                          />
+                          <Badge
+                            variant="default"
+                            className="bg-blue-50 border-primary text-primary"
+                          >
+                            <div className="w-6">
+                              <MapPin size={16} />
+                            </div>
+                            <div className="whitespace-normal break-words max-w-full">
+                              {item.metadata.location_name}
+                            </div>
+                          </Badge>
                         </div>
                         <div className="flex flex-col space-y-1">
                           <span className="text-muted-foreground text-sm">

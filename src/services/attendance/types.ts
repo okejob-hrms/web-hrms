@@ -184,6 +184,7 @@ export interface AttendanceDetail {
     day_of_week: number;
     tolerance_minutes: number;
     work_schedule_id: number;
+    location_name: string;
   };
   created_at: string;
   updated_at: string;

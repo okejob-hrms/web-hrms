@@ -39,6 +39,7 @@ import dayjs from 'dayjs';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   OvertimeListItem,
+  RequestOvertime,
   RequestOvertimeStatus,
 } from '@/services/overtime/types';
 import OvertimeDetailModal from './sections/detail-modal';
@@ -69,7 +70,7 @@ export default function OvertimeTrackerList() {
     handleEdit,
   } = useOvertime();
   const [detail, setDetail] = React.useState<OvertimeListItem>();
-  const [formData, setFormData] = React.useState<RequestOvertimeStatus>({
+  const [formData, setFormData] = React.useState<RequestOvertime>({
     user_id: 0,
     overtime_date: '',
     request_date: '',
@@ -231,7 +232,6 @@ export default function OvertimeTrackerList() {
                         setSelectedId(String(row.original?.id));
                         setSelectedData(row.original);
                         setDetail(row.original);
-                        setOpenDetail(true);
                       }}
                       className="flex gap-2"
                     >

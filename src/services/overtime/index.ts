@@ -1,6 +1,6 @@
 import { api } from "@/lib/api";
 import { PaginationState } from "@tanstack/react-table";
-import { OvertimeData, RequestOvertimeStatus } from "./types";
+import { OvertimeData, RequestOvertime, RequestOvertimeStatus } from "./types";
 
 export const getOvertime = async (
   pagination?: PaginationState,
@@ -38,6 +38,17 @@ export const getOvertime = async (
 export const putOvertimeStatus = async (
   id: number,
   payload: RequestOvertimeStatus
+): Promise<OvertimeData> => {
+  return api
+    .post(`employee/overtimes/${id}/status`, {
+      json: payload,
+    })
+    .json<OvertimeData>();
+};
+
+export const putOvertime = async (
+  id: number,
+  payload: RequestOvertime
 ): Promise<OvertimeData> => {
   return api
     .put(`employee/overtimes/${id}`, {

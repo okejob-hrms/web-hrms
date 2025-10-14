@@ -73,6 +73,10 @@ export interface NewRequests {
 }
 
 export interface RequestOvertimeStatus {
+    status: number;
+}
+
+export interface RequestOvertime {
     user_id: number;
     overtime_date: string;
     request_date: string;
