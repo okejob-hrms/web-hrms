@@ -159,6 +159,8 @@ export const FormModal = React.memo(function FormModal({
     onSuccess: () => {
       toast.success("Work handover created successfully");
       form.reset();
+      setSelectedRecipients([]);
+      setDefaultRecipients([]);
       onOpenChange(false);
       queryClient.invalidateQueries({ queryKey: ["work-handover"] });
     },
@@ -220,25 +222,30 @@ export const FormModal = React.memo(function FormModal({
     return [];
   }, [employees?.data]);
 
+  const buildRecipientsPayload = () => {
+    if (selectedRecipients && selectedRecipients.length > 0) {
+      return selectedRecipients.map((r) => ({
+        user_id: r.user_id,
+        status: r.status || 1,
+      }));
+    }
+
+    const valuesRecipients = form.getValues("recipients") || [];
+    return valuesRecipients.map((id: any) => ({
+      user_id: Number(id),
+      status: 1,
+    }));
+  };
+
   const handleSubmit = (values: IWorkDocumentHandoverRequest) => {
+    const payload = {
+      ...values,
+      recipients: buildRecipientsPayload(),
+    };
+
     if (isEditMode) {
-      const payload = {
-        ...values,
-        recipients: selectedRecipients.map((recipient) => ({
-          user_id: recipient?.user_id,
-          status: recipient?.status || 1,
-        })),
-      };
       updateMutation.mutate(payload);
     } else {
-      const payload = {
-        ...values,
-        recipients: values.recipients.map((recipient) => ({
-          user_id: recipient as unknown as number,
-          status: 1,
-        })),
-      };
-
       createMutation.mutate(payload);
     }
   };
@@ -250,29 +257,24 @@ export const FormModal = React.memo(function FormModal({
 
   React.useEffect(() => {
     if (open && editData) {
-      const recipientIds = editData.recipients.map((r) => r.user_id.toString());
-      console.log("kepanggil useeffect 1");
-      setDefaultRecipients(recipientIds);
-
+      const ids = editData.recipients.map((r) => r.user_id);
       form.reset({
         category: "work",
         name: editData.name || "",
-        recipients: recipientIds as any,
+        recipients: ids as any,
       });
-
-      if (editData.recipients) {
-        setSelectedRecipients(editData.recipients);
-      }
+      setSelectedRecipients(editData.recipients);
+      setDefaultRecipients(ids.map(String));
     } else if (open) {
-      setDefaultRecipients([]);
-      setSelectedRecipients([]);
       form.reset({
         category: "work",
         name: "",
         recipients: [],
       });
+      setSelectedRecipients([]);
+      setDefaultRecipients([]);
     }
-  }, [open, editData]);
+  }, [open, editData, form]);
 
   React.useEffect(() => {
     const subscription = form.watch((value, { name }) => {
@@ -281,15 +283,9 @@ export const FormModal = React.memo(function FormModal({
 
         setSelectedRecipients((prev) => {
           const prevIds = prev.map((r) => r.user_id);
-
-          // Find added and removed IDs
           const addedIds = newIds.filter((id) => !prevIds.includes(id));
           const removedIds = prevIds.filter((id) => !newIds.includes(id));
-
-          // Remove deleted ones
           const updated = prev.filter((r) => !removedIds.includes(r.user_id));
-
-          // Add new ones
           const newRecipients = addedIds.map((id) => ({
             id: 0,
             user_id: id,
@@ -310,18 +306,14 @@ export const FormModal = React.memo(function FormModal({
       setSelectedRecipients((prev) =>
         prev.filter((recipient) => recipient.user_id !== userId),
       );
-
-      // Update form value to stay in sync
-      const newRecipients = (form.getValues("recipients") || []).filter(
-        (id) => Number(id) !== userId,
-      );
+      const current = form.getValues("recipients") || [];
+      const newRecipients = current.filter((id) => Number(id) !== userId);
       form.setValue("recipients", newRecipients, {
         shouldValidate: true,
         shouldDirty: true,
         shouldTouch: true,
       });
-
-      // Keep defaultRecipients in sync (for edit mode reopen)
+      form.trigger("recipients");
       setDefaultRecipients((prev) =>
         prev.filter((id) => Number(id) !== userId),
       );

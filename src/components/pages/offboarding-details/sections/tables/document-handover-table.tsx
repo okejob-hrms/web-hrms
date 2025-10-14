@@ -9,12 +9,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Form } from "@/components/ui/form";
 import { InputForm } from "@/components/ui/input";
 import { MultiSelectForm } from "@/components/ui/multi-select";
@@ -40,6 +34,12 @@ import * as React from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import DeleteDialog from "../modals/delete-modal";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import Image from "next/image";
 import {
   Select,
@@ -48,6 +48,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ApiErrorResponse } from "@/lib/types";
 
 interface TableProps {
   offboarding_id: number;
@@ -105,7 +106,7 @@ const EmployeeProfile = React.memo(function EmployeeProfile({
 const RecipientsList = React.memo(function RecipientsList({
   recipients,
 }: {
-  recipients: Array<{ id: number; user_id: number }>;
+  recipients: WorkRecipient[];
 }) {
   return (
     <div className="space-y-2">
@@ -158,11 +159,42 @@ export const FormModal = React.memo(function FormModal({
     onSuccess: () => {
       toast.success("Document handover created successfully");
       form.reset();
+      setSelectedRecipients([]);
+      setDefaultRecipients([]);
       onOpenChange(false);
       queryClient.invalidateQueries({ queryKey: ["document-handover"] });
     },
     onError: (error: any) => {
-      toast.error(error.message || "Failed to create document handover");
+      if (error?.response) {
+        try {
+          error.response
+            .json()
+            .then((errorData: ApiErrorResponse) => {
+              if (errorData.errors) {
+                Object.entries(errorData.errors).forEach(
+                  ([fieldName, messages]) => {
+                    form.setError(fieldName as any, {
+                      type: "server",
+                      message: messages[0],
+                    });
+                  },
+                );
+              }
+              toast.error(
+                errorData.message || "Failed to create document handover",
+              );
+            })
+            .catch(() => {
+              toast.error("Failed to create document handover: Server error");
+            });
+        } catch (parseError) {
+          toast.error("Failed to create document handover: Server error");
+        }
+      } else {
+        toast.error(
+          `Failed to create document handover: ${error.message || "Unknown error"}`,
+        );
+      }
     },
   });
 
@@ -190,13 +222,25 @@ export const FormModal = React.memo(function FormModal({
     return [];
   }, [employees?.data]);
 
+  const buildRecipientsPayload = () => {
+    if (selectedRecipients && selectedRecipients.length > 0) {
+      return selectedRecipients.map((r) => ({
+        user_id: r.user_id,
+        status: r.status || 1,
+      }));
+    }
+
+    const valuesRecipients = form.getValues("recipients") || [];
+    return valuesRecipients.map((id: any) => ({
+      user_id: Number(id),
+      status: 1,
+    }));
+  };
+
   const handleSubmit = (values: IWorkDocumentHandoverRequest) => {
     const payload = {
       ...values,
-      recipients: selectedRecipients.map((recipient) => ({
-        user_id: recipient.user_id,
-        status: recipient.status || 1,
-      })),
+      recipients: buildRecipientsPayload(),
     };
 
     if (isEditMode) {
@@ -213,42 +257,69 @@ export const FormModal = React.memo(function FormModal({
 
   React.useEffect(() => {
     if (open && editData) {
-      const recipientIds = editData.recipients.map((r) => r.user_id.toString());
-      setDefaultRecipients(recipientIds);
-
+      const ids = editData.recipients.map((r) => r.user_id);
       form.reset({
         category: "document",
         name: editData.name || "",
-        recipients: recipientIds as any,
+        recipients: ids as any,
       });
-
-      if (editData.recipients) {
-        setSelectedRecipients(editData.recipients);
-      }
+      setSelectedRecipients(editData.recipients);
+      setDefaultRecipients(ids.map(String));
     } else if (open) {
-      setDefaultRecipients([]);
-      setSelectedRecipients([]);
       form.reset({
         category: "document",
         name: "",
         recipients: [],
       });
+      setSelectedRecipients([]);
+      setDefaultRecipients([]);
     }
   }, [open, editData, form]);
 
-  const handleRemove = (userId: number) => {
-    setSelectedRecipients((prev) =>
-      prev.filter((recipient) => recipient.user_id !== userId),
-    );
+  React.useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === "recipients") {
+        const newIds = (value.recipients as number[]) || [];
 
-    const currentRecipients = form.getValues("recipients") || [];
-    const updatedRecipients = currentRecipients.filter(
-      (item) => Number(item) !== userId,
-    );
-    form.setValue("recipients", updatedRecipients);
+        setSelectedRecipients((prev) => {
+          const prevIds = prev.map((r) => r.user_id);
+          const addedIds = newIds.filter((id) => !prevIds.includes(id));
+          const removedIds = prevIds.filter((id) => !newIds.includes(id));
+          const updated = prev.filter((r) => !removedIds.includes(r.user_id));
+          const newRecipients = addedIds.map((id) => ({
+            id: 0,
+            user_id: id,
+            status: 1,
+            status_label: "Waiting Approval",
+          }));
 
-    setDefaultRecipients((prev) => prev.filter((id) => Number(id) !== userId));
-  };
+          return [...updated, ...newRecipients];
+        });
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [form]);
+
+  const handleRemove = React.useCallback(
+    (userId: number) => {
+      setSelectedRecipients((prev) =>
+        prev.filter((recipient) => recipient.user_id !== userId),
+      );
+      const current = form.getValues("recipients") || [];
+      const newRecipients = current.filter((id) => Number(id) !== userId);
+      form.setValue("recipients", newRecipients, {
+        shouldValidate: true,
+        shouldDirty: true,
+        shouldTouch: true,
+      });
+      form.trigger("recipients");
+      setDefaultRecipients((prev) =>
+        prev.filter((id) => Number(id) !== userId),
+      );
+    },
+    [form],
+  );
 
   const isPending = createMutation.isPending || updateMutation.isPending;
 
@@ -284,51 +355,52 @@ export const FormModal = React.memo(function FormModal({
               />
             </div>
             <div className="flex flex-col w-full space-y-3">
-              {selectedRecipients.map((item) => (
-                <div
-                  className="flex flex-col sm:flex-row sm:items-center gap-3 p-1 pb-2 border-b-2"
-                  key={item.user_id}
-                >
-                  <div className="flex-1 min-w-0">
-                    <EmployeeProfile userId={item.user_id} />
+              {selectedRecipients &&
+                selectedRecipients.map((item) => (
+                  <div
+                    className="flex flex-col sm:flex-row sm:items-center gap-3 p-1 pb-2 border-b-2"
+                    key={item.user_id}
+                  >
+                    <div className="flex-1 min-w-0">
+                      <EmployeeProfile userId={item.user_id} />
+                    </div>
+                    <div className="flex gap-2 items-center flex-wrap">
+                      <Select
+                        value={item.status?.toString() || "1"}
+                        onValueChange={(value) => {
+                          setSelectedRecipients((prev) =>
+                            prev.map((recipient) =>
+                              recipient.user_id === item.user_id
+                                ? { ...recipient, status: Number(value) }
+                                : recipient,
+                            ),
+                          );
+                        }}
+                      >
+                        <SelectTrigger className="min-w-[120px]">
+                          <SelectValue placeholder="Select Status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1">Waiting Approval</SelectItem>
+                          <SelectItem value="2">Received</SelectItem>
+                          <SelectItem value="3">Rejected</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <button
+                        type="button"
+                        onClick={() => handleRemove(item.user_id)}
+                        className="text-gray-500 hover:text-gray-700 p-1 rounded hover:bg-gray-200 transition-colors"
+                      >
+                        <Image
+                          src="/icons/deleteOutlined.svg"
+                          width={16}
+                          height={16}
+                          alt="delete"
+                        />
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex gap-2 items-center flex-wrap">
-                    <Select
-                      value={item.status?.toString() || "1"}
-                      onValueChange={(value) => {
-                        setSelectedRecipients((prev) =>
-                          prev.map((recipient) =>
-                            recipient.user_id === item.user_id
-                              ? { ...recipient, status: Number(value) }
-                              : recipient,
-                          ),
-                        );
-                      }}
-                    >
-                      <SelectTrigger className="min-w-[120px]">
-                        <SelectValue placeholder="Select Status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="1">Waiting Approval</SelectItem>
-                        <SelectItem value="2">Received</SelectItem>
-                        <SelectItem value="3">Rejected</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <button
-                      type="button"
-                      onClick={() => handleRemove(item.user_id)}
-                      className="text-gray-500 hover:text-gray-700 p-1 rounded hover:bg-gray-200 transition-colors"
-                    >
-                      <Image
-                        src="/icons/deleteOutlined.svg"
-                        width={16}
-                        height={16}
-                        alt="delete"
-                      />
-                    </button>
-                  </div>
-                </div>
-              ))}
+                ))}
             </div>
             <DialogFooter className="flex flex-col sm:flex-row md:gap-4 sm:gap-0">
               <Button
