@@ -48,6 +48,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ApiErrorResponse } from "@/lib/types";
 
 interface TableProps {
   offboarding_id: number;
@@ -105,7 +106,7 @@ const EmployeeProfile = React.memo(function EmployeeProfile({
 const RecipientsList = React.memo(function RecipientsList({
   recipients,
 }: {
-  recipients: Array<{ id: number; user_id: number }>;
+  recipients: WorkRecipient[];
 }) {
   return (
     <div className="space-y-2">
@@ -162,7 +163,36 @@ export const FormModal = React.memo(function FormModal({
       queryClient.invalidateQueries({ queryKey: ["work-handover"] });
     },
     onError: (error: any) => {
-      toast.error(error.message || "Failed to create work handover");
+      if (error?.response) {
+        try {
+          error.response
+            .json()
+            .then((errorData: ApiErrorResponse) => {
+              if (errorData.errors) {
+                Object.entries(errorData.errors).forEach(
+                  ([fieldName, messages]) => {
+                    form.setError(fieldName as any, {
+                      type: "server",
+                      message: messages[0],
+                    });
+                  },
+                );
+              }
+              toast.error(
+                errorData.message || "Failed to update salary adjustment",
+              );
+            })
+            .catch(() => {
+              toast.error("Failed to update salary adjustment: Server error");
+            });
+        } catch (parseError) {
+          toast.error("Failed to update salary adjustment: Server error");
+        }
+      } else {
+        toast.error(
+          `Failed to update salary adjustment: ${error.message || "Unknown error"}`,
+        );
+      }
     },
   });
 
@@ -191,17 +221,24 @@ export const FormModal = React.memo(function FormModal({
   }, [employees?.data]);
 
   const handleSubmit = (values: IWorkDocumentHandoverRequest) => {
-    const payload = {
-      ...values,
-      recipients: selectedRecipients.map((recipient) => ({
-        user_id: recipient.user_id,
-        status: recipient.status || 1,
-      })),
-    };
-
     if (isEditMode) {
+      const payload = {
+        ...values,
+        recipients: selectedRecipients.map((recipient) => ({
+          user_id: recipient?.user_id,
+          status: recipient?.status || 1,
+        })),
+      };
       updateMutation.mutate(payload);
     } else {
+      const payload = {
+        ...values,
+        recipients: values.recipients.map((recipient) => ({
+          user_id: recipient as unknown as number,
+          status: 1,
+        })),
+      };
+
       createMutation.mutate(payload);
     }
   };
@@ -214,6 +251,7 @@ export const FormModal = React.memo(function FormModal({
   React.useEffect(() => {
     if (open && editData) {
       const recipientIds = editData.recipients.map((r) => r.user_id.toString());
+      console.log("kepanggil useeffect 1");
       setDefaultRecipients(recipientIds);
 
       form.reset({
@@ -234,19 +272,62 @@ export const FormModal = React.memo(function FormModal({
         recipients: [],
       });
     }
-  }, [open, editData, form]);
+  }, [open, editData]);
 
-  const handleRemove = (userId: number) => {
-    setSelectedRecipients((prev) =>
-      prev.filter((recipient) => recipient.user_id !== userId),
-    );
-    const currentRecipients = form.getValues("recipients") || [];
-    const updatedRecipients = currentRecipients.filter(
-      (item) => Number(item.user_id) !== userId,
-    );
-    form.setValue("recipients", updatedRecipients);
-    setDefaultRecipients((prev) => prev.filter((id) => Number(id) !== userId));
-  };
+  React.useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === "recipients") {
+        const newIds = (value.recipients as number[]) || [];
+
+        setSelectedRecipients((prev) => {
+          const prevIds = prev.map((r) => r.user_id);
+
+          // Find added and removed IDs
+          const addedIds = newIds.filter((id) => !prevIds.includes(id));
+          const removedIds = prevIds.filter((id) => !newIds.includes(id));
+
+          // Remove deleted ones
+          const updated = prev.filter((r) => !removedIds.includes(r.user_id));
+
+          // Add new ones
+          const newRecipients = addedIds.map((id) => ({
+            id: 0,
+            user_id: id,
+            status: 1,
+            status_label: "Waiting Approval",
+          }));
+
+          return [...updated, ...newRecipients];
+        });
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [form]);
+
+  const handleRemove = React.useCallback(
+    (userId: number) => {
+      setSelectedRecipients((prev) =>
+        prev.filter((recipient) => recipient.user_id !== userId),
+      );
+
+      // Update form value to stay in sync
+      const newRecipients = (form.getValues("recipients") || []).filter(
+        (id) => Number(id) !== userId,
+      );
+      form.setValue("recipients", newRecipients, {
+        shouldValidate: true,
+        shouldDirty: true,
+        shouldTouch: true,
+      });
+
+      // Keep defaultRecipients in sync (for edit mode reopen)
+      setDefaultRecipients((prev) =>
+        prev.filter((id) => Number(id) !== userId),
+      );
+    },
+    [form],
+  );
 
   const isPending = createMutation.isPending || updateMutation.isPending;
 
@@ -313,15 +394,9 @@ export const FormModal = React.memo(function FormModal({
                           <SelectValue placeholder="Select Status" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="1">Pending</SelectItem>
-                          <SelectItem value="2">Waiting Approval</SelectItem>
-                          <SelectItem value="3">Received</SelectItem>
-                          <SelectItem value="4">Rejected</SelectItem>
-                          <SelectItem value="5">Awaiting Return</SelectItem>
-                          <SelectItem value="6">Returned</SelectItem>
-                          <SelectItem value="7">Lost</SelectItem>
-                          <SelectItem value="8">Damaged</SelectItem>
-                          <SelectItem value="9">Cancelled</SelectItem>
+                          <SelectItem value="1">Waiting Approval</SelectItem>
+                          <SelectItem value="2">Received</SelectItem>
+                          <SelectItem value="3">Rejected</SelectItem>
                         </SelectContent>
                       </Select>
                       <button

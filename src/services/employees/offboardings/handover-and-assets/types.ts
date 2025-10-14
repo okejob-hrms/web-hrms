@@ -3,16 +3,16 @@ import { z } from "zod";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export interface WorkRecipient {
-  id: number;
-  handover_item_id: number;
+  id?: number;
+  handover_item_id?: number;
   user_id: number;
   status: number;
-  updated_by: number | null;
-  received_at: string | null;
-  remarks: string | null;
-  created_at: string;
-  updated_at: string;
-  status_label: string;
+  updated_by?: number | null;
+  received_at?: string | null;
+  remarks?: string | null;
+  created_at?: string;
+  updated_at?: string;
+  status_label?: string;
 }
 export interface IWorkAndHandoverResponse {
   id: number;

@@ -1,6 +1,6 @@
-import * as React from 'react';
-import { AttendanceTrackerList } from '../../attendance-tracker-list';
-import { IEmployeeDetailsResponse } from '@/services/employees/types';
+import * as React from "react";
+import { AttendanceTrackerList } from "../../attendance-tracker-list";
+import { IEmployeeDetailsResponse } from "@/services/employees/types";
 
 interface AttendanceDetailProps {
   data: IEmployeeDetailsResponse;

@@ -1,22 +1,22 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { cn, stringAvatar } from '@/lib/utils';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Icon } from '@/components/ui/icon';
-import { PersonalInformationDetail } from './sections/personal-information';
-import { DocumentDetail } from './sections/document';
-import { PayrollDetail } from './sections/payroll';
-import { useQuery } from '@tanstack/react-query';
-import { getEmployeeDetail } from '@/services/employees';
-import { IEmployeeDetailsResponse } from '@/services/employees/types';
-import { AssetsDetail } from './sections/assets';
-import { AttendanceDetail } from './sections/attendance';
-import { Button } from '@/components/ui/button';
-import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import * as React from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { cn, stringAvatar } from "@/lib/utils";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Icon } from "@/components/ui/icon";
+import { PersonalInformationDetail } from "./sections/personal-information";
+import { DocumentDetail } from "./sections/document";
+import { PayrollDetail } from "./sections/payroll";
+import { useQuery } from "@tanstack/react-query";
+import { getEmployeeDetail } from "@/services/employees";
+import { IEmployeeDetailsResponse } from "@/services/employees/types";
+import { AssetsDetail } from "./sections/assets";
+import { AttendanceDetail } from "./sections/attendance";
+import { Button } from "@/components/ui/button";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 interface Props {
   id: number;
@@ -29,32 +29,32 @@ interface TabProps {
 export function Tab({ data }: TabProps) {
   const tabs = [
     {
-      name: 'Personal Information',
-      value: 'personal-information',
+      name: "Personal Information",
+      value: "personal-information",
       content: <PersonalInformationDetail data={data} />,
       icon: <Icon name="userSolid" size={18} color="currentColor" />,
     },
     {
-      name: 'Document',
-      value: 'document',
+      name: "Document",
+      value: "document",
       content: <DocumentDetail userId={data.user_id} />,
       icon: <Icon name="documentOutlined" size={18} color="currentColor" />,
     },
     {
-      name: 'Payroll',
-      value: 'payroll',
+      name: "Payroll",
+      value: "payroll",
       content: <PayrollDetail />,
       icon: <Icon name="debit" size={18} color="currentColor" />,
     },
     {
-      name: 'Attendance',
-      value: 'attendance',
+      name: "Attendance",
+      value: "attendance",
       content: <AttendanceDetail data={data} />,
       icon: <Icon name="clock" size={18} color="currentColor" />,
     },
     {
-      name: 'Assets',
-      value: 'assets',
+      name: "Assets",
+      value: "assets",
       content: <AssetsDetail />,
       icon: <Icon name="inventory" size={18} color="currentColor" />,
     },
@@ -67,8 +67,8 @@ export function Tab({ data }: TabProps) {
             key={tab.value}
             value={tab.value}
             className={cn(
-              'px-2.5 sm:px-3 text-secondary-hover',
-              'data-[state=active]:bg-secondary data-[state=active]:text-white',
+              "px-2.5 sm:px-3 text-secondary-hover",
+              "data-[state=active]:bg-secondary data-[state=active]:text-white",
             )}
           >
             <code className="flex items-center gap-1 text-[13px] [&>svg]:h-4 [&>svg]:w-4">
@@ -91,11 +91,11 @@ export const EmployeeDetail = React.memo(function EmployeeDetail({
 }: Props) {
   const router = useRouter();
   const { data: employeeDetails } = useQuery({
-    queryKey: ['employee-detail', id],
+    queryKey: ["employee-detail", id],
     queryFn: () => getEmployeeDetail(id),
   });
   const data = employeeDetails?.data;
-  console.log('# details', data);
+  console.log("# details", data);
   if (data) {
     return (
       <div className="w-full flex flex-col gap-4 md:px-[125px] px-4">
@@ -118,24 +118,24 @@ export const EmployeeDetail = React.memo(function EmployeeDetail({
             <Badge
               variant="default"
               className={cn(
-                'rounded-full',
+                "rounded-full",
                 data.employment.status === 1
-                  ? 'bg-success-focused '
-                  : 'bg-error-focused ',
+                  ? "bg-success-focused "
+                  : "bg-error-focused ",
               )}
             >
               <div
                 className={cn(
-                  'size-2 rounded-full',
-                  data.employment.status === 1 ? 'bg-success' : 'bg-error',
+                  "size-2 rounded-full",
+                  data.employment.status === 1 ? "bg-success" : "bg-error",
                 )}
               />
               <span
                 className={cn(
-                  data.employment.status === 1 ? 'text-success' : 'text-error',
+                  data.employment.status === 1 ? "text-success" : "text-error",
                 )}
               >
-                {data.employment.status === 1 ? 'Active' : 'Inactive'}
+                {data.employment.status === 1 ? "Active" : "Inactive"}
               </span>
             </Badge>
           </div>
