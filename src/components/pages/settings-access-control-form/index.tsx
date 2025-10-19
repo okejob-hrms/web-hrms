@@ -47,8 +47,11 @@ export default function SettingsAccessControlAdd({
     roleDetail,
     userWithRole,
     setSelectedPermissions,
+    searchEmployee,
+    setSearchEmployee,
   } = useRoleManagementForm();
 
+  const [assignDialogOpen, setAssignDialogOpen] = React.useState(false);
   type FormValues = z.infer<typeof formSchema>;
 
   const form = useForm<FormValues>({
@@ -111,6 +114,10 @@ export default function SettingsAccessControlAdd({
       value: 'assign-employee',
       content: employees ? (
         <AssignEmployee
+          open={assignDialogOpen}
+          onOpenChange={setAssignDialogOpen}
+          searchEmployee={searchEmployee}
+          setSearchEmployee={(e) => setSearchEmployee(e)}
           pagination={employees}
           rowSelection={rowSelection}
           onRowSelectionChange={setRowSelection}

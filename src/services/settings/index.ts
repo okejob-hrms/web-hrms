@@ -1,5 +1,22 @@
 import { api } from "@/lib/api";
-import { IRolesResponse, IPermissionResponse, IEmployee, ICreateRolePayload, ICreateRoleResponse, IRoleDetailResponse, CompanyResponse, CompanyRequest, WorkScheduleResponse, AttendanceRequest, ShiftResponse, LateDeductions, DeductionRequest, ShiftByDayResponse, OvertimeApiModel } from "./types";
+import {
+  IRolesResponse,
+  IPermissionResponse,
+  IEmployee,
+  ICreateRolePayload,
+  ICreateRoleResponse,
+  IRoleDetailResponse,
+  CompanyResponse,
+  CompanyRequest,
+  WorkScheduleResponse,
+  AttendanceRequest,
+  ShiftResponse,
+  LateDeductions,
+  DeductionRequest,
+  ShiftByDayResponse,
+  OvertimeApiModel,
+  IBranchResponse,
+} from "./types";
 import { PaginatedResponse } from "@/lib/types";
 
 export const getRoles = async (): Promise<IRolesResponse> => {
@@ -22,8 +39,8 @@ export const getPermission = async (): Promise<IPermissionResponse> => {
   return response.json();
 };
 
-export const getEmployee = async (): Promise<PaginatedResponse<IEmployee>> => {
-  return api.get("employees").json<PaginatedResponse<IEmployee>>();
+export const getEmployee = async (search: string): Promise<PaginatedResponse<IEmployee>> => {
+  return api.get(`employees?search=${search}`).json<PaginatedResponse<IEmployee>>();
 };
 
 export const createRole = async (
@@ -135,4 +152,9 @@ export const postOvertimeConfig = async (
       json: payload,
     })
     .json<OvertimeApiModel>();
+};
+
+export const getBranch = async (): Promise<IBranchResponse> => {
+  const response = await api.get("setting/branch");
+  return response.json();
 };

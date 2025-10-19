@@ -18,7 +18,7 @@ import { toast } from "sonner";
 // schema form
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
-  description: z.string().min(5, "Description must be at least 5 characters"),
+  description: z.string().optional(),
 });
 
 export type RoleFormSchema = z.infer<typeof formSchema>;
@@ -31,6 +31,7 @@ export function useRoleManagementForm() {
   const [selectedEmployees, setSelectedEmployees] = React.useState<IEmployee[]>([]);
   const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
   const [selectedId, setSelectedId] = React.useState<number | null>(null);
+  const [searchEmployee, setSearchEmployee] = React.useState<string>('');
 
   // fetch permissions
   const {
@@ -48,8 +49,8 @@ export function useRoleManagementForm() {
     isLoading: isEmployeeLoading,
     error: employeeError,
   } = useQuery<PaginatedResponse<IEmployee>>({
-    queryKey: ["employees"],
-    queryFn: getEmployee,
+    queryKey: ["employees", searchEmployee],
+    queryFn: () => getEmployee(searchEmployee),
   });
 
   // fetch detail roles
@@ -92,7 +93,7 @@ export function useRoleManagementForm() {
   const updateRoleMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: ICreateRolePayload }) => updateRole(id, data),
     onSuccess: () => {
-      // router.push("/settings/access-control");
+      router.push("/settings/access-control");
       roleRefetch();
       userWithRoleRefetch();
       toast.success("Update role successful!");
@@ -125,7 +126,7 @@ export function useRoleManagementForm() {
       ...values,
       guard_name: "web",
       permissions: selectedPermissions,
-      users: selectedEmployees.map((e) => e.id),
+      users: selectedEmployees.map((e) => e.user_id),
     };
 
     if (selectedId) {
@@ -166,5 +167,7 @@ export function useRoleManagementForm() {
     userWithRole,
     isUserRoleLoading,
     userWithRoleError,
+    searchEmployee, 
+    setSearchEmployee,
   };
 }

@@ -24,14 +24,20 @@ import {
 } from '@/components/ui/dialog';
 import { Trash } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { stringAvatar } from '@/lib/utils';
 
 type AssignEmployeeProps = {
-  // terima kedua bentuk: inner pagination atau full module response
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   pagination: IEmployeePagination | IEmployeeModule | null;
   rowSelection: RowSelectionState;
   onRowSelectionChange: OnChangeFn<RowSelectionState>;
   selectedEmployees: IEmployee[];
   setSelectedEmployees: React.Dispatch<React.SetStateAction<IEmployee[]>>;
+  searchEmployee: string;
+  setSearchEmployee: (e: string) => void;
 };
 
 export default function AssignEmployee({
@@ -40,11 +46,15 @@ export default function AssignEmployee({
   onRowSelectionChange,
   selectedEmployees,
   setSelectedEmployees,
+  searchEmployee,
+  setSearchEmployee,
+  open,
+  onOpenChange,
 }: AssignEmployeeProps) {
-  const [open, setOpen] = React.useState(false);
   const isMobile = useIsMobile();
 
-  // --- ambil array employee terlepas dari bentuk pagination yang dikirim
+  console.log(selectedEmployees);
+
   const employees = React.useMemo<IEmployee[]>(() => {
     if (!pagination) return [];
 
@@ -69,8 +79,30 @@ export default function AssignEmployee({
   }, [pagination]);
 
   const columns: ColumnDef<IEmployee>[] = [
-    { accessorKey: 'name', header: 'Name', size: 300 },
-    { accessorKey: 'job_position', header: 'Position', size: 200 },
+    {
+      accessorKey: 'name',
+      header: 'Name',
+      cell: ({ row }) => (
+        <div className="flex gap-4 items-center min-w-[150px]">
+          <Avatar className="h-10 w-10">
+            <AvatarImage src={`${row.original.photo_profile_url}`} />
+            <AvatarFallback className="text-primary-hover bg-primary-background text-base font-medium">
+              {stringAvatar(row.original.name ?? '')}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex flex-col">
+            <span className="font-semibold text-foreground text-sm">
+              {row.original.name}
+            </span>
+            <span className="text-text-secondary">
+              {row.original.employee_id}
+            </span>
+          </div>
+        </div>
+      ),
+    },
+    { accessorKey: 'code', header: 'Employee Code', size: 200 },
+    { accessorKey: 'email', header: 'Email', size: 200 },
     { accessorKey: 'department', header: 'Department', size: 200 },
     { accessorKey: 'job_level', header: 'Job Level', size: 200 },
     {
@@ -102,11 +134,17 @@ export default function AssignEmployee({
     {
       id: 'select',
       header: ({ table }) => (
-        <Checkbox
-          checked={table.getIsAllPageRowsSelected()}
-          onCheckedChange={(val) => table.toggleAllPageRowsSelected(!!val)}
-          aria-label="Select all"
-        />
+        <>
+          {searchEmployee.length > 0 ? (
+            <div>-</div>
+          ) : (
+            <Checkbox
+              checked={table.getIsAllPageRowsSelected()}
+              onCheckedChange={(val) => table.toggleAllPageRowsSelected(!!val)}
+              aria-label="Select all"
+            />
+          )}
+        </>
       ),
       cell: ({ row }) => (
         <Checkbox
@@ -130,11 +168,13 @@ export default function AssignEmployee({
     if (open) {
       const initialSelection: RowSelectionState = {};
       employees.forEach((emp, idx) => {
-        if (selectedEmployees.some((sel) => sel.id === emp.id)) {
+        if (selectedEmployees.some((sel) => sel.employee_id === emp.id)) {
           initialSelection[idx] = true;
         }
       });
       onRowSelectionChange(initialSelection);
+      console.log('selectedEmployees', selectedEmployees);
+      console.log('initialSelection', initialSelection);
     }
   }, [open, selectedEmployees, employees, onRowSelectionChange]);
 
@@ -154,7 +194,11 @@ export default function AssignEmployee({
                 {selectedEmployees.length} Employee
               </Badge>
             </div>
-            <Button onClick={() => setOpen(true)} className="whitespace-nowrap">
+            <Button
+              type="button"
+              onClick={() => onOpenChange(true)}
+              className="whitespace-nowrap"
+            >
               + Add Assignee
             </Button>
           </div>
@@ -168,23 +212,35 @@ export default function AssignEmployee({
         </div>
       </div>
 
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="min-w-4xl bg-white">
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent
+          className="min-w-4xl bg-white"
+          onInteractOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle>Assign Employee</DialogTitle>
           </DialogHeader>
+
+          <>
+            <Input
+              placeholder="Search employee name..."
+              value={searchEmployee}
+              onChange={(e) => setSearchEmployee(e.target.value)}
+            />
+          </>
 
           <DataTable
             columns={candidateColumns}
             data={employees}
             customSize={!isMobile}
-            pagination={tablePagination}
             rowSelection={rowSelection}
             onRowSelectionChange={onRowSelectionChange}
+            wrapperTableClassName="h-[70vh] overflow-y-auto"
           />
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)}>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
             <Button
@@ -195,7 +251,7 @@ export default function AssignEmployee({
                     (c) => !prev.some((p) => p.id === c.id),
                   ),
                 ]);
-                setOpen(false);
+                onOpenChange(false);
                 onRowSelectionChange({});
               }}
             >

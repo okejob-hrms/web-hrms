@@ -78,6 +78,8 @@ export interface IEmployee {
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
+  employee_id: number;
+  photo_profile_url: string;
 }
 
 export interface IEmployeePagination {
@@ -302,4 +304,59 @@ export interface TieringRule {
   from_hour: string;
   to_hour: string;
   rate: string;
+}
+
+export interface IBranchResponse {
+  data: IBranchList[];
+  message: string;
+  pagination: IBranchPagination;
+  status: string;
+}
+
+export interface IBranchPagination {
+  current_page: number;
+  first: string;
+  from: number;
+  last: string;
+  last_page: number;
+  next: null;
+  per_page: number;
+  prev: null;
+  to: number;
+  total: number;
+}
+
+export interface IBranchList {
+  address: string;
+  business_registration_number: string;
+  created_at: string;
+  email: string;
+  id: number;
+  industry: string;
+  is_active: boolean;
+  latitude: null | string;
+  legal_entity_name: string;
+  logo: null | string;
+  logo_url: null | string;
+  longitude: null | string;
+  max_radius: number;
+  name: string;
+  payroll_bank_account_name: string;
+  payroll_bank_account_number: string;
+  payroll_bank_name: string;
+  payroll_currency: string;
+  phone: string;
+  settings: null | IBranchSettings;
+  tenant_id: number;
+  updated_at: string;
+  website: string;
+}
+
+export interface IBranchSettings {
+    break_duration: number;
+    date_format: string;
+    language: string;
+    time_format: string;
+    timezone: string;
+    working_hours: string;
 }
