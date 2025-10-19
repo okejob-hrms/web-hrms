@@ -83,8 +83,8 @@ export const updateCompanyProfile = async (
     .json<CompanyResponse>();
 };
 
-export const getWorkingSchedule = async (): Promise<WorkScheduleResponse> => {
-  const response = await api.get("setting/attendance/working-schedules");
+export const getWorkingSchedule = async (branch_id: string): Promise<WorkScheduleResponse> => {
+  const response = await api.get(`setting/attendance/working-schedules/${branch_id}`);
   return response.json();
 };
 
@@ -94,10 +94,11 @@ export const getShift = async (): Promise<ShiftResponse> => {
 };
 
 export const updateAttendanceTime = async (
+  branch: string,
   payload: AttendanceRequest,
 ): Promise<WorkScheduleResponse> => {
   return api
-    .post(`setting/attendance/working-schedules`, {
+    .post(`setting/attendance/working-schedules/${branch}`, {
       json: payload,
     })
     .json<WorkScheduleResponse>();

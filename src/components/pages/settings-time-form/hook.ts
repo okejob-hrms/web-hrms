@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -118,7 +118,18 @@ const daysOfWeek = [
 export function useCompanyForm() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { data, isLoading } = useAttendance();
+  const [data, setData] = useState<AttendanceConfigData | null>(null);
+  const [branch, setBranch] = useState<string | null>('');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const storedData = localStorage.getItem('dataBranch');
+      if (storedData) {
+        setData(JSON.parse(storedData) as AttendanceConfigData);
+        setBranch(JSON.parse(localStorage.getItem('branch') || 'null'));
+      }
+    }
+  }, []);
 
   // Get shift list
    const { data: shiftData, isLoading: isShiftLoading } = useQuery<ShiftResponse>({
@@ -129,30 +140,34 @@ export function useCompanyForm() {
 
   const form = useForm<CompanyFormValues>({
     resolver: zodResolver(companySchema),
-    defaultValues: data && shiftData ? mapFromApiResponse(data,) : {},
+    defaultValues: data && shiftData ? mapFromApiResponse(data) : {},
   });
 
   useEffect(() => {
-    if (data && !isLoading && !isShiftLoading) {
+    if (data  && !isShiftLoading) {
       form.reset(mapFromApiResponse(data));
     }
-  }, [data, isLoading, isShiftLoading, form]);
+  }, [data, isShiftLoading, form]);
 
   const mutation = useMutation({
     mutationFn: (values: CompanyFormValues) => 
-      updateAttendanceTime(mapToApiPayload(values)),
+      updateAttendanceTime(branch ?? '', mapToApiPayload(values)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['attendanceConfig'] });
       toast.success("Update attendance time successful.");
       router.push('/settings/time-attendance/attendance-configuration');
     },
-    onError: () => {
+    onError: (err) => {
+      console.log(err);
       toast.error("Update attendance time failed.");
     }
   });
 
   const onSubmit = (values: CompanyFormValues) => {
-    // console.log(values);
+    if (!branch) {
+      toast.error("Please select a branch before updating attendance time.");
+      return;
+    }
     mutation.mutate(values);
   };
 
@@ -165,7 +180,6 @@ export function useCompanyForm() {
   return {
     form, 
     onSubmit, 
-    isLoading,
     isSubmitting: mutation.isPending,
     dataWorkSchedule: data,
     handleBack,

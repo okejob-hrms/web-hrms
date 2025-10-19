@@ -24,6 +24,15 @@ export interface IEmployeeResponse {
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
+  branch: IBranchData;
+}
+
+export interface IBranchData {
+  id: number;
+  name: string;
+  latitude: string;
+  longitude: string;
+  address: string; 
 }
 
 export interface ICreateEmployeeResponse {

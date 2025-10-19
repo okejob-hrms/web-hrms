@@ -128,7 +128,8 @@ export interface CompanyResponse {
 
 export interface WorkScheduleResponse {
   status: string;
-  message: WorkSchedulePart;
+  message: string;
+  data: WorkSchedulePart;
 }
 
 export interface WorkSchedulePart {

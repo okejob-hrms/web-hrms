@@ -1,10 +1,10 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { getLateDeduction, getShift, getWorkingSchedule, postDeduction, putDeduction, removeDeduction } from '@/services/settings';
-import { DeductionRequest, LateDeductions, ShiftResponse, WorkScheduleReq, WorkScheduleResponse } from '@/services/settings/types';
+import { getBranches, getLateDeduction, getShift, getWorkingSchedule, postDeduction, putDeduction, removeDeduction } from '@/services/settings';
+import { DeductionRequest, ICompanyBranches, LateDeductions, ShiftResponse, WorkScheduleReq, WorkScheduleResponse } from '@/services/settings/types';
 import { PaginatedResponse } from '@/lib/types';
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 // =======================
@@ -50,40 +50,41 @@ export interface AttendanceConfigData {
 // Hook
 // =======================
 export function useAttendance() {
+  const [selectedBranch, setSelectedBranch] = useState('');
 
   const { data: shiftData } = useQuery<ShiftResponse>({
     queryKey: ['shift'],
     queryFn: getShift,
     staleTime: 1000 * 60 * 5,
   });
-  
-  return useQuery<WorkScheduleResponse, Error, AttendanceConfigData>({
-    queryKey: ['workingSchedule'],
-    queryFn: getWorkingSchedule,
+
+  const attendanceQuery = useQuery<WorkScheduleResponse, Error, AttendanceConfigData>({
+    queryKey: ['workingSchedule', selectedBranch],
+    queryFn: () => getWorkingSchedule(selectedBranch),
+    enabled: !!selectedBranch,
     select: (res) => {
-      const c = res.message;
+      const c = res.data;
+      const late_tolerance = c.late_tolerance;
+      const max_late_tolerance = c.max_late_tolerance;
 
-      const late_tolerance = c.late_tolerance
-      const max_late_tolerance = c.max_late_tolerance
-
-      // Map WorkingHours
       const workingHours = c.schedules.flatMap((day) =>
         day.schedules.length > 0
           ? day.schedules.map((s) => ({
               day: day.day_name,
-              shift: shiftData?.data.find((a) => a.id === s.shift_id)?.name ?? 'Off',
+              shift:
+                shiftData?.data.find((a) => a.id === s.shift_id)?.name ?? 'Off',
               workingHours: `${s.start_time} - ${s.end_time}`,
               break:
                 s.break_start_time && s.break_end_time
                   ? `${s.break_start_time} - ${s.break_end_time}`
-                  : "-",
+                  : '-',
             }))
           : [
               {
                 day: day.day_name,
-                shift: "Off",
-                workingHours: "-",
-                break: "-",
+                shift: 'Off',
+                workingHours: '-',
+                break: '-',
               },
             ]
       );
@@ -99,16 +100,17 @@ export function useAttendance() {
         })),
       }));
 
-      return {
-        late_tolerance,
-        max_late_tolerance,
-        workingHours,
-        rawWorkSchedules,
-      };
+      return { late_tolerance, max_late_tolerance, workingHours, rawWorkSchedules };
     },
-    refetchOnMount: "always",
+    refetchOnMount: 'always',
     refetchOnWindowFocus: true,
   });
+
+  return {
+    ...attendanceQuery, // isLoading, data, refetch, dll
+    selectedBranch,
+    setSelectedBranch,
+  };
 }
 
 export function useLateDeduction() {
@@ -116,6 +118,8 @@ export function useLateDeduction() {
   const [openDelete, setOpenDelete] = useState(false);
   const [loadingSave, setLoadingSave] = useState(false);
   const [selectedData, setSelectedData] = useState<LateDeductions>();
+    const [branches, setBranches] = useState<ICompanyBranches[]>([]);
+  const [loading, setLoading] = useState(false);
   const queryClient = useQueryClient();
 
   // list late deduction
@@ -126,6 +130,22 @@ export function useLateDeduction() {
     queryFn: getLateDeduction,
     staleTime: 1000 * 60 * 5,
   });
+
+  const fetchBranches = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await getBranches();
+      setBranches(res.data ?? []);
+    } catch (err) {
+      console.error("Failed to fetch branches:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchBranches();
+  }, [fetchBranches]);
 
   // list shift
   const { data: shiftDataList } = useQuery<ShiftResponse>({
@@ -226,6 +246,8 @@ export function useLateDeduction() {
     shiftOptions,
     loadingSave,
     selectedData,
+    branches,
+    loading,
   };
 }
 

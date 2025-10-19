@@ -18,7 +18,7 @@ import {
   FormItem,
   FormMessage,
 } from '@/components/ui/form';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Plus, Trash2 } from 'lucide-react';
 import TitleContent from '@/components/ui/title';
@@ -33,6 +33,8 @@ export default function SettingsAttendanceConfigurationForm() {
     shiftData,
   } = useCompanyForm();
 
+  console.log('dataWorkSchedule', dataWorkSchedule);
+
   const [workSchedules, setWorkSchedules] = useState(
     dataWorkSchedule?.rawWorkSchedules || [],
   );
@@ -40,7 +42,7 @@ export default function SettingsAttendanceConfigurationForm() {
   const defaultValueNew = {
     shift_id: shiftData?.data[0]?.id ?? 0,
     shift_name: shiftData?.data[0]?.name ?? 'Night Shift',
-    start_time: '09:05',
+    start_time: '09:00',
     end_time: '17:00',
     break_start_time: '12:00',
     break_end_time: '13:00',
@@ -48,25 +50,34 @@ export default function SettingsAttendanceConfigurationForm() {
   };
 
   const handleSubmit = (values: CompanyFormValues) => {
-    const dataWork = workSchedules.map((day) => ({
-      day_of_week: day.day_of_week,
-      schedules: (day.schedules ?? []).map((s) => ({
-        shift_id: shiftData?.data?.find((a) => a.name == s.shift_name)?.id ?? 0,
-        shift_name: s.shift_name,
-        start_time: s.start_time,
-        end_time: s.end_time,
-        sequence: s.sequence,
-        ends_next_day: s.ends_next_day,
-        break_start_time: s.break_start_time,
-        break_end_time: s.break_end_time,
-      })),
-    }));
+    const dataWork = workSchedules
+      .filter(
+        (day): day is NonNullable<typeof day> => !!day && day.has_schedule,
+      )
+      .map((day) => ({
+        day_of_week: day.day_of_week,
+        schedules: (day.schedules ?? []).map((s) => ({
+          shift_id:
+            shiftData?.data?.find((a) => a.name === s.shift_name)?.id ?? 0,
+          shift_name: s.shift_name,
+          start_time: s.start_time,
+          end_time: s.end_time,
+          sequence: s.sequence,
+          ends_next_day: s.ends_next_day,
+          break_start_time: s.break_start_time,
+          break_end_time: s.break_end_time,
+        })),
+      }));
 
     onSubmit({
       ...values,
       workSchedules: dataWork,
     });
   };
+
+  useEffect(() => {
+    console.log('updated workSchedules', workSchedules);
+  }, [workSchedules]);
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -95,6 +106,7 @@ export default function SettingsAttendanceConfigurationForm() {
 
                       // toggle
                       day.has_schedule = !day.has_schedule;
+                      day.day_of_week = key + 1;
 
                       if (day.has_schedule) {
                         const schedules = [...(day.schedules || [])];
@@ -162,6 +174,7 @@ export default function SettingsAttendanceConfigurationForm() {
                           </Select>
                         </div>
                         <Button
+                          type="button"
                           variant="link"
                           className="text-red-500"
                           onClick={() => {
@@ -334,6 +347,7 @@ export default function SettingsAttendanceConfigurationForm() {
                         const updated = [...prev];
                         const day = { ...updated[key] };
                         const schedules = [...(day.schedules || [])];
+                        day.day_of_week = key + 1;
 
                         schedules.push({
                           ...defaultValueNew,

@@ -14,10 +14,16 @@ import { LateDeductions } from '@/services/settings/types';
 import { RowActions } from '@/components/tables/row-actions';
 import LateDeductionForm from './section/form-modal';
 import LateDeductionDelete from './section/delete-modal';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 export default function SettingsAttendanceConfiguration() {
   const router = useRouter();
-  const { data, isLoading, isError } = useAttendance();
 
   const {
     lateDeductionData,
@@ -32,7 +38,25 @@ export default function SettingsAttendanceConfiguration() {
     openDelete,
     setOpenDelete,
     handleDeleteConfirm,
+    branches,
+    loading,
   } = useLateDeduction();
+
+  const { data, isLoading, isError, setSelectedBranch, selectedBranch } =
+    useAttendance();
+
+  React.useEffect(() => {
+    if (!selectedBranch && branches.length > 0) {
+      setSelectedBranch(String(branches[0].id));
+    }
+  }, [branches, selectedBranch, setSelectedBranch]);
+
+  if (isLoading) return <p>Loading...</p>;
+  if (isError) return <p>Error loading data</p>;
+
+  if (!data) return <p>No data yet</p>;
+
+  const { workingHours, late_tolerance, max_late_tolerance } = data;
 
   // =======================
   // Table Columns
@@ -111,10 +135,11 @@ export default function SettingsAttendanceConfiguration() {
     },
   ];
 
-  if (isLoading) return <p>Loading...</p>;
-  if (isError || !data) return <p>Failed to load company profile</p>;
-
-  const { workingHours, late_tolerance, max_late_tolerance } = data;
+  const goToEdit = () => {
+    localStorage.setItem('dataBranch', JSON.stringify(data));
+    localStorage.setItem('branch', JSON.stringify(selectedBranch));
+    router.push('/settings/time-attendance/attendance-configuration/edit');
+  };
 
   const WorkingHour = () => {
     return (
@@ -123,11 +148,7 @@ export default function SettingsAttendanceConfiguration() {
           <Button
             variant="outline"
             className="flex flex-row gap-6"
-            onClick={() =>
-              router.push(
-                '/settings/time-attendance/attendance-configuration/edit',
-              )
-            }
+            onClick={() => goToEdit()}
           >
             <Edit3 />
             Edit Attendance Configuration
@@ -181,13 +202,13 @@ export default function SettingsAttendanceConfiguration() {
     {
       name: 'Working Hours',
       value: 'working-hours',
-      content: WorkingHour(),
+      content: <WorkingHour />,
       icon: <Icon name="userSolid" size={18} color="currentColor" />,
     },
     {
       name: 'Late Deduction Rules',
       value: 'late-deduction-rules',
-      content: LateDeduction(),
+      content: <LateDeduction />,
       icon: <Icon name="documentOutlined" size={18} color="currentColor" />,
     },
   ];
@@ -198,46 +219,67 @@ export default function SettingsAttendanceConfiguration() {
         <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6">
           <div className="flex flex-col sm:flex-row sm:gap-4 justify-between">
             <h2 className="font-semibold text-xl">Attendance Configuration</h2>
+            <div className="flex gap-5 items-center">
+              <div className="tex-gray-500">Branch :</div>
+              <Select
+                onValueChange={(val) => setSelectedBranch(val)}
+                value={String(selectedBranch)}
+                defaultValue={String(selectedBranch)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select branch" />
+                </SelectTrigger>
+                <SelectContent>
+                  {branches.map((item, i) => (
+                    <SelectItem value={String(item.id)} key={i}>
+                      {item.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
-          <Tabs defaultValue={tabs[0].value} className="w-full mx-auto">
-            <TabsList className="p-1 w-full bg-secondary-background min-h-12">
+          <>
+            <Tabs defaultValue={tabs[0].value} className="w-full mx-auto">
+              <TabsList className="p-1 w-full bg-secondary-background min-h-12">
+                {tabs.map((tab) => (
+                  <TabsTrigger
+                    key={tab.value}
+                    value={tab.value}
+                    className={cn(
+                      'px-2.5 sm:px-3 text-secondary-hover',
+                      'data-[state=active]:bg-secondary data-[state=active]:text-white',
+                    )}
+                  >
+                    <code className="flex items-center gap-1 text-[13px] [&>svg]:h-4 [&>svg]:w-4">
+                      {tab.icon} {tab.name}
+                    </code>
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+
               {tabs.map((tab) => (
-                <TabsTrigger
-                  key={tab.value}
-                  value={tab.value}
-                  className={cn(
-                    'px-2.5 sm:px-3 text-secondary-hover',
-                    'data-[state=active]:bg-secondary data-[state=active]:text-white',
-                  )}
-                >
-                  <code className="flex items-center gap-1 text-[13px] [&>svg]:h-4 [&>svg]:w-4">
-                    {tab.icon} {tab.name}
-                  </code>
-                </TabsTrigger>
+                <TabsContent key={tab.value} value={tab.value}>
+                  {tab.content}
+                </TabsContent>
               ))}
-            </TabsList>
+            </Tabs>
 
-            {tabs.map((tab) => (
-              <TabsContent key={tab.value} value={tab.value}>
-                {tab.content}
-              </TabsContent>
-            ))}
-          </Tabs>
-
-          <LateDeductionForm
-            open={open}
-            onOpenChange={setOpen}
-            initialData={selectedData}
-            handleClose={handleCloseLateDeduction}
-            isLoading={loadingSave}
-          />
-          <LateDeductionDelete
-            open={openDelete}
-            onOpenChange={setOpenDelete}
-            onDelete={handleDeleteConfirm}
-            // isLoading={isLoading}
-          />
+            <LateDeductionForm
+              open={open}
+              onOpenChange={setOpen}
+              initialData={selectedData}
+              handleClose={handleCloseLateDeduction}
+              isLoading={loadingSave}
+            />
+            <LateDeductionDelete
+              open={openDelete}
+              onOpenChange={setOpenDelete}
+              onDelete={handleDeleteConfirm}
+              // isLoading={isLoading}
+            />
+          </>
         </div>
       </div>
     </div>

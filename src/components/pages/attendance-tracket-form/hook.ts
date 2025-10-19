@@ -147,6 +147,25 @@ export function useAttendenceForm() {
     },
   });
 
+  // setter user default map base on branch
+  useEffect(() => {
+  const subscription = form.watch((value, { name }) => {
+    if (name === 'user_id' && value.user_id) {
+      const selectedUser = employeesList?.data?.data.find(
+        (u) => String(u.id) === value.user_id
+      );
+      if (selectedUser?.branch.latitude && selectedUser?.branch.longitude) {
+        setSelectedMap({
+          lat: Number(selectedUser?.branch.latitude),
+          lng: Number(selectedUser?.branch.longitude),
+        });
+      }
+    }
+  });
+
+  return () => subscription.unsubscribe();
+}, [form, employeesList, defaultMap]);
+
 
   const onSubmit = (values: AttendanceFormValues) => {
     setIsLoading(true);
