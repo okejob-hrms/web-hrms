@@ -47,6 +47,7 @@ import {
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { ApiErrorResponse } from "@/lib/types";
+import { PhoneInput } from "@/components/ui/phone-input";
 
 dayjs.extend(localizedFormat);
 
@@ -140,89 +141,6 @@ const TableRowActions = ({ row, onEdit, onDelete }: TableRowActionsProps) => {
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-  );
-};
-
-// Custom Phone Input Component
-interface PhoneInputProps {
-  name: string;
-  label: string;
-  required?: boolean;
-  disabled?: boolean;
-  form: any;
-}
-
-const PhoneInput = ({
-  name,
-  label,
-  required,
-  disabled,
-  form,
-}: PhoneInputProps) => {
-  const [displayValue, setDisplayValue] = React.useState("");
-  const [error, setError] = React.useState<string | null>(null);
-
-  const fieldValue = form.watch(name);
-
-  React.useEffect(() => {
-    if (fieldValue) {
-      setDisplayValue(formatPhoneNumber(fieldValue.toString()));
-    } else {
-      setDisplayValue("");
-    }
-  }, [fieldValue]);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const inputValue = e.target.value;
-    const formattedValue = formatPhoneNumber(inputValue);
-    const numericValue = extractNumericPhone(formattedValue);
-
-    setDisplayValue(formattedValue);
-
-    const validationError = validatePhoneNumber(formattedValue);
-    setError(validationError);
-
-    form.setValue(name, numericValue, { shouldValidate: true });
-  };
-
-  const handleBlur = () => {
-    const validationError = validatePhoneNumber(displayValue);
-    setError(validationError);
-
-    if (validationError) {
-      form.setError(name, {
-        type: "manual",
-        message: validationError,
-      });
-    } else {
-      form.clearErrors(name);
-    }
-  };
-
-  return (
-    <div className="flex flex-col space-y-2">
-      <label htmlFor={name} className="text-sm font-medium">
-        {label} {required && <span className="text-red-500">*</span>}
-      </label>
-      <input
-        id={name}
-        type="text"
-        value={displayValue}
-        onChange={handleChange}
-        onBlur={handleBlur}
-        disabled={disabled}
-        placeholder="e.g. 123-456-7890"
-        className={cn(
-          "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
-          error && "border-red-500 focus-visible:ring-red-500",
-        )}
-      />
-      {error && <p className="text-sm text-red-500">{error}</p>}
-      <p className="text-xs text-gray-500">
-        Enter digits only (3-15 characters). Formatting will be applied
-        automatically.
-      </p>
-    </div>
   );
 };
 
@@ -421,7 +339,6 @@ const WorkExperienceFormModal = ({
                 label="Supervisor Contact Person"
                 required
                 disabled={mutation.isPending}
-                form={form}
               />
               <TextAreaForm
                 name="company_address"

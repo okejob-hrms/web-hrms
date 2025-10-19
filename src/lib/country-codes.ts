@@ -63,7 +63,7 @@ export const countryCodes: CountryCode[] = [
 
 export const getCountryCodeOptions = () => {
   return countryCodes.map((item) => ({
-    label: `${item.flag} ${item.code}`,
+    label: `${item.flag} ${item.country}`,
     value: item.code,
     searchLabel: `${item.country} ${item.code}`,
   }));

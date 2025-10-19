@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import { CompanyFormValues, useCompanyForm } from './hook';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+import { CompanyFormValues, useCompanyForm } from "./hook";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Form,
   FormField,
@@ -18,13 +18,13 @@ import {
   FormLabel,
   FormControl,
   FormMessage,
-} from '@/components/ui/form';
-import { useRef, useState } from 'react';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Plus, Trash2 } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { cn, stringAvatar } from '@/lib/utils';
-import TitleContent from '@/components/ui/title';
+} from "@/components/ui/form";
+import { useRef, useState } from "react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Plus, Trash2 } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { cn, stringAvatar } from "@/lib/utils";
+import TitleContent from "@/components/ui/title";
 
 export default function SettingsCompanyProfileForm() {
   const {
@@ -54,7 +54,7 @@ export default function SettingsCompanyProfileForm() {
       uploadLogo(file, {
         onSuccess: (res) => {
           const photoUrl = res.data.path;
-          form.setValue('logo', photoUrl, { shouldValidate: true });
+          form.setValue("logo", photoUrl, { shouldValidate: true });
           setPreviewLogo(res.data.url);
         },
       });
@@ -62,11 +62,11 @@ export default function SettingsCompanyProfileForm() {
   };
 
   const defaultValueNew = {
-    shift_name: 'Night Shift',
-    start_time: '09:05',
-    end_time: '17:00',
-    break_start_time: '12:00',
-    break_end_time: '13:00',
+    shift_name: "Night Shift",
+    start_time: "09:05",
+    end_time: "17:00",
+    break_start_time: "12:00",
+    break_end_time: "13:00",
     ends_next_day: false,
   };
 
@@ -102,15 +102,15 @@ export default function SettingsCompanyProfileForm() {
             <div className="flex items-center gap-4 mt-2">
               <Avatar className="size-20 bg-grayscale-10 items-center justify-center">
                 <AvatarImage
-                  src={previewLogo || '/icons/userPlaceholder.svg'}
+                  src={previewLogo || "/icons/userPlaceholder.svg"}
                   alt="Profile photo"
                   className={cn(
                     `bg-grayscale-10 m-auto object-cover`,
-                    !previewLogo && 'h-10 w-10',
+                    !previewLogo && "h-10 w-10",
                   )}
                 />
                 <AvatarFallback className="size-10 font-semibold">
-                  {stringAvatar(dataWorkSchedule?.companyInfo.name || 'C')}
+                  {stringAvatar(dataWorkSchedule?.companyInfo.name || "C")}
                 </AvatarFallback>
               </Avatar>
 
@@ -159,7 +159,7 @@ export default function SettingsCompanyProfileForm() {
                   <FormLabel>Legal Entity</FormLabel>
                   <Select
                     onValueChange={field.onChange}
-                    value={field.value ?? 'PT'}
+                    value={field.value ?? "PT"}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -338,7 +338,7 @@ export default function SettingsCompanyProfileForm() {
                   <FormLabel>Currency</FormLabel>
                   <Select
                     onValueChange={field.onChange}
-                    value={field.value ?? 'IDR'}
+                    value={field.value ?? "IDR"}
                   >
                     <FormControl>
                       <SelectTrigger>

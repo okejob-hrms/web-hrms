@@ -40,7 +40,14 @@ export const menus: Record<string, MenuItem[]> = {
 
   settings: [
     { name: "Access Control", value: "settings/access-control" },
-    { name: "Company Profile", value: "settings/company-profile" },
+    {
+      name: "Company",
+      value: "settings/company",
+      subItem: [
+        { name: "Company Profile", value: "settings/company/company-profile" },
+        { name: "Branch", value: "settings/company/company-branch" },
+      ],
+    },
     {
       name: "Time & Attendence",
       value: "settings/time-attendence",
@@ -56,6 +63,7 @@ export const menus: Record<string, MenuItem[]> = {
       ],
     },
     { name: "Leave Management", value: "settings/leave" },
+    { name: "Form Template", value: "settings/form-template" },
     { name: "Payroll Management", value: "settings/payroll" },
     { name: "Performance Management", value: "settings/performance" },
     { name: "Mobile & ESS", value: "settings/mobile-ess" },
@@ -80,11 +88,15 @@ export const getHideSidebar = (path: string) => {
     "/dashboard",
     "/settings/access-control/add",
     "/settings/access-control/",
-    "/settings/company-profile/edit",
+    "/settings/company/company-profile/edit",
     "/employee/organization/structure/edit",
     "/attendance/attendance-tracker/",
     "/settings/time-attendance/attendance-configuration/edit",
     "/settings/time-attendance/overtime-configuration/edit",
+    "/settings/form-template/add",
+    "/settings/form-template/edit",
+    "/settings/company/company-branch/add",
+    "/settings/company/company-branch/edit",
   ];
 
   const employeeDetailPattern = /^\/employee\/employee-management\/\d+$/;

@@ -204,6 +204,7 @@ export const PersonalInformationSection = React.memo(
             name="phone_number"
             label="Phone Number"
             required={true}
+            className="self-end"
           />
           <RadioForm
             required
