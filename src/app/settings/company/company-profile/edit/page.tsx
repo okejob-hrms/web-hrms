@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import React from 'react';
-import SettingsCompanyProfileForm from '@/components/pages/settings-company-profile-form';
+import React from "react";
+import SettingsCompanyProfileForm from "@/components/pages/settings-company-profile-form";
 
 export default function CompanyProfileEdit() {
   return (

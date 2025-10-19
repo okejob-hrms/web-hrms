@@ -5,7 +5,7 @@ export interface IRole {
   created_at: string;
   updated_at: string;
   description: string;
-  permissions: IPermissionModule[]
+  permissions: IPermissionModule[];
 }
 
 export interface IRolesResponse {
@@ -40,23 +40,26 @@ export type IPermissionActionKey =
   | "assign"
   | "deactivate"
   | "delete"
-  | "export"
+  | "export";
 
-export type IPermissionActions = Record<IPermissionActionKey, IPermissionAction>
+export type IPermissionActions = Record<
+  IPermissionActionKey,
+  IPermissionAction
+>;
 
 export interface IPermissionRow {
-  key: string
-  actions: IPermissionActions
+  key: string;
+  actions: IPermissionActions;
 }
 
 export interface IPermissionModule {
-  module: string
-  columns: IPermissionActionKey[]
-  rows: IPermissionRow[]
+  module: string;
+  columns: IPermissionActionKey[];
+  rows: IPermissionRow[];
 }
 
 export interface IPermissionResponse {
-  data: IPermissionModule[]
+  data: IPermissionModule[];
 }
 
 export interface IEmployee {
@@ -166,14 +169,14 @@ export interface Schedule {
   sequence: number;
   shift_name: string;
   start_time: string; // format: HH:mm
-  end_time: string;   // format: HH:mm
+  end_time: string; // format: HH:mm
   ends_next_day: boolean;
   break_start_time?: string;
   break_end_time?: string;
   shift?: {
     id: number;
     name: string;
-  }
+  };
 }
 
 export interface CompanyRequest {
@@ -302,4 +305,56 @@ export interface TieringRule {
   from_hour: string;
   to_hour: string;
   rate: string;
+}
+
+export interface IBranchSettings {
+  timezone: string;
+  date_format: string;
+  time_format: string;
+  language: string;
+  working_hours: string;
+  break_duration: number;
+}
+
+export interface ICompanyBranches {
+  id: number;
+  tenant_id: number;
+  name: string;
+  legal_entity_name: string;
+  industry: string;
+  email: string;
+  phone: string;
+  logo: string | null;
+  logo_url: string | null;
+  business_registration_number: string;
+  website: string;
+  latitude: string;
+  longitude: string;
+  address: string;
+  max_radius: number;
+  is_active: boolean;
+  payroll_bank_name: string;
+  payroll_bank_account_number: string;
+  payroll_bank_account_name: string;
+  payroll_currency: string;
+  settings: IBranchSettings;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface IMutateCompanyBranchRequest {
+  is_primary: boolean;
+  name: string;
+  legal_entity_name: string;
+  industry: string;
+  email: string;
+  phone: string;
+  logo: string;
+  business_registration_number: string;
+  website: string;
+  address: string;
+  payroll_bank_name: string;
+  payroll_bank_account_number: string;
+  payroll_bank_account_name: string;
+  payroll_currency: string;
 }

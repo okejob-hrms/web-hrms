@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import SettingsAccessControlAdd from '@/components/pages/settings-access-control-form';
+import * as React from "react";
+import SettingsAccessControlAdd from "@/components/pages/settings-access-control-form";
 
 export default function EmployeeDetailPage({
   params,

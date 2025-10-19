@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import { Button } from '@/components/ui/button';
+import * as React from "react";
+import { Button } from "@/components/ui/button";
 // import { DataTable } from '@/components/tables/data-table';
 // import { ColumnDef } from '@tanstack/react-table';
 // import { useIsMobile } from '@/hooks/use-mobile';
-import { Edit3 } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useRouter } from 'next/navigation';
-import { useCompanyProfile } from './hook';
+import { Edit3 } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useRouter } from "next/navigation";
+import { useCompanyProfile } from "./hook";
 
 // =======================
 // Table Columns
@@ -70,11 +70,11 @@ export default function SettingsCompanyProfile() {
           <div className="flex flex-col items-center gap-2">
             <Avatar className="h-20 w-20">
               <AvatarImage
-                src={companyInfo.logo_url || ''}
+                src={companyInfo.logo_url || ""}
                 alt="Company Logo"
               />
               <AvatarFallback className="bg-blue-50 text-blue-700">
-                {companyInfo.name?.charAt(0) ?? 'C'}
+                {companyInfo.name?.charAt(0) ?? "C"}
               </AvatarFallback>
             </Avatar>
             <p className="font-semibold text-lg">{companyInfo.name}</p>
@@ -93,7 +93,7 @@ export default function SettingsCompanyProfile() {
             />
             <InfoItem
               label="Website (Optional)"
-              value={companyInfo.website ?? '-'}
+              value={companyInfo.website ?? "-"}
             />
             <div className="md:col-span-3">
               <InfoItem label="Company Address" value={companyInfo.address} />
@@ -121,7 +121,9 @@ export default function SettingsCompanyProfile() {
             <Button
               variant="outline"
               className="flex flex-row gap-6"
-              onClick={() => router.push('/settings/company-profile/edit')}
+              onClick={() =>
+                router.push("/settings/company/company-profile/edit")
+              }
             >
               <Edit3 />
               Edit Company Information

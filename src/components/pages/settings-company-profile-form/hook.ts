@@ -1,33 +1,36 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { updateCompanyProfile } from '@/services/settings';
-import { CompanyRequest } from '@/services/settings/types';
-import { CompanyProfileData, useCompanyProfile } from '../settings-company-profile/hook';
-import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { updateCompanyProfile } from "@/services/settings";
+import { CompanyRequest } from "@/services/settings/types";
+import {
+  CompanyProfileData,
+  useCompanyProfile,
+} from "../settings-company-profile/hook";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { uploadAttachment } from "@/services/attachments";
 
 // -------------------------
 // SCHEMA & TYPES
 // -------------------------
 const companySchema = z.object({
-  companyName: z.string().min(1, 'Company name is required'),
-  legalEntity: z.string().min(1, 'Legal entity is required'),
-  industry: z.string().min(1, 'Industry is required'),
-  companyEmail: z.string().email('Invalid email'),
-  companyPhone: z.string().min(6, 'Phone is required'),
-  registrationNumber: z.string().min(6, 'Registration number is required'),
+  companyName: z.string().min(1, "Company name is required"),
+  legalEntity: z.string().min(1, "Legal entity is required"),
+  industry: z.string().min(1, "Industry is required"),
+  companyEmail: z.string().email("Invalid email"),
+  companyPhone: z.string().min(6, "Phone is required"),
+  registrationNumber: z.string().min(6, "Registration number is required"),
   website: z.string().optional(),
-  address: z.string().min(1, 'Address is required'),
-  bankAccountName: z.string().min(1, 'Bank account name is required'),
-  bankAccountNumber: z.string().min(6, 'Bank account number is required'),
-  bankAccountHolder: z.string().min(1, 'Bank account holder is required'),
-  currency: z.string().min(1, 'Currency is required'),
+  address: z.string().min(1, "Address is required"),
+  bankAccountName: z.string().min(1, "Bank account name is required"),
+  bankAccountNumber: z.string().min(6, "Bank account number is required"),
+  bankAccountHolder: z.string().min(1, "Bank account holder is required"),
+  currency: z.string().min(1, "Currency is required"),
   logo: z.string().nullable().optional(),
   // workSchedules: z
   //   .array(
@@ -73,7 +76,7 @@ function mapToApiPayload(values: CompanyFormValues): CompanyRequest {
     phone: values.companyPhone,
     logo: values.logo ?? null,
     business_registration_number: values.registrationNumber,
-    website: values.website ?? '',
+    website: values.website ?? "",
     address: values.address,
     payroll_bank_name: values.bankAccountName,
     payroll_bank_account_number: values.bankAccountNumber,
@@ -128,13 +131,13 @@ function mapFromApiResponse(data: CompanyProfileData): CompanyFormValues {
 }
 
 const daysOfWeek = [
-  'Monday',    
-  'Tuesday',   
-  'Wednesday', 
-  'Thursday',  
-  'Friday',    
-  'Saturday',  
-  'Sunday',    
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
 ];
 
 // -------------------------
@@ -144,7 +147,9 @@ export function useCompanyForm() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { data, isLoading } = useCompanyProfile();
-  const [imagePhoto, setImagePhoto] = useState(`https://bucket.okejobhub.fun/${data?.companyInfo.logo}`);
+  const [imagePhoto, setImagePhoto] = useState(
+    `https://bucket.okejobhub.fun/${data?.companyInfo.logo}`,
+  );
 
   const form = useForm<CompanyFormValues>({
     resolver: zodResolver(companySchema),
@@ -159,16 +164,16 @@ export function useCompanyForm() {
   }, [data, isLoading, form]);
 
   const mutation = useMutation({
-    mutationFn: (values: CompanyFormValues) => 
+    mutationFn: (values: CompanyFormValues) =>
       updateCompanyProfile(mapToApiPayload(values)),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['companyProfile'] });
+      queryClient.invalidateQueries({ queryKey: ["companyProfile"] });
       toast.success("Update company successful.");
-      router.push('/settings/company-profile')
+      router.push("/settings/company/company-profile");
     },
     onError: () => {
       toast.error("Update company failed.");
-    }
+    },
   });
 
   const onSubmit = (values: CompanyFormValues) => {
@@ -176,14 +181,10 @@ export function useCompanyForm() {
     mutation.mutate(values);
   };
 
-
   const handleBack = () => {
     router.back();
-  }
-    const {
-    mutate: uploadLogo,
-    isPending: isUploadingLogo,
-  } = useMutation({
+  };
+  const { mutate: uploadLogo, isPending: isUploadingLogo } = useMutation({
     mutationFn: uploadAttachment,
     onSuccess: (res) => {
       const photoUrl = res.data.path;
@@ -196,10 +197,9 @@ export function useCompanyForm() {
     },
   });
 
-
   return {
-    form, 
-    onSubmit, 
+    form,
+    onSubmit,
     isLoading,
     isSubmitting: mutation.isPending,
     dataWorkSchedule: data,

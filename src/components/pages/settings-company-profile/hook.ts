@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useQuery } from '@tanstack/react-query';
-import { getCompanyProfile } from '@/services/settings';
-import { CompanyResponse, WorkScheduleReq } from '@/services/settings/types';
+import { useQuery } from "@tanstack/react-query";
+import { getCompanyProfile } from "@/services/settings";
+import { CompanyResponse, WorkScheduleReq } from "@/services/settings/types";
 
 // =======================
 // Types lokal untuk UI
@@ -47,7 +47,7 @@ export interface CompanyProfileData {
 // =======================
 export function useCompanyProfile() {
   return useQuery<CompanyResponse, Error, CompanyProfileData>({
-    queryKey: ['companyProfile'],
+    queryKey: ["companyProfile"],
     queryFn: getCompanyProfile,
     select: (res) => {
       const c = res.data;
@@ -63,7 +63,7 @@ export function useCompanyProfile() {
         website: c.website,
         address: c.address,
         logo: c.logo,
-        logo_url: c.logo_url
+        logo_url: c.logo_url,
       };
 
       // Map PayrollInfo
