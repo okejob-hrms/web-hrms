@@ -17,9 +17,19 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import { useCompanyBranchList } from "./hook";
+import DeleteDialog from "./sections/delete-modal";
 
 export default function SettingsCompanyBranchList() {
-  const { branches, handleEdit, handleNew } = useCompanyBranchList();
+  const {
+    branches,
+    handleEdit,
+    handleNew,
+    handleDeleteBranch,
+    handleOpenDeleteModal,
+    isDeleteModal,
+    mutateDeleteBranch,
+    setIsDeleteModal,
+  } = useCompanyBranchList();
 
   const columns: ColumnDef<ICompanyBranches>[] = [
     {
@@ -66,6 +76,17 @@ export default function SettingsCompanyBranchList() {
       },
     },
     {
+      accessorKey: "is_primary",
+      header: "Is Primary",
+      cell: ({ row }) => {
+        return (
+          <div>
+            <span>{row.original.is_primary ? "Yes" : "No"}</span>
+          </div>
+        );
+      },
+    },
+    {
       accessorKey: "menu",
       header: "",
       cell: ({ row }) => {
@@ -103,19 +124,19 @@ export default function SettingsCompanyBranchList() {
                   Edit
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Link
-                  href={`/settings/company/company-branch/edit/${row.original.id}`}
-                  className="flex gap-2 justify-between items-center"
-                >
-                  <Image
-                    src="/icons/delete.svg"
-                    height={16}
-                    width={16}
-                    alt="icon-edit"
-                  />
-                  Delete
-                </Link>
+              <DropdownMenuItem
+                className="flex gap-2 items-center"
+                onClick={() =>
+                  handleOpenDeleteModal(row.original.id.toString())
+                }
+              >
+                <Image
+                  src="/icons/delete.svg"
+                  height={16}
+                  width={16}
+                  alt="icon-edit"
+                />
+                Delete
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -141,6 +162,12 @@ export default function SettingsCompanyBranchList() {
           <DataTable columns={columns} data={branches} customSize={!isMobile} />
         </div>
       </div>
+      <DeleteDialog
+        open={isDeleteModal}
+        onOpenChange={setIsDeleteModal}
+        onDelete={handleDeleteBranch}
+        isLoading={mutateDeleteBranch.isPending}
+      />
     </div>
   );
 }

@@ -343,6 +343,7 @@ export interface ICompanyBranches {
   settings: IBranchSettings;
   created_at: string;
   updated_at: string;
+  is_primary: boolean;
 }
 
 export interface IMutateCompanyBranchRequest {
@@ -352,12 +353,15 @@ export interface IMutateCompanyBranchRequest {
   industry: string;
   email: string;
   phone: string;
-  logo: string;
+  logo?: string;
   business_registration_number: string;
-  website: string;
+  website?: string;
   address: string;
   payroll_bank_name: string;
   payroll_bank_account_number: string;
   payroll_bank_account_name: string;
   payroll_currency: string;
+  latitude: string;
+  longitude: string;
+  max_radius?: number;
 }
