@@ -46,3 +46,16 @@ export const year = Array.from({ length: 5 }, (_, i) => {
   const y = currentYear - (4 - i);
   return { id: y, label: String(y) };
 });
+
+export function formatCurrency(value: number | string | null): string {
+  if (value === null || value === '' || isNaN(Number(value))) {
+    return '0';
+  }
+
+  const number = Number(value);
+
+  return new Intl.NumberFormat('id-ID', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(number);
+}

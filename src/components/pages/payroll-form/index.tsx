@@ -13,7 +13,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Edit3, Ellipsis, Eye, Search, Trash } from 'lucide-react';
+import { Edit3, Ellipsis, Eye, Plus, Search, Trash } from 'lucide-react';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { getStatusAttendance } from '@/lib/helpers';
@@ -33,7 +33,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { month, stringAvatar, year } from '@/lib/utils';
+import { formatCurrency, month, stringAvatar, year } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PieChart, Pie, Cell, Tooltip } from 'recharts';
 import WorkingHourSummary from './section/working-hour-summary';
@@ -123,24 +123,106 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
       size: 200,
       cell: ({ row }) => {
         const att = row.original.latest_attendance;
-        if (!att) return '-';
+        // if (!att) return '-';
 
         return (
           <div className="flex flex-col">
             <span>22 Days</span>
             <span className="text-primary text-xs">
-              {att.duration || '-'}{' '}
-              <span className="text-muted-foreground">Hours</span>
+              {'150'} <span className="text-muted-foreground">Hours</span>
             </span>
           </div>
         );
       },
     },
     {
-      accessorKey: 'send_payslip',
-      header: 'Send Payslip',
+      accessorKey: 'allowance',
+      header: 'Allowance',
       size: 200,
-      cell: ({ row }) => row.original.name || '-',
+      cell: ({ row }) => (
+        <div>
+          <div>
+            <span className="text-gray-400">
+              Rp{' '}
+              <span className="text-gray-800">
+                {formatCurrency(Number(932431 * row.original.id))}
+              </span>
+            </span>
+          </div>
+          <Badge variant="default">
+            {row.original.id % 2 === 1 ? 1 : 2} Benefit
+          </Badge>
+        </div>
+      ),
+    },
+    {
+      accessorKey: 'overtime',
+      header: 'Overtime',
+      size: 200,
+      cell: ({ row }) => (
+        <div>
+          <div>
+            <span className="text-gray-400">
+              Rp{' '}
+              <span className="text-gray-800">
+                {formatCurrency(Number(88933 * row.original.id))}
+              </span>
+            </span>
+          </div>
+          <div>
+            <span className="text-gray-400 text-xs">
+              Overtime :
+              <span className="text-primary">
+                {Number(8 * row.original.id)}
+              </span>
+              Hours
+            </span>
+          </div>
+        </div>
+      ),
+    },
+
+    {
+      accessorKey: 'additional',
+      header: 'Additional Earnings',
+      size: 200,
+      cell: ({ row }) => (
+        <div>
+          <div>
+            <span className="text-gray-400 text-xs">Bonus</span>
+          </div>
+          <div>
+            <span className="text-gray-400">
+              Rp{' '}
+              <span className="text-gray-800">
+                {formatCurrency(Number(72131 * row.original.id))}
+              </span>
+            </span>
+          </div>
+          <div className="mt-2">
+            <span className="text-gray-400 text-xs">Reimbursement</span>
+          </div>
+          <div>
+            <span className="text-gray-400">
+              Rp{' '}
+              <span className="text-gray-800">
+                {formatCurrency(Number(9032 * row.original.id))}
+              </span>
+            </span>
+          </div>
+        </div>
+      ),
+    },
+    {
+      accessorKey: 'penalty',
+      header: 'Penalty Deduction',
+      size: 200,
+      cell: ({ row }) => (
+        <Button type="button" variant="link" className="text-red-500 gap-2">
+          <Plus />
+          Deduction
+        </Button>
+      ),
     },
     {
       accessorKey: 'status',
@@ -442,9 +524,11 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
               </div>
             )}
 
-            <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6 mt-4">
-              <WorkingHourSummary regularHour={320} overtimeHour={100} />
-            </div>
+            {currentStep === 2 && (
+              <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6 mt-4">
+                <WorkingHourSummary regularHour={320} overtimeHour={100} />
+              </div>
+            )}
 
             <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6 mt-4">
               <div className="flex md:flex-row flex-col justify-between w-full md:items-center items-start gap-4">

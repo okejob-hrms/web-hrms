@@ -264,3 +264,32 @@ export async function getLocationDetail(lat: string, lng: string) {
   const data = await res.json();
   return data.display_name || "Unknown location";
 }
+
+export function getStatusPayroll(status?: string): StatusConfig {
+  if (!status) {
+    return {
+      variant: 'default',
+      label: '-',
+    };
+  }
+
+  let variant: BadgeVariant = 'default';
+  let className = '';
+
+  switch (status) {
+    case 'Payslip Sent':
+      variant = 'secondary';
+      className = 'bg-green-100 text-green-700';
+      break;
+    case 'Pending':
+    case 'Waiting for Approval':
+      variant = 'secondary';
+      className = 'bg-yellow-100 text-yellow-700';
+      break;
+    case 'Rejected':
+      variant = 'destructive';
+      break;
+  }
+
+  return { variant, className, label: status };
+}

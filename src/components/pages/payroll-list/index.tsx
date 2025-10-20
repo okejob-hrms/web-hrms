@@ -16,7 +16,7 @@ import {
 import { Edit3, Ellipsis, Eye, Search, Trash } from 'lucide-react';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
-import { getStatusAttendance } from '@/lib/helpers';
+import { getStatusPayroll } from '@/lib/helpers';
 import { InputForm } from '@/components/ui/input';
 import { Form } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
@@ -25,6 +25,7 @@ import dayjs from 'dayjs';
 import { useAttendance } from './hook';
 import { Filters } from './types';
 import PayrunsAddModal from './section/add-modal';
+import { formatCurrency } from '@/lib/utils';
 
 export const PayrollList = () => {
   const router = useRouter();
@@ -50,28 +51,38 @@ export const PayrollList = () => {
       accessorKey: 'name',
       header: 'Payruns',
       size: 200,
-      cell: ({ row }) => row.original.name || '-',
+      cell: ({ row }) => `Tim ${row.original.id} tahun 2025`,
     },
     {
       accessorKey: 'total',
       header: 'Total Pay',
       size: 200,
-      cell: ({ row }) => row.original.name || '-',
+      cell: ({ row }) => (
+        <span className="text-gray-400">
+          Rp{' '}
+          <span className="text-gray-800">
+            {formatCurrency(Number(123456700 * row.original.id))}
+          </span>
+        </span>
+      ),
     },
     {
       accessorKey: 'send_payslip',
-      header: 'Send Payslip',
+      header: 'Send Payslip Date',
       size: 200,
-      cell: ({ row }) => row.original.name || '-',
+      cell: ({ row }) =>
+        dayjs(row.original.created_at).format('MMMM D, YYYY') || '-',
     },
     {
-      accessorKey: 'status',
-      header: 'Status',
+      accessorKey: 'payslip_status',
+      header: 'Payslip Status',
       size: 160,
       cell: ({ row }) => {
-        const status = row.original.latest_attendance?.status_label;
-        const { variant, className, label } = getStatusAttendance(status);
-        if (!row.original.latest_attendance?.status_label) return '-';
+        // const status = row.original.latest_attendance?.status_label;
+        const { variant, className, label } = getStatusPayroll(
+          row.original.id % 2 === 1 ? 'Pending' : 'Payslip Sent',
+        );
+        // if (!row.original.latest_attendance?.status_label) return '-';
 
         return (
           <Badge variant={variant} className={className}>
@@ -79,6 +90,13 @@ export const PayrollList = () => {
           </Badge>
         );
       },
+    },
+    {
+      accessorKey: 'updated_at',
+      header: 'Last Updated',
+      size: 200,
+      cell: ({ row }) =>
+        dayjs(row.original.updated_at).format('MMMM D, YYYY') || '-',
     },
     {
       accessorKey: 'menu',
