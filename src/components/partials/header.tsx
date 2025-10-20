@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import Image from "next/image";
-import * as React from "react";
-import { Status, StatusIndicator, StatusLabel } from "../ui/shadcn-io/status";
-import { Separator } from "../ui/separator";
-import Link from "next/link";
-import { Cloud, Menu, X } from "lucide-react";
+import Image from 'next/image';
+import * as React from 'react';
+import { Status, StatusIndicator, StatusLabel } from '../ui/shadcn-io/status';
+import { Separator } from '../ui/separator';
+import Link from 'next/link';
+import { Cloud, Menu, X } from 'lucide-react';
 
 import {
   NavigationMenu,
@@ -14,7 +14,7 @@ import {
   NavigationMenuLink,
   NavigationMenuList,
   NavigationMenuTrigger,
-} from "@/components/ui/navigation-menu";
+} from '@/components/ui/navigation-menu';
 
 import {
   Breadcrumb,
@@ -22,12 +22,12 @@ import {
   BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import { cn } from "@/lib/utils";
-import { Button } from "../ui/button";
-import useNetworkStatus from "@/hooks/use-network-status";
-import { Profile } from "../ui/profile";
-import { usePathname } from "next/navigation";
+} from '@/components/ui/breadcrumb';
+import { cn } from '@/lib/utils';
+import { Button } from '../ui/button';
+import useNetworkStatus from '@/hooks/use-network-status';
+import { Profile } from '../ui/profile';
+import { usePathname } from 'next/navigation';
 
 interface BreadcrumbProps {
   items?: {
@@ -42,78 +42,78 @@ interface HeaderProps {
 
 const menuItems = [
   {
-    name: "dashboard",
-    label: "Dashboard",
-    icon: "/icons/dashboard.svg",
-    path: "/dashboard",
+    name: 'dashboard',
+    label: 'Dashboard',
+    icon: '/icons/dashboard.svg',
+    path: '/dashboard',
     children: [],
   },
   {
-    name: "employee",
-    label: "Employee",
-    icon: "/icons/employee.svg",
-    path: "/employee",
+    name: 'employee',
+    label: 'Employee',
+    icon: '/icons/employee.svg',
+    path: '/employee',
     children: [
       {
-        label: "Employee Management",
-        desc: "Manage employee data, organization structure, and onboarding/offboarding processes",
-        path: "/employee/employee-management",
-        icon: "/icons/user02.svg",
+        label: 'Employee Management',
+        desc: 'Manage employee data, organization structure, and onboarding/offboarding processes',
+        path: '/employee/employee-management',
+        icon: '/icons/user02.svg',
       },
       {
-        label: "Employee Attendance",
-        desc: "Track employee attendance, timesheets, leave requests, and balances.",
-        path: "/attendance/attendance-tracker",
-        icon: "/icons/clock.svg",
+        label: 'Employee Attendance',
+        desc: 'Track employee attendance, timesheets, leave requests, and balances.',
+        path: '/attendance/attendance-tracker',
+        icon: '/icons/clock.svg',
       },
       {
-        label: "Payroll",
-        desc: "Streamline salary calculations, benefits, and monthly payroll processing.",
-        path: "/employee/payroll",
-        icon: "/icons/cash.svg",
+        label: 'Payroll',
+        desc: 'Streamline salary calculations, benefits, and monthly payroll processing.',
+        path: '/payroll',
+        icon: '/icons/cash.svg',
       },
     ],
   },
   {
-    name: "performance",
-    label: "Performance",
-    icon: "/icons/storeReport.svg",
-    path: "/performance",
+    name: 'performance',
+    label: 'Performance',
+    icon: '/icons/storeReport.svg',
+    path: '/performance',
     children: [],
   },
   {
-    name: "recruitment",
-    label: "Recruitment",
-    icon: "/icons/recruitment.svg",
-    path: "/recruitment",
+    name: 'recruitment',
+    label: 'Recruitment',
+    icon: '/icons/recruitment.svg',
+    path: '/recruitment',
     children: [],
   },
   {
-    name: "training",
-    label: "Training",
-    icon: "/icons/book.svg",
-    path: "/training",
+    name: 'training',
+    label: 'Training',
+    icon: '/icons/book.svg',
+    path: '/training',
     children: [],
   },
   {
-    name: "expenses",
-    label: "Expenses",
-    icon: "/icons/cash.svg",
-    path: "/expenses",
+    name: 'expenses',
+    label: 'Expenses',
+    icon: '/icons/cash.svg',
+    path: '/expenses',
     children: [],
   },
   {
-    name: "document",
-    label: "Document",
-    icon: "/icons/documentSolid.svg",
-    path: "/document",
+    name: 'document',
+    label: 'Document',
+    icon: '/icons/documentSolid.svg',
+    path: '/document',
     children: [],
   },
   {
-    name: "settings",
-    label: "Settings",
-    icon: "/icons/gearSolid.svg",
-    path: "/settings/access-control",
+    name: 'settings',
+    label: 'Settings',
+    icon: '/icons/gearSolid.svg',
+    path: '/settings/access-control',
     children: [],
   },
 ];
@@ -124,9 +124,9 @@ const HeaderMenu = React.memo(function HeaderMenu() {
 
   const navigationMenuTriggerStyle = (isActive: boolean) =>
     cn(
-      "flex flex-row primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground rounded-b-none rounded-t-sm bg-white flex gap-2",
-      "data-[state=open]:hover:bg-primary data-[state=open]:text-primary-foreground data-[state=open]:focus:bg-primary data-[state=open]:bg-primary/50",
-      isActive && "bg-primary text-primary-foreground",
+      'flex flex-row primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground rounded-b-none rounded-t-sm bg-white flex gap-2',
+      'data-[state=open]:hover:bg-primary data-[state=open]:text-primary-foreground data-[state=open]:focus:bg-primary data-[state=open]:bg-primary/50',
+      isActive && 'bg-primary text-primary-foreground',
     );
 
   return (
@@ -160,9 +160,9 @@ const HeaderMenu = React.memo(function HeaderMenu() {
                                 <Link
                                   href={child.path}
                                   className={cn(
-                                    "block rounded px-3 py-2 text-sm hover:bg-muted hover:text-foreground",
+                                    'block rounded px-3 py-2 text-sm hover:bg-muted hover:text-foreground',
                                     pathname === child.path &&
-                                      "bg-primary/20 opacity-100 text-primary",
+                                      'bg-primary/20 opacity-100 text-primary',
                                   )}
                                 >
                                   <div className="flex flex-row gap-3 items-start">
@@ -230,9 +230,9 @@ const HeaderMenu = React.memo(function HeaderMenu() {
               <Link
                 href={item.path}
                 className={cn(
-                  "flex items-center gap-2 py-2",
+                  'flex items-center gap-2 py-2',
                   pathname.includes(`/${item.name}`) &&
-                    "text-primary font-bold",
+                    'text-primary font-bold',
                 )}
               >
                 <Image
@@ -250,8 +250,8 @@ const HeaderMenu = React.memo(function HeaderMenu() {
                       key={child.path}
                       href={child.path}
                       className={cn(
-                        "block text-sm text-gray-500",
-                        pathname === child.path && "text-primary font-medium",
+                        'block text-sm text-gray-500',
+                        pathname === child.path && 'text-primary font-medium',
                       )}
                     >
                       {child.label}
@@ -269,12 +269,12 @@ const HeaderMenu = React.memo(function HeaderMenu() {
 
 const Header = React.memo(function Header({ showBackNavigate }: HeaderProps) {
   const { isOnline, setOnline } = useNetworkStatus();
-  const [user, setUser] = React.useState({ name: "" });
+  const [user, setUser] = React.useState({ name: '' });
 
   // Only access localStorage on the client side
   React.useEffect(() => {
-    if (typeof window !== "undefined") {
-      const savedUser = localStorage.getItem("user");
+    if (typeof window !== 'undefined') {
+      const savedUser = localStorage.getItem('user');
       setUser(savedUser ? JSON.parse(savedUser) : null);
     }
   }, []);
@@ -305,7 +305,7 @@ const Header = React.memo(function Header({ showBackNavigate }: HeaderProps) {
       </div>
       <div className="items-center justify-end gap-2 md:gap-4 h-10 flex">
         <Status
-          status={isOnline ? "online" : "offline"}
+          status={isOnline ? 'online' : 'offline'}
           className="hidden md:flex"
         >
           <StatusIndicator />
