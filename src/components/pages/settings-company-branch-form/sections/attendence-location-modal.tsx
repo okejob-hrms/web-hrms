@@ -10,8 +10,9 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import MapPicker from "@/components/ui/map";
 import { getLocationName } from "@/lib/geocode";
+import dynamic from "next/dynamic";
+const MapPicker = dynamic(() => import("@/components/ui/map"), { ssr: false });
 
 interface AttendenceLocationModalProps {
   openAttendenceModal: boolean;
@@ -55,7 +56,7 @@ export const AttendenceLocationModal = React.memo(
           setLocation(name);
         });
       }
-    }, [selectedMap.lat, selectedMap.lat]);
+    }, [selectedMap.lat, selectedMap.lng]);
 
     return (
       <Dialog
