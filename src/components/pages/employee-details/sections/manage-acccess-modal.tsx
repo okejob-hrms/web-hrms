@@ -3,7 +3,7 @@ import * as React from "react";
 import { RefreshCw, Copy } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import {
   Dialog,
@@ -76,9 +76,11 @@ export default function ManageAccessModal({
     },
   });
 
+  const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = React.useState(false);
 
   const selectedGranteeables = form.watch("granteeables");
+
   const mutation = useMutation({
     mutationFn: postManageAccessDocument,
     onSuccess: (data) => {
@@ -87,6 +89,9 @@ export default function ManageAccessModal({
       }
       onClose();
       form.reset();
+      queryClient.invalidateQueries({
+        queryKey: ["manage_access", employeeDocumentId],
+      });
       toast.success("Access control granted.");
     },
     onError: (error: any) => {
@@ -120,12 +125,14 @@ export default function ManageAccessModal({
     queryKey: ["department_id"],
     queryFn: () => getDepartment(),
     refetchOnWindowFocus: false,
+    enabled: isOpen,
   });
 
   const { data: jobLevels } = useQuery({
     queryKey: ["job_level_id"],
     queryFn: getJobLevels,
     refetchOnWindowFocus: false,
+    enabled: isOpen,
   });
 
   const { data: employees } = useQuery({
@@ -134,17 +141,117 @@ export default function ManageAccessModal({
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
+    enabled: isOpen,
   });
 
-  const { data: manageAccess } = useQuery({
-    queryKey: ["manage_access"],
+  const { data: manageAccess, isLoading: isManageAccessLoading } = useQuery({
+    queryKey: ["manage_access", employeeDocumentId],
     queryFn: () => getManageAccessDocument(employeeDocumentId),
+    enabled: isOpen && !!employeeDocumentId,
     refetchOnWindowFocus: false,
   });
 
   React.useEffect(() => {
-    console.log("manage access ", manageAccess);
-  }, [manageAccess]);
+    console.log("🔍 Modal state changed", { isOpen, employeeDocumentId });
+  }, [isOpen, employeeDocumentId]);
+
+  React.useEffect(() => {
+    console.log("🔍 useEffect triggered", {
+      isOpen,
+      hasManageAccessData: !!manageAccess?.data,
+      hasEmployees: !!employees?.data?.data,
+      hasDepartments: !!departments?.data?.data,
+      hasJobLevels: !!jobLevels?.data,
+      manageAccessData: manageAccess?.data,
+    });
+
+    if (!manageAccess?.data || !isOpen) {
+      console.log("❌ Skipping - no manageAccess data or modal not open");
+      return;
+    }
+
+    console.log(
+      "✅ Setting default values from manageAccess",
+      manageAccess.data,
+    );
+    const { access_control, shares } = manageAccess.data;
+
+    // Set access level
+    if (access_control?.access_level) {
+      console.log("📝 Setting access_level:", access_control.access_level);
+      form.setValue("access_level", access_control.access_level);
+    }
+
+    // Set granteeables
+    if (
+      shares &&
+      shares.length > 0 &&
+      employees?.data?.data &&
+      departments?.data?.data &&
+      jobLevels?.data
+    ) {
+      console.log("📝 Setting granteeables from shares:", shares);
+      const formattedGranteeables = shares
+        .map((share) => {
+          let label = "";
+          const type = share.granteeable_type;
+
+          if (share.granteeable_type === "EmployeeProfile") {
+            const employee = employees.data.data.find(
+              (emp) => emp.id === share.granteeable_id,
+            );
+            label = employee?.name || `Employee ${share.granteeable_id}`;
+          } else if (share.granteeable_type === "Departement") {
+            const department = departments.data.data.find(
+              (dept) => dept.id === share.granteeable_id,
+            );
+            label = department?.name || `Department ${share.granteeable_id}`;
+          } else if (share.granteeable_type === "JobLevel") {
+            const jobLevel = jobLevels.data.find(
+              (jl) => jl.id === share.granteeable_id,
+            );
+            label = jobLevel?.name || `Job Level ${share.granteeable_id}`;
+          }
+
+          if (label) {
+            return {
+              value: share.granteeable_id.toString(),
+              type: type,
+              label,
+            };
+          }
+          return null;
+        })
+        .filter(Boolean);
+
+      form.setValue("granteeables", formattedGranteeables as any);
+      console.log("✅ Formatted granteeables:", formattedGranteeables);
+    } else {
+      console.log("❌ No shares or missing data, clearing granteeables");
+      form.setValue("granteeables", []);
+    }
+  }, [
+    manageAccess,
+    employees?.data?.data,
+    departments?.data?.data,
+    jobLevels?.data,
+    form,
+    isOpen,
+  ]);
+
+  React.useEffect(() => {
+    if (!isOpen) {
+      const timer = setTimeout(() => {
+        form.reset({
+          access_level: "public",
+          granteeables: [],
+          ...defaultValues,
+        });
+      }, 300);
+
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, form, defaultValues]);
 
   const handleSubmit = async (data: AccessFormValues) => {
     if (disabled || isLoading) return;
@@ -156,12 +263,14 @@ export default function ManageAccessModal({
           granteeable_type: item.type,
           granteeable_id: parseInt(item.value),
         })) || [];
+
       const params = {
         employee_document_id: employeeDocumentId,
         access_level: data.access_level,
         link_enabled: true,
         granteeables: formattedGranteeables,
       };
+
       mutation.mutate(params);
     } catch (error) {
       console.error("Error updating document access:", error);
@@ -170,7 +279,13 @@ export default function ManageAccessModal({
   };
 
   const handleCopyLink = () => {
-    console.log("Copy link clicked");
+    if (manageAccess?.data?.access_control?.link_token) {
+      const link = `${window.location.origin}/documents/shared/${manageAccess.data.access_control.link_token}`;
+      navigator.clipboard.writeText(link);
+      toast.success("Link copied to clipboard");
+    } else {
+      toast.error("No shareable link available");
+    }
   };
 
   const handleInvite = () => {
@@ -218,28 +333,31 @@ export default function ManageAccessModal({
     {
       label: "Employee",
       options: employeesOptions,
-      renderOption: (_, index) => (
-        <div className="flex items-center gap-2">
-          <Avatar className="h-8 w-8">
-            <AvatarImage
-              className="size-8"
-              src={`${process.env.NEXT_PUBLIC_FILE_URL}/${employees?.data.data[index].photo_profile}`}
-              alt={employees?.data.data[index].name}
-            />
-            <AvatarFallback className="text-base font-medium">
-              {stringAvatar(employees?.data.data[index].name ?? "")}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex flex-col">
-            <p className="text-base font-normal text-grayscale-100">
-              {employees?.data.data[index].name}
-            </p>
-            <p className="text-text-disabled text-xs font-normal">
-              {employees?.data.data[index].job_position}
-            </p>
+      renderOption: (option, index) => {
+        const employee = employees?.data?.data?.[index];
+        return (
+          <div className="flex items-center gap-2">
+            <Avatar className="h-8 w-8">
+              <AvatarImage
+                className="size-8"
+                src={`${process.env.NEXT_PUBLIC_FILE_URL}/${employee?.photo_profile}`}
+                alt={employee?.name}
+              />
+              <AvatarFallback className="text-base font-medium">
+                {stringAvatar(employee?.name ?? "")}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex flex-col">
+              <p className="text-base font-normal text-grayscale-100">
+                {employee?.name}
+              </p>
+              <p className="text-text-disabled text-xs font-normal">
+                {employee?.job_position}
+              </p>
+            </div>
           </div>
-        </div>
-      ),
+        );
+      },
     },
     {
       label: "Department",
@@ -275,7 +393,7 @@ export default function ManageAccessModal({
     },
   ];
 
-  const isSubmitting = disabled || isLoading;
+  const isSubmitting = disabled || isLoading || isManageAccessLoading;
 
   const handleRemove = (valueToRemove: string, typeToRemove: string) => {
     const currentValues = form.getValues("granteeables") || [];
@@ -284,6 +402,10 @@ export default function ManageAccessModal({
         !(item.value === valueToRemove && item.type === typeToRemove),
     );
     form.setValue("granteeables", updatedValues);
+  };
+
+  const getEmployeeData = (employeeId: string) => {
+    return employees?.data?.data?.find((emp) => emp.id === Number(employeeId));
   };
 
   return (
@@ -357,92 +479,76 @@ export default function ManageAccessModal({
                               label: string;
                             },
                             index: number,
-                          ) => (
-                            <div
-                              key={`${item.value}-${item.type}-${index}`}
-                              className="flex items-center px-2 py-1 text-sm justify-between"
-                            >
-                              {item.type === "EmployeeProfile" && (
-                                <div className="flex gap-2 items-center">
-                                  <Avatar className="h-8 w-8">
-                                    <AvatarImage
-                                      className="size-8"
-                                      src={`${process.env.NEXT_PUBLIC_FILE_URL}/${employees?.data.data.filter((obj) => obj.id === Number(item.value))[0].photo_profile}`}
-                                      alt={
-                                        employees?.data.data.filter(
-                                          (obj) =>
-                                            obj.id === Number(item.value),
-                                        )[0].name
-                                      }
-                                    />
-                                    <AvatarFallback className="text-base font-medium">
-                                      {stringAvatar(
-                                        employees?.data.data.filter(
-                                          (obj) =>
-                                            obj.id === Number(item.value),
-                                        )[0].name ?? "",
-                                      )}
-                                    </AvatarFallback>
-                                  </Avatar>
-                                  <span>{item.label}</span>
-                                  <span className="text-text-disabled">
-                                    (
-                                    {
-                                      employees?.data.data.filter(
-                                        (obj) => obj.id === Number(item.value),
-                                      )[0].id
-                                    }
-                                    )
-                                  </span>
-                                  <span className="text-text-disabled">
-                                    {
-                                      employees?.data.data.filter(
-                                        (obj) => obj.id === Number(item.value),
-                                      )[0].job_position
-                                    }
-                                  </span>
-                                </div>
-                              )}
-                              {item.type === "Departement" && (
-                                <div className="flex gap-2 items-center">
-                                  <Avatar className="h-8 w-8 bg-primary-background items-center justify-center">
-                                    <AvatarImage
-                                      className="size-5 bg-primary-background"
-                                      src="/icons/account-company.svg"
-                                      alt="department"
-                                    />
-                                  </Avatar>
-                                  {item.label}
-                                </div>
-                              )}
-                              {item.type === "JobLevel" && (
-                                <div className="flex gap-2 items-center">
-                                  <Avatar className="h-8 w-8 bg-primary-background items-center justify-center">
-                                    <AvatarImage
-                                      className="size-5 bg-primary-background"
-                                      src="/icons/Group.svg"
-                                      alt="job level"
-                                    />
-                                  </Avatar>
-                                  {item.label}
-                                </div>
-                              )}
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  handleRemove(item.value, item.type)
-                                }
-                                className="ml-2 text-gray-500 hover:text-gray-700"
+                          ) => {
+                            const employeeData = getEmployeeData(item.value);
+
+                            return (
+                              <div
+                                key={`${item.value}-${item.type}-${index}`}
+                                className="flex items-center px-2 py-1 text-sm justify-between"
                               >
-                                <Image
-                                  src="/icons/deleteOutlined.svg"
-                                  width={16}
-                                  height={16}
-                                  alt="delete"
-                                />
-                              </button>
-                            </div>
-                          ),
+                                {item.type === "EmployeeProfile" && (
+                                  <div className="flex gap-2 items-center">
+                                    <Avatar className="h-8 w-8">
+                                      <AvatarImage
+                                        className="size-8"
+                                        src={`${process.env.NEXT_PUBLIC_FILE_URL}/${employeeData?.photo_profile}`}
+                                        alt={employeeData?.name}
+                                      />
+                                      <AvatarFallback className="text-base font-medium">
+                                        {stringAvatar(employeeData?.name ?? "")}
+                                      </AvatarFallback>
+                                    </Avatar>
+                                    <span>{item.label}</span>
+                                    <span className="text-text-disabled">
+                                      ({employeeData?.id})
+                                    </span>
+                                    <span className="text-text-disabled">
+                                      {employeeData?.job_position}
+                                    </span>
+                                  </div>
+                                )}
+                                {item.type === "Departement" && (
+                                  <div className="flex gap-2 items-center">
+                                    <Avatar className="h-8 w-8 bg-primary-background items-center justify-center">
+                                      <AvatarImage
+                                        className="size-5 bg-primary-background"
+                                        src="/icons/account-company.svg"
+                                        alt="department"
+                                      />
+                                    </Avatar>
+                                    {item.label}
+                                  </div>
+                                )}
+                                {item.type === "JobLevel" && (
+                                  <div className="flex gap-2 items-center">
+                                    <Avatar className="h-8 w-8 bg-primary-background items-center justify-center">
+                                      <AvatarImage
+                                        className="size-5 bg-primary-background"
+                                        src="/icons/Group.svg"
+                                        alt="job level"
+                                      />
+                                    </Avatar>
+                                    {item.label}
+                                  </div>
+                                )}
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    handleRemove(item.value, item.type)
+                                  }
+                                  className="ml-2 text-gray-500 hover:text-gray-700"
+                                >
+                                  <Image
+                                    src="/icons/deleteOutlined.svg"
+                                    width={16}
+                                    height={16}
+                                    alt="delete"
+                                  />
+                                </button>
+                              </div>
+                            );
+                          },
                         )}
                       </div>
                     </div>
@@ -469,7 +575,7 @@ export default function ManageAccessModal({
                 {isSubmitting ? (
                   <>
                     <RefreshCw className="h-4 w-4 animate-spin mr-2" />
-                    Saving...
+                    {isManageAccessLoading ? "Loading..." : "Saving..."}
                   </>
                 ) : (
                   "Save"

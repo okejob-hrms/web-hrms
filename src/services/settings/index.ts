@@ -232,6 +232,27 @@ export const postAddBranch = async (
   }
 };
 
+export const deleteBranch = async (
+  id: string,
+): Promise<ApiResponse<ICompanyBranches>> => {
+  try {
+    return api
+      .delete(`setting/branch/${id}`)
+      .json<ApiResponse<ICompanyBranches>>();
+  } catch (error: any) {
+    if (error.name === "HTTPError") {
+      const errorResponse = await error.response.json();
+      const enhancedError = new Error(error.message);
+      (enhancedError as any).response = {
+        json: () => Promise.resolve(errorResponse),
+        status: error.response.status,
+      };
+      throw enhancedError;
+    }
+    throw error;
+  }
+};
+
 export const getLeaveType = async (): Promise<LeaveConfigItem> => {
   const response = await api.get<LeaveConfigItem>("employee/leave-types");
   return response.json();

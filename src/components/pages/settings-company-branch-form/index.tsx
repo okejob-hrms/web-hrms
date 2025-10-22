@@ -1,4 +1,12 @@
-import { Form } from "@/components/ui/form";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { InputForm } from "@/components/ui/input";
 import * as React from "react";
 import { useCompanyBranchForm } from "./hook";
@@ -12,6 +20,8 @@ import { TextAreaForm } from "@/components/ui/textarea";
 import { AttendenceLocationModal } from "./sections/attendence-location-modal";
 import { Separator } from "@/components/ui/separator";
 import { PhoneInput } from "@/components/ui/phone-input";
+import { LocationBadge } from "@/components/ui/location-badge";
+import { Switch } from "@/components/ui/switch";
 
 export const SettingsCompanyBranchForm = React.memo(
   function SettingsCompanyBranchForm() {
@@ -27,6 +37,17 @@ export const SettingsCompanyBranchForm = React.memo(
       isPendingPhotoProfile,
       isPendingAddBranch,
       form,
+      defaultMap,
+      selectedMap,
+      map,
+      openAttendenceModal,
+      setOpenAttendenceModal,
+      handleOpenAttendenceModal,
+      handleSetMap,
+      setSelectedMap,
+      loading,
+      setLocation,
+      location,
     } = useCompanyBranchForm();
 
     React.useEffect(() => {
@@ -38,15 +59,56 @@ export const SettingsCompanyBranchForm = React.memo(
       }
     }, [form.watch("logo")]);
 
+    // Debug: Check if handleSubmit is available
+    console.log("handleSubmit available:", !!handleSubmit);
+
+    // Create the form submission handler
+    const onSubmit = React.useCallback(
+      (data: any) => {
+        console.log("Form submitted with data:", data);
+        handleSubmit(data);
+      },
+      [handleSubmit],
+    );
+
+    // Handle form submission directly
+    const handleFormSubmit = (e: React.FormEvent) => {
+      e.preventDefault();
+      console.log("Form submit event triggered");
+
+      form
+        .handleSubmit((data) => {
+          console.log("Form data validated:", data);
+          handleSubmit(data);
+        })(e)
+        .catch((error) => {
+          console.error("Form submission error:", error);
+        });
+    };
+
+    React.useEffect(() => {
+      const subscription = form.watch((value, { name, type }) => {
+        console.log("Form values:", value);
+        console.log("Form errors:", form.formState.errors);
+      });
+      return () => subscription.unsubscribe();
+    }, [form.watch, form.formState.errors]);
+
     return (
       <div className="font-sans md:px-[125px] px-4 space-y-4">
         <h2 className="font-semibold text-lg text-black">
           Company Information
         </h2>
         <Form {...form}>
+          {/* Change to use handleFormSubmit directly */}
           <form
             className="grid grid-cols-1 md:grid-cols-2 gap-3 items-start"
-            onSubmit={form.handleSubmit(handleSubmit)}
+            onSubmit={(e) => {
+              e.preventDefault();
+              console.log("Form submitted directly");
+              form.handleSubmit(handleSubmit)();
+            }}
+            noValidate
           >
             <div className="md:col-span-2">
               <label className="text-sm">
@@ -126,14 +188,65 @@ export const SettingsCompanyBranchForm = React.memo(
               required
             />
             <InputForm name="website" label="Website" isOptional />
-            <TextAreaForm name="address" label="Company Address" />
+            <TextAreaForm name="address" label="Company Address" required />
             <div className="flex flex-col gap-2">
               <span className="text-sm">
                 Attendance Location<span className="text-error">*</span>
               </span>
-              <AttendenceLocationModal />
-              <InputForm name="website" label="Maximum Radius" isOptional />
+              <div
+                className={cn(
+                  "flex w-fit",
+                  map.lat !== 0 && map.lng !== 0 ? "gap-4" : "gap-0",
+                )}
+              >
+                <div>
+                  {map.lat !== 0 && map.lng !== 0 && (
+                    <LocationBadge
+                      lat={Number(map.lat)}
+                      lng={Number(map.lng)}
+                    />
+                  )}
+                </div>
+                <AttendenceLocationModal
+                  openAttendenceModal={openAttendenceModal}
+                  setOpenAttendenceModal={setOpenAttendenceModal}
+                  handleOpenAttendenceModal={handleOpenAttendenceModal}
+                  selectedMap={selectedMap}
+                  setSelectedMap={setSelectedMap}
+                  handleSetMap={handleSetMap}
+                  loading={loading}
+                  defaultMap={defaultMap}
+                  location={location}
+                  setLocation={setLocation}
+                />
+              </div>
+              <InputForm
+                name="max_radius"
+                label="Maximum Radius"
+                type="number"
+                isOptional
+              />
             </div>
+            <FormField
+              control={form.control}
+              name="is_primary"
+              render={({ field }) => (
+                <FormItem className="flex flex-col gap-1 col-span-2">
+                  <FormLabel>Is Primary?</FormLabel>
+                  <FormControl>
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm text-gray-600">No</span>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                      <span className="text-sm  font-medium">Yes</span>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <Separator className="md:col-span-2 my-4" />
             <h2 className="font-semibold text-lg text-black col-span-2">
               Payroll Information
@@ -154,6 +267,7 @@ export const SettingsCompanyBranchForm = React.memo(
               required
             />
             <InputForm name="payroll_currency" label="Currency" required />
+
             <div className="flex gap-2 my-8 justify-between md:justify-start w-full">
               <Button
                 variant="outline"
@@ -165,6 +279,11 @@ export const SettingsCompanyBranchForm = React.memo(
                 Cancel
               </Button>
               <Button
+                type="button"
+                onClick={() => {
+                  console.log("Manual submit test");
+                  form.handleSubmit(handleSubmit)();
+                }}
                 isLoading={isPendingAddBranch}
                 className="md:max-w-36 w-[50%]"
               >
