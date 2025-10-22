@@ -18,6 +18,8 @@ import {
   OvertimeApiModel,
   ICompanyBranches,
   IMutateCompanyBranchRequest,
+  LeaveConfigItem,
+  LeaveBalance,
 } from "./types";
 import { ApiResponse, PaginatedResponse } from "@/lib/types";
 
@@ -228,4 +230,14 @@ export const postAddBranch = async (
     }
     throw error;
   }
+};
+
+export const getLeaveType = async (): Promise<LeaveConfigItem> => {
+  const response = await api.get<LeaveConfigItem>("employee/leave-types");
+  return response.json();
+};
+
+export const getLeaveBalance = async (): Promise<LeaveBalance> => {
+  const response = await api.get<LeaveBalance>("employee/leave-balances");
+  return response.json();
 };
