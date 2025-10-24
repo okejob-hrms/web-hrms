@@ -100,6 +100,7 @@ export const getHideSidebar = (path: string) => {
     "/settings/company/company-branch/add",
     "/settings/company/company-branch/edit",
     "/payroll",
+    "/setting/leave-management/",
   ];
 
   const employeeDetailPattern = /^\/employee\/employee-management\/\d+$/;

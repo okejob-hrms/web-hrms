@@ -365,3 +365,47 @@ export interface IMutateCompanyBranchRequest {
   longitude: string;
   max_radius?: number;
 }
+
+export interface LeaveConfigItem {
+  id: number;
+  name: string;
+  created_at: string;
+  description: string;
+  entitlements: LeaveConfigEntitle[];
+  gender: string;
+  message: string;
+  quota_configuration: string;
+  status: string;
+  updated_at: string;
+}
+
+export interface LeaveConfigEntitle {
+  carry_over_allowed: boolean;
+  carry_over_expiry: string;
+  created_at: string;
+  deduct_employee_balance: boolean;
+  id: number;
+  job_level: string;
+  leave_type_id: number;
+  max_carry_over_days: number;
+  quota_days: number;
+  updated_at: string;
+}
+
+export interface LeaveBalance {
+    data: LeaveBalanceItem[];
+    message: string;
+    status: string;
+}
+
+export interface LeaveBalanceItem {
+    balance: number;
+    created_at: string;
+    id: number;
+    job_level: null;
+    job_level_id: number;
+    reset_period_day: number;
+    reset_period_month: number;
+    updated_at: string;
+    user: null;
+}
