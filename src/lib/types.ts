@@ -33,6 +33,13 @@ export interface ApiErrorResponse {
   errors?: Record<string, string[]>;
 }
 
+export interface ApiSummaryResponse<T, S> {
+  status: string;
+  message: string;
+  summary: S;
+  data: T;
+}
+
 export interface IEmployee {
   firstName: string;
   lastName: string;
