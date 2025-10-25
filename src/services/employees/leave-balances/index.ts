@@ -2,12 +2,23 @@
 import { ApiResponse, PaginatedResponse } from "@/lib/types";
 import { api } from "@/lib/api";
 import { ILeaveBalanceResponse, IMutateLeaveBalanceRequest } from "./types";
+import { PaginationState } from "@tanstack/react-table";
 
-export const getLeaveBalances = async (): Promise<
-  ApiResponse<PaginatedResponse<ILeaveBalanceResponse>>
-> => {
+export const getLeaveBalances = async (
+  pagination?: PaginationState,
+): Promise<ApiResponse<PaginatedResponse<ILeaveBalanceResponse>>> => {
+  const searchParams: Record<string, string> = {};
+
+  if (pagination) {
+    const page = pagination.pageIndex + 1;
+    const per_page = pagination.pageSize;
+    searchParams.page = page.toString();
+    searchParams.per_page = per_page.toString();
+  }
+
   const response = await api.get<ILeaveBalanceResponse>(
     "employee/leave-balances",
+    { searchParams },
   );
 
   return response.json();

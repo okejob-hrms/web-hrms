@@ -2,11 +2,22 @@
 import { ApiResponse, PaginatedResponse } from "@/lib/types";
 import { api } from "@/lib/api";
 import { ILeaveTypeResponse, IMutateLeaveTypeRequest } from "./types";
+import { PaginationState } from "@tanstack/react-table";
 
-export const getLeaveTypes = async (): Promise<
-  ApiResponse<PaginatedResponse<ILeaveTypeResponse>>
-> => {
-  const response = await api.get<ILeaveTypeResponse>("employee/leave-types");
+export const getLeaveTypes = async (
+  pagination?: PaginationState,
+): Promise<ApiResponse<PaginatedResponse<ILeaveTypeResponse>>> => {
+  const searchParams: Record<string, string> = {};
+
+  if (pagination) {
+    const page = pagination.pageIndex + 1;
+    const per_page = pagination.pageSize;
+    searchParams.page = page.toString();
+    searchParams.per_page = per_page.toString();
+  }
+  const response = await api.get<ILeaveTypeResponse>("employee/leave-types", {
+    searchParams,
+  });
 
   return response.json();
 };

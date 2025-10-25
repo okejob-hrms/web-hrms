@@ -62,7 +62,6 @@ export const menus: Record<string, MenuItem[]> = {
         },
       ],
     },
-    { name: "Leave Management", value: "settings/leave" },
     { name: "Leave Configuration", value: "settings/leave-configuration" },
     { name: "Form Template", value: "settings/form-template" },
     { name: "Payroll Management", value: "settings/payroll" },
