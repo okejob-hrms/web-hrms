@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import React, { useEffect } from 'react';
+import React, { useEffect } from "react";
 
 import {
   AlertDialog,
@@ -9,11 +9,11 @@ import {
   AlertDialogTitle,
   AlertDialogFooter,
   AlertDialogCancel,
-} from '@/components/ui/alert-dialog';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+} from "@/components/ui/alert-dialog";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Form,
   FormControl,
@@ -21,18 +21,18 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
+} from "@/components/ui/form";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { LateDeductionValues, lateDeductionFormScheme } from '../types';
-import { DeductionRequest, LateDeductions } from '@/services/settings/types';
-import { useLateDeduction } from '../hook';
-import { MultiSelect } from '@/components/ui/multi-select';
+} from "@/components/ui/select";
+import { LateDeductionValues, lateDeductionFormScheme } from "../types";
+import { DeductionRequest, LateDeductions } from "@/services/settings/types";
+import { useLateDeduction } from "../hook";
+import { MultiSelect } from "@/components/ui/multi-select";
 
 interface LateDeductionFormProps {
   open: boolean;
@@ -54,10 +54,10 @@ export default function LateDeductionForm({
 
   const form = useForm<LateDeductionValues>({
     resolver: zodResolver(lateDeductionFormScheme),
-    mode: 'onChange', // validate on change so Save button can disable live
+    mode: "onChange", // validate on change so Save button can disable live
     defaultValues: {
       shift_id: [],
-      duration_type: 'lte',
+      duration_type: "lte",
       min_minutes: 0,
       payroll_amount: undefined,
       leave_impact: undefined,
@@ -65,25 +65,25 @@ export default function LateDeductionForm({
       is_leave_impact: false,
       priority: 1,
       is_active: true,
-      starts_on: '',
-      ends_on: '',
-      note: '',
+      starts_on: "",
+      ends_on: "",
+      note: "",
     },
   });
 
   const DEFAULT_VALUES: LateDeductionValues = {
     shift_id: [],
-    duration_type: 'lte',
+    duration_type: "lte",
     min_minutes: 0,
     payroll_amount: undefined,
-    leave_impact: 'half_day',
+    leave_impact: "half_day",
     is_payroll_deduction: false,
     is_leave_impact: false,
     priority: 1,
     is_active: true,
-    starts_on: '',
-    ends_on: '',
-    note: '',
+    starts_on: "",
+    ends_on: "",
+    note: "",
   };
 
   useEffect(() => {
@@ -91,7 +91,7 @@ export default function LateDeductionForm({
       console.log(initialData);
       form.reset({
         shift_id: initialData.shift.map((item) => String(item.id)) ?? [],
-        duration_type: initialData.duration_type ?? 'lte',
+        duration_type: initialData.duration_type ?? "lte",
         min_minutes: initialData.min_minutes ?? 0,
         payroll_amount: initialData.is_payroll_deduction
           ? Number(initialData.payroll_amount)
@@ -103,9 +103,9 @@ export default function LateDeductionForm({
         is_leave_impact: initialData.is_leave_impact ?? false,
         priority: initialData.priority ?? 1,
         is_active: initialData.is_active ?? true,
-        starts_on: initialData.starts_on ?? '',
-        ends_on: initialData.ends_on ?? '',
-        note: initialData.note ?? '',
+        starts_on: initialData.starts_on ?? "",
+        ends_on: initialData.ends_on ?? "",
+        note: initialData.note ?? "",
       });
     } else {
       form.reset(DEFAULT_VALUES);
@@ -124,10 +124,10 @@ export default function LateDeductionForm({
       is_payroll_deduction: data.is_payroll_deduction,
       priority: data.priority,
       is_active: data.is_active,
-      starts_on: data.starts_on || '',
-      ends_on: data.ends_on || '',
-      note: data.note || '',
-      is_leave_impact: data.leave_impact === 'half_day' ? true : false,
+      starts_on: data.starts_on || "",
+      ends_on: data.ends_on || "",
+      note: data.note || "",
+      is_leave_impact: data.leave_impact === "half_day" ? true : false,
     };
 
     onOpenChange(false);
@@ -140,8 +140,8 @@ export default function LateDeductionForm({
         <AlertDialogHeader>
           <AlertDialogTitle>
             {initialData !== undefined
-              ? 'Edit Deduction Rules'
-              : 'Add Deduction Rules'}
+              ? "Edit Deduction Rules"
+              : "Add Deduction Rules"}
           </AlertDialogTitle>
         </AlertDialogHeader>
 
@@ -199,10 +199,10 @@ export default function LateDeductionForm({
                       <Input
                         type="number"
                         placeholder="0"
-                        value={field.value ?? ''}
+                        value={field.value ?? ""}
                         onChange={(e) =>
                           field.onChange(
-                            e.target.value === ''
+                            e.target.value === ""
                               ? undefined
                               : Number(e.target.value),
                           )
@@ -251,7 +251,7 @@ export default function LateDeductionForm({
                   </FormLabel>
                   <FormControl>
                     <Select
-                      onValueChange={(val) => field.onChange(val === 'true')}
+                      onValueChange={(val) => field.onChange(val === "true")}
                       value={field.value?.toString()}
                       defaultValue={field.value?.toString()}
                     >
@@ -272,7 +272,7 @@ export default function LateDeductionForm({
             />
 
             {/* Payroll Amount (conditional) */}
-            {form.watch('is_payroll_deduction') && (
+            {form.watch("is_payroll_deduction") && (
               <FormField
                 control={form.control}
                 name="payroll_amount"
@@ -283,10 +283,10 @@ export default function LateDeductionForm({
                       <Input
                         type="number"
                         placeholder="0"
-                        value={field.value ?? ''}
+                        value={field.value ?? ""}
                         onChange={(e) =>
                           field.onChange(
-                            e.target.value === ''
+                            e.target.value === ""
                               ? undefined
                               : Number(e.target.value),
                           )

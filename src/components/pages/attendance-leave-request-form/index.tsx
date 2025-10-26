@@ -35,7 +35,7 @@ export const AttendanceLeaveRequestForm = React.memo(
               options={employeesOptions}
             />
             <span className="text-sm text-text-secondary">
-              User Leave Balance :{" "}
+              Used Leave Balance :{" "}
               {leaveBalance?.data ? (
                 <span>
                   {leaveBalance.data.time_off_used} /{" "}

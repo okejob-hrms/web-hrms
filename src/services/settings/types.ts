@@ -211,6 +211,7 @@ export interface AttendanceRequest {
   late_tolerance: number;
   max_late_tolerance: number;
   work_schedules: WorkScheduleReq[];
+  enable_late_deduction?: boolean;
 }
 
 export interface ShiftResponse {
@@ -393,19 +394,19 @@ export interface LeaveConfigEntitle {
 }
 
 export interface LeaveBalance {
-    data: LeaveBalanceItem[];
-    message: string;
-    status: string;
+  data: LeaveBalanceItem[];
+  message: string;
+  status: string;
 }
 
 export interface LeaveBalanceItem {
-    balance: number;
-    created_at: string;
-    id: number;
-    job_level: null;
-    job_level_id: number;
-    reset_period_day: number;
-    reset_period_month: number;
-    updated_at: string;
-    user: null;
+  balance: number;
+  created_at: string;
+  id: number;
+  job_level: null;
+  job_level_id: number;
+  reset_period_day: number;
+  reset_period_month: number;
+  updated_at: string;
+  user: null;
 }

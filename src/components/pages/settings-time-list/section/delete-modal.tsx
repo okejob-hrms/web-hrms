@@ -1,11 +1,11 @@
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
   AlertDialogContent,
   AlertDialogTitle,
   AlertDialogFooter,
-} from '@/components/ui/alert-dialog';
-import Image from 'next/image';
+} from "@/components/ui/alert-dialog";
+import Image from "next/image";
 
 export default function LateDeductionDelete({
   open,
@@ -25,7 +25,7 @@ export default function LateDeductionDelete({
           {/* Warning Icon (SVG) */}
           <span className="mb-2">
             <Image
-              src={'/icons/delete.svg'}
+              src={"/icons/delete.svg"}
               width={50}
               height={50}
               alt={`icon-delete`}

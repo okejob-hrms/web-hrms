@@ -52,17 +52,42 @@ export const useLeaveRequestForm = () => {
   const debouncedApprover = useDebounce(searchApprover, 300);
   const queryClient = useQueryClient();
   const selectedUserId = form.watch("user_id");
-  const { data: leaveBalance } = useQuery({
+
+  const { data: leaveBalance, error: leaveBalanceError } = useQuery({
     queryKey: ["leave-balance", selectedUserId],
     queryFn: () => getUserLeaveBalance(Number(selectedUserId)),
     enabled:
       !!selectedUserId &&
       selectedUserId !== "" &&
       !isNaN(Number(selectedUserId)),
+    retry: false,
   });
+
+  React.useEffect(() => {
+    if (leaveBalanceError) {
+      const error = leaveBalanceError as any;
+      if (error?.response) {
+        try {
+          error.response
+            .json()
+            .then((errorData: ApiErrorResponse) => {
+              toast.error(errorData.message || "Failed to fetch leave balance");
+            })
+            .catch(() => {
+              toast.error("Failed to fetch leave balance");
+            });
+        } catch {
+          toast.error("Failed to fetch leave balance");
+        }
+      } else {
+        toast.error(error.message || "Failed to fetch leave balance");
+      }
+    }
+  }, [leaveBalanceError]);
+
   const { data: leaveTypes } = useQuery({
     queryKey: ["leave-types"],
-    queryFn: getLeaveTypes,
+    queryFn: () => getLeaveTypes(),
   });
   const { data: employees, isLoading: isLoadingEmployees } = useQuery({
     queryKey: ["offboarding-employees", debouncedApprover],
