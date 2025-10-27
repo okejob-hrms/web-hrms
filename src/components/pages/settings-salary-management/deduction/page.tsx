@@ -238,7 +238,7 @@ export default function SettingsSalaryDeduction() {
           <div className="grid gap-4 py-2">
             <div className="space-y-2">
               <Label>
-                Deduction Type<span className="text-red-500">*</span>
+                Deduction Name<span className="text-red-500">*</span>
               </Label>
               <Select
                 value={form.deduction_name}
@@ -348,7 +348,7 @@ export default function SettingsSalaryDeduction() {
               </div>
             </div>
 
-            {form.deduction_type === 'PPH21' && (
+            {form.deduction_name === 'PPH21' && (
               <>
                 <hr className="my-2" />
 
