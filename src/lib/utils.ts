@@ -59,3 +59,8 @@ export function formatCurrency(value: number | string | null): string {
     maximumFractionDigits: 0,
   }).format(number);
 }
+
+export const days = Array.from({ length: 31 }, (_, i) => ({
+  id: i + 1,
+  label: `Day ${i + 1}`,
+}));

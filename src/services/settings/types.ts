@@ -366,6 +366,12 @@ export interface IMutateCompanyBranchRequest {
   max_radius?: number;
 }
 
+export interface LeaveConfig {
+    data: LeaveConfigItem[];
+    message: string;
+    status: string;
+}
+
 export interface LeaveConfigItem {
   id: number;
   name: string;
@@ -408,4 +414,37 @@ export interface LeaveBalanceItem {
     reset_period_month: number;
     updated_at: string;
     user: null;
+}
+
+export interface LeaveBalanceRequest { 
+  balance: number;
+  job_level_id: number;
+  reset_period_day: number;
+  reset_period_month: number;
+}
+
+export interface LeaveTypeRequest {
+  description?: string;
+  gender?: string;
+  name?: string;
+  quota_configuration?: string;
+  quota_configuration_detail?: QuotaConfigurationDetail[];
+}
+
+export interface QuotaConfigurationDetail {
+  carry_over_allowed: boolean;
+  carry_over_expiry: string;
+  deduct_employee_balance: boolean;
+  job_level: number;
+  max_carry_over_days: number;
+  quota_days: number;
+}
+
+export interface QuotaConfigurationDetailLocal {
+  carry_over_allowed: boolean;
+  carry_over_expiry: string;
+  deduct_employee_balance: boolean;
+  job_level: string;
+  max_carry_over_days: string;
+  quota_days: string;
 }

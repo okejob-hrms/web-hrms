@@ -20,6 +20,9 @@ import {
   IMutateCompanyBranchRequest,
   LeaveConfigItem,
   LeaveBalance,
+  LeaveBalanceRequest,
+  LeaveConfig,
+  LeaveTypeRequest,
 } from "./types";
 import { ApiResponse, PaginatedResponse } from "@/lib/types";
 
@@ -253,12 +256,54 @@ export const deleteBranch = async (
   }
 };
 
-export const getLeaveType = async (): Promise<LeaveConfigItem> => {
-  const response = await api.get<LeaveConfigItem>("employee/leave-types");
+export const getLeaveType = async (): Promise<LeaveConfig> => {
+  const response = await api.get<LeaveConfig>("employee/leave-types");
   return response.json();
 };
 
 export const getLeaveBalance = async (): Promise<LeaveBalance> => {
   const response = await api.get<LeaveBalance>("employee/leave-balances");
   return response.json();
+};
+
+export const postLeaveBalance = async (
+  payload: LeaveBalanceRequest,
+): Promise<LeaveBalance> => {
+  return api
+    .post(`employee/leave-balances`, {
+      json: payload,
+    })
+    .json<LeaveBalance>();
+};
+
+export const putLeaveBalance = async (
+  id: number,
+  payload: LeaveBalanceRequest,
+): Promise<LeaveBalance> => {
+  return api
+    .put(`employee/leave-balances/${id}`, {
+      json: payload,
+    })
+    .json<LeaveBalance>();
+};
+
+export const removeLeaveBalance = async (
+  id: number,
+): Promise<LeaveBalance> => {
+  return api
+    .delete(`employee/leave-balances/${id}`, {
+      json: {},
+    })
+    .json<LeaveBalance>();
+};
+
+
+export const postLeaveType = async (
+  payload: LeaveTypeRequest,
+): Promise<LeaveConfig> => {
+  return api
+    .post(`employee/leave-type`, {
+      json: payload,
+    })
+    .json<LeaveConfig>();
 };

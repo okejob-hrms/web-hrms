@@ -64,7 +64,24 @@ export const menus: Record<string, MenuItem[]> = {
     },
     { name: "Leave Management", value: "settings/leave-management" },
     { name: "Form Template", value: "settings/form-template" },
-    { name: "Payroll Management", value: "settings/payroll" },
+    {
+      name: "Salary Management",
+      value: "settings/salary-management",
+      subItem: [
+        {
+          name: "Base Salary Management",
+          value: "settings/salary-management/base-salary",
+        },
+        {
+          name: "Allowance Management",
+          value: "settings/salary-management/allowance",
+        },
+        {
+          name: "Salary Deduction Management",
+          value: "settings/salary-management/deduction",
+        },
+      ]
+    },
     { name: "Performance Management", value: "settings/performance" },
     { name: "Mobile & ESS", value: "settings/mobile-ess" },
   ],
@@ -98,7 +115,7 @@ export const getHideSidebar = (path: string) => {
     "/settings/company/company-branch/add",
     "/settings/company/company-branch/edit",
     "/payroll",
-    "/setting/leave-management/",
+    "/settings/leave-management/",
   ];
 
   const employeeDetailPattern = /^\/employee\/employee-management\/\d+$/;
