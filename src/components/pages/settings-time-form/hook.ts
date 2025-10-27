@@ -17,7 +17,6 @@ import { AttendanceConfigData } from "../settings-time-list/hook";
 const companySchema = z.object({
   late_tolerance: z.string().min(1, "Late tolerance must be at least 1"),
   max_late_tolerance: z.string().min(1, "Absent after must be at least 1"),
-  enable_late_deduction: z.boolean().default(false).optional(),
   workSchedules: z
     .array(
       z.object({
@@ -81,7 +80,6 @@ function mapFromApiResponse(data: AttendanceConfigData): CompanyFormValues {
   return {
     late_tolerance: String(data?.late_tolerance ?? ""),
     max_late_tolerance: String(data?.max_late_tolerance ?? ""),
-    enable_late_deduction: data?.enable_late_deduction ?? false,
     workSchedules: data?.rawWorkSchedules?.map((day) => ({
       day_of_week: day.day_of_week,
       schedules: (day.schedules ?? []).map((s) => {

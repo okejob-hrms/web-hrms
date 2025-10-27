@@ -22,7 +22,6 @@ import { useEffect, useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, Trash2 } from "lucide-react";
 import TitleContent from "@/components/ui/title";
-import { LateDeduction } from "./sections/late-deduction-section";
 
 export default function SettingsAttendanceConfigurationForm() {
   const {
@@ -414,26 +413,6 @@ export default function SettingsAttendanceConfigurationForm() {
                 </FormItem>
               )}
             />
-
-            {/* Late arrival salary / leave deduction */}
-            <FormField
-              control={form.control}
-              name="enable_late_deduction"
-              render={({ field }) => (
-                <FormItem className="flex flex-row gap-2 items-center space-y-0">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                  <FormLabel className="!mt-0 cursor-pointer">
-                    Late arrival salary/leave deduction
-                  </FormLabel>
-                </FormItem>
-              )}
-            />
-            {form.watch("enable_late_deduction") && <LateDeduction />}
           </div>
 
           <div className="flex flex-row gap-2">
