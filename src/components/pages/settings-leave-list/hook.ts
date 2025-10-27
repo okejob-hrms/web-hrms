@@ -1,109 +1,164 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { getBranches, getLateDeduction, getLeaveBalance, getShift, getWorkingSchedule, postDeduction, putDeduction, removeDeduction } from '@/services/settings';
-import { DeductionRequest, ICompanyBranches, LateDeductions, LeaveBalance, ShiftResponse, WorkScheduleReq, WorkScheduleResponse } from '@/services/settings/types';
+import { 
+  getLeaveBalance,
+  getLeaveType,
+  postDeduction,
+  postLeaveBalance,
+  putDeduction,
+  putLeaveBalance,
+  removeDeduction,
+  removeLeaveBalance
+} from '@/services/settings';
+import { 
+  LeaveBalanceRequest,
+  LeaveBalance,
+  LeaveConfigItem,
+  LeaveBalanceItem,
+  LeaveConfig,
+} from '@/services/settings/types';
 import { PaginatedResponse } from '@/lib/types';
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
 import { toast } from 'sonner';
+import { getJobLevels } from '@/services/job-levels';
+import { JobLevel } from '@/services/job-levels/types';
+import { useRouter } from 'next/navigation';
 
 // =======================
 // Hook
 // =======================
 
-export function useLateDeduction() {
-  const [loading, setLoading] = useState(false);
-  const [loadingSave, setLoadingSave] = useState(false);
+export function useLeaveManagement() {
+  const router = useRouter();
+  // LEAVE TYPE STATE
+  const [loadingType, setLoadingType] = useState(false);
+  
+  
+  // LEAVE BALANCE STATE
+  const [loadingBalance, setLoadingBalance] = useState(false);
+  const [openFormBalance, setOpenFormBalance] = useState(false);
+  const [openEditBalance, setOpenEditBalance] = useState(false);
+  const [openDeleteBalance, setOpenDeleteBalance] = useState(false);
+  const [selectedBalance, setSelectedBalance] = useState<LeaveBalanceItem>();
+
   const queryClient = useQueryClient();
 
-  // list leaveBalance
+
+
+  // LEAVE TYPE
+
+  const { data: leaveTypeData, refetch: leaveTypeRefetch } = useQuery<LeaveConfig>({
+    queryKey: ["leaveType"],
+    queryFn: getLeaveType,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const { data: jobLevel } = useQuery<PaginatedResponse<JobLevel>>({
+    queryKey: ["jobLevel"],
+    queryFn: getJobLevels,
+    staleTime: 1000 * 60 * 5,
+  });
+
+
+  const handleAddType = () => {
+    router.push('/settings/leave-management/add')
+  };
+  const handleEditType = () => {};
+  const handleDeleteType = () => {};
+  
+
+
+// LEAVE BALANCE
+
   const { data: leaveBalanceData, refetch: leaveBalanceRefetch } = useQuery<LeaveBalance>({
     queryKey: ["leaveBalance"],
     queryFn: getLeaveBalance,
     staleTime: 1000 * 60 * 5,
   });
 
-  // mutation for save (create/update)
-  const saveMutation = useMutation<
-    PaginatedResponse<LateDeductions>,
+  const saveMutationType = useMutation<
+    LeaveBalance,
     Error,
-    { id?: number; data: DeductionRequest }
+    { id?: number; data: LeaveBalanceRequest }
   >({
     mutationFn: ({ id, data }) => {
       if (id) {
-        return putDeduction(id, data);
+        return putLeaveBalance(id, data);
       }
-      return postDeduction(data);
+      return postLeaveBalance(data);
     },
-    onMutate: () => setLoadingSave(true),
+    onMutate: () => setLoadingBalance(true),
     onSuccess: () => {
-      handleCloseLateDeduction();
-      toast.success("Late deduction saved successfully");
-      queryClient.invalidateQueries({ queryKey: ["lateDeduction"] });
+      toast.success("Leave balance successfully save");
+      queryClient.invalidateQueries({ queryKey: ["leaveBalance"] });
       leaveBalanceRefetch();
+      setOpenFormBalance(false);
+      setSelectedBalance(undefined);
     },
     onError: (err) => {
       toast.error(`Failed to save: ${err.message}`);
     },
-    onSettled: () => setLoadingSave(false),
+    onSettled: () => setLoadingBalance(false),
   });
 
   // mutation for delete
-  const deleteMutation = useMutation<PaginatedResponse<LateDeductions>, Error, number>({
-    mutationFn: (id) => removeDeduction(id),
+  const deleteMutationType = useMutation<LeaveBalance, Error, number>({
+    mutationFn: (id) => removeLeaveBalance(id),
     onSuccess: () => {
-      toast.success("Late deduction deleted successfully");
-      queryClient.invalidateQueries({ queryKey: ["lateDeduction"] });
+      toast.success("Leave balance deleted successfully");
+      queryClient.invalidateQueries({ queryKey: ["leaveBalance"] });
       leaveBalanceRefetch();
+      setOpenDeleteBalance(false);
+      setSelectedBalance(undefined);
     },
     onError: (err) => {
       toast.error(`Failed to delete: ${err.message}`);
     },
   });
 
-
-  const handleEdit = (item: LateDeductions) => {
-    console.log(item);
+  const handleSaveLeaveBalance = (id: number | undefined, data: LeaveBalanceRequest) => {
+    saveMutationType.mutate({ id, data });
   };
 
-  const handleDeleteClick = (item: LateDeductions) => {
-    console.log(item);
-  };
-
-  const handleDeleteConfirm = () => {
-    // if (selectedData) {
-    //   deleteMutation.mutate(selectedData.id);
-    // }
-  };
-
-  const handleAdd = () => {
+  const handleAddBalance = () => {
     // setSelectedData(undefined);
     // setOpen(true);
   };
 
-  const handleSaveLateDeduction = (id: number | undefined, data: DeductionRequest) => {
-    saveMutation.mutate({ id, data });
+  const handleEditBalance = (item: LeaveBalanceItem) => {
+    console.log(item);
   };
-
-  const handleCloseLateDeduction = () => {
-    // setOpen(false);
+  const handleDeleteBalance = () => {
+    if(selectedBalance){
+      deleteMutationType.mutate(selectedBalance.id);
+    }
   };
-
-  const handleEditType = () => {};
-  const handleDeleteType = () => {};
 
   return {
-    leaveBalanceData,
-    open,
-    handleEdit,
-    handleDeleteClick,
-    handleDeleteConfirm,
-    handleAdd,
-    handleSaveLateDeduction,
-    handleCloseLateDeduction,
-    loading,
+    // LEAVE TYPE
+    leaveTypeData,
+    loadingType,
+    handleAddType,
     handleEditType,
     handleDeleteType,
+
+
+    // LEAVE BALANCE
+    leaveBalanceData,
+    loadingBalance,
+    handleSaveLeaveBalance,
+    handleAddBalance,
+    handleEditBalance,
+    handleDeleteBalance,
+    openFormBalance,
+    setOpenFormBalance,
+    setOpenDeleteBalance,
+    openEditBalance,
+    openDeleteBalance,
+    selectedBalance,
+    setSelectedBalance,
+    jobLevel,
   };
 }
 

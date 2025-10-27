@@ -5,21 +5,49 @@ import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/tables/data-table';
 import { ColumnDef } from '@tanstack/react-table';
 import { CalendarClock, Plus, TimerResetIcon } from 'lucide-react';
-import { useLateDeduction } from './hook';
+import { useLeaveManagement } from './hook';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { cn } from '@/lib/utils';
+import { cn, month } from '@/lib/utils';
 import { RowActions } from '@/components/tables/row-actions';
-import { LeaveConfigItem } from '@/services/settings/types';
+import { LeaveBalanceItem, LeaveConfigItem } from '@/services/settings/types';
+import LeaveBalanceForm from './section/form-modal';
+import dayjs from 'dayjs';
+import LeaveBalanceDelete from './section/delete-modal';
 
 export default function SettingsLeaveConfiguration() {
-  const { handleEditType, handleDeleteType } = useLateDeduction();
+  const {
+    leaveTypeData,
+    handleEditType,
+    handleDeleteType,
+    handleAddType,
+
+    leaveBalanceData,
+    loadingBalance,
+    handleSaveLeaveBalance,
+    handleAddBalance,
+    handleEditBalance,
+    handleDeleteBalance,
+    openFormBalance,
+    setOpenFormBalance,
+    openEditBalance,
+    openDeleteBalance,
+    setOpenDeleteBalance,
+    selectedBalance,
+    setSelectedBalance,
+  } = useLeaveManagement();
 
   // =======================
   // Table Columns
   // =======================
   const columnsType: ColumnDef<LeaveConfigItem>[] = [
     { accessorKey: 'name', header: 'Leave Name', size: 160 },
-    { accessorKey: 'updated_at', header: 'Last Updated', size: 200 },
+    {
+      accessorKey: 'updated_at',
+      header: 'Last Updated',
+      size: 200,
+      cell: ({ row }) =>
+        dayjs(row.original.updated_at).format('MMMM D, YYYY') || '-',
+    },
     {
       id: 'actions',
       header: '',
@@ -42,18 +70,70 @@ export default function SettingsLeaveConfiguration() {
     },
   ];
 
+  const columnsBalance: ColumnDef<LeaveBalanceItem>[] = [
+    { accessorKey: 'job_level_id', header: 'Job Level', size: 160 },
+    { accessorKey: 'balance', header: 'Leave Balance', size: 160 },
+    {
+      id: 'reset_period_days',
+      header: 'Reset Period',
+      size: 160,
+      cell: ({ row }) => {
+        const item = row.original;
+        return (
+          <div className="flex">
+            {item.reset_period_day}{' '}
+            {month.filter((a) => a.id === item.reset_period_month)[0].label ??
+              'Unknown'}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: 'updated_at',
+      header: 'Last Updated',
+      size: 200,
+      cell: ({ row }) =>
+        dayjs(row.original.updated_at).format('MMMM D, YYYY') || '-',
+    },
+    {
+      id: 'actions',
+      header: '',
+      size: 80,
+      cell: ({ row }) => {
+        const item = row.original;
+        return (
+          <div className="flex justify-end">
+            <RowActions
+              onEdit={() => {
+                setSelectedBalance(item);
+                setOpenFormBalance(true);
+              }}
+              onDelete={() => {
+                setSelectedBalance(item);
+                setOpenDeleteBalance(true);
+              }}
+            />
+          </div>
+        );
+      },
+    },
+  ];
+
   const LeaveType = () => {
     return (
       <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6">
         <div className="flex flex-col sm:flex-row sm:gap-4 justify-between">
           <h2 className="font-semibold text-xl">Leave Type</h2>
-          <Button className="flex flex-row gap-6" onClick={() => {}}>
+          <Button
+            className="flex flex-row gap-6"
+            onClick={() => handleAddType()}
+          >
             <Plus />
             New Leave Type
           </Button>
         </div>
 
-        <DataTable columns={columnsType} data={[]} />
+        <DataTable columns={columnsType} data={leaveTypeData?.data} />
       </div>
     );
   };
@@ -63,13 +143,16 @@ export default function SettingsLeaveConfiguration() {
       <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6">
         <div className="flex flex-col sm:flex-row sm:gap-4 justify-between">
           <h2 className="font-semibold text-xl">Leave Balance</h2>
-          <Button className="flex flex-row gap-6" onClick={() => {}}>
+          <Button
+            className="flex flex-row gap-6"
+            onClick={() => setOpenFormBalance(true)}
+          >
             <Plus />
             New Leave Balance
           </Button>
         </div>
 
-        <DataTable columns={columnsType} data={[]} />
+        <DataTable columns={columnsBalance} data={leaveBalanceData?.data} />
       </div>
     );
   };
@@ -116,6 +199,21 @@ export default function SettingsLeaveConfiguration() {
             </TabsContent>
           ))}
         </Tabs>
+
+        <LeaveBalanceForm
+          open={openFormBalance}
+          onOpenChange={setOpenFormBalance}
+          initialData={selectedBalance}
+          handleClose={() => setOpenFormBalance(false)}
+          isLoading={loadingBalance}
+        />
+
+        <LeaveBalanceDelete
+          open={openDeleteBalance}
+          onOpenChange={setOpenDeleteBalance}
+          onDelete={() => handleDeleteBalance()}
+          isLoading={loadingBalance}
+        />
       </div>
     </div>
   );

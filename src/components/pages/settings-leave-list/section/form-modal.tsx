@@ -29,109 +29,57 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { LateDeductionValues, lateDeductionFormScheme } from '../types';
-import { DeductionRequest, LateDeductions } from '@/services/settings/types';
-import { useLateDeduction } from '../hook';
-import { MultiSelect } from '@/components/ui/multi-select';
+import { LeaveBalanceType, leaveBalanceFormScheme } from '../types';
+import { LeaveBalanceItem } from '@/services/settings/types';
+import { useLeaveManagement } from '../hook';
+import { days, month } from '@/lib/utils';
 
-interface LateDeductionFormProps {
+interface LeaveBalanceFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  initialData: LateDeductions | undefined;
+  initialData: LeaveBalanceItem | undefined;
   handleClose: () => void;
   isLoading?: boolean;
 }
 
-export default function LateDeductionForm({
+export default function LeaveBalanceForm({
   open,
   onOpenChange,
   initialData,
   handleClose,
   isLoading,
-}: LateDeductionFormProps) {
-  const { shiftOptions } = useLateDeduction();
-  const { handleSaveLateDeduction } = useLateDeduction();
+}: LeaveBalanceFormProps) {
+  const { handleSaveLeaveBalance, jobLevel } = useLeaveManagement();
 
-  const form = useForm<LateDeductionValues>({
-    resolver: zodResolver(lateDeductionFormScheme),
-    mode: 'onChange', // validate on change so Save button can disable live
-    defaultValues: {
-      shift_id: [],
-      duration_type: 'lte',
-      min_minutes: 0,
-      payroll_amount: undefined,
-      leave_impact: undefined,
-      is_payroll_deduction: false,
-      is_leave_impact: false,
-      priority: 1,
-      is_active: true,
-      starts_on: '',
-      ends_on: '',
-      note: '',
-    },
-  });
-
-  const DEFAULT_VALUES: LateDeductionValues = {
-    shift_id: [],
-    duration_type: 'lte',
-    min_minutes: 0,
-    payroll_amount: undefined,
-    leave_impact: 'half_day',
-    is_payroll_deduction: false,
-    is_leave_impact: false,
-    priority: 1,
-    is_active: true,
-    starts_on: '',
-    ends_on: '',
-    note: '',
+  const DEFAULT_VALUES: LeaveBalanceType = {
+    job_level_id: 0,
+    balance: 0,
+    reset_period_day: 1,
+    reset_period_month: 1,
   };
+
+  const form = useForm<LeaveBalanceType>({
+    resolver: zodResolver(leaveBalanceFormScheme),
+    mode: 'onChange',
+    defaultValues: DEFAULT_VALUES,
+  });
 
   useEffect(() => {
     if (initialData) {
-      console.log(initialData);
       form.reset({
-        shift_id: initialData.shift.map((item) => String(item.id)) ?? [],
-        duration_type: initialData.duration_type ?? 'lte',
-        min_minutes: initialData.min_minutes ?? 0,
-        payroll_amount: initialData.is_payroll_deduction
-          ? Number(initialData.payroll_amount)
-          : undefined,
-        leave_impact: initialData.is_leave_impact
-          ? initialData.leave_impact
-          : undefined,
-        is_payroll_deduction: initialData.is_payroll_deduction ?? false,
-        is_leave_impact: initialData.is_leave_impact ?? false,
-        priority: initialData.priority ?? 1,
-        is_active: initialData.is_active ?? true,
-        starts_on: initialData.starts_on ?? '',
-        ends_on: initialData.ends_on ?? '',
-        note: initialData.note ?? '',
+        job_level_id: initialData.job_level_id,
+        balance: initialData.balance,
+        reset_period_day: initialData.reset_period_day,
+        reset_period_month: initialData.reset_period_month,
       });
     } else {
       form.reset(DEFAULT_VALUES);
     }
   }, [initialData, form]);
 
-  const onSubmit = (data: LateDeductionValues) => {
-    const payload: DeductionRequest = {
-      shift_id: data.shift_id.map(Number),
-      duration_type: data.duration_type,
-      min_minutes: data.min_minutes,
-      leave_impact: data.leave_impact,
-      payroll_amount: data.is_payroll_deduction
-        ? (data.payroll_amount ?? 0)
-        : 0,
-      is_payroll_deduction: data.is_payroll_deduction,
-      priority: data.priority,
-      is_active: data.is_active,
-      starts_on: data.starts_on || '',
-      ends_on: data.ends_on || '',
-      note: data.note || '',
-      is_leave_impact: data.leave_impact === 'half_day' ? true : false,
-    };
-
+  const onSubmit = (data: LeaveBalanceType) => {
     onOpenChange(false);
-    handleSaveLateDeduction(initialData?.id, payload);
+    handleSaveLeaveBalance(initialData?.id, data);
   };
 
   return (
@@ -140,8 +88,8 @@ export default function LateDeductionForm({
         <AlertDialogHeader>
           <AlertDialogTitle>
             {initialData !== undefined
-              ? 'Edit Deduction Rules'
-              : 'Add Deduction Rules'}
+              ? 'Edit Leave Balance'
+              : 'Add Leave Balance'}
           </AlertDialogTitle>
         </AlertDialogHeader>
 
@@ -154,30 +102,28 @@ export default function LateDeductionForm({
               {/* Department Name */}
               <FormField
                 control={form.control}
-                name="duration_type"
+                name="job_level_id"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Duration Type <span className="text-red-500">*</span>
+                      Job Level <span className="text-red-500">*</span>
                     </FormLabel>
                     <FormControl>
                       <Select
-                        onValueChange={field.onChange}
-                        value={field.value}
-                        defaultValue={field.value}
+                        onValueChange={(e) => {
+                          field.onChange(e === '' ? undefined : Number(e));
+                        }}
+                        value={String(field.value)}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Select option" />
+                          <SelectValue placeholder="Select job level" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="lte">
-                            Less than or equal to
-                          </SelectItem>
-                          <SelectItem value="eq">Equals to</SelectItem>
-                          <SelectItem value="gte">
-                            More than or equals to
-                          </SelectItem>
-                          <SelectItem value="range">range</SelectItem>
+                          {jobLevel?.data.map((item, i) => (
+                            <SelectItem value={String(item.id)} key={i}>
+                              {item.name}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </FormControl>
@@ -189,11 +135,11 @@ export default function LateDeductionForm({
               {/* Duration Time */}
               <FormField
                 control={form.control}
-                name="min_minutes"
+                name="balance"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Duration Time <span className="text-red-500">*</span>
+                      Balance <span className="text-red-500">*</span>
                     </FormLabel>
                     <FormControl>
                       <Input
@@ -215,54 +161,31 @@ export default function LateDeductionForm({
               />
             </div>
 
-            {/* Shift */}
+            {/* Reset Day */}
             <FormField
               control={form.control}
-              name="shift_id"
-              render={({ field }) => (
-                <FormItem>
-                  <div className="flex flex-col gap-2">
-                    <label className="text-sm text-text-secondary">
-                      Asign Shift <span className="text-red-500">*</span>
-                    </label>
-                    <MultiSelect
-                      placeholder="Select"
-                      options={shiftOptions}
-                      defaultValue={field.value ?? []}
-                      onValueChange={field.onChange}
-                      maxCount={5}
-                      variant="inverted"
-                      {...field}
-                    />
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Payroll Deduction */}
-            <FormField
-              control={form.control}
-              name="is_payroll_deduction"
+              name="reset_period_day"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    Payroll Impact <span className="text-red-500">*</span>
+                    Reset Period Day <span className="text-red-500">*</span>
                   </FormLabel>
                   <FormControl>
                     <Select
-                      onValueChange={(val) => field.onChange(val === 'true')}
-                      value={field.value?.toString()}
-                      defaultValue={field.value?.toString()}
+                      onValueChange={(e) => {
+                        field.onChange(e === '' ? undefined : Number(e));
+                      }}
+                      value={String(field.value)}
                     >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select option" />
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select month" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="false">No Deduction</SelectItem>
-                        <SelectItem value="true">
-                          Fixed Deduction Amount
-                        </SelectItem>
+                        {days.map((item, i) => (
+                          <SelectItem value={String(item.id)} key={i}>
+                            {item.label}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </FormControl>
@@ -271,60 +194,31 @@ export default function LateDeductionForm({
               )}
             />
 
-            {/* Payroll Amount (conditional) */}
-            {form.watch('is_payroll_deduction') && (
-              <FormField
-                control={form.control}
-                name="payroll_amount"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Deduction Amount</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        placeholder="0"
-                        value={field.value ?? ''}
-                        onChange={(e) =>
-                          field.onChange(
-                            e.target.value === ''
-                              ? undefined
-                              : Number(e.target.value),
-                          )
-                        }
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-
-            {/* Leave Deduction */}
+            {/* Reset Month */}
             <FormField
               control={form.control}
-              name="leave_impact"
+              name="reset_period_month"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    Leave Impact <span className="text-red-500">*</span>
+                    Reset Period Month <span className="text-red-500">*</span>
                   </FormLabel>
                   <FormControl>
                     <Select
-                      onValueChange={field.onChange}
-                      value={field.value}
-                      defaultValue={field.value}
+                      onValueChange={(e) => {
+                        field.onChange(e === '' ? undefined : Number(e));
+                      }}
+                      value={String(field.value)}
                     >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select option" />
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select month" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="false">No Deduction</SelectItem>
-                        <SelectItem value="half_day">
-                          Convert to Half Day Leave
-                        </SelectItem>
-                        <SelectItem value="full_day">
-                          Convert to Full Day Leave
-                        </SelectItem>
+                        {month.map((item, i) => (
+                          <SelectItem value={String(item.id)} key={i}>
+                            {item.label}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </FormControl>

@@ -7,7 +7,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import Image from 'next/image';
 
-export default function LateDeductionDelete({
+export default function LeaveBalanceDelete({
   open,
   onOpenChange,
   onDelete,
@@ -25,19 +25,17 @@ export default function LateDeductionDelete({
           {/* Warning Icon (SVG) */}
           <span className="mb-2">
             <Image
-              src={'/icons/delete.svg'}
+              src={'/icons/deleteContained.svg'}
               width={50}
               height={50}
               alt={`icon-delete`}
             />
           </span>
           <AlertDialogTitle className="text-xl font-bold mb-2">
-            Are you sure you want to delete this rules?
+            Are you sure you want to delete this leave balance configuration?
           </AlertDialogTitle>
           <div className="text-gray-600 text-sm mb-4">
-            Deleting this rules may affect any existing rules mappings linked to
-            it. If mappings have been set up, you’ll need to reassign affected
-            positions manually.
+            Employees linked to this configuration may be affected
           </div>
         </div>
         <AlertDialogFooter className="flex flex-row gap-4 w-full justify-center">
@@ -46,7 +44,7 @@ export default function LateDeductionDelete({
             onClick={onDelete}
             isLoading={isLoading}
           >
-            Delete
+            Delete Configuration
           </Button>
           <Button
             className="w-1/2 bg-[#18618B] hover:bg-[#14506e] text-white font-medium py-2 rounded-lg"
