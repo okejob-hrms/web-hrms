@@ -11,6 +11,8 @@ import { ContactOfReferenceSection } from "../../employee-management-form/sectio
 import { IEmployeeDetailsResponse } from "@/services/employees/types";
 import { getEmployeeDetail } from "@/services/employees";
 import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import { Upload } from "lucide-react";
 
 dayjs.extend(localizedFormat);
 
@@ -272,6 +274,13 @@ export const PersonalInformationDetail = React.memo(
           <h2 className="font-semibold text-lg md:col-span-3">
             Personal Information
           </h2>
+          <div className="flex flex-col md:col-span-3 gap-2">
+            <p className="text-sm text-text-disabled">Face Recognition</p>
+            <Button variant="outline" className="w-52">
+              <Upload /> Upload Face Recognition
+            </Button>
+            {/* <CardItem /> */}
+          </div>
           <div className="flex flex-col">
             <p className="text-sm text-text-disabled">User Role</p>
             <p>{safeGet(data.employment?.job_level?.name)}</p>

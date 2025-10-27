@@ -1,36 +1,36 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import { useFormContext } from 'react-hook-form';
+import * as React from "react";
+import { useFormContext } from "react-hook-form";
 import {
   FormControl,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { cn, stringAvatar } from '@/lib/utils';
+} from "@/components/ui/form";
+import { cn, stringAvatar } from "@/lib/utils";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Command as CommandPrimitive, useCommandState } from 'cmdk';
-import { forwardRef } from 'react';
-import { OptionFormProps, SelectFilterProps } from '@/lib/types';
-import { Avatar, AvatarFallback, AvatarImage } from './avatar';
-import { Popover, PopoverContent, PopoverTrigger } from './popover';
-import { Button } from './button';
-import { Check, ChevronDown } from 'lucide-react';
+} from "@/components/ui/select";
+import { Command as CommandPrimitive, useCommandState } from "cmdk";
+import { forwardRef } from "react";
+import { OptionFormProps, SelectFilterProps } from "@/lib/types";
+import { Avatar, AvatarFallback, AvatarImage } from "./avatar";
+import { Popover, PopoverContent, PopoverTrigger } from "./popover";
+import { Button } from "./button";
+import { Check, ChevronDown } from "lucide-react";
 import {
   Command,
   CommandGroup,
   CommandInput,
   CommandItem,
   CommandList,
-} from './command';
+} from "./command";
 
 const SelectForm: React.FC<OptionFormProps> = ({
   name,
@@ -53,11 +53,11 @@ const SelectForm: React.FC<OptionFormProps> = ({
         const value =
           field.value !== undefined && field.value !== null
             ? field.value.toString()
-            : '';
+            : "";
         return (
           <FormItem className={formItemClassName}>
             {label && (
-              <FormLabel className={cn('text-sm font-normal', labelClassName)}>
+              <FormLabel className={cn("text-sm font-normal", labelClassName)}>
                 {label}
                 {isOptional && (
                   <span className="text-text-disabled"> (optional)</span>
@@ -67,7 +67,7 @@ const SelectForm: React.FC<OptionFormProps> = ({
             <FormControl>
               <Select
                 onValueChange={(value) => {
-                  if (type === 'number') {
+                  if (type === "number") {
                     field.onChange(Number(value));
                   } else {
                     field.onChange(value);
@@ -78,7 +78,7 @@ const SelectForm: React.FC<OptionFormProps> = ({
               >
                 <FormControl>
                   <SelectTrigger className={className}>
-                    <SelectValue placeholder={placeholder ?? 'Select'} />
+                    <SelectValue placeholder={placeholder ?? "Select"} />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
@@ -306,7 +306,7 @@ const SelectEmployeeForm: React.FC<OptionFormProps> = ({
   type,
 }) => {
   const { control } = useFormContext();
-  const [searchValue, setSearchValue] = React.useState('');
+  const [searchValue, setSearchValue] = React.useState("");
   const [open, setOpen] = React.useState(false);
 
   const filteredOptions = React.useMemo(() => {
@@ -327,7 +327,7 @@ const SelectEmployeeForm: React.FC<OptionFormProps> = ({
         const value =
           field.value !== undefined && field.value !== null
             ? field.value.toString()
-            : '';
+            : "";
 
         const selectedItem = options.find(
           (option) => option.value.toString() === value,
@@ -336,7 +336,7 @@ const SelectEmployeeForm: React.FC<OptionFormProps> = ({
         return (
           <FormItem className={formItemClassName}>
             {label && (
-              <FormLabel className={cn('text-sm font-normal', labelClassName)}>
+              <FormLabel className={cn("text-sm font-normal", labelClassName)}>
                 {label}
                 {isOptional && (
                   <span className="text-text-disabled"> (optional)</span>
@@ -351,7 +351,7 @@ const SelectEmployeeForm: React.FC<OptionFormProps> = ({
                     role="combobox"
                     aria-expanded={open}
                     className={cn(
-                      'w-full justify-between h-auto min-h-[40px] p-3',
+                      "w-full justify-between h-auto min-h-[40px] p-3",
                       className,
                     )}
                   >
@@ -371,14 +371,14 @@ const SelectEmployeeForm: React.FC<OptionFormProps> = ({
                           <span className="text-foreground text-base">
                             {selectedItem.label}
                           </span>
-                          <span className="text-text-disabled text-xs">
-                            {selectedItem.subtitle ?? '-'}
+                          <span className="text-text-disabled text-xs font-normal">
+                            {selectedItem.subtitle ?? "-"}
                           </span>
                         </div>
                       </div>
                     ) : (
                       <span className="text-muted-foreground">
-                        {placeholder ?? 'Select'}
+                        {placeholder ?? "Select"}
                       </span>
                     )}
                     <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -403,16 +403,16 @@ const SelectEmployeeForm: React.FC<OptionFormProps> = ({
                             value={item.value.toString()}
                             onSelect={(currentValue) => {
                               const newValue =
-                                currentValue === value ? '' : currentValue;
-                              if (type === 'number') {
+                                currentValue === value ? "" : currentValue;
+                              if (type === "number") {
                                 field.onChange(
-                                  newValue ? Number(newValue) : '',
+                                  newValue ? Number(newValue) : "",
                                 );
                               } else {
                                 field.onChange(newValue);
                               }
                               setOpen(false);
-                              setSearchValue('');
+                              setSearchValue("");
                             }}
                             className="flex items-center gap-3 p-3"
                           >
@@ -431,15 +431,15 @@ const SelectEmployeeForm: React.FC<OptionFormProps> = ({
                                 {item.label}
                               </span>
                               <span className="text-text-disabled text-xs">
-                                {item.subtitle ?? '-'}
+                                {item.subtitle ?? "-"}
                               </span>
                             </div>
                             <Check
                               className={cn(
-                                'ml-auto h-4 w-4',
+                                "ml-auto h-4 w-4",
                                 value === item.value.toString()
-                                  ? 'opacity-100'
-                                  : 'opacity-0',
+                                  ? "opacity-100"
+                                  : "opacity-0",
                               )}
                             />
                           </CommandItem>
@@ -469,7 +469,7 @@ const CommandEmpty = forwardRef<
   return (
     <div
       ref={forwardedRef}
-      className={cn('py-6 text-center text-sm', className)}
+      className={cn("py-6 text-center text-sm", className)}
       cmdk-empty=""
       role="presentation"
       {...props}
@@ -477,6 +477,6 @@ const CommandEmpty = forwardRef<
   );
 });
 
-CommandEmpty.displayName = 'CommandEmpty';
+CommandEmpty.displayName = "CommandEmpty";
 
 export { SelectForm, SelectFilter, SelectEmployeeForm };

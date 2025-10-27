@@ -1,11 +1,26 @@
-'use client';
+"use client";
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { getBranches, getLateDeduction, getShift, getWorkingSchedule, postDeduction, putDeduction, removeDeduction } from '@/services/settings';
-import { DeductionRequest, ICompanyBranches, LateDeductions, ShiftResponse, WorkScheduleReq, WorkScheduleResponse } from '@/services/settings/types';
-import { PaginatedResponse } from '@/lib/types';
-import { useCallback, useEffect, useState } from 'react';
-import { toast } from 'sonner';
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  getBranches,
+  getLateDeduction,
+  getShift,
+  getWorkingSchedule,
+  postDeduction,
+  putDeduction,
+  removeDeduction,
+} from "@/services/settings";
+import {
+  DeductionRequest,
+  ICompanyBranches,
+  LateDeductions,
+  ShiftResponse,
+  WorkScheduleReq,
+  WorkScheduleResponse,
+} from "@/services/settings/types";
+import { PaginatedResponse } from "@/lib/types";
+import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
 
 // =======================
 // Types lokal untuk UI
@@ -43,23 +58,27 @@ export interface AttendanceConfigData {
   max_late_tolerance: number;
   workingHours: WorkingHour[];
   rawWorkSchedules: WorkScheduleReq[];
+  enable_late_deduction?: boolean;
 }
-
 
 // =======================
 // Hook
 // =======================
 export function useAttendance() {
-  const [selectedBranch, setSelectedBranch] = useState('');
+  const [selectedBranch, setSelectedBranch] = useState("");
 
   const { data: shiftData } = useQuery<ShiftResponse>({
-    queryKey: ['shift'],
+    queryKey: ["shift"],
     queryFn: getShift,
     staleTime: 1000 * 60 * 5,
   });
 
-  const attendanceQuery = useQuery<WorkScheduleResponse, Error, AttendanceConfigData>({
-    queryKey: ['workingSchedule', selectedBranch],
+  const attendanceQuery = useQuery<
+    WorkScheduleResponse,
+    Error,
+    AttendanceConfigData
+  >({
+    queryKey: ["workingSchedule", selectedBranch],
     queryFn: () => getWorkingSchedule(selectedBranch),
     enabled: !!selectedBranch,
     select: (res) => {
@@ -72,21 +91,21 @@ export function useAttendance() {
           ? day.schedules.map((s) => ({
               day: day.day_name,
               shift:
-                shiftData?.data.find((a) => a.id === s.shift_id)?.name ?? 'Off',
+                shiftData?.data.find((a) => a.id === s.shift_id)?.name ?? "Off",
               workingHours: `${s.start_time} - ${s.end_time}`,
               break:
                 s.break_start_time && s.break_end_time
                   ? `${s.break_start_time} - ${s.break_end_time}`
-                  : '-',
+                  : "-",
             }))
           : [
               {
                 day: day.day_name,
-                shift: 'Off',
-                workingHours: '-',
-                break: '-',
+                shift: "Off",
+                workingHours: "-",
+                break: "-",
               },
-            ]
+            ],
       );
 
       const rawWorkSchedules = c.schedules.map((day) => ({
@@ -96,13 +115,18 @@ export function useAttendance() {
           shift_name:
             s.shift?.name ??
             shiftData?.data.find((sh) => sh.id === s.shift_id)?.name ??
-            'Unknown',
+            "Unknown",
         })),
       }));
 
-      return { late_tolerance, max_late_tolerance, workingHours, rawWorkSchedules };
+      return {
+        late_tolerance,
+        max_late_tolerance,
+        workingHours,
+        rawWorkSchedules,
+      };
     },
-    refetchOnMount: 'always',
+    refetchOnMount: "always",
     refetchOnWindowFocus: true,
   });
 
@@ -118,7 +142,7 @@ export function useLateDeduction() {
   const [openDelete, setOpenDelete] = useState(false);
   const [loadingSave, setLoadingSave] = useState(false);
   const [selectedData, setSelectedData] = useState<LateDeductions>();
-    const [branches, setBranches] = useState<ICompanyBranches[]>([]);
+  const [branches, setBranches] = useState<ICompanyBranches[]>([]);
   const [loading, setLoading] = useState(false);
   const queryClient = useQueryClient();
 
@@ -187,7 +211,11 @@ export function useLateDeduction() {
   });
 
   // mutation untuk delete
-  const deleteMutation = useMutation<PaginatedResponse<LateDeductions>, Error, number>({
+  const deleteMutation = useMutation<
+    PaginatedResponse<LateDeductions>,
+    Error,
+    number
+  >({
     mutationFn: (id) => removeDeduction(id),
     onSuccess: () => {
       setOpenDelete(false);
@@ -200,7 +228,6 @@ export function useLateDeduction() {
       toast.error(`Failed to delete: ${err.message}`);
     },
   });
-
 
   const handleEdit = (item: LateDeductions) => {
     setSelectedData(item);
@@ -223,7 +250,10 @@ export function useLateDeduction() {
     setOpen(true);
   };
 
-  const handleSaveLateDeduction = (id: number | undefined, data: DeductionRequest) => {
+  const handleSaveLateDeduction = (
+    id: number | undefined,
+    data: DeductionRequest,
+  ) => {
     saveMutation.mutate({ id, data });
   };
 
@@ -250,4 +280,3 @@ export function useLateDeduction() {
     loading,
   };
 }
-

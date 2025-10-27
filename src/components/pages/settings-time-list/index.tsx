@@ -1,26 +1,26 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import { Button } from '@/components/ui/button';
-import { DataTable } from '@/components/tables/data-table';
-import { ColumnDef } from '@tanstack/react-table';
-import { Icon } from '@/components/ui/icon';
-import { Edit3, Plus } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useAttendance, useLateDeduction, WorkingHour } from './hook';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { cn } from '@/lib/utils';
-import { LateDeductions } from '@/services/settings/types';
-import { RowActions } from '@/components/tables/row-actions';
-import LateDeductionForm from './section/form-modal';
-import LateDeductionDelete from './section/delete-modal';
+import * as React from "react";
+import { Button } from "@/components/ui/button";
+import { DataTable } from "@/components/tables/data-table";
+import { ColumnDef } from "@tanstack/react-table";
+import { Icon } from "@/components/ui/icon";
+import { Edit3, Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useAttendance, useLateDeduction, WorkingHour } from "./hook";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
+import { LateDeductions } from "@/services/settings/types";
+import { RowActions } from "@/components/tables/row-actions";
+import LateDeductionForm from "./section/form-modal";
+import LateDeductionDelete from "./section/delete-modal";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 
 export default function SettingsAttendanceConfiguration() {
   const router = useRouter();
@@ -39,7 +39,6 @@ export default function SettingsAttendanceConfiguration() {
     setOpenDelete,
     handleDeleteConfirm,
     branches,
-    loading,
   } = useLateDeduction();
 
   const { data, isLoading, isError, setSelectedBranch, selectedBranch } =
@@ -63,8 +62,8 @@ export default function SettingsAttendanceConfiguration() {
   // =======================
   const columns: ColumnDef<WorkingHour>[] = [
     {
-      id: 'day',
-      header: 'Day',
+      id: "day",
+      header: "Day",
       size: 160,
       cell: ({ row, table }) => {
         const day = row.original.day;
@@ -83,15 +82,15 @@ export default function SettingsAttendanceConfiguration() {
         return null;
       },
     },
-    { accessorKey: 'shift', header: 'Shift', size: 160 },
-    { accessorKey: 'workingHours', header: 'Working Hours', size: 200 },
-    { accessorKey: 'break', header: 'Break', size: 160 },
+    { accessorKey: "shift", header: "Shift", size: 160 },
+    { accessorKey: "workingHours", header: "Working Hours", size: 200 },
+    { accessorKey: "break", header: "Break", size: 160 },
   ];
 
   const lateDeductionColumn: ColumnDef<LateDeductions>[] = [
     {
-      accessorKey: 'duration_type_label',
-      header: 'Late Duration',
+      accessorKey: "duration_type_label",
+      header: "Late Duration",
       size: 160,
       cell: ({ row }) => {
         const { duration_type_label, min_minutes } = row.original;
@@ -99,23 +98,23 @@ export default function SettingsAttendanceConfiguration() {
       },
     },
     {
-      accessorKey: 'shift',
-      header: 'Impacted Shift',
+      accessorKey: "shift",
+      header: "Impacted Shift",
       size: 200,
       cell: ({ row }) => {
         const shifts = row.original.shift ?? [];
-        return shifts.map((s) => s.name).join(', ') || '-';
+        return shifts.map((s) => s.name).join(", ") || "-";
       },
     },
     {
-      accessorKey: 'payroll_amount_formatted',
-      header: 'Payroll Impact',
+      accessorKey: "payroll_amount_formatted",
+      header: "Payroll Impact",
       size: 200,
     },
-    { accessorKey: 'leave_impact_label', header: 'Leave Impact', size: 160 },
+    { accessorKey: "leave_impact_label", header: "Leave Impact", size: 160 },
     {
-      id: 'actions',
-      header: '',
+      id: "actions",
+      header: "",
       size: 80,
       cell: ({ row }) => {
         const item = row.original;
@@ -136,9 +135,9 @@ export default function SettingsAttendanceConfiguration() {
   ];
 
   const goToEdit = () => {
-    localStorage.setItem('dataBranch', JSON.stringify(data));
-    localStorage.setItem('branch', JSON.stringify(selectedBranch));
-    router.push('/settings/time-attendance/attendance-configuration/edit');
+    localStorage.setItem("dataBranch", JSON.stringify(data));
+    localStorage.setItem("branch", JSON.stringify(selectedBranch));
+    router.push("/settings/time-attendance/attendance-configuration/edit");
   };
 
   const WorkingHour = () => {
@@ -163,13 +162,13 @@ export default function SettingsAttendanceConfiguration() {
         <div className="grid grid-cols-3 sm:grid-cols-1 gap-4">
           <div className="space-y-2">
             <div className="text-gray-500">Grace Period (Late Tolerance)</div>
-            <div className="text-gray-500">{late_tolerance ?? '-'} minutes</div>
+            <div className="text-gray-500">{late_tolerance ?? "-"} minutes</div>
           </div>
 
           <div className="space-y-2">
             <div className="text-gray-500">Absent After</div>
             <div className="text-gray-500">
-              {max_late_tolerance ?? '-'} minutes after start shift
+              {max_late_tolerance ?? "-"} minutes after start shift
             </div>
           </div>
         </div>
@@ -200,14 +199,14 @@ export default function SettingsAttendanceConfiguration() {
 
   const tabs = [
     {
-      name: 'Working Hours',
-      value: 'working-hours',
+      name: "Working Hours",
+      value: "working-hours",
       content: <WorkingHour />,
       icon: <Icon name="userSolid" size={18} color="currentColor" />,
     },
     {
-      name: 'Late Deduction Rules',
-      value: 'late-deduction-rules',
+      name: "Late Deduction Rules",
+      value: "late-deduction-rules",
       content: <LateDeduction />,
       icon: <Icon name="documentOutlined" size={18} color="currentColor" />,
     },
@@ -248,8 +247,8 @@ export default function SettingsAttendanceConfiguration() {
                     key={tab.value}
                     value={tab.value}
                     className={cn(
-                      'px-2.5 sm:px-3 text-secondary-hover',
-                      'data-[state=active]:bg-secondary data-[state=active]:text-white',
+                      "px-2.5 sm:px-3 text-secondary-hover",
+                      "data-[state=active]:bg-secondary data-[state=active]:text-white",
                     )}
                   >
                     <code className="flex items-center gap-1 text-[13px] [&>svg]:h-4 [&>svg]:w-4">

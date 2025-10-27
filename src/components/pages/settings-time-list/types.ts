@@ -20,14 +20,11 @@ export const lateDeductionFormScheme = z
     {
       message: "Payroll amount is required when payroll deduction is enabled",
       path: ["payroll_amount"],
-    }
+    },
   )
-  .refine(
-    (data) => !data.is_leave_impact || !!data.leave_impact,
-    {
-      message: "Leave impact is required when leave impact is enabled",
-      path: ["leave_impact"],
-    }
-  );
+  .refine((data) => !data.is_leave_impact || !!data.leave_impact, {
+    message: "Leave impact is required when leave impact is enabled",
+    path: ["leave_impact"],
+  });
 
 export type LateDeductionValues = z.infer<typeof lateDeductionFormScheme>;

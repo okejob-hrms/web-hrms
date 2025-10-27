@@ -62,7 +62,7 @@ export const menus: Record<string, MenuItem[]> = {
         },
       ],
     },
-    { name: "Leave Management", value: "settings/leave-management" },
+    { name: "Leave Configuration", value: "settings/leave-configuration" },
     { name: "Form Template", value: "settings/form-template" },
     {
       name: "Salary Management",
@@ -108,6 +108,7 @@ export const getHideSidebar = (path: string) => {
     "/settings/company/company-profile/edit",
     "/employee/organization/structure/edit",
     "/attendance/attendance-tracker/",
+    "/attendance/leave-request/add",
     "/settings/time-attendance/attendance-configuration/edit",
     "/settings/time-attendance/overtime-configuration/edit",
     "/settings/form-template/add",
