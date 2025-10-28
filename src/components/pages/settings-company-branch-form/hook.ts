@@ -1,14 +1,20 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import z from "zod";
 import { uploadAttachment } from "@/services/attachments";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
-import { postAddBranch } from "@/services/settings";
+import { usePathname, useRouter } from "next/navigation";
+import {
+  getBranchDetails,
+  postAddBranch,
+  putEditBranch,
+} from "@/services/settings";
 import { ApiErrorResponse } from "@/lib/types";
+import { countryCodes, getDefaultCountryCode } from "@/lib/country-codes";
+import { parsePhoneNumber } from "@/lib/phone-utils";
 
 export const formSchema = z.object({
   is_primary: z.boolean(),
@@ -61,6 +67,9 @@ export const defaultValues: CompanyBranchFormSchema = {
 export function useCompanyBranchForm() {
   const queryClient = useQueryClient();
   const router = useRouter();
+  const path = usePathname();
+  const pathname = path.split("/");
+  const id = pathname[5];
   const defaultMap = {
     lat: -6.2088,
     lng: 106.8456,
@@ -80,10 +89,71 @@ export function useCompanyBranchForm() {
   });
   const [location, setLocation] = React.useState("");
 
+  const isEditMode = Boolean(id);
+
   const form = useForm<CompanyBranchFormSchema>({
     resolver: zodResolver(formSchema),
     defaultValues,
   });
+
+  const { data: branchDetailData, isLoading: isLoadingBranchDetails } =
+    useQuery({
+      queryKey: ["branch-details", id],
+      queryFn: () => getBranchDetails(Number(id)),
+      enabled: isEditMode,
+    });
+
+  React.useEffect(() => {
+    if (branchDetailData?.data && isEditMode) {
+      const branchData = branchDetailData.data;
+
+      let phoneWithoutCountryCode = branchData.phone || "";
+      let detectedCountryCode = getDefaultCountryCode();
+
+      if (branchData.phone) {
+        const parsedPhone = parsePhoneNumber(branchData.phone);
+        detectedCountryCode = parsedPhone.countryCode;
+        phoneWithoutCountryCode = parsedPhone.phoneNumber;
+      }
+
+      const formData = {
+        is_primary: branchData.is_primary || false,
+        name: branchData.name || "",
+        legal_entity_name: branchData.legal_entity_name || "",
+        industry: branchData.industry || "",
+        email: branchData.email || "",
+        phone: `${detectedCountryCode}${phoneWithoutCountryCode}`,
+        logo: branchData.logo || "",
+        business_registration_number:
+          branchData.business_registration_number || "",
+        website: branchData.website || "",
+        address: branchData.address || "",
+        payroll_bank_name: branchData.payroll_bank_name || "",
+        payroll_bank_account_number:
+          branchData.payroll_bank_account_number || "",
+        payroll_bank_account_name: branchData.payroll_bank_account_name || "",
+        payroll_currency: branchData.payroll_currency || "",
+        latitude: branchData.latitude || "",
+        longitude: branchData.longitude || "",
+        max_radius: branchData.max_radius || 0,
+      };
+
+      form.reset(formData);
+
+      if (branchData.latitude && branchData.longitude) {
+        const lat = Number(branchData.latitude);
+        const lng = Number(branchData.longitude);
+        setMap({ lat, lng });
+        setSelectedMap({ lat, lng });
+      }
+
+      if (branchData.logo) {
+        setPreviewPhotoProfile(
+          `${process.env.NEXT_PUBLIC_FILE_URL}/${branchData.logo}`,
+        );
+      }
+    }
+  }, [branchDetailData, isEditMode, form]);
 
   const { mutate: addBranch, isPending: isPendingAddBranch } = useMutation({
     mutationFn: postAddBranch,
@@ -93,36 +163,54 @@ export function useCompanyBranchForm() {
       router.push("/settings/company/company-branch");
     },
     onError: (error: any) => {
-      if (error?.response) {
-        try {
-          error.response
-            .json()
-            .then((errorData: ApiErrorResponse) => {
-              if (errorData.errors) {
-                Object.entries(errorData.errors).forEach(
-                  ([fieldName, messages]) => {
-                    form.setError(fieldName as any, {
-                      type: "server",
-                      message: messages[0],
-                    });
-                  },
-                );
-              }
-              toast.error(errorData.message || "Failed to add branch");
-            })
-            .catch(() => {
-              toast.error("Failed to add branch: Server error");
-            });
-        } catch (parseError) {
-          toast.error("Failed to add branch: Server error");
-        }
-      } else {
-        toast.error(
-          `Failed to add branch: ${error.message || "Unknown error"}`,
-        );
-      }
+      handleApiError(error, "add");
     },
   });
+
+  const { mutate: editBranch, isPending: isPendingEditBranch } = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: any }) =>
+      putEditBranch(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["company-branches"] });
+      queryClient.invalidateQueries({ queryKey: ["branch-details", id] });
+      toast.success("Update branch successfully.");
+      router.push("/settings/company/company-branch");
+    },
+    onError: (error: any) => {
+      handleApiError(error, "update");
+    },
+  });
+
+  const handleApiError = (error: any, action: "add" | "update") => {
+    if (error?.response) {
+      try {
+        error.response
+          .json()
+          .then((errorData: ApiErrorResponse) => {
+            if (errorData.errors) {
+              Object.entries(errorData.errors).forEach(
+                ([fieldName, messages]) => {
+                  form.setError(fieldName as any, {
+                    type: "server",
+                    message: messages[0],
+                  });
+                },
+              );
+            }
+            toast.error(errorData.message || `Failed to ${action} branch`);
+          })
+          .catch(() => {
+            toast.error(`Failed to ${action} branch: Server error`);
+          });
+      } catch (parseError) {
+        toast.error(`Failed to ${action} branch: Server error`);
+      }
+    } else {
+      toast.error(
+        `Failed to ${action} branch: ${error.message || "Unknown error"}`,
+      );
+    }
+  };
 
   const { mutate: uploadPhotoProfile, isPending: isPendingPhotoProfile } =
     useMutation({
@@ -140,7 +228,6 @@ export function useCompanyBranchForm() {
 
   const handleSubmit = React.useCallback(
     (values: CompanyBranchFormSchema) => {
-      console.log("handleSubmit called with values:", values);
       try {
         const { max_radius, ...restValues } = values;
         const submitData = {
@@ -150,14 +237,17 @@ export function useCompanyBranchForm() {
           ...(max_radius && { max_radius }),
         };
 
-        console.log("Submitting data to API:", submitData);
-        addBranch(submitData);
+        if (isEditMode && id) {
+          editBranch({ id: Number(id), data: submitData });
+        } else {
+          addBranch(submitData);
+        }
       } catch (err) {
         console.error("Error on submit", err);
         toast.error("Failed to submit form");
       }
     },
-    [addBranch, map.lat, map.lng],
+    [addBranch, editBranch, map.lat, map.lng, isEditMode, id],
   );
 
   const handlePhoto = () => {
@@ -188,7 +278,6 @@ export function useCompanyBranchForm() {
   };
 
   const handleSetMap = () => {
-    console.log("call handleSetmap", selectedMap);
     setMap(selectedMap);
     form.setValue("latitude", selectedMap.lat.toString());
     form.setValue("longitude", selectedMap.lng.toString());
@@ -223,6 +312,7 @@ export function useCompanyBranchForm() {
     handleOpenAttendenceModal,
     addBranch,
     isPendingAddBranch,
+    isPendingEditBranch,
     selectedMap,
     setSelectedMap,
     handleSetMap,
@@ -233,5 +323,9 @@ export function useCompanyBranchForm() {
     defaultMap,
     location,
     setLocation,
+    branchDetails: branchDetailData?.data,
+    id,
+    isEditMode,
+    isLoadingBranchDetails,
   };
 }

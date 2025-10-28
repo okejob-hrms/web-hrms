@@ -235,6 +235,28 @@ export const postAddBranch = async (
   }
 };
 
+export const putEditBranch = async (
+  id: number,
+  params: IMutateCompanyBranchRequest,
+): Promise<ApiResponse<ICompanyBranches>> => {
+  try {
+    return api
+      .put(`setting/branch/${id}`, { json: params })
+      .json<ApiResponse<ICompanyBranches>>();
+  } catch (error: any) {
+    if (error.name === "HTTPError") {
+      const errorResponse = await error.response.json();
+      const enhancedError = new Error(error.message);
+      (enhancedError as any).response = {
+        json: () => Promise.resolve(errorResponse),
+        status: error.response.status,
+      };
+      throw enhancedError;
+    }
+    throw error;
+  }
+};
+
 export const deleteBranch = async (
   id: string,
 ): Promise<ApiResponse<ICompanyBranches>> => {

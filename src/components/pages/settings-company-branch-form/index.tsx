@@ -59,53 +59,16 @@ export const SettingsCompanyBranchForm = React.memo(
       }
     }, [form.watch("logo")]);
 
-    // Debug: Check if handleSubmit is available
-    console.log("handleSubmit available:", !!handleSubmit);
-
-    // Create the form submission handler
-    const onSubmit = React.useCallback(
-      (data: any) => {
-        console.log("Form submitted with data:", data);
-        handleSubmit(data);
-      },
-      [handleSubmit],
-    );
-
-    // Handle form submission directly
-    const handleFormSubmit = (e: React.FormEvent) => {
-      e.preventDefault();
-      console.log("Form submit event triggered");
-
-      form
-        .handleSubmit((data) => {
-          console.log("Form data validated:", data);
-          handleSubmit(data);
-        })(e)
-        .catch((error) => {
-          console.error("Form submission error:", error);
-        });
-    };
-
-    React.useEffect(() => {
-      const subscription = form.watch((value, { name, type }) => {
-        console.log("Form values:", value);
-        console.log("Form errors:", form.formState.errors);
-      });
-      return () => subscription.unsubscribe();
-    }, [form.watch, form.formState.errors]);
-
     return (
       <div className="font-sans md:px-[125px] px-4 space-y-4">
         <h2 className="font-semibold text-lg text-black">
           Company Information
         </h2>
         <Form {...form}>
-          {/* Change to use handleFormSubmit directly */}
           <form
             className="grid grid-cols-1 md:grid-cols-2 gap-3 items-start"
             onSubmit={(e) => {
               e.preventDefault();
-              console.log("Form submitted directly");
               form.handleSubmit(handleSubmit)();
             }}
             noValidate
@@ -162,6 +125,7 @@ export const SettingsCompanyBranchForm = React.memo(
             <SelectForm
               name="legal_entity_name"
               required
+              key={`legal_entity_${form.watch("legal_entity_name")}`}
               options={[
                 { label: "PT (Perseroan Terbatas)", value: "PT" },
                 { label: "CV", value: "CV" },
@@ -281,7 +245,6 @@ export const SettingsCompanyBranchForm = React.memo(
               <Button
                 type="button"
                 onClick={() => {
-                  console.log("Manual submit test");
                   form.handleSubmit(handleSubmit)();
                 }}
                 isLoading={isPendingAddBranch}

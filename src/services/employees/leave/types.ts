@@ -60,6 +60,8 @@ export interface IMutateLeaveRequest {
   attachment: string;
   approvers: {
     id: number;
+    user_id: number;
+    approver_type: string;
   }[];
 }
 

@@ -1433,7 +1433,7 @@ export const MultiSelectForm: React.FC<FormMultiSelectProps> = ({
   placeholder = "Select options",
   className,
   disabled,
-  defaultValue = [],
+  defaultValue,
   allSelectLabel,
   searchPlaceholder,
   valueTransformer,
@@ -1455,15 +1455,32 @@ export const MultiSelectForm: React.FC<FormMultiSelectProps> = ({
       name={name}
       render={({ field, fieldState }) => {
         const fieldValue = Array.isArray(field.value) ? field.value : [];
-        const displayValue = fieldValue.map((v: any) =>
-          typeof v === "number" ? v.toString() : v,
-        );
+        const displayValue = fieldValue
+          .map((v: any) => {
+            if (typeof v === "object" && v !== null) {
+              return v.id?.toString() || v.user_id?.toString() || "";
+            }
+            return v?.toString() || "";
+          })
+          .filter(Boolean);
+
         const handleValueChange = (values: string[]) => {
-          const transformedValues = valueTransformer
-            ? values.map(valueTransformer)
-            : values;
+          console.log("Selected string values:", values);
+
+          let transformedValues;
+          if (valueTransformer) {
+            transformedValues = values.map(valueTransformer);
+          } else {
+            transformedValues = values.map((value) => ({
+              id: Number(value),
+              user_id: Number(value),
+            }));
+          }
+
+          console.log("Transformed values:", transformedValues);
           field.onChange(transformedValues);
         };
+
         return (
           <FormItem className="space-y-2">
             {label && (
@@ -1480,7 +1497,6 @@ export const MultiSelectForm: React.FC<FormMultiSelectProps> = ({
               <MultiSelect
                 options={options}
                 value={displayValue}
-                defaultValue={defaultValue as string[]}
                 onValueChange={handleValueChange}
                 placeholder={placeholder}
                 disabled={disabled || form.formState.isSubmitting}

@@ -7,6 +7,7 @@ import { getLeaveTypes } from "@/services/employees/leave-types";
 import { IMutateLeaveRequest } from "@/services/employees/leave/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import dayjs from "dayjs";
 import { useRouter } from "next/navigation";
 import * as React from "react";
 import { useForm } from "react-hook-form";
@@ -17,14 +18,15 @@ import { z } from "zod";
 export const CreateLeaveRequestSchema = z.object({
   user_id: z.string().min(1, "User ID is required"),
   leave_type_id: z.number().min(1, "Leave type ID is required"),
-  start_date: z.string().min(1, "Start date is required"),
-  end_date: z.string().min(1, "End date is required"),
+  start_date: z.string(),
+  end_date: z.string(),
   reason: z.string().min(1, "Reason is required"),
   attachment: z.string().min(1, "Attachment is required"),
   approvers: z
     .array(
       z.object({
         id: z.number(),
+        user_id: z.number(),
       }),
     )
     .min(1, "Approver is required"),
@@ -168,16 +170,40 @@ export const useLeaveRequestForm = () => {
     router.push("/attendance/leave-request");
   };
 
+  const employeesMap = React.useMemo(() => {
+    const map = new Map();
+    if (employees?.data?.data) {
+      employees.data.data.forEach((employee) => {
+        map.set(employee.id.toString(), employee);
+      });
+    }
+    return map;
+  }, [employees?.data]);
+
+  const valueTransformer = React.useCallback(
+    (value: string) => {
+      const employee = employeesMap.get(value);
+      return {
+        id: Number(value),
+        user_id: employee ? employee.user_id : Number(value),
+      };
+    },
+    [employeesMap],
+  );
+
   const onSubmit = (data: ICreateLeaveRequest) => {
+    console.log("onsubmit : ", data);
     const requestPayload: IMutateLeaveRequest = {
       user_id: Number(data.user_id),
       leave_type_id: data.leave_type_id,
-      start_date: data.start_date,
-      end_date: data.end_date,
+      start_date: dayjs(data.start_date).format("YYYY-MM-DD"),
+      end_date: dayjs(data.end_date).format("YYYY-MM-DD"),
       reason: data.reason,
       attachment: data.attachment,
       approvers: data.approvers.map((approver) => ({
-        id: approver.id,
+        id: Number(approver.id),
+        user_id: Number(approver.user_id),
+        approver_type: "Leave",
       })),
     };
 
@@ -196,5 +222,7 @@ export const useLeaveRequestForm = () => {
     handleCancel,
     onSubmit,
     leaveBalance,
+    employeesMap,
+    valueTransformer,
   };
 };
