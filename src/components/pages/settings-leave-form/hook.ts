@@ -6,7 +6,12 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { PaginatedResponse } from '@/lib/types';
 import { JobLevel } from '@/services/job-levels/types';
 import { getJobLevels } from '@/services/job-levels';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { useState } from 'react';
+import { postLeaveType, putLeaveType } from '@/services/settings';
+import { LeaveConfig } from '@/services/settings/types';
+import { useRouter } from 'next/navigation';
 
 // --- schema (sama seperti yang kamu punya) ---
 const quotaConfigurationDetailSchema = z.object({
@@ -34,9 +39,13 @@ export type LeaveConfigValues = z.infer<typeof formSchema>;
 // Hook
 // -----------------
 export function useLeaveTypeForm() {
+  const router = useRouter();
+  const [loadingType, setLoadingType] = useState(false);
   const resolver = zodResolver(formSchema) as unknown as Resolver<
     LeaveConfigValues
   >;
+
+  const queryClient = useQueryClient();
 
   const { data: jobLevel } = useQuery<PaginatedResponse<JobLevel>>({
     queryKey: ["jobLevel"],
@@ -74,14 +83,31 @@ export function useLeaveTypeForm() {
     name: 'quota_configuration_detail.0',
   });
 
-  const jobLevelTable = [
-    { id: 1, name: 'Staff' },
-    { id: 2, name: 'Supervisor' },
-    { id: 3, name: 'Manager' },
-  ];
+  const saveMutationType = useMutation<
+    LeaveConfig,
+    Error,
+    { id?: number; data: LeaveConfigValues }
+  >({
+    mutationFn: ({ id, data }) => {
+      if (id) {
+        return putLeaveType(id, data);
+      }
+      return postLeaveType(data);
+    },
+    onMutate: () => setLoadingType(true),
+    onSuccess: () => {
+      toast.success("Leave type successfully save");
+      queryClient.invalidateQueries({ queryKey: ["leaveType"] });
+      router.push('/settings/leave-management')
+    },
+    onError: (err) => {
+      toast.error(`Failed to save: ${err.message}`);
+    },
+    onSettled: () => setLoadingType(false),
+  });
 
-  const onSubmit = (values: LeaveConfigValues) => {
-    console.log('payload', values);
+  const onSubmit = (id: number | undefined, values: LeaveConfigValues) => {
+    saveMutationType.mutate({ id, data: values });
   };
 
   return {
@@ -89,7 +115,7 @@ export function useLeaveTypeForm() {
     onSubmit,
     quotaConfig,
     detailSame,
-    jobLevelTable,
     jobLevel,
+    loadingType,
  };
 }

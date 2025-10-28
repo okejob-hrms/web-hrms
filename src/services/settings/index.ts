@@ -18,7 +18,6 @@ import {
   OvertimeApiModel,
   ICompanyBranches,
   IMutateCompanyBranchRequest,
-  LeaveConfigItem,
   LeaveBalance,
   LeaveBalanceRequest,
   LeaveConfig,
@@ -261,6 +260,27 @@ export const getLeaveType = async (): Promise<LeaveConfig> => {
   return response.json();
 };
 
+export const postLeaveType = async (
+  payload: LeaveTypeRequest,
+): Promise<LeaveConfig> => {
+  return api
+    .post(`employee/leave-types`, {
+      json: payload,
+    })
+    .json<LeaveConfig>();
+};
+
+export const putLeaveType = async (
+  id: number,
+  payload: LeaveTypeRequest,
+): Promise<LeaveConfig> => {
+  return api
+    .put(`employee/leave-types/${id}`, {
+      json: payload,
+    })
+    .json<LeaveConfig>();
+};
+
 export const getLeaveBalance = async (): Promise<LeaveBalance> => {
   const response = await api.get<LeaveBalance>("employee/leave-balances");
   return response.json();
@@ -295,15 +315,4 @@ export const removeLeaveBalance = async (
       json: {},
     })
     .json<LeaveBalance>();
-};
-
-
-export const postLeaveType = async (
-  payload: LeaveTypeRequest,
-): Promise<LeaveConfig> => {
-  return api
-    .post(`employee/leave-type`, {
-      json: payload,
-    })
-    .json<LeaveConfig>();
 };
