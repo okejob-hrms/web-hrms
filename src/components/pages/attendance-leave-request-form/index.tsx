@@ -22,6 +22,7 @@ export const AttendanceLeaveRequestForm = React.memo(
       handleCancel,
       onSubmit,
       leaveBalance,
+      valueTransformer,
     } = useLeaveRequestForm();
 
     return (
@@ -65,7 +66,7 @@ export const AttendanceLeaveRequestForm = React.memo(
                 searchPlaceholder="Search Employee"
                 hideSelectAll
                 disabled={isLoadingEmployees}
-                valueTransformer={(value) => Number(value)}
+                valueTransformer={valueTransformer}
                 searchValue={searchApprover}
                 onSearchChange={setSearchApprover}
               />
