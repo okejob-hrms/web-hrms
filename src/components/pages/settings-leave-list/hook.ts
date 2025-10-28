@@ -4,17 +4,13 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { 
   getLeaveBalance,
   getLeaveType,
-  postDeduction,
   postLeaveBalance,
-  putDeduction,
   putLeaveBalance,
-  removeDeduction,
   removeLeaveBalance
 } from '@/services/settings';
 import { 
   LeaveBalanceRequest,
   LeaveBalance,
-  LeaveConfigItem,
   LeaveBalanceItem,
   LeaveConfig,
 } from '@/services/settings/types';
@@ -48,7 +44,7 @@ export function useLeaveManagement() {
 
   // LEAVE TYPE
 
-  const { data: leaveTypeData, refetch: leaveTypeRefetch } = useQuery<LeaveConfig>({
+  const { data: leaveTypeData } = useQuery<LeaveConfig>({
     queryKey: ["leaveType"],
     queryFn: getLeaveType,
     staleTime: 1000 * 60 * 5,
@@ -64,6 +60,7 @@ export function useLeaveManagement() {
   const handleAddType = () => {
     router.push('/settings/leave-management/add')
   };
+
   const handleEditType = () => {};
   const handleDeleteType = () => {};
   
@@ -138,12 +135,13 @@ export function useLeaveManagement() {
   return {
     // LEAVE TYPE
     leaveTypeData,
+    setLoadingType,
     loadingType,
     handleAddType,
     handleEditType,
     handleDeleteType,
-
-
+    
+    
     // LEAVE BALANCE
     leaveBalanceData,
     loadingBalance,
@@ -154,6 +152,7 @@ export function useLeaveManagement() {
     openFormBalance,
     setOpenFormBalance,
     setOpenDeleteBalance,
+    setOpenEditBalance,
     openEditBalance,
     openDeleteBalance,
     selectedBalance,

@@ -434,10 +434,10 @@ export interface LeaveTypeRequest {
 
 export interface QuotaConfigurationDetail {
   carry_over_allowed: boolean;
-  carry_over_expiry: string;
+  carry_over_expiry?: string;
   deduct_employee_balance: boolean;
   job_level: number;
-  max_carry_over_days: number;
+  max_carry_over_days?: number;
   quota_days: number;
 }
 
