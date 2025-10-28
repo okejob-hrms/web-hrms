@@ -23,7 +23,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { useWatch } from 'react-hook-form';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { LeaveConfigValues, useLeaveTypeForm } from './hook';
 import { QuotaConfigurationDetailLocal } from '@/services/settings/types';
 import { ColumnDef } from '@tanstack/react-table';
@@ -45,7 +45,7 @@ type SettingsLeaveConfigurationFormProps = {
 export default function SettingsLeaveConfigurationForm({
   id,
 }: SettingsLeaveConfigurationFormProps) {
-  const { form, onSubmit, jobLevel } = useLeaveTypeForm();
+  const { form, onSubmit, jobLevel, handleDetailData } = useLeaveTypeForm();
 
   const quotaConfig = useWatch({
     control: form.control,
@@ -72,6 +72,12 @@ export default function SettingsLeaveConfigurationForm({
     deduct_employee_balance: false,
   });
   const [editIndex, setEditIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (id) {
+      handleDetailData(id);
+    }
+  }, [id]);
 
   const handleAddOrUpdate = () => {
     // Basic validation: require job_level & quota_days
