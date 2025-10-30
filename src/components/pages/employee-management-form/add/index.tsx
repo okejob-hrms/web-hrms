@@ -64,6 +64,7 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
         ...(filteredSocialMedia && {
           social_media_accounts: filteredSocialMedia,
         }),
+        branch_id: Number(values.branch_id),
         team_members: [{ team_id: Number(values.team_members) }],
         date_of_birth: dayjs(values.date_of_birth).format("YYYY-MM-DD"),
         start_date: dayjs(values.start_date).format("YYYY-MM-DD"),
