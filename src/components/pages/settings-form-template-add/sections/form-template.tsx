@@ -43,7 +43,7 @@ export const FormTemplate = React.memo(function FormTemplate({
         </Button>
       )}
       <InputForm
-        name={`questions.${index}.name`}
+        name={`questions.${index}.label`} // Changed from 'name' to 'label'
         required
         label="Question"
         className="col-span-2"
@@ -60,8 +60,8 @@ export const FormTemplate = React.memo(function FormTemplate({
         options={[
           { label: "Checkbox", value: "checkbox" },
           { label: "Range", value: "range" },
-          { label: "Short Answer", value: "short_answer" },
-          { label: "Paragraph", value: "paragraph" },
+          { label: "Short Answer", value: "text" },
+          { label: "Paragraph", value: "textarea" },
         ]}
         onChange={(e) => onTypeChange(e.target.value)}
       />

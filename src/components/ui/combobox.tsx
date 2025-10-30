@@ -91,7 +91,7 @@ export function ComboboxForm({
                   onSearchChange?.("");
                 }
               }}
-              >
+            >
               <PopoverTrigger asChild>
                 <FormControl>
                   <Button
@@ -123,11 +123,15 @@ export function ComboboxForm({
               </PopoverTrigger>
               <PopoverContent className="w-full p-0">
                 <Command>
-                  <CommandInput placeholder="Search..." className="h-9" value={searchTerm}
+                  <CommandInput
+                    placeholder="Search..."
+                    className="h-9"
+                    value={searchTerm}
                     onValueChange={(search) => {
                       setSearchTerm(search);
                       onSearchChange?.(search);
-                    }} />
+                    }}
+                  />
                   <CommandList>
                     <CommandEmpty>No data found.</CommandEmpty>
                     <CommandGroup>

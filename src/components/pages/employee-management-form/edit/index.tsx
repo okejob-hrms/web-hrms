@@ -183,6 +183,7 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
         achievement: employeeDetails.achievement || "",
         personal_description: employeeDetails.personal_description || "",
         photo_profile: employeeDetails.photo_profile || "",
+        branch_id: employeeDetails.employment.branch.id.toString() || "",
         role_id: employeeDetails.employment?.job_level_id?.toString() || "",
         job_position_id:
           employeeDetails.employment?.job_position_id?.toString() || "",
@@ -277,6 +278,7 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
           team_members: [{ team_id: Number(values.team_members) || 0 }],
           allowances: validAllowances,
           attachments: attachments || [],
+          branch_id: Number(values.branch_id),
         };
 
         const conditionalParams: Partial<IMutateEmployeeRequests> = {};

@@ -32,7 +32,7 @@ export interface IBranchData {
   name: string;
   latitude: string;
   longitude: string;
-  address: string; 
+  address: string;
 }
 
 export interface ICreateEmployeeResponse {
@@ -87,6 +87,7 @@ export interface IMutateEmployeeRequests {
   job_position_id: number;
   job_level_id: number;
   department_id: number;
+  branch_id: number;
   primary_direct_report_id?: number | null;
   additional_direct_report_id?: number | null;
   team_members: {
@@ -185,6 +186,10 @@ export interface IEmployeeDetailsResponse {
     deleted_at: string | null;
     created_at: string;
     updated_at: string;
+    branch: {
+      name: string;
+      id: number;
+    };
     department: {
       id: number;
       name: string;

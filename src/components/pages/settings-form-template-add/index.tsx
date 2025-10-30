@@ -1,62 +1,84 @@
-import { Form } from "@/components/ui/form";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { InputForm } from "@/components/ui/input";
 import * as React from "react";
-import { useForm, FormProvider } from "react-hook-form";
-import { TemplateFormSchema, useFormTemplateAdd } from "./hook";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { FormProvider, useFieldArray } from "react-hook-form";
+import { useFormTemplateAdd } from "./hook";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { SelectForm } from "@/components/ui/select-form";
 import { FormTemplate } from "./sections/form-template";
 
-interface Question {
-  id: string;
-  name: string;
-  description: string;
-  type: string;
+interface SettingsFormTemplateAddProps {
+  editFormId?: number;
+  onSuccess?: () => void;
+  onCancel?: () => void;
 }
 
 export const SettingsFormTemplateAdd = React.memo(
-  function SettingsFormTemplateAdd() {
-    const { formSchema, formOptions, handleSubmit } = useFormTemplateAdd();
-    const [questions, setQuestions] = React.useState<Question[]>([]);
+  function SettingsFormTemplateAdd({
+    editFormId,
+    onSuccess,
+    onCancel,
+  }: SettingsFormTemplateAddProps) {
+    const { formOptions, handleSubmit, form, isLoading, isEditMode } =
+      useFormTemplateAdd({
+        editFormId,
+      });
 
-    const form = useForm<TemplateFormSchema>({
-      resolver: zodResolver(formSchema),
-      defaultValues: {
-        name: "",
-        usage: "",
-        // questions: []
-      },
+    const { fields, append, remove } = useFieldArray({
+      control: form.control,
+      name: "questions",
     });
 
     const addQuestion = React.useCallback(() => {
-      const newQuestion: Question = {
-        id: crypto.randomUUID(),
-        name: "",
-        description: "",
+      append({
+        label: "",
         type: "",
-      };
-      setQuestions((prev) => [...prev, newQuestion]);
-    }, []);
+        is_required: false,
+        order: fields.length,
+        options: [],
+      });
+    }, [append, fields.length]);
 
-    const removeQuestion = React.useCallback((id: string) => {
-      setQuestions((prev) => prev.filter((q) => q.id !== id));
-    }, []);
+    const removeQuestion = React.useCallback(
+      (index: number) => {
+        remove(index);
+      },
+      [remove],
+    );
 
-    const updateQuestionType = React.useCallback((id: string, type: string) => {
-      setQuestions((prev) =>
-        prev.map((q) => (q.id === id ? { ...q, type } : q)),
-      );
-    }, []);
+    const updateQuestionType = React.useCallback(
+      (index: number, type: string) => {
+        form.setValue(`questions.${index}.type`, type);
+      },
+      [form],
+    );
 
-    const onSubmit = React.useCallback(() => {}, []);
+    const onSubmit = React.useCallback(
+      async (data: any) => {
+        const result = await handleSubmit(data);
+        if (result.success && onSuccess) {
+          onSuccess();
+        }
+      },
+      [handleSubmit, onSuccess],
+    );
 
-    const hasQuestions = questions.length > 0;
+    const handleCancel = React.useCallback(() => {
+      if (onCancel) {
+        onCancel();
+      } else {
+        form.reset();
+      }
+    }, [onCancel, form]);
+
+    const hasQuestions = fields.length > 0;
 
     return (
       <div className="font-sans md:px-[125px] px-4 space-y-4">
-        <h1 className="font-semibold text-lg text-black">Form Details</h1>
+        <h1 className="font-semibold text-lg text-black">
+          {isEditMode ? "Edit Form Template" : "Form Details"}
+        </h1>
         <FormProvider {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
@@ -64,7 +86,7 @@ export const SettingsFormTemplateAdd = React.memo(
           >
             <InputForm name="name" label="Form Name" required />
             <SelectForm
-              name="usage"
+              name="type"
               label="Form Usage"
               required
               options={formOptions}
@@ -86,16 +108,14 @@ export const SettingsFormTemplateAdd = React.memo(
               </div>
             ) : (
               <div className="col-span-2 flex flex-col gap-2 items-center">
-                {questions.map((question, index) => (
+                {fields.map((field, index) => (
                   <FormTemplate
-                    key={question.id}
+                    key={field.id}
                     index={index}
-                    type={question.type}
-                    onRemove={() => removeQuestion(question.id)}
+                    type={form.watch(`questions.${index}.type`)}
+                    onRemove={() => removeQuestion(index)}
                     canRemove={true}
-                    onTypeChange={(type) =>
-                      updateQuestionType(question.id, type)
-                    }
+                    onTypeChange={(type) => updateQuestionType(index, type)}
                   />
                 ))}
                 <Button
@@ -110,15 +130,20 @@ export const SettingsFormTemplateAdd = React.memo(
             )}
 
             <div className="col-span-2 flex gap-4">
-              <Button type="button" variant="outline" className="md:w-[174px]">
+              <Button
+                type="button"
+                variant="outline"
+                className="md:w-[174px]"
+                onClick={handleCancel}
+              >
                 Cancel
               </Button>
               <Button
                 type="submit"
                 className="md:w-[174px]"
-                disabled={!hasQuestions}
+                disabled={!hasQuestions || isLoading}
               >
-                Save
+                {isLoading ? "Saving..." : isEditMode ? "Update" : "Save"}
               </Button>
             </div>
           </form>
