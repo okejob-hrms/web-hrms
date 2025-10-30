@@ -103,7 +103,6 @@ export const getHideSidebar = (path: string) => {
   const hidePath = [
     "/auth",
     "/dashboard",
-    "/settings/access-control/add",
     "/settings/access-control/",
     "/settings/company/company-profile/edit",
     "/employee/organization/structure/edit",
@@ -113,10 +112,9 @@ export const getHideSidebar = (path: string) => {
     "/settings/time-attendance/overtime-configuration/edit",
     "/settings/form-template/add",
     "/settings/form-template/edit",
-    "/settings/company/company-branch/add",
-    "/settings/company/company-branch/edit",
+    "/settings/company/company-branch/",
     "/payroll",
-    "/settings/leave-management/add",
+    "/settings/leave-management/",
   ];
 
   const employeeDetailPattern = /^\/employee\/employee-management\/\d+$/;

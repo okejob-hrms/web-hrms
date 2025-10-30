@@ -373,6 +373,23 @@ export interface LeaveConfig {
     status: string;
 }
 
+export interface LeaveConfigDetail {
+  status: string;
+  message: string;
+  data: {
+    id: number;
+    name: string;
+    created_at: string;
+    description: string;
+    entitlements: LeaveConfigEntitle[];
+    gender: string;
+    message: string;
+    quota_configuration: string;
+    status: string;
+    updated_at: string;
+  };
+}
+
 export interface LeaveConfigItem {
   id: number;
   name: string;

@@ -22,6 +22,7 @@ import {
   LeaveBalanceRequest,
   LeaveConfig,
   LeaveTypeRequest,
+  LeaveConfigDetail,
 } from "./types";
 import { ApiResponse, PaginatedResponse } from "@/lib/types";
 
@@ -302,6 +303,25 @@ export const putLeaveType = async (
     })
     .json<LeaveConfig>();
 };
+
+export const getLeaveTypeDetail = async (
+  id: string,
+): Promise<LeaveConfigDetail> => {
+  return api
+    .get(`employee/leave-types/${id}`)
+    .json<LeaveConfigDetail>();
+};
+
+export const removeLeaveType = async (
+  id: number,
+): Promise<LeaveConfig> => {
+  return api
+    .delete(`employee/leave-types/${id}`, {
+      json: {},
+    })
+    .json<LeaveConfig>();
+};
+
 
 export const getLeaveBalance = async (): Promise<LeaveBalance> => {
   const response = await api.get<LeaveBalance>("employee/leave-balances");

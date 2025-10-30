@@ -6,11 +6,11 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { PaginatedResponse } from '@/lib/types';
 import { JobLevel } from '@/services/job-levels/types';
 import { getJobLevels } from '@/services/job-levels';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { useState } from 'react';
-import { postLeaveType, putLeaveType } from '@/services/settings';
-import { LeaveConfig } from '@/services/settings/types';
+import { useEffect, useState } from 'react';
+import { getLeaveTypeDetail, postLeaveType, putLeaveType } from '@/services/settings';
+import { LeaveConfig, LeaveConfigEntitle } from '@/services/settings/types';
 import { useRouter } from 'next/navigation';
 
 // --- schema (sama seperti yang kamu punya) ---
@@ -26,8 +26,8 @@ const quotaConfigurationDetailSchema = z.object({
 export const formSchema = z.object({
   name: z.string().min(1),
   description: z.string().optional(),
-  gender: z.enum(['all', 'male', 'female']),
-  quota_configuration: z.enum(['same', 'per_level', 'unlimited']),
+  gender: z.string(),
+  quota_configuration: z.string(),
   quota_configuration_detail: z
     .array(quotaConfigurationDetailSchema)
     .optional(),
@@ -41,6 +41,7 @@ export type LeaveConfigValues = z.infer<typeof formSchema>;
 export function useLeaveTypeForm() {
   const router = useRouter();
   const [loadingType, setLoadingType] = useState(false);
+  const [selectedId, setSelectedId] = useState<string>('');
   const resolver = zodResolver(formSchema) as unknown as Resolver<
     LeaveConfigValues
   >;
@@ -51,6 +52,15 @@ export function useLeaveTypeForm() {
     queryKey: ["jobLevel"],
     queryFn: getJobLevels,
     staleTime: 1000 * 60 * 5,
+  });
+
+  const {
+    data: detailData,
+  } = useQuery({
+    queryKey: ["leaveDetail", selectedId],
+    queryFn: () => getLeaveTypeDetail(selectedId),
+    enabled: !!selectedId,
+    placeholderData: keepPreviousData,
   });
 
   const form = useForm<LeaveConfigValues>({
@@ -72,6 +82,31 @@ export function useLeaveTypeForm() {
       ],
     },
   });
+
+  useEffect(() => {
+    if (detailData?.data) {
+      console.log('detailData.data', detailData.data);
+      const detail = detailData.data;
+
+      const mappedEntitlements = detail.entitlements.map((item: LeaveConfigEntitle) => ({
+        id: item.id,
+        job_level: Number(item.job_level),
+        quota_days: item.quota_days,
+        carry_over_allowed: item.carry_over_allowed,
+        max_carry_over_days: item.max_carry_over_days,
+        carry_over_expiry: item.carry_over_expiry,
+        deduct_employee_balance: item.deduct_employee_balance,
+      }));
+      
+      form.reset({
+        name: detail.name,
+        description: detail.description,
+        gender: detail.gender,
+        quota_configuration: detail.quota_configuration,
+        quota_configuration_detail: mappedEntitlements,
+      });
+    }
+  }, [detailData, form]);
 
   const quotaConfig = useWatch({
     control: form.control,
@@ -110,6 +145,10 @@ export function useLeaveTypeForm() {
     saveMutationType.mutate({ id, data: values });
   };
 
+  const handleDetailData = (id: string) => {
+    setSelectedId(id);
+  }
+
   return {
     form,
     onSubmit,
@@ -117,5 +156,6 @@ export function useLeaveTypeForm() {
     detailSame,
     jobLevel,
     loadingType,
+    handleDetailData,
  };
 }
