@@ -763,10 +763,11 @@ export const EmployeeinformationSection = React.memo(
             label="Company"
             options={branchOptions}
             required
-            className="w-full md:col-span-2"
+            className="w-full"
             modalChildren={<AddNewPositionModal />}
             disabled={isBranchLoading || !!branchError}
           />
+          <div></div>
           <SelectForm
             name="job_position_id"
             label="Position"
