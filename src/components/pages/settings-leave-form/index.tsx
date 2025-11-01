@@ -45,7 +45,8 @@ type SettingsLeaveConfigurationFormProps = {
 export default function SettingsLeaveConfigurationForm({
   id,
 }: SettingsLeaveConfigurationFormProps) {
-  const { form, onSubmit, jobLevel, handleDetailData } = useLeaveTypeForm();
+  const { form, onSubmit, jobLevel, handleDetailData, listing } =
+    useLeaveTypeForm();
 
   const quotaConfig = useWatch({
     control: form.control,
@@ -61,7 +62,9 @@ export default function SettingsLeaveConfigurationForm({
   // ------------------------
   // Local State for per_level detail (dynamic)
   // ------------------------
-  const [rows, setRows] = useState<QuotaConfigurationDetailLocal[]>([]);
+  const [rows, setRows] = useState<QuotaConfigurationDetailLocal[]>(
+    id ? listing : [],
+  );
   const [openDialog, setOpenDialog] = useState(false);
   const [formRow, setFormRow] = useState<QuotaConfigurationDetailLocal>({
     job_level: '',
@@ -167,6 +170,7 @@ export default function SettingsLeaveConfigurationForm({
 
   // Build payload and call onSubmit (hook's onSubmit should accept ApidogModel)
   const handleSubmit = (data: LeaveConfigValues) => {
+    console.log(data);
     const payload: LeaveConfigValues = {
       name: data.name,
       description: data.description,
@@ -205,7 +209,14 @@ export default function SettingsLeaveConfigurationForm({
   return (
     <div className="max-w-4xl mx-auto p-6">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            console.log(form.getValues());
+            handleSubmit(form.getValues());
+          }}
+          className="space-y-8"
+        >
           {/* Basic Info */}
           <div>
             <h2 className="text-lg font-semibold mb-4">

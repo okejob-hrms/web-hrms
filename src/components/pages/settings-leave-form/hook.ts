@@ -10,7 +10,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import { toast } from 'sonner';
 import { useEffect, useState } from 'react';
 import { getLeaveTypeDetail, postLeaveType, putLeaveType } from '@/services/settings';
-import { LeaveConfig, LeaveConfigEntitle } from '@/services/settings/types';
+import { LeaveConfig, LeaveConfigEntitle, QuotaConfigurationDetailLocal } from '@/services/settings/types';
 import { useRouter } from 'next/navigation';
 
 // --- schema (sama seperti yang kamu punya) ---
@@ -40,6 +40,7 @@ export type LeaveConfigValues = z.infer<typeof formSchema>;
 // -----------------
 export function useLeaveTypeForm() {
   const router = useRouter();
+  const [listing, setListing] = useState<QuotaConfigurationDetailLocal[]>([])
   const [loadingType, setLoadingType] = useState(false);
   const [selectedId, setSelectedId] = useState<string>('');
   const resolver = zodResolver(formSchema) as unknown as Resolver<
@@ -105,6 +106,18 @@ export function useLeaveTypeForm() {
         quota_configuration: detail.quota_configuration,
         quota_configuration_detail: mappedEntitlements,
       });
+
+       const mappedEntitlementLocals = detail.entitlements.map((item: LeaveConfigEntitle) => ({
+        id: item.id,
+        job_level: item.job_level,
+        quota_days: String(item.quota_days),
+        carry_over_allowed: item.carry_over_allowed,
+        max_carry_over_days: String(item.max_carry_over_days),
+        carry_over_expiry: String(item.carry_over_expiry),
+        deduct_employee_balance: item.deduct_employee_balance,
+      }));
+
+      setListing(mappedEntitlementLocals);
     }
   }, [detailData, form]);
 
@@ -157,5 +170,6 @@ export function useLeaveTypeForm() {
     jobLevel,
     loadingType,
     handleDetailData,
+    listing,
  };
 }
