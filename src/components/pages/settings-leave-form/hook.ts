@@ -86,7 +86,6 @@ export function useLeaveTypeForm() {
 
   useEffect(() => {
     if (detailData?.data) {
-      console.log('detailData.data', detailData.data);
       const detail = detailData.data;
 
       const mappedEntitlements = detail.entitlements.map((item: LeaveConfigEntitle) => ({

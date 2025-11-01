@@ -62,9 +62,8 @@ export default function SettingsLeaveConfigurationForm({
   // ------------------------
   // Local State for per_level detail (dynamic)
   // ------------------------
-  const [rows, setRows] = useState<QuotaConfigurationDetailLocal[]>(
-    id ? listing : [],
-  );
+  console.log(listing);
+  const [rows, setRows] = useState<QuotaConfigurationDetailLocal[]>([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [formRow, setFormRow] = useState<QuotaConfigurationDetailLocal>({
     job_level: '',
@@ -81,6 +80,10 @@ export default function SettingsLeaveConfigurationForm({
       handleDetailData(id);
     }
   }, [id]);
+
+  useEffect(() => {
+    setRows(listing);
+  }, [listing]);
 
   const handleAddOrUpdate = () => {
     // Basic validation: require job_level & quota_days
@@ -125,18 +128,44 @@ export default function SettingsLeaveConfigurationForm({
 
   // Table
   const columns: ColumnDef<QuotaConfigurationDetailLocal>[] = [
-    { accessorKey: 'job_level', header: 'Job Level', size: 160 },
+    {
+      accessorKey: 'job_level',
+      header: 'Job Level',
+      size: 160,
+      cell: ({ row }) => {
+        const selected = jobLevel?.data.filter(
+          (item) => item.id === Number(row.original.job_level),
+        )[0];
+        return <div>{selected?.name ?? '-'}</div>;
+      },
+    },
     { accessorKey: 'quota_days', header: 'Quota (days)', size: 160 },
     {
       accessorKey: 'carry_over_allowed',
       header: 'Carry Over',
       size: 200,
       cell: ({ row }) => (
-        <div className="">{row.original.carry_over_allowed ? 'Yes' : 'No'}</div>
+        <div>{row.original.carry_over_allowed ? 'Yes' : 'No'}</div>
       ),
     },
-    { accessorKey: 'max_carry_over_days', header: 'Max Carry', size: 160 },
-    { accessorKey: 'carry_over_expiry', header: 'Expiry', size: 160 },
+    {
+      accessorKey: 'max_carry_over_days',
+      header: 'Max Carry',
+      size: 160,
+      cell: ({ row }) => <div>{row.original.max_carry_over_days} day</div>,
+    },
+    {
+      accessorKey: 'carry_over_expiry',
+      header: 'Expiry',
+      size: 160,
+      cell: ({ row }) => (
+        <div>
+          {row.original.carry_over_expiry === 'null'
+            ? '-'
+            : row.original.carry_over_expiry}
+        </div>
+      ),
+    },
     {
       accessorKey: 'deduct_employee_balance',
       header: 'Deduct',
@@ -170,7 +199,6 @@ export default function SettingsLeaveConfigurationForm({
 
   // Build payload and call onSubmit (hook's onSubmit should accept ApidogModel)
   const handleSubmit = (data: LeaveConfigValues) => {
-    console.log(data);
     const payload: LeaveConfigValues = {
       name: data.name,
       description: data.description,
@@ -212,7 +240,6 @@ export default function SettingsLeaveConfigurationForm({
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            console.log(form.getValues());
             handleSubmit(form.getValues());
           }}
           className="space-y-8"
