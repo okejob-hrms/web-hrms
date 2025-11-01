@@ -1,6 +1,6 @@
  
 import { api } from "@/lib/api";
-import { RequestAllowance, ResponseAllowance } from "./types";
+import { RequestAllowance, RequestBaseSalary, ResponseAllowance, ResponseBaseSalary } from "./types";
 
 export const getAllowance = async (): Promise<ResponseAllowance> => {
   const response = await api.get("allowance-types");
@@ -41,4 +41,40 @@ export const removeAllowance = async (
       json: {},
     })
     .json<ResponseAllowance>();
+};
+
+export const getBaseSalary = async (): Promise<ResponseBaseSalary> => {
+  const response = await api.get("base-salaries");
+  return response.json();
+};
+
+export const postBaseSalary = async (
+  payload: RequestBaseSalary,
+): Promise<ResponseBaseSalary> => {
+  return api
+    .post(`base-salaries`, {
+      json: payload,
+    })
+    .json<ResponseBaseSalary>();
+};
+
+export const putBaseSalary = async (
+  id: number,
+  payload: RequestBaseSalary,
+): Promise<ResponseBaseSalary> => {
+  return api
+    .put(`base-salaries/${id}`, {
+      json: payload,
+    })
+    .json<ResponseBaseSalary>();
+};
+
+export const removeBaseSalary = async (
+  id: number,
+): Promise<ResponseBaseSalary> => {
+  return api
+    .delete(`base-salaries/${id}`, {
+      json: {},
+    })
+    .json<ResponseBaseSalary>();
 };

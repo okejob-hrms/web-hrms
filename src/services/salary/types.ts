@@ -33,3 +33,27 @@ export interface AllowanceItemReq {
     job_level_id: number;
     amount: number;
 }
+
+export interface ResponseBaseSalary {
+    data: BaseSalaryItem[];
+    message: string;
+    status: string;
+}
+
+export interface BaseSalaryItem { 
+    id: number;
+    job_level_id: number;
+    job_position_id: number;
+    amount: number;
+    effective_date: string;
+    end_date: string;
+    updated_at?: string;
+}
+
+export interface RequestBaseSalary { 
+    job_level_id: number;
+    job_position_id: number;
+    amount: number;
+    effective_date: string;
+    end_date: string;
+}

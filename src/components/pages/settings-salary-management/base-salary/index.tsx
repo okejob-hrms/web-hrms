@@ -23,7 +23,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { formatCurrency } from '@/lib/utils';
 import { Calendar } from '@/components/ui/calendar';
 import {
   Popover,
@@ -32,56 +31,96 @@ import {
 } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-
-// =======================
-// Data Type
-// =======================
-interface BaseSalaryItem {
-  id: string;
-  job_position: string;
-  job_level: string;
-  base_salary_amount: number;
-  effective_date: string;
-  updated_at: string;
-}
+import {
+  BaseSalaryItem,
+  RequestBaseSalary,
+  ResponseBaseSalary,
+} from '@/services/salary/types';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  getBaseSalary,
+  postBaseSalary,
+  putBaseSalary,
+  removeBaseSalary,
+} from '@/services/salary';
+import { PaginatedResponse } from '@/lib/types';
+import { JobLevel } from '@/services/job-levels/types';
+import { getJobLevels } from '@/services/job-levels';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import Image from 'next/image';
+import { getJobPositionPagination } from '@/services/job-position';
 
 // =======================
 // Component
 // =======================
 export default function SettingsBaseSalary() {
-  const [data, setData] = React.useState<BaseSalaryItem[]>([
-    {
-      id: '1',
-      job_position: 'Product Designer',
-      job_level: 'Team Leader',
-      base_salary_amount: 20000000,
-      effective_date: '2018-12-02',
-      updated_at: '2018-12-02',
-    },
-    {
-      id: '2',
-      job_position: 'Front End Engineer',
-      job_level: 'Senior Staff',
-      base_salary_amount: 18000000,
-      effective_date: '2017-08-07',
-      updated_at: '2017-08-07',
-    },
-  ]);
-
   const [open, setOpen] = React.useState(false);
+  const [openDelete, setOpenDelete] = React.useState(false);
+  const [loading, setLoading] = React.useState(false);
   const [editing, setEditing] = React.useState<BaseSalaryItem | null>(null);
+  const queryClient = useQueryClient();
+
+  const { data: baseSalaryData, refetch: baseSalaryDataRefetch } =
+    useQuery<ResponseBaseSalary>({
+      queryKey: ['getBaseSalary'],
+      queryFn: getBaseSalary,
+      staleTime: 1000 * 60 * 5,
+    });
+
+  const { data: jobLevel } = useQuery<PaginatedResponse<JobLevel>>({
+    queryKey: ['jobLevel'],
+    queryFn: getJobLevels,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const { data: jobPosition } = useQuery({
+    queryKey: ['job_position_id'],
+    queryFn: () =>
+      getJobPositionPagination({
+        pageSize: 10000,
+        pageIndex: 0,
+      }),
+    retry: (failureCount) => {
+      return failureCount < 3;
+    },
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
 
   // =======================
   // Columns
   // =======================
   const columns: ColumnDef<BaseSalaryItem>[] = [
-    { accessorKey: 'job_position', header: 'Job Position' },
-    { accessorKey: 'job_level', header: 'Job Level' },
     {
-      accessorKey: 'base_salary_amount',
+      accessorKey: 'job_position_id',
+      header: 'Job Position',
+      cell: ({ row }) => {
+        const selected = jobPosition?.data.filter(
+          (item) => item.id === row.original.job_position_id,
+        )[0];
+        return selected?.name ?? '-';
+      },
+    },
+    {
+      accessorKey: 'job_level_id',
+      header: 'Job Level',
+      cell: ({ row }) => {
+        const selected = jobLevel?.data.filter(
+          (item) => item.id === row.original.job_level_id,
+        )[0];
+        return selected?.name ?? '-';
+      },
+    },
+    {
+      accessorKey: 'amount',
       header: 'Base Salary Amount',
       cell: ({ row }) =>
-        `Rp ${row.original.base_salary_amount.toLocaleString('id-ID')}`,
+        `Rp ${Number(row.original.amount).toLocaleString('id-ID')}`,
     },
     {
       accessorKey: 'effective_date',
@@ -106,12 +145,57 @@ export default function SettingsBaseSalary() {
               setForm(item);
               setOpen(true);
             }}
-            onDelete={() => handleDelete(item.id)}
+            onDelete={() => {
+              setEditing(item);
+              setOpenDelete(true);
+            }}
           />
         );
       },
     },
   ];
+
+  const saveMutation = useMutation<
+    ResponseBaseSalary,
+    Error,
+    { id?: number; data: RequestBaseSalary }
+  >({
+    mutationFn: ({ id, data }) => {
+      if (id) {
+        return putBaseSalary(id, data);
+      }
+      return postBaseSalary(data);
+    },
+    onMutate: () => setLoading(true),
+    onSuccess: () => {
+      toast.success('Allowance successfully save');
+      queryClient.invalidateQueries({ queryKey: ['getAllowance'] });
+      baseSalaryDataRefetch();
+      setOpen(false);
+      setEditing(null);
+    },
+    onError: (err) => {
+      toast.error(`Failed to save: ${err.message}`);
+    },
+    onSettled: () => setLoading(false),
+  });
+
+  // mutation for delete
+  const deleteMutation = useMutation<ResponseBaseSalary, Error, number>({
+    mutationFn: (id) => removeBaseSalary(id),
+    onMutate: () => setLoading(true),
+    onSuccess: () => {
+      toast.success('Allowance deleted successfully');
+      queryClient.invalidateQueries({ queryKey: ['getAllowance'] });
+      baseSalaryDataRefetch();
+      setOpenDelete(false);
+      setEditing(null);
+    },
+    onError: (err) => {
+      toast.error(`Failed to delete: ${err.message}`);
+    },
+    onSettled: () => setLoading(false),
+  });
 
   // =======================
   // Form State
@@ -119,63 +203,39 @@ export default function SettingsBaseSalary() {
   const [form, setForm] = React.useState<
     Omit<BaseSalaryItem, 'id' | 'updated_at'>
   >({
-    job_position: '',
-    job_level: '',
-    base_salary_amount: 0,
+    job_position_id: 0,
+    job_level_id: 0,
+    amount: 0,
     effective_date: '',
+    end_date: '',
   });
 
-  const handleDelete = (id: string) => {
-    if (confirm('Delete this item?')) {
-      setData((prev) => prev.filter((i) => i.id !== id));
+  const handleDelete = () => {
+    if (editing) {
+      deleteMutation.mutate(Number(editing.id));
     }
   };
 
   const handleSave = () => {
     if (
-      !form.job_position ||
-      !form.job_level ||
-      !form.base_salary_amount ||
-      !form.effective_date
+      !form.job_position_id ||
+      !form.job_level_id ||
+      !form.amount ||
+      !form.effective_date ||
+      !form.end_date
     )
       return toast.error('Please fill all data!');
 
-    if (editing) {
-      setData((prev) =>
-        prev.map((i) =>
-          i.id === editing.id
-            ? {
-                ...i,
-                ...form,
-                updated_at: dayjs().format('YYYY-MM-DD'),
-              }
-            : i,
-        ),
-      );
-      toast.success('Success updated base salary data');
-    } else {
-      setData((prev) => [
-        ...prev,
-        {
-          id: String(Date.now()),
-          ...form,
-          updated_at: dayjs().format('YYYY-MM-DD'),
-        },
-      ]);
-      toast.success('Success add base salary data');
-    }
-
-    setOpen(false);
-    setEditing(null);
-    resetForm();
+    saveMutation.mutate({ id: editing?.id, data: form });
   };
 
   const resetForm = () => {
     setForm({
-      job_position: '',
-      job_level: '',
-      base_salary_amount: 0,
+      job_position_id: 0,
+      job_level_id: 0,
+      amount: 0,
       effective_date: '',
+      end_date: '',
     });
   };
 
@@ -192,11 +252,11 @@ export default function SettingsBaseSalary() {
           }}
         >
           <Plus className="w-4 h-4" />
-          Set Up Base Salary
+          Add Base Salary
         </Button>
       </div>
 
-      <DataTable columns={columns} data={data} />
+      <DataTable columns={columns} data={baseSalaryData?.data} />
 
       {/* Modal Form */}
       <Dialog open={open} onOpenChange={setOpen}>
@@ -213,24 +273,20 @@ export default function SettingsBaseSalary() {
                 Job Position<span className="text-red-500">*</span>
               </Label>
               <Select
-                value={form.job_position}
+                value={String(form.job_position_id)}
                 onValueChange={(val) =>
-                  setForm((prev) => ({ ...prev, job_position: val }))
+                  setForm((prev) => ({ ...prev, job_position_id: Number(val) }))
                 }
               >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Product Designer">
-                    Product Designer
-                  </SelectItem>
-                  <SelectItem value="Front End Engineer">
-                    Front End Engineer
-                  </SelectItem>
-                  <SelectItem value="Back End Engineer">
-                    Back End Engineer
-                  </SelectItem>
+                  {jobPosition?.data.map((item) => (
+                    <SelectItem key={item.id} value={String(item.id)}>
+                      {item.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -240,18 +296,20 @@ export default function SettingsBaseSalary() {
                 Job Level<span className="text-red-500">*</span>
               </Label>
               <Select
-                value={form.job_level}
+                value={String(form.job_level_id)}
                 onValueChange={(val) =>
-                  setForm((prev) => ({ ...prev, job_level: val }))
+                  setForm((prev) => ({ ...prev, job_level_id: Number(val) }))
                 }
               >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Junior Staff">Junior Staff</SelectItem>
-                  <SelectItem value="Senior Staff">Senior Staff</SelectItem>
-                  <SelectItem value="Team Leader">Team Leader</SelectItem>
+                  {jobLevel?.data.map((item) => (
+                    <SelectItem key={item.id} value={String(item.id)}>
+                      {item.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -263,11 +321,11 @@ export default function SettingsBaseSalary() {
               <Input
                 type="number"
                 placeholder="Rp 0"
-                value={form.base_salary_amount}
+                value={form.amount}
                 onChange={(e) =>
                   setForm((prev) => ({
                     ...prev,
-                    base_salary_amount: Number(e.target.value),
+                    amount: Number(e.target.value),
                   }))
                 }
               />
@@ -312,6 +370,42 @@ export default function SettingsBaseSalary() {
                 </PopoverContent>
               </Popover>
             </div>
+
+            <div className="space-y-2">
+              <Label>
+                Effective To<span className="text-red-500">*</span>
+              </Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      'w-full justify-start text-left font-normal',
+                      !form.end_date && 'text-muted-foreground',
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {form.end_date
+                      ? dayjs(form.end_date).format('MMMM D, YYYY')
+                      : 'Select'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={
+                      form.end_date ? new Date(form.end_date) : undefined
+                    }
+                    onSelect={(date) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        end_date: date ? dayjs(date).format('YYYY-MM-DD') : '',
+                      }))
+                    }
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
           </div>
 
           <DialogFooter>
@@ -322,6 +416,45 @@ export default function SettingsBaseSalary() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Modal Delete */}
+      <AlertDialog open={openDelete} onOpenChange={setOpenDelete}>
+        <AlertDialogContent className="w-full max-w-md sm:max-w-md text-center bg-white">
+          <div className="flex flex-col items-center justify-center mb-4">
+            {/* Warning Icon (SVG) */}
+            <span className="mb-2">
+              <Image
+                src={'/icons/deleteContained.svg'}
+                width={50}
+                height={50}
+                alt={`icon-delete`}
+              />
+            </span>
+            <AlertDialogTitle className="text-xl font-bold mb-2">
+              Are you sure you want to delete this configuration?
+            </AlertDialogTitle>
+            <div className="text-gray-600 text-sm mb-4">
+              Employees linked to this configuration may be affected
+            </div>
+          </div>
+          <AlertDialogFooter className="flex flex-row gap-4 w-full justify-center">
+            <Button
+              className="w-1/2 bg-transparent text-red-500 hover:bg-transparent font-medium py-2 rounded-lg shadow-none border-none"
+              onClick={handleDelete}
+              isLoading={loading}
+            >
+              Delete Configuration
+            </Button>
+            <Button
+              className="w-1/2 bg-[#18618B] hover:bg-[#14506e] text-white font-medium py-2 rounded-lg"
+              onClick={() => setOpenDelete(false)}
+              disabled={loading}
+            >
+              Cancel
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
