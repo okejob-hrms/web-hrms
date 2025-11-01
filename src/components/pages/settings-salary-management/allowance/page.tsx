@@ -31,44 +31,58 @@ import {
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-
-// =======================
-// Types
-// =======================
-interface BaseAllowanceItem {
-  id: string;
-  allowance_type: string;
-  job_levels: { job_level: string; base_allowance_amount: number }[];
-  effective_date: string;
-  updated_at: string;
-}
+import {
+  AllowanceItem,
+  RequestAllowance,
+  ResponseAllowance,
+} from '@/services/salary/types';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  getAllowance,
+  postAllowance,
+  putAllowance,
+  removeAllowance,
+} from '@/services/salary';
+import { PaginatedResponse } from '@/lib/types';
+import { JobLevel } from '@/services/job-levels/types';
+import { getJobLevels } from '@/services/job-levels';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import Image from 'next/image';
 
 // =======================
 // Component
 // =======================
 export default function SettingsBaseAllowance() {
-  const [data, setData] = React.useState<BaseAllowanceItem[]>([
-    {
-      id: '1',
-      allowance_type: 'Telecommunication',
-      job_levels: [
-        { job_level: 'Manager', base_allowance_amount: 1000000 },
-        { job_level: 'Staff', base_allowance_amount: 300000 },
-      ],
-      effective_date: '2025-10-16',
-      updated_at: '2025-10-16',
-    },
-  ]);
-
   const [open, setOpen] = React.useState(false);
-  const [editing, setEditing] = React.useState<BaseAllowanceItem | null>(null);
+  const [openDelete, setOpenDelete] = React.useState(false);
+  const [loading, setLoading] = React.useState(false);
+  const [editing, setEditing] = React.useState<AllowanceItem | null>(null);
+  const queryClient = useQueryClient();
+
+  const { data: allowanceData, refetch: allowanceDataRefetch } =
+    useQuery<ResponseAllowance>({
+      queryKey: ['getAllowance'],
+      queryFn: getAllowance,
+      staleTime: 1000 * 60 * 5,
+    });
+
+  const { data: jobLevel } = useQuery<PaginatedResponse<JobLevel>>({
+    queryKey: ['jobLevel'],
+    queryFn: getJobLevels,
+    staleTime: 1000 * 60 * 5,
+  });
 
   // =======================
   // Columns
   // =======================
-  const columns: ColumnDef<BaseAllowanceItem>[] = [
+  const columns: ColumnDef<AllowanceItem>[] = [
     {
-      accessorKey: 'allowance_type',
+      accessorKey: 'name',
       header: 'Allowance Type',
     },
     {
@@ -81,10 +95,10 @@ export default function SettingsBaseAllowance() {
         <div className="flex flex-wrap gap-2">
           {row.original.job_levels.slice(0, 4).map((lv) => (
             <span
-              key={lv.job_level}
+              key={lv.name}
               className="px-2 py-1 text-xs rounded-full bg-blue-50 text-blue-700"
             >
-              {lv.job_level}
+              {lv.name}
             </span>
           ))}
           {row.original.job_levels.length > 4 && (
@@ -99,12 +113,13 @@ export default function SettingsBaseAllowance() {
       accessorKey: 'effective_date',
       header: 'Effective Date',
       cell: ({ row }) =>
-        dayjs(row.original.effective_date).format('MMMM D, YYYY'),
+        dayjs(row.original.effective_date).format('MMMM D, YYYY') ?? '-',
     },
     {
       accessorKey: 'updated_at',
       header: 'Last Update',
-      cell: ({ row }) => dayjs(row.original.updated_at).format('MMMM D, YYYY'),
+      cell: ({ row }) =>
+        dayjs(row.original.updated_at).format('MMMM D, YYYY') ?? '-',
     },
     {
       id: 'actions',
@@ -116,77 +131,110 @@ export default function SettingsBaseAllowance() {
             onEdit={() => {
               setEditing(item);
               setForm({
-                allowance_type: item.allowance_type,
+                name: item.name,
                 effective_date: item.effective_date,
+                expire_date: item.expire_date,
                 job_levels: [...item.job_levels],
               });
               setOpen(true);
             }}
-            onDelete={() => handleDelete(item.id)}
+            onDelete={() => {
+              setEditing(item);
+              setOpenDelete(true);
+            }}
           />
         );
       },
     },
   ];
 
+  const saveMutation = useMutation<
+    ResponseAllowance,
+    Error,
+    { id?: number; data: RequestAllowance }
+  >({
+    mutationFn: ({ id, data }) => {
+      if (id) {
+        return putAllowance(id, data);
+      }
+      return postAllowance(data);
+    },
+    onMutate: () => setLoading(true),
+    onSuccess: () => {
+      toast.success('Allowance successfully save');
+      queryClient.invalidateQueries({ queryKey: ['getAllowance'] });
+      allowanceDataRefetch();
+      setOpen(false);
+      setEditing(null);
+    },
+    onError: (err) => {
+      toast.error(`Failed to save: ${err.message}`);
+    },
+    onSettled: () => setLoading(false),
+  });
+
+  // mutation for delete
+  const deleteMutation = useMutation<ResponseAllowance, Error, number>({
+    mutationFn: (id) => removeAllowance(id),
+    onMutate: () => setLoading(true),
+    onSuccess: () => {
+      toast.success('Allowance deleted successfully');
+      queryClient.invalidateQueries({ queryKey: ['getAllowance'] });
+      allowanceDataRefetch();
+      setOpenDelete(false);
+      setEditing(null);
+    },
+    onError: (err) => {
+      toast.error(`Failed to delete: ${err.message}`);
+    },
+    onSettled: () => setLoading(false),
+  });
+
   // =======================
   // Form State
   // =======================
   const [form, setForm] = React.useState<{
-    allowance_type: string;
+    name: string;
     effective_date: string;
-    job_levels: { job_level: string; base_allowance_amount: number }[];
+    expire_date: string;
+    job_levels: { id: number; name: string; amount: string }[];
   }>({
-    allowance_type: '',
+    name: '',
     effective_date: '',
-    job_levels: [{ job_level: '', base_allowance_amount: 0 }],
+    expire_date: '',
+    job_levels: [{ id: 0, name: '', amount: '0' }],
   });
 
-  const handleDelete = (id: string) => {
-    if (confirm('Delete this item?')) {
-      setData((prev) => prev.filter((i) => i.id !== id));
+  const handleDelete = () => {
+    if (editing) {
+      deleteMutation.mutate(Number(editing.id));
     }
   };
 
   const handleSave = () => {
-    if (!form.allowance_type || !form.effective_date)
+    if (!form.name || !form.effective_date || !form.expire_date)
       return toast.error('Please fill all required fields');
 
-    if (editing) {
-      setData((prev) =>
-        prev.map((i) =>
-          i.id === editing.id
-            ? {
-                ...i,
-                ...form,
-                updated_at: dayjs().format('YYYY-MM-DD'),
-              }
-            : i,
-        ),
-      );
-      toast.success('Success updated allowance data');
-    } else {
-      setData((prev) => [
-        ...prev,
-        {
-          id: String(Date.now()),
-          ...form,
-          updated_at: dayjs().format('YYYY-MM-DD'),
-        },
-      ]);
-      toast.success('Success add allowance data');
-    }
+    console.log(form);
 
-    setOpen(false);
-    setEditing(null);
-    resetForm();
+    const payload = {
+      ...form,
+      description: '',
+      allowance_items: form.job_levels.map((item) => ({
+        job_level_id: Number(item.id),
+        amount: Number(item.amount),
+      })),
+    };
+
+    saveMutation.mutate({ id: editing?.id, data: payload });
   };
 
   const resetForm = () => {
     setForm({
-      allowance_type: '',
+      name: '',
       effective_date: '',
-      job_levels: [{ job_level: '', base_allowance_amount: 0 }],
+      expire_date: '',
+      job_levels: [{ id: 0, name: '', amount: '0' }],
     });
   };
 
@@ -210,7 +258,7 @@ export default function SettingsBaseAllowance() {
         </Button>
       </div>
 
-      <DataTable columns={columns} data={data} />
+      <DataTable columns={columns} data={allowanceData?.data} />
 
       {/* Modal Form */}
       <Dialog open={open} onOpenChange={setOpen}>
@@ -229,11 +277,11 @@ export default function SettingsBaseAllowance() {
               </Label>
               <Input
                 placeholder="e.g. Transportation"
-                value={form.allowance_type}
+                value={form.name}
                 onChange={(e) =>
                   setForm((prev) => ({
                     ...prev,
-                    allowance_type: e.target.value,
+                    name: e.target.value,
                   }))
                 }
               />
@@ -279,6 +327,44 @@ export default function SettingsBaseAllowance() {
               </Popover>
             </div>
 
+            <div className="space-y-2">
+              <Label>
+                Effective To<span className="text-red-500">*</span>
+              </Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      'w-full justify-start text-left font-normal',
+                      !form.expire_date && 'text-muted-foreground',
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {form.expire_date
+                      ? dayjs(form.expire_date).format('MMMM D, YYYY')
+                      : 'Select'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={
+                      form.expire_date ? new Date(form.expire_date) : undefined
+                    }
+                    onSelect={(date) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        expire_date: date
+                          ? dayjs(date).format('YYYY-MM-DD')
+                          : '',
+                      }))
+                    }
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
             <hr className="my-2" />
             <h4 className="font-medium">Base Allowance</h4>
 
@@ -292,10 +378,11 @@ export default function SettingsBaseAllowance() {
                     Job Level<span className="text-red-500">*</span>
                   </Label>
                   <Select
-                    value={jl.job_level}
+                    value={String(jl.id)}
                     onValueChange={(val) => {
+                      console.log(val);
                       const arr = [...form.job_levels];
-                      arr[idx].job_level = val;
+                      arr[idx].id = Number(val);
                       setForm((prev) => ({ ...prev, job_levels: arr }));
                     }}
                   >
@@ -303,10 +390,11 @@ export default function SettingsBaseAllowance() {
                       <SelectValue placeholder="Select Job Level" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Manager">Manager</SelectItem>
-                      <SelectItem value="Team Leader">Team Leader</SelectItem>
-                      <SelectItem value="Staff">Staff</SelectItem>
-                      <SelectItem value="Senior Staff">Senior Staff</SelectItem>
+                      {jobLevel?.data.map((item) => (
+                        <SelectItem key={item.id} value={String(item.id)}>
+                          {item.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -320,10 +408,10 @@ export default function SettingsBaseAllowance() {
                     <Input
                       type="number"
                       placeholder="Rp 0"
-                      value={jl.base_allowance_amount}
+                      value={jl.amount}
                       onChange={(e) => {
                         const arr = [...form.job_levels];
-                        arr[idx].base_allowance_amount = Number(e.target.value);
+                        arr[idx].amount = e.target.value;
                         setForm((prev) => ({ ...prev, job_levels: arr }));
                       }}
                     />
@@ -358,7 +446,7 @@ export default function SettingsBaseAllowance() {
                   ...prev,
                   job_levels: [
                     ...prev.job_levels,
-                    { job_level: '', base_allowance_amount: 0 },
+                    { id: 0, name: '', amount: '0' },
                   ],
                 }))
               }
@@ -375,6 +463,45 @@ export default function SettingsBaseAllowance() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Modal Delete */}
+      <AlertDialog open={openDelete} onOpenChange={setOpenDelete}>
+        <AlertDialogContent className="w-full max-w-md sm:max-w-md text-center bg-white">
+          <div className="flex flex-col items-center justify-center mb-4">
+            {/* Warning Icon (SVG) */}
+            <span className="mb-2">
+              <Image
+                src={'/icons/deleteContained.svg'}
+                width={50}
+                height={50}
+                alt={`icon-delete`}
+              />
+            </span>
+            <AlertDialogTitle className="text-xl font-bold mb-2">
+              Are you sure you want to delete this configuration?
+            </AlertDialogTitle>
+            <div className="text-gray-600 text-sm mb-4">
+              Employees linked to this configuration may be affected
+            </div>
+          </div>
+          <AlertDialogFooter className="flex flex-row gap-4 w-full justify-center">
+            <Button
+              className="w-1/2 bg-transparent text-red-500 hover:bg-transparent font-medium py-2 rounded-lg shadow-none border-none"
+              onClick={handleDelete}
+              isLoading={loading}
+            >
+              Delete Configuration
+            </Button>
+            <Button
+              className="w-1/2 bg-[#18618B] hover:bg-[#14506e] text-white font-medium py-2 rounded-lg"
+              onClick={() => setOpenDelete(false)}
+              disabled={loading}
+            >
+              Cancel
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
