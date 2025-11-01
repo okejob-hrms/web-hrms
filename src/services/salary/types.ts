@@ -57,3 +57,53 @@ export interface RequestBaseSalary {
     effective_date: string;
     end_date: string;
 }
+
+
+export interface ResponseDeductionSalary {
+    data: DeductionSalaryItem[];
+    message: string;
+    status: string;
+}
+
+export interface DeductionSalaryItem { 
+    id?: number;
+    name: string;
+    status?: number;
+    tenant_id?: number;
+    calculation_basis: string;
+    contribution_type: string;
+    created_at?: string;
+    deduction_type: string;
+    deleted_at?: null;
+    description: string;
+    effective_date: string;
+    effective_to: string;
+    employee_contribution: string;
+    employer_contribution: string;
+    updated_at?: string;
+    tiers?: DeductionSalaryTier[];
+}
+
+export interface RequestDeductionSalary { 
+    name: string;
+    status: number;
+    deduction_type: string;
+    effective_date: string;
+    effective_to: string;
+    description: string;
+    employer_contribution: string;
+    employee_contribution: string;
+    calculation_basis?: string;
+    contribution_type?: string;
+    tiers?: DeductionSalaryTier[];
+}
+
+export interface DeductionSalaryTier { 
+    created_at: string;
+    id: number;
+    max_income: string;
+    min_income: string;
+    salary_deduction_id: number;
+    tax_rate: string;
+    updated_at: string;
+}

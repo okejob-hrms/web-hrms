@@ -164,7 +164,7 @@ export const getLastPath = (pathname: string) => {
 
 export const toTitleCase = (str: string) => {
   return str
-    .replace(/-/g, " ")
+    .replace(/-/g, " ").replace(/_/g, ' ')
     .toLowerCase()
     .replace(/\b\w/g, (char) => char.toUpperCase());
 };

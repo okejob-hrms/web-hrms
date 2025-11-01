@@ -168,8 +168,8 @@ export default function SettingsBaseSalary() {
     },
     onMutate: () => setLoading(true),
     onSuccess: () => {
-      toast.success('Allowance successfully save');
-      queryClient.invalidateQueries({ queryKey: ['getAllowance'] });
+      toast.success('Base salary successfully save');
+      queryClient.invalidateQueries({ queryKey: ['getBaseSalary'] });
       baseSalaryDataRefetch();
       setOpen(false);
       setEditing(null);
@@ -185,8 +185,8 @@ export default function SettingsBaseSalary() {
     mutationFn: (id) => removeBaseSalary(id),
     onMutate: () => setLoading(true),
     onSuccess: () => {
-      toast.success('Allowance deleted successfully');
-      queryClient.invalidateQueries({ queryKey: ['getAllowance'] });
+      toast.success('Base salary deleted successfully');
+      queryClient.invalidateQueries({ queryKey: ['getBaseSalary'] });
       baseSalaryDataRefetch();
       setOpenDelete(false);
       setEditing(null);

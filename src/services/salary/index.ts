@@ -1,6 +1,13 @@
  
 import { api } from "@/lib/api";
-import { RequestAllowance, RequestBaseSalary, ResponseAllowance, ResponseBaseSalary } from "./types";
+import { DeductionSalaryItem, RequestAllowance, 
+  RequestBaseSalary, 
+  RequestDeductionSalary, 
+  ResponseAllowance, 
+  ResponseBaseSalary, 
+  ResponseDeductionSalary,
+} from "./types";
+import { ApiResponse, PaginatedResponse } from "@/lib/types";
 
 export const getAllowance = async (): Promise<ResponseAllowance> => {
   const response = await api.get("allowance-types");
@@ -77,4 +84,41 @@ export const removeBaseSalary = async (
       json: {},
     })
     .json<ResponseBaseSalary>();
+};
+
+
+export const getDeductionSalary = async (): Promise<ApiResponse<PaginatedResponse<DeductionSalaryItem>>> => {
+  const response = await api.get("setting/salary-deduction");
+  return response.json();
+};
+
+export const postDeductionSalary = async (
+  payload: RequestDeductionSalary,
+): Promise<ApiResponse<PaginatedResponse<DeductionSalaryItem>>> => {
+  return api
+    .post(`setting/salary-deduction`, {
+      json: payload,
+    })
+    .json<ApiResponse<PaginatedResponse<DeductionSalaryItem>>>();
+};
+
+export const putDeductionSalary = async (
+  id: number,
+  payload: RequestDeductionSalary,
+): Promise<ApiResponse<PaginatedResponse<DeductionSalaryItem>>> => {
+  return api
+    .put(`setting/salary-deduction/${id}`, {
+      json: payload,
+    })
+    .json<ApiResponse<PaginatedResponse<DeductionSalaryItem>>>();
+};
+
+export const removeDeductionSalary = async (
+  id: number,
+): Promise<ApiResponse<PaginatedResponse<DeductionSalaryItem>>> => {
+  return api
+    .delete(`setting/salary-deduction/${id}`, {
+      json: {},
+    })
+    .json<ApiResponse<PaginatedResponse<DeductionSalaryItem>>>();
 };

@@ -24,83 +24,85 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { toast } from 'sonner';
+import {
+  DeductionSalaryItem,
+  DeductionSalaryTier,
+  RequestDeductionSalary,
+} from '@/services/salary/types';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  getDeductionSalary,
+  postDeductionSalary,
+  putDeductionSalary,
+  removeDeductionSalary,
+} from '@/services/salary';
+import { Textarea } from '@/components/ui/textarea';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { ApiResponse, PaginatedResponse } from '@/lib/types';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import Image from 'next/image';
+import { toTitleCase } from '@/lib/menu';
 
-// =======================
-// Types
-// =======================
-interface DeductionItem {
-  id: string;
-  deduction_name: string;
-  effective_date: string;
-  deduction_type: string;
-  effective_to: string;
-  updated_at: string;
-  rules?: { min_income: number; max_income: number; tax_rate: number }[];
-  contributions?: { employer: string; employee: string };
-}
-
-// =======================
-// Component
-// =======================
 export default function SettingsSalaryDeduction() {
-  const [data, setData] = React.useState<DeductionItem[]>([
-    {
-      id: '1',
-      deduction_name: 'PPH21',
-      deduction_type: 'Staturory',
-      effective_date: '2025-10-16',
-      effective_to: '',
-      updated_at: '2025-10-16',
-      contributions: { employer: '4', employee: 'Progressive' },
-      rules: [
-        { min_income: 0, max_income: 60000000, tax_rate: 5 },
-        { min_income: 60000000, max_income: 250000000, tax_rate: 15 },
-      ],
-    },
-    {
-      id: '2',
-      deduction_name: 'BPJS',
-      deduction_type: 'Staturory',
-      effective_date: '2025-10-20',
-      effective_to: '',
-      updated_at: '2025-10-20',
-      contributions: { employer: '4', employee: '1' },
-    },
-  ]);
-
   const [open, setOpen] = React.useState(false);
-  const [editing, setEditing] = React.useState<DeductionItem | null>(null);
+  const [openDelete, setOpenDelete] = React.useState(false);
+  const [loading, setLoading] = React.useState(false);
+  const [editing, setEditing] = React.useState<DeductionSalaryItem | null>(
+    null,
+  );
+  const queryClient = useQueryClient();
+
+  const { data: deductionData, refetch: deductionDataRefetch } = useQuery({
+    queryKey: ['getDeductionSalary'],
+    queryFn: getDeductionSalary,
+    staleTime: 1000 * 60 * 5,
+  });
 
   // =======================
   // Columns
   // =======================
-  const columns: ColumnDef<DeductionItem>[] = [
+  const columns: ColumnDef<DeductionSalaryItem>[] = [
     {
-      accessorKey: 'deduction_name',
+      accessorKey: 'name',
       header: 'Deduction Name',
     },
     {
       accessorKey: 'deduction_type',
       header: 'Deduction Type',
+      cell: ({ row }) => toTitleCase(row.original.deduction_type),
     },
     {
-      accessorKey: 'contributions.employer',
+      accessorKey: 'employer_contribution',
       header: 'Employer Contribution',
+      cell: ({ row }) =>
+        row.original.contribution_type === 'fixed_amount'
+          ? `Rp ${Number(row.original.employer_contribution).toLocaleString('id-ID')}`
+          : `${Number(row.original.employer_contribution)}%`,
     },
     {
-      accessorKey: 'contributions.employee',
+      accessorKey: 'employee_contribution',
       header: 'Employee Contribution',
+      cell: ({ row }) =>
+        row.original.contribution_type === 'fixed_amount'
+          ? `Rp ${Number(row.original.employee_contribution).toLocaleString('id-ID')}`
+          : `${Number(row.original.employee_contribution)}%`,
     },
     {
       accessorKey: 'effective_date',
       header: 'Effective Date',
       cell: ({ row }) =>
-        dayjs(row.original.effective_date).format('MMMM D, YYYY'),
+        dayjs(row.original.effective_date).format('MMMM D, YYYY') ?? '-',
     },
     {
       accessorKey: 'updated_at',
       header: 'Last Update',
-      cell: ({ row }) => dayjs(row.original.updated_at).format('MMMM D, YYYY'),
+      cell: ({ row }) =>
+        dayjs(row.original.updated_at).format('MMMM D, YYYY') ?? '-',
     },
     {
       id: 'actions',
@@ -112,94 +114,135 @@ export default function SettingsSalaryDeduction() {
             onEdit={() => {
               setEditing(item);
               setForm({
-                deduction_name: item.deduction_name,
+                name: item.name,
                 deduction_type: item.deduction_type,
                 effective_date: item.effective_date,
                 effective_to: item.effective_to,
-                rules: item.rules || [
-                  { min_income: 0, max_income: 0, tax_rate: 0 },
-                ],
-                contributions: item.contributions || {
-                  employer: '0',
-                  employee: '0',
-                },
+                description: item.description,
+                tiers: item.tiers || [],
+                employee_contribution: item.employee_contribution,
+                employer_contribution: item.employer_contribution,
+                calculation_basis: item.calculation_basis,
+                contribution_type: item.contribution_type,
               });
               setOpen(true);
             }}
-            onDelete={() => handleDelete(item.id)}
+            onDelete={() => {
+              setEditing(item);
+              setOpenDelete(true);
+            }}
           />
         );
       },
     },
   ];
 
+  const saveMutation = useMutation<
+    ApiResponse<PaginatedResponse<DeductionSalaryItem>>,
+    Error,
+    { id?: number; data: RequestDeductionSalary }
+  >({
+    mutationFn: ({ id, data }) => {
+      if (id) {
+        return putDeductionSalary(id, data);
+      }
+      return postDeductionSalary(data);
+    },
+    onMutate: () => setLoading(true),
+    onSuccess: () => {
+      toast.success('Deduction salary successfully save');
+      queryClient.invalidateQueries({ queryKey: ['getDeductionSalary'] });
+      deductionDataRefetch();
+      setOpen(false);
+      setEditing(null);
+    },
+    onError: (err) => {
+      toast.error(`Failed to save: ${err.message}`);
+    },
+    onSettled: () => setLoading(false),
+  });
+
+  // mutation for delete
+  const deleteMutation = useMutation<
+    ApiResponse<PaginatedResponse<DeductionSalaryItem>>,
+    Error,
+    number
+  >({
+    mutationFn: (id) => removeDeductionSalary(id),
+    onMutate: () => setLoading(true),
+    onSuccess: () => {
+      toast.success('Deduction salary deleted successfully');
+      queryClient.invalidateQueries({ queryKey: ['getDeductionSalary'] });
+      deductionDataRefetch();
+      setOpenDelete(false);
+      setEditing(null);
+    },
+    onError: (err) => {
+      toast.error(`Failed to delete: ${err.message}`);
+    },
+    onSettled: () => setLoading(false),
+  });
+
   // =======================
   // Form State
   // =======================
   const [form, setForm] = React.useState<{
-    deduction_name: string;
-    effective_date: string;
+    name: string;
     deduction_type: string;
+    effective_date: string;
     effective_to: string;
-    rules: { min_income: number; max_income: number; tax_rate: number }[];
-    contributions: { employer: string; employee: string };
+    employee_contribution: string;
+    employer_contribution: string;
+    description: string;
+    calculation_basis: string;
+    contribution_type: string;
+    tiers: DeductionSalaryTier[];
   }>({
-    deduction_name: '',
+    name: '',
     effective_date: '',
     deduction_type: '',
     effective_to: '',
-    rules: [{ min_income: 0, max_income: 0, tax_rate: 0 }],
-    contributions: { employer: '0', employee: '0' },
+    tiers: [],
+    description: '',
+    employee_contribution: '',
+    employer_contribution: '',
+    calculation_basis: '',
+    contribution_type: '',
   });
 
-  const handleDelete = (id: string) => {
-    if (confirm('Delete this deduction?')) {
-      setData((prev) => prev.filter((i) => i.id !== id));
+  const handleDelete = () => {
+    if (editing) {
+      deleteMutation.mutate(Number(editing.id));
     }
   };
 
   const handleSave = () => {
-    if (!form.deduction_name || !form.effective_date)
+    if (!form.name || !form.effective_date)
       return toast.error('Please fill all required fields');
+    console.log(form);
 
-    if (editing) {
-      setData((prev) =>
-        prev.map((i) =>
-          i.id === editing.id
-            ? {
-                ...i,
-                ...form,
-                updated_at: dayjs().format('YYYY-MM-DD'),
-              }
-            : i,
-        ),
-      );
-      toast.success('Successfully updated deduction');
-    } else {
-      setData((prev) => [
-        ...prev,
-        {
-          id: String(Date.now()),
-          ...form,
-          updated_at: dayjs().format('YYYY-MM-DD'),
-        },
-      ]);
-      toast.success('Successfully added deduction');
-    }
-
-    setOpen(false);
-    setEditing(null);
-    resetForm();
+    saveMutation.mutate({
+      id: editing?.id,
+      data: {
+        ...form,
+        status: 1,
+        tiers: form.name === 'PPH21' ? form.tiers : [],
+      },
+    });
   };
 
   const resetForm = () => {
     setForm({
-      deduction_name: '',
-      effective_date: '',
+      name: '',
       deduction_type: '',
+      effective_date: '',
       effective_to: '',
-      rules: [{ min_income: 0, max_income: 0, tax_rate: 0 }],
-      contributions: { employer: '0', employee: '0' },
+      tiers: [],
+      description: '',
+      employee_contribution: '',
+      employer_contribution: '',
+      calculation_basis: '',
+      contribution_type: '',
     });
   };
 
@@ -223,7 +266,7 @@ export default function SettingsSalaryDeduction() {
         </Button>
       </div>
 
-      <DataTable columns={columns} data={data} />
+      <DataTable columns={columns} data={deductionData?.data.data} />
 
       {/* Modal Form */}
       <Dialog open={open} onOpenChange={setOpen}>
@@ -241,9 +284,9 @@ export default function SettingsSalaryDeduction() {
                 Deduction Name<span className="text-red-500">*</span>
               </Label>
               <Select
-                value={form.deduction_name}
+                value={form.name}
                 onValueChange={(val) =>
-                  setForm((prev) => ({ ...prev, deduction_name: val }))
+                  setForm((prev) => ({ ...prev, name: val }))
                 }
               >
                 <SelectTrigger className="w-full">
@@ -272,11 +315,25 @@ export default function SettingsSalaryDeduction() {
                   <SelectValue placeholder="Select Type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Statutory">Statutory</SelectItem>
-                  <SelectItem value="Voluntary">Voluntary</SelectItem>
-                  <SelectItem value="Custom">Custom</SelectItem>
+                  <SelectItem value="statutory">Statutory</SelectItem>
+                  <SelectItem value="company_policy">Company Policy</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>
+                Description <span className="text-red-500">*</span>
+              </Label>
+              <Textarea
+                className="resize-none h-[135px] whitespace-pre-wrap break-all"
+                rows={5}
+                placeholder="Enter description"
+                value={form.description}
+                onChange={(e) =>
+                  setForm((prev) => ({ ...prev, description: e.target.value }))
+                }
+              />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -313,47 +370,100 @@ export default function SettingsSalaryDeduction() {
             <hr className="my-2" />
 
             <h4 className="font-medium">Contribution</h4>
+            {form.name === 'PPH21' ? (
+              <div className="space-y-2">
+                <Label>
+                  Calculation Basis <span className="text-red-500">*</span>
+                </Label>
+                <Select
+                  value={form.calculation_basis}
+                  onValueChange={(val) =>
+                    setForm((prev) => ({ ...prev, calculation_basis: val }))
+                  }
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select Calculation Basis" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="gross_salary">Gross Salary</SelectItem>
+                    <SelectItem value="Voluntary">Base Salary</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : (
+              <div className="space-y-2 mb-2">
+                <Label>
+                  Calculation Type <span className="text-red-500">*</span>
+                </Label>
+                <RadioGroup
+                  defaultValue="percentage"
+                  className="flex items-center space-x-2"
+                  value={form.contribution_type}
+                  onValueChange={(val) => {
+                    setForm((prev) => ({
+                      ...prev,
+                      contribution_type: String(val),
+                    }));
+                  }}
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="percentage" id="percentage" />
+                    <Label htmlFor="percentage">Percentage (%)</Label>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="fixed_amount" id="fixed_amount" />
+                    <Label htmlFor="fixed_amount">Fixed Amount</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label>Employer Contribution (%)</Label>
+                <Label>
+                  Employer Contribution{' '}
+                  {form.contribution_type === 'fixed_amount'
+                    ? '(Fixed)'
+                    : '(%)'}
+                </Label>
                 <Input
                   type="number"
-                  value={form.contributions.employer}
+                  value={form.employer_contribution}
                   onChange={(e) =>
                     setForm((prev) => ({
                       ...prev,
-                      contributions: {
-                        ...prev.contributions,
-                        employer: e.target.value,
-                      },
+                      employer_contribution: e.target.value,
                     }))
                   }
                 />
               </div>
               <div className="space-y-2">
-                <Label>Employee Contribution (%)</Label>
+                <Label>
+                  Employee Contribution{' '}
+                  {form.contribution_type === 'fixed_amount'
+                    ? '(Fixed)'
+                    : '(%)'}
+                </Label>
                 <Input
                   type="number"
-                  value={form.contributions.employee}
+                  value={form.employee_contribution}
                   onChange={(e) =>
                     setForm((prev) => ({
                       ...prev,
-                      contributions: {
-                        ...prev.contributions,
-                        employee: e.target.value,
-                      },
+                      employee_contribution: e.target.value,
                     }))
                   }
                 />
               </div>
             </div>
 
-            {form.deduction_name === 'PPH21' && (
+            {form.name === 'PPH21' && (
               <>
                 <hr className="my-2" />
 
                 <h4 className="font-medium">Tiered Rules</h4>
-                {form.rules.map((rule, idx) => (
+                {form.tiers.map((rule, idx) => (
                   <div
                     key={idx}
                     className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end"
@@ -364,9 +474,9 @@ export default function SettingsSalaryDeduction() {
                         type="number"
                         value={rule.min_income}
                         onChange={(e) => {
-                          const arr = [...form.rules];
-                          arr[idx].min_income = Number(e.target.value);
-                          setForm((prev) => ({ ...prev, rules: arr }));
+                          const arr = [...form.tiers];
+                          arr[idx].min_income = e.target.value;
+                          setForm((prev) => ({ ...prev, tiers: arr }));
                         }}
                       />
                     </div>
@@ -376,9 +486,9 @@ export default function SettingsSalaryDeduction() {
                         type="number"
                         value={rule.max_income}
                         onChange={(e) => {
-                          const arr = [...form.rules];
-                          arr[idx].max_income = Number(e.target.value);
-                          setForm((prev) => ({ ...prev, rules: arr }));
+                          const arr = [...form.tiers];
+                          arr[idx].max_income = e.target.value;
+                          setForm((prev) => ({ ...prev, tiers: arr }));
                         }}
                       />
                     </div>
@@ -389,20 +499,20 @@ export default function SettingsSalaryDeduction() {
                           type="number"
                           value={rule.tax_rate}
                           onChange={(e) => {
-                            const arr = [...form.rules];
-                            arr[idx].tax_rate = Number(e.target.value);
-                            setForm((prev) => ({ ...prev, rules: arr }));
+                            const arr = [...form.tiers];
+                            arr[idx].tax_rate = e.target.value;
+                            setForm((prev) => ({ ...prev, tiers: arr }));
                           }}
                         />
                       </div>
-                      {form.rules.length > 1 && (
+                      {form.tiers.length > 1 && (
                         <Button
                           variant="ghost"
                           size="icon"
                           onClick={() => {
                             setForm((prev) => ({
                               ...prev,
-                              rules: prev.rules.filter((_, i) => i !== idx),
+                              tiers: prev.tiers.filter((_, i) => i !== idx),
                             }));
                           }}
                         >
@@ -420,9 +530,17 @@ export default function SettingsSalaryDeduction() {
                   onClick={() =>
                     setForm((prev) => ({
                       ...prev,
-                      rules: [
-                        ...prev.rules,
-                        { min_income: 0, max_income: 0, tax_rate: 0 },
+                      tiers: [
+                        ...prev.tiers,
+                        {
+                          created_at: '',
+                          id: 0,
+                          max_income: '',
+                          min_income: '',
+                          salary_deduction_id: 0,
+                          tax_rate: '',
+                          updated_at: '',
+                        },
                       ],
                     }))
                   }
@@ -441,6 +559,45 @@ export default function SettingsSalaryDeduction() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Modal Delete */}
+      <AlertDialog open={openDelete} onOpenChange={setOpenDelete}>
+        <AlertDialogContent className="w-full max-w-md sm:max-w-md text-center bg-white">
+          <div className="flex flex-col items-center justify-center mb-4">
+            {/* Warning Icon (SVG) */}
+            <span className="mb-2">
+              <Image
+                src={'/icons/deleteContained.svg'}
+                width={50}
+                height={50}
+                alt={`icon-delete`}
+              />
+            </span>
+            <AlertDialogTitle className="text-xl font-bold mb-2">
+              Are you sure you want to delete this configuration?
+            </AlertDialogTitle>
+            <div className="text-gray-600 text-sm mb-4">
+              Employees linked to this configuration may be affected
+            </div>
+          </div>
+          <AlertDialogFooter className="flex flex-row gap-4 w-full justify-center">
+            <Button
+              className="w-1/2 bg-transparent text-red-500 hover:bg-transparent font-medium py-2 rounded-lg shadow-none border-none"
+              onClick={handleDelete}
+              isLoading={loading}
+            >
+              Delete Configuration
+            </Button>
+            <Button
+              className="w-1/2 bg-[#18618B] hover:bg-[#14506e] text-white font-medium py-2 rounded-lg"
+              onClick={() => setOpenDelete(false)}
+              disabled={loading}
+            >
+              Cancel
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
