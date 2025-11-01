@@ -239,7 +239,7 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
     (values: z.infer<typeof employeeManagementFormScheme>) => {
       try {
         const {
-          countryCode,
+          country_code,
           employee_documents,
           attachments,
           work_experiences,
@@ -279,6 +279,7 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
           allowances: validAllowances,
           attachments: attachments || [],
           branch_id: Number(values.branch_id),
+          country_code: values.country_code || ""
         };
 
         const conditionalParams: Partial<IMutateEmployeeRequests> = {};

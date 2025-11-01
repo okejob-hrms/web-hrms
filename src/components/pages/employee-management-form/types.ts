@@ -7,7 +7,7 @@ export const employeeManagementFormScheme = z.object({
   email: z.string().email("Invalid email").min(1, "required"),
   // role_id: z.number().int().min(1, "required"),
   role_id: z.string().min(1, "required"),
-  countryCode: z.string().optional(),
+  country_code: z.string().optional(),
   phone_number: phoneNumberSchema,
   gender: z.string(),
   place_of_birth: z.string().min(1, "required"),

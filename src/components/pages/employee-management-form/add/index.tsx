@@ -47,7 +47,6 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
   const onSubmit = (values: z.infer<typeof employeeManagementFormScheme>) => {
     try {
       const {
-        countryCode: _,
         additional_direct_report_id,
         ...restValues
       } = values;
@@ -64,6 +63,7 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
         ...(filteredSocialMedia && {
           social_media_accounts: filteredSocialMedia,
         }),
+        country_code: String(values.country_code),
         branch_id: Number(values.branch_id),
         team_members: [{ team_id: Number(values.team_members) }],
         date_of_birth: dayjs(values.date_of_birth).format("YYYY-MM-DD"),
