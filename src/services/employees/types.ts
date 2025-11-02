@@ -266,6 +266,15 @@ export interface IEmployeeDetailsResponse {
   families: IFamilyResponse[];
   contact_refferences: IContactReferenceResponse[];
   employee_documents: IDocument[];
+  branch: {
+    id: number,
+    name: string,
+    latitude: string,
+    longitude: string,
+    address: string,
+    created_at: string,
+    updated_at: string
+  }
 }
 
 export interface IEmployeeOrganizationStructure {

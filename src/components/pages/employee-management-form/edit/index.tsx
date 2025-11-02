@@ -183,7 +183,7 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
         achievement: employeeDetails.achievement || "",
         personal_description: employeeDetails.personal_description || "",
         photo_profile: employeeDetails.photo_profile || "",
-        branch_id: employeeDetails.employment.branch?.id.toString() || "",
+        branch_id: employeeDetails.branch?.id.toString() || "",
         role_id: employeeDetails.employment?.job_level_id?.toString() || "",
         job_position_id:
           employeeDetails.employment?.job_position_id?.toString() || "",
@@ -193,7 +193,7 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
           employeeDetails.employment?.job_level_id?.toString() || "",
         status: employeeDetails.employment?.status?.toString() || "",
         team_members:
-          employeeDetails.team_members?.[0]?.team_id?.toString() || "",
+          employeeDetails.team_members?.[0]?.id?.toString() || "",
         base_salary: Number(employeeDetails.employment?.base_salary) || 0,
         salary_nett: Number(employeeDetails.employment?.salary_nett) || 0,
         allowances: (employeeDetails.employment?.allowances || [])?.map(
@@ -216,13 +216,13 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
           primary_direct_report_id: Number(
             employeeDetails.reporting_relationships.filter(
               (item) => item.relationship_type === "primary",
-            )[0]?.employee_profile_id || 0,
+            )[0]?.direct_report_id || 0,
           ),
           additional_direct_report_id: (() => {
             const secondaryReport =
               employeeDetails.reporting_relationships.filter(
                 (item) => item.relationship_type === "secondary",
-              )[0]?.employee_profile_id;
+              )[0]?.direct_report_id;
             return secondaryReport ? Number(secondaryReport) : null;
           })(),
         }),
