@@ -60,6 +60,7 @@ import Image from 'next/image';
 export default function SettingsBaseAllowance() {
   const [open, setOpen] = React.useState(false);
   const [openDelete, setOpenDelete] = React.useState(false);
+  const [openDetail, setOpenDetail] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [editing, setEditing] = React.useState<AllowanceItem | null>(null);
   const queryClient = useQueryClient();
@@ -141,6 +142,10 @@ export default function SettingsBaseAllowance() {
             onDelete={() => {
               setEditing(item);
               setOpenDelete(true);
+            }}
+            onDetail={() => {
+              setEditing(item);
+              setOpenDetail(true);
             }}
           />
         );
@@ -502,6 +507,89 @@ export default function SettingsBaseAllowance() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Modal Detail */}
+      <Dialog open={openDetail} onOpenChange={setOpenDetail}>
+        <DialogContent className="max-w-md bg-white">
+          <DialogHeader>
+            <DialogTitle>Detail Allowance</DialogTitle>
+          </DialogHeader>
+
+          <div className="grid gap-4 py-2">
+            <div className="space-y-2">
+              <Label>Allowance Name</Label>
+              <Label className="font-semibold">{editing?.name}</Label>
+            </div>
+            <div className="space-y-2">
+              <Label>Effective Date</Label>
+              <Label className="font-semibold">
+                {dayjs(editing?.effective_date).format('MMMM D, YYYY')}
+              </Label>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Effective To</Label>
+              <Label className="font-semibold">
+                {dayjs(editing?.expire_date).format('MMMM D, YYYY')}
+              </Label>
+            </div>
+
+            <hr />
+            <h1>Base Allowance</h1>
+
+            {editing?.job_levels.map((jl, idx) => (
+              <div className="flex gap-3" key={idx}>
+                <Label>#{idx + 1}</Label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-end relative">
+                  <div className="space-y-2">
+                    <Label>Job Level</Label>
+                    <Label className="font-semibold">
+                      {jobLevel?.data.filter((item) => item.id === jl.id)[0]
+                        ?.name ?? '-'}
+                    </Label>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 space-y-2">
+                      <Label>Base Allowance Amount</Label>
+                      <Label className="font-semibold">
+                        {`Rp ${Number(jl.amount).toLocaleString('id-ID')}`}
+                      </Label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex justify-between items-center">
+            <Button
+              className="bg-transparent text-red-500 hover:bg-transparent font-medium py-2 rounded-lg shadow-none border-none"
+              onClick={handleDelete}
+              isLoading={loading}
+            >
+              Delete
+            </Button>
+            <div className="flex gap-3">
+              <Button variant="outline" onClick={() => setOpenDetail(false)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={() => {
+                  setOpen(true);
+                  setOpenDetail(false);
+                  if (editing) {
+                    const { id, updated_at, ...rest } = editing;
+                    setForm(rest);
+                  }
+                }}
+              >
+                Edit
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
