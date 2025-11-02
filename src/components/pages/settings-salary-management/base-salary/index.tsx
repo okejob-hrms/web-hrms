@@ -326,7 +326,7 @@ export default function SettingsBaseSalary() {
               <Input
                 type="number"
                 placeholder="Rp 0"
-                value={form.amount}
+                value={Number(form.amount)}
                 onChange={(e) =>
                   setForm((prev) => ({
                     ...prev,
