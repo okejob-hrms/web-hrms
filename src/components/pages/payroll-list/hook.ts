@@ -7,20 +7,23 @@ import { PaginationState } from "@tanstack/react-table";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Filters } from "./types";
-import { PayrollGroupRequest } from "@/services/payroll/types";
+import { RequestPayrollGroup, ResponsePayrollItem, ResponsePayrollList } from "@/services/payroll/types";
+import { getPayroll, postPayrollGroup } from "@/services/payroll";
+import { PaginatedResponse } from "@/lib/types";
 
-export function useAttendance() {
+export function usePayroll() {
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: 0,
     pageSize: 10,
   });
   const [openAdd, setOpenAdd] = React.useState(false);
   const [openDelete, setOpenDelete] = React.useState(false);
+  const [loading, setLoading] = React.useState(false);
   const [filters, setFilters] = React.useState<Filters>({
     date: '',
     search: '',
   });
-  const [formData, setFormData] = React.useState<PayrollGroupRequest>({
+  const [formData, setFormData] = React.useState<RequestPayrollGroup>({
     period_year: new Date().getFullYear(),
     period_month: new Date().getMonth(),
     auto_send_payslip: false,
@@ -33,17 +36,35 @@ export function useAttendance() {
 
   // get list
   const {
-    data: paginatedData,
+    data: payrollData,
     isLoading,
     isFetching,
     isRefetching,
+    refetch: payrollDataRefetch
   } = useQuery({
-    queryKey: ["attendance", pagination, filters.search, filters.date],
-    queryFn: () => getAttendance(pagination, filters),
+    queryKey: ["payroll", pagination, filters.search, filters.date],
+    queryFn: () => getPayroll(pagination, filters),
     placeholderData: keepPreviousData,
     refetchOnMount: "always",
     refetchOnWindowFocus: true,
   });
+
+  const dataPagination: PaginatedResponse<ResponsePayrollItem> = {
+    current_page: payrollData?.pagination.current_page ?? 1,
+    current_page_url: `${payrollData?.pagination.first ?? ''}`,
+    first_page_url: payrollData?.pagination.first ?? '',
+    from: payrollData?.pagination.from ?? 0,
+    last_page: payrollData?.pagination.last_page ?? 1,
+    next_page_url: payrollData?.pagination.next ?? null,
+    path: 'api/v1/payruns',
+    per_page: payrollData?.pagination.per_page ?? 10,
+    prev_page_url: payrollData?.pagination.prev ?? null,
+    to: payrollData?.pagination.to ?? 0,
+    total: payrollData?.pagination.total ?? 0,
+    data: payrollData?.data ?? [],
+  };
+
+  console.log(dataPagination);
   
   const { mutate: removeAttendance } = useMutation({
     mutationFn: (id: number) => deleteAttendance(id),
@@ -57,22 +78,39 @@ export function useAttendance() {
     },
   });
 
-  const hasNextPage = !!paginatedData?.data?.next_page_url;
-  const hasPreviousPage = !!paginatedData?.data?.prev_page_url;
+  const submitMutation = useMutation<
+    ResponsePayrollList,
+    Error,
+    { data: RequestPayrollGroup }
+  >({
+    mutationFn: ({ data }) => {
+      return postPayrollGroup(data);
+    },
+    onMutate: () => setLoading(true),
+    onSuccess: () => {
+      toast.success('Payroll group successfully save');
+      queryClient.invalidateQueries({ queryKey: ['payroll'] });
+      payrollDataRefetch();
+      setOpenAdd(false);
+    },
+    onError: (err) => {
+      toast.error(`Failed to save: ${err.message}`);
+    },
+    onSettled: () => setLoading(false),
+  });
 
   const handleGoDetailEmployee = (id:number) => {
     router.push(`/employee/employee-management/${id}`)
   }
 
-  const handleAddGroup = (data: PayrollGroupRequest) => {
-    console.log('data', data);
+  const handleAddGroup = (values: RequestPayrollGroup) => {
+    submitMutation.mutate({data: values})
   }
 
   return {
-    attendances: paginatedData,
-    loading: isLoading || isFetching || isRefetching,
-    hasNextPage,
-    hasPreviousPage,
+    payrollData,
+    dataPagination,
+    loading: isLoading || isFetching || isRefetching || loading,
     pagination,
     setPagination,
     handleGoDetailEmployee,

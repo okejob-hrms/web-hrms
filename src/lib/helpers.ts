@@ -277,6 +277,10 @@ export function getStatusPayroll(status?: string): StatusConfig {
   let className = '';
 
   switch (status) {
+    case 'Draft':
+      variant = 'secondary';
+      className = 'bg-gray-100 text-gray-700';
+      break;
     case 'Payslip Sent':
       variant = 'secondary';
       className = 'bg-green-100 text-green-700';
@@ -287,6 +291,35 @@ export function getStatusPayroll(status?: string): StatusConfig {
       className = 'bg-yellow-100 text-yellow-700';
       break;
     case 'Rejected':
+      variant = 'destructive';
+      break;
+  }
+
+  return { variant, className, label: status };
+}
+
+
+export function getStatusGeneratingPayroll(status?: string): StatusConfig {
+  if (!status) {
+    return {
+      variant: 'default',
+      label: '-',
+    };
+  }
+
+  let variant: BadgeVariant = 'default';
+  let className = '';
+
+  switch (status) {
+    case 'Waiting':
+      variant = 'secondary';
+      className = 'bg-yellow-100 text-yellow-700';
+      break;
+    case 'Done':
+      variant = 'secondary';
+      className = 'bg-green-100 text-green-700';
+      break;
+    case 'Failed':
       variant = 'destructive';
       break;
   }
