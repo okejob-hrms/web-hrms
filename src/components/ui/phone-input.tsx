@@ -23,7 +23,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { countryCodes, getDefaultCountryCode } from "@/lib/country-codes";
+import { countryCodes } from "@/lib/country-codes";
 import { parsePhoneNumber, formatPhoneForDisplay } from "@/lib/phone-utils";
 import { cn } from "@/lib/utils";
 import { Check, ChevronsUpDown } from "lucide-react";
@@ -214,6 +214,7 @@ const PhoneInputField = ({
 
 export const PhoneInput = ({
   name,
+  countryCodeName,
   label,
   required = false,
   disabled = false,
@@ -240,8 +241,21 @@ export const PhoneInput = ({
   const handleCountryCodeChange = (newCountryCode: string) => {
     const currentPhone = parsedPhone.phoneNumber;
     const fullNumber = currentPhone ? `${newCountryCode}${currentPhone}` : "";
+    const countryCodeVal = newCountryCode.split("+")[1]
     setValue(name, fullNumber, { shouldValidate: true });
+    countryCodeName && setValue(countryCodeName, countryCodeVal, { shouldValidate: true });
   };
+
+  React.useEffect(() => {
+    if (name && parsedPhone.phoneNumber)  {
+      const currentPhone = parsedPhone.phoneNumber;
+      setValue(name, currentPhone, { shouldValidate: true });
+    }
+    if (countryCodeName && parsedPhone.countryCode && parsedPhone.countryCode !== "+1") {
+      const countryCodeVal = parsedPhone.countryCode.split("+")[1];
+      setValue(countryCodeName, countryCodeVal, { shouldValidate: true });
+    }
+  }, [])
 
   return (
     <FormField

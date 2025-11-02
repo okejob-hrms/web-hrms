@@ -122,6 +122,7 @@ export interface IMutateEmployeeRequests {
   contact_refferences?: {
     id: number;
   }[];
+  country_code: string;
   // employee_documents?: {
   //   id: number;
   // }[];
