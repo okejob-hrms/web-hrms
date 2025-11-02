@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { PayrollGroupRequest } from '@/services/payroll/types';
+import { RequestPayrollGroup } from '@/services/payroll/types';
 import {
   Select,
   SelectContent,
@@ -20,13 +20,14 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { month, year } from '@/lib/utils';
+import dayjs from 'dayjs';
 
 interface Props {
   onUpdate: (e?: React.FormEvent) => void;
   isOpen: boolean;
   setIsOpen: (x: boolean) => void;
-  formData: PayrollGroupRequest;
-  setFormData: React.Dispatch<React.SetStateAction<PayrollGroupRequest>>;
+  formData: RequestPayrollGroup;
+  setFormData: React.Dispatch<React.SetStateAction<RequestPayrollGroup>>;
 }
 
 export default function PayrunsAddModal({
@@ -123,11 +124,12 @@ export default function PayrunsAddModal({
                     type="date"
                     value={formData.send_payslip_at}
                     onChange={(e) => {
+                      console.log(e);
                       setFormData((prev) => ({
                         ...prev,
-                        send_payslip_at: new Date(
-                          e.target.value,
-                        ).toDateString(),
+                        send_payslip_at: dayjs(e.target.value).format(
+                          'YYYY-MM-DD',
+                        ),
                       }));
                     }}
                   />

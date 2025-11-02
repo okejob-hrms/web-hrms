@@ -61,6 +61,7 @@ import { getJobPositionPagination } from '@/services/job-position';
 export default function SettingsBaseSalary() {
   const [open, setOpen] = React.useState(false);
   const [openDelete, setOpenDelete] = React.useState(false);
+  const [openDetail, setOpenDetail] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [editing, setEditing] = React.useState<BaseSalaryItem | null>(null);
   const queryClient = useQueryClient();
@@ -148,6 +149,10 @@ export default function SettingsBaseSalary() {
             onDelete={() => {
               setEditing(item);
               setOpenDelete(true);
+            }}
+            onDetail={() => {
+              setEditing(item);
+              setOpenDetail(true);
             }}
           />
         );
@@ -455,6 +460,83 @@ export default function SettingsBaseSalary() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Modal Detail */}
+      <Dialog open={openDetail} onOpenChange={setOpenDetail}>
+        <DialogContent className="max-w-md bg-white">
+          <DialogHeader>
+            <DialogTitle>Detail Base Salary</DialogTitle>
+          </DialogHeader>
+
+          <div className="grid gap-4 py-2">
+            <div className="space-y-2">
+              <Label>Job Position</Label>
+              <Label className="font-semibold">
+                {jobPosition?.data.filter(
+                  (item) => item.id === editing?.job_position_id,
+                )[0]?.name ?? '-'}
+              </Label>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Job Level</Label>
+              <Label className="font-semibold">
+                {jobLevel?.data.filter(
+                  (item) => item.id === editing?.job_level_id,
+                )[0]?.name ?? '-'}
+              </Label>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Base Salary Amount</Label>
+              <Label className="font-semibold">
+                {`Rp ${Number(editing?.amount).toLocaleString('id-ID')}`}
+              </Label>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Effective Date</Label>
+              <Label className="font-semibold">
+                {dayjs(editing?.effective_date).format('MMMM D, YYYY')}
+              </Label>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Effective To</Label>
+              <Label className="font-semibold">
+                {dayjs(editing?.end_date).format('MMMM D, YYYY')}
+              </Label>
+            </div>
+          </div>
+
+          <div className="flex justify-between items-center">
+            <Button
+              className="bg-transparent text-red-500 hover:bg-transparent font-medium py-2 rounded-lg shadow-none border-none"
+              onClick={handleDelete}
+              isLoading={loading}
+            >
+              Delete
+            </Button>
+            <div className="flex gap-3">
+              <Button variant="outline" onClick={() => setOpenDetail(false)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={() => {
+                  setOpen(true);
+                  setOpenDetail(false);
+                  if (editing) {
+                    const { id, updated_at, ...rest } = editing;
+                    setForm(rest);
+                  }
+                }}
+              >
+                Edit
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

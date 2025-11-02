@@ -51,6 +51,7 @@ import { toTitleCase } from '@/lib/menu';
 export default function SettingsSalaryDeduction() {
   const [open, setOpen] = React.useState(false);
   const [openDelete, setOpenDelete] = React.useState(false);
+  const [openDetail, setOpenDetail] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [editing, setEditing] = React.useState<DeductionSalaryItem | null>(
     null,
@@ -130,6 +131,10 @@ export default function SettingsSalaryDeduction() {
             onDelete={() => {
               setEditing(item);
               setOpenDelete(true);
+            }}
+            onDetail={() => {
+              setEditing(item);
+              setOpenDetail(true);
             }}
           />
         );
@@ -270,7 +275,9 @@ export default function SettingsSalaryDeduction() {
 
       {/* Modal Form */}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-white">
+        <DialogContent
+          className={`${form.name === 'PPH21' ? 'w-full md:max-w-6xl' : 'max-w-3xl'} max-h-[90vh] overflow-y-auto bg-white`}
+        >
           <DialogHeader>
             <DialogTitle>
               {editing ? 'Edit Salary Deduction' : 'Set Up Salary Deduction'}
@@ -278,277 +285,286 @@ export default function SettingsSalaryDeduction() {
           </DialogHeader>
 
           {/* Form Fields */}
-          <div className="grid gap-4 py-2">
-            <div className="space-y-2">
-              <Label>
-                Deduction Name<span className="text-red-500">*</span>
-              </Label>
-              <Select
-                value={form.name}
-                onValueChange={(val) =>
-                  setForm((prev) => ({ ...prev, name: val }))
-                }
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select Deduction Type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="PPH21">PPH21</SelectItem>
-                  <SelectItem value="BPJS">BPJS</SelectItem>
-                  <SelectItem value="JHT">JHT</SelectItem>
-                  <SelectItem value="Pension">Pension</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>
-                Deduction Type <span className="text-red-500">*</span>
-              </Label>
-              <Select
-                value={form.deduction_type}
-                onValueChange={(val) =>
-                  setForm((prev) => ({ ...prev, deduction_type: val }))
-                }
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select Type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="statutory">Statutory</SelectItem>
-                  <SelectItem value="company_policy">Company Policy</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>
-                Description <span className="text-red-500">*</span>
-              </Label>
-              <Textarea
-                className="resize-none h-[135px] whitespace-pre-wrap break-all"
-                rows={5}
-                placeholder="Enter description"
-                value={form.description}
-                onChange={(e) =>
-                  setForm((prev) => ({ ...prev, description: e.target.value }))
-                }
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div
+            className={`${form.name === 'PPH21' ? 'grid md:grid-cols-2 gap-4 md:gap-10' : 'grid gap-4'}`}
+          >
+            <div className="grid gap-4 py-2">
               <div className="space-y-2">
                 <Label>
-                  Effective Date <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  type="date"
-                  value={form.effective_date}
-                  onChange={(e) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      effective_date: e.target.value,
-                    }))
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Effective To</Label>
-                <Input
-                  type="date"
-                  value={form.effective_to}
-                  onChange={(e) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      effective_to: e.target.value,
-                    }))
-                  }
-                />
-              </div>
-            </div>
-
-            <hr className="my-2" />
-
-            <h4 className="font-medium">Contribution</h4>
-            {form.name === 'PPH21' ? (
-              <div className="space-y-2">
-                <Label>
-                  Calculation Basis <span className="text-red-500">*</span>
+                  Deduction Name<span className="text-red-500">*</span>
                 </Label>
                 <Select
-                  value={form.calculation_basis}
+                  value={form.name}
                   onValueChange={(val) =>
-                    setForm((prev) => ({ ...prev, calculation_basis: val }))
+                    setForm((prev) => ({ ...prev, name: val }))
                   }
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select Calculation Basis" />
+                    <SelectValue placeholder="Select Deduction Type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="gross_salary">Gross Salary</SelectItem>
-                    <SelectItem value="Voluntary">Base Salary</SelectItem>
+                    <SelectItem value="PPH21">PPH21</SelectItem>
+                    <SelectItem value="BPJS">BPJS</SelectItem>
+                    <SelectItem value="JHT">JHT</SelectItem>
+                    <SelectItem value="Pension">Pension</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-            ) : (
-              <div className="space-y-2 mb-2">
+
+              <div className="space-y-2">
                 <Label>
-                  Calculation Type <span className="text-red-500">*</span>
+                  Deduction Type <span className="text-red-500">*</span>
                 </Label>
-                <RadioGroup
-                  defaultValue="percentage"
-                  className="flex items-center space-x-2"
-                  value={form.contribution_type}
-                  onValueChange={(val) => {
-                    setForm((prev) => ({
-                      ...prev,
-                      contribution_type: String(val),
-                    }));
-                  }}
+                <Select
+                  value={form.deduction_type}
+                  onValueChange={(val) =>
+                    setForm((prev) => ({ ...prev, deduction_type: val }))
+                  }
                 >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="percentage" id="percentage" />
-                    <Label htmlFor="percentage">Percentage (%)</Label>
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="fixed_amount" id="fixed_amount" />
-                    <Label htmlFor="fixed_amount">Fixed Amount</Label>
-                  </div>
-                </RadioGroup>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="statutory">Statutory</SelectItem>
+                    <SelectItem value="company_policy">
+                      Company Policy
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-            )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label>
-                  Employer Contribution{' '}
-                  {form.contribution_type === 'fixed_amount'
-                    ? '(Fixed)'
-                    : '(%)'}
+                  Description <span className="text-red-500">*</span>
                 </Label>
-                <Input
-                  type="number"
-                  value={form.employer_contribution}
+                <Textarea
+                  className="resize-none h-[135px] whitespace-pre-wrap break-all"
+                  rows={5}
+                  placeholder="Enter description"
+                  value={form.description}
                   onChange={(e) =>
                     setForm((prev) => ({
                       ...prev,
-                      employer_contribution: e.target.value,
+                      description: e.target.value,
                     }))
                   }
                 />
               </div>
-              <div className="space-y-2">
-                <Label>
-                  Employee Contribution{' '}
-                  {form.contribution_type === 'fixed_amount'
-                    ? '(Fixed)'
-                    : '(%)'}
-                </Label>
-                <Input
-                  type="number"
-                  value={form.employee_contribution}
-                  onChange={(e) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      employee_contribution: e.target.value,
-                    }))
-                  }
-                />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label>
+                    Effective Date <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    type="date"
+                    value={form.effective_date}
+                    onChange={(e) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        effective_date: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Effective To</Label>
+                  <Input
+                    type="date"
+                    value={form.effective_to}
+                    onChange={(e) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        effective_to: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+              </div>
+
+              <hr className="my-2" />
+
+              <h4 className="font-medium">Contribution</h4>
+              {form.name === 'PPH21' ? (
+                <div className="space-y-2">
+                  <Label>
+                    Calculation Basis <span className="text-red-500">*</span>
+                  </Label>
+                  <Select
+                    value={form.calculation_basis}
+                    onValueChange={(val) =>
+                      setForm((prev) => ({ ...prev, calculation_basis: val }))
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select Calculation Basis" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="gross_salary">Gross Salary</SelectItem>
+                      <SelectItem value="Voluntary">Base Salary</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              ) : (
+                <div className="space-y-2 mb-2">
+                  <Label>
+                    Contribution Type <span className="text-red-500">*</span>
+                  </Label>
+                  <RadioGroup
+                    defaultValue="percentage"
+                    className="flex items-center space-x-2"
+                    value={form.contribution_type}
+                    onValueChange={(val) => {
+                      setForm((prev) => ({
+                        ...prev,
+                        contribution_type: String(val),
+                      }));
+                    }}
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="percentage" id="percentage" />
+                      <Label htmlFor="percentage">Percentage (%)</Label>
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="fixed_amount" id="fixed_amount" />
+                      <Label htmlFor="fixed_amount">Fixed Amount</Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label>
+                    Employer Contribution{' '}
+                    {form.contribution_type === 'fixed_amount'
+                      ? '(Fixed)'
+                      : '(%)'}
+                  </Label>
+                  <Input
+                    type="number"
+                    value={form.employer_contribution}
+                    onChange={(e) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        employer_contribution: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>
+                    Employee Contribution{' '}
+                    {form.contribution_type === 'fixed_amount'
+                      ? '(Fixed)'
+                      : '(%)'}
+                  </Label>
+                  <Input
+                    type="number"
+                    value={form.employee_contribution}
+                    onChange={(e) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        employee_contribution: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
               </div>
             </div>
 
-            {form.name === 'PPH21' && (
-              <>
-                <hr className="my-2" />
-
-                <h4 className="font-medium">Tiered Rules</h4>
-                {form.tiers.map((rule, idx) => (
-                  <div
-                    key={idx}
-                    className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end"
-                  >
-                    <div className="space-y-1">
-                      <Label>Min Income</Label>
-                      <Input
-                        type="number"
-                        value={rule.min_income}
-                        onChange={(e) => {
-                          const arr = [...form.tiers];
-                          arr[idx].min_income = e.target.value;
-                          setForm((prev) => ({ ...prev, tiers: arr }));
-                        }}
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <Label>Max Income</Label>
-                      <Input
-                        type="number"
-                        value={rule.max_income}
-                        onChange={(e) => {
-                          const arr = [...form.tiers];
-                          arr[idx].max_income = e.target.value;
-                          setForm((prev) => ({ ...prev, tiers: arr }));
-                        }}
-                      />
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="flex-1 space-y-1">
-                        <Label>Tax Rate (%)</Label>
+            <div>
+              {form.name === 'PPH21' && (
+                <>
+                  <h4 className="font-medium mb-3">Tiered Rules</h4>
+                  {form.tiers.map((rule, idx) => (
+                    <div
+                      key={idx}
+                      className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end mb-2"
+                    >
+                      <div className="space-y-2">
+                        <Label>Min Income</Label>
                         <Input
                           type="number"
-                          value={rule.tax_rate}
+                          value={rule.min_income}
                           onChange={(e) => {
                             const arr = [...form.tiers];
-                            arr[idx].tax_rate = e.target.value;
+                            arr[idx].min_income = e.target.value;
                             setForm((prev) => ({ ...prev, tiers: arr }));
                           }}
                         />
                       </div>
-                      {form.tiers.length > 1 && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => {
-                            setForm((prev) => ({
-                              ...prev,
-                              tiers: prev.tiers.filter((_, i) => i !== idx),
-                            }));
+                      <div className="space-y-2">
+                        <Label>Max Income</Label>
+                        <Input
+                          type="number"
+                          value={rule.max_income}
+                          onChange={(e) => {
+                            const arr = [...form.tiers];
+                            arr[idx].max_income = e.target.value;
+                            setForm((prev) => ({ ...prev, tiers: arr }));
                           }}
-                        >
-                          <Trash2 className="w-4 h-4 text-red-500" />
-                        </Button>
-                      )}
+                        />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 space-y-2">
+                          <Label>Tax Rate (%)</Label>
+                          <Input
+                            type="number"
+                            value={rule.tax_rate}
+                            onChange={(e) => {
+                              const arr = [...form.tiers];
+                              arr[idx].tax_rate = e.target.value;
+                              setForm((prev) => ({ ...prev, tiers: arr }));
+                            }}
+                          />
+                        </div>
+                        {form.tiers.length > 1 && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => {
+                              setForm((prev) => ({
+                                ...prev,
+                                tiers: prev.tiers.filter((_, i) => i !== idx),
+                              }));
+                            }}
+                          >
+                            <Trash2 className="w-4 h-4 text-red-500" />
+                          </Button>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
 
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="text-blue-600 w-fit mt-2"
-                  onClick={() =>
-                    setForm((prev) => ({
-                      ...prev,
-                      tiers: [
-                        ...prev.tiers,
-                        {
-                          created_at: '',
-                          id: 0,
-                          max_income: '',
-                          min_income: '',
-                          salary_deduction_id: 0,
-                          tax_rate: '',
-                          updated_at: '',
-                        },
-                      ],
-                    }))
-                  }
-                >
-                  + Add Rule
-                </Button>
-              </>
-            )}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="text-blue-600 w-fit mt-2"
+                    onClick={() =>
+                      setForm((prev) => ({
+                        ...prev,
+                        tiers: [
+                          ...prev.tiers,
+                          {
+                            created_at: '',
+                            id: 0,
+                            max_income: '',
+                            min_income: '',
+                            salary_deduction_id: 0,
+                            tax_rate: '',
+                            updated_at: '',
+                          },
+                        ],
+                      }))
+                    }
+                  >
+                    + Add Rule
+                  </Button>
+                </>
+              )}
+            </div>
           </div>
 
           <DialogFooter>
@@ -598,6 +614,202 @@ export default function SettingsSalaryDeduction() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Modal Detail */}
+      <Dialog open={openDetail} onOpenChange={setOpenDetail}>
+        <DialogContent
+          className={`${editing?.name === 'PPH21' ? 'w-full md:max-w-6xl' : 'max-w-3xl'} max-h-[90vh] overflow-y-auto bg-white`}
+        >
+          <DialogHeader>
+            <DialogTitle>Detail Salary Deduction</DialogTitle>
+          </DialogHeader>
+
+          <div
+            className={`${editing?.name === 'PPH21' ? 'grid md:grid-cols-2 gap-4 md:gap-10' : 'grid gap-4'}`}
+          >
+            <div className="grid gap-4 py-2">
+              <div className="space-y-2">
+                <Label>Deduction Name</Label>
+                <Label className="font-semibold">{editing?.name}</Label>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Deduction Type</Label>
+                <Label className="font-semibold">
+                  {toTitleCase(editing?.deduction_type ?? '')}
+                </Label>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Description</Label>
+                <Label className="font-semibold">{editing?.description}</Label>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label>Effective Date</Label>
+                  <Label className="font-semibold">
+                    {dayjs(editing?.effective_date).format('MMMM D, YYYY')}
+                  </Label>
+                </div>
+                <div className="space-y-2">
+                  <Label>Effective To</Label>
+                  <Label className="font-semibold">
+                    {dayjs(editing?.effective_to).format('MMMM D, YYYY')}
+                  </Label>
+                </div>
+              </div>
+
+              <hr className="my-2" />
+
+              <h4 className="font-medium">Contribution</h4>
+              {editing?.name === 'PPH21' ? (
+                <div className="space-y-2">
+                  <Label>Calculation Basis</Label>
+                  <Label className="font-semibold">
+                    {toTitleCase(editing?.calculation_basis ?? '')}
+                  </Label>
+                </div>
+              ) : (
+                <div className="space-y-2 mb-2">
+                  <Label>Contribution Type</Label>
+                  <Label className="font-semibold">
+                    {toTitleCase(editing?.contribution_type ?? '')}
+                  </Label>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label>
+                    Employer Contribution{' '}
+                    {editing?.contribution_type === 'fixed_amount'
+                      ? '(Fixed)'
+                      : '(%)'}
+                  </Label>
+                  <Label className="font-semibold">
+                    {editing?.contribution_type === 'fixed_amount'
+                      ? `Rp ${Number(editing?.employer_contribution).toLocaleString('id-ID')}`
+                      : `${Number(editing?.employer_contribution)}%`}
+                  </Label>
+                </div>
+                <div className="space-y-2">
+                  <Label>
+                    Employee Contribution{' '}
+                    {editing?.contribution_type === 'fixed_amount'
+                      ? '(Fixed)'
+                      : '(%)'}
+                  </Label>
+                  <Label className="font-semibold">
+                    {editing?.contribution_type === 'fixed_amount'
+                      ? `Rp ${Number(editing?.employee_contribution).toLocaleString('id-ID')}`
+                      : `${Number(editing?.employee_contribution)}%`}
+                  </Label>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              {editing?.name === 'PPH21' && (
+                <>
+                  <h4 className="font-medium mb-3">Tiered Rules</h4>
+                  {editing?.tiers?.map((rule, idx) => (
+                    <div
+                      key={idx}
+                      className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end mb-2"
+                    >
+                      <div className="space-y-2">
+                        <Label>Min Income</Label>
+                        <Label className="font-semibold">
+                          {`Rp ${Number(rule.min_income).toLocaleString('id-ID')}`}
+                        </Label>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Max Income</Label>
+                        <Label className="font-semibold">
+                          {`Rp ${Number(rule.max_income).toLocaleString('id-ID')}`}
+                        </Label>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 space-y-2">
+                          <Label>Tax Rate (%)</Label>
+                          <Label className="font-semibold">
+                            {rule.tax_rate}%
+                          </Label>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="text-blue-600 w-fit mt-2"
+                    onClick={() =>
+                      setForm((prev) => ({
+                        ...prev,
+                        tiers: [
+                          ...prev.tiers,
+                          {
+                            created_at: '',
+                            id: 0,
+                            max_income: '',
+                            min_income: '',
+                            salary_deduction_id: 0,
+                            tax_rate: '',
+                            updated_at: '',
+                          },
+                        ],
+                      }))
+                    }
+                  >
+                    + Add Rule
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+
+          <div className="flex justify-between items-center">
+            <Button
+              className="bg-transparent text-red-500 hover:bg-transparent font-medium py-2 rounded-lg shadow-none border-none"
+              onClick={handleDelete}
+              isLoading={loading}
+            >
+              Delete
+            </Button>
+            <div className="flex gap-3">
+              <Button variant="outline" onClick={() => setOpenDetail(false)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={() => {
+                  setOpen(true);
+                  setOpenDetail(false);
+                  if (editing) {
+                    setForm({
+                      name: editing.name,
+                      deduction_type: editing.deduction_type,
+                      effective_date: editing.effective_date ?? '',
+                      effective_to: editing.effective_to ?? '',
+                      employee_contribution:
+                        editing.employee_contribution ?? '',
+                      employer_contribution:
+                        editing.employer_contribution ?? '',
+                      description: editing.description ?? '',
+                      calculation_basis: editing.calculation_basis,
+                      contribution_type: editing.contribution_type,
+                      tiers: editing.tiers ?? [],
+                    });
+                  }
+                }}
+              >
+                Edit
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

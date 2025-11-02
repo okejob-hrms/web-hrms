@@ -6,7 +6,7 @@ import { getAttendance, deleteAttendance } from "@/services/attendance";
 import { PaginationState } from "@tanstack/react-table";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { PayrollGroupRequest } from "@/services/payroll/types";
+import { RequestPayrollGroup } from "@/services/payroll/types";
 import { Filters } from "./types";
 
 export function usePayrollDetail() {
@@ -20,7 +20,7 @@ export function usePayrollDetail() {
     date: '',
     search: '',
   });
-  const [formData, setFormData] = React.useState<PayrollGroupRequest>({
+  const [formData, setFormData] = React.useState<RequestPayrollGroup>({
     period_year: new Date().getFullYear(),
     period_month: new Date().getMonth(),
     auto_send_payslip: false,
@@ -65,7 +65,7 @@ export function usePayrollDetail() {
     router.push(`/employee/employee-management/${id}`)
   }
 
-  const handleAddGroup = (data: PayrollGroupRequest) => {
+  const handleAddGroup = (data: RequestPayrollGroup) => {
     console.log('data', data);
   }
 
