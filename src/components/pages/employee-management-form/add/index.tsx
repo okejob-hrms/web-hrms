@@ -46,10 +46,7 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
 
   const onSubmit = (values: z.infer<typeof employeeManagementFormScheme>) => {
     try {
-      const {
-        additional_direct_report_id,
-        ...restValues
-      } = values;
+      const { additional_direct_report_id, ...restValues } = values;
       const filteredSocialMedia = values.social_media_accounts?.filter(
         (account) => account?.type.trim() !== "" && account?.url.trim() !== "",
       );

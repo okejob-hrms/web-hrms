@@ -43,7 +43,7 @@ export const FormTemplate = React.memo(function FormTemplate({
         </Button>
       )}
       <InputForm
-        name={`questions.${index}.label`} // Changed from 'name' to 'label'
+        name={`questions.${index}.label`}
         required
         label="Question"
         className="col-span-2"

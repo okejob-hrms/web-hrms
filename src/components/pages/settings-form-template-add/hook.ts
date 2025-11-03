@@ -53,12 +53,16 @@ export type TemplateFormSchema = FormTemplateFormData;
 interface UseFormTemplateAddProps {
   editFormId?: number;
   initialData?: Partial<TemplateFormSchema>;
+  onSuccess?: () => void;
 }
 
 export function useFormTemplateAdd({
   editFormId,
   initialData,
+  onSuccess,
 }: UseFormTemplateAddProps = {}) {
+  const [openConfirm, setOpenConfirm] = React.useState(false);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
   const queryClient = useQueryClient();
   const router = useRouter();
   const form = useForm<TemplateFormSchema>({
@@ -89,18 +93,36 @@ export function useFormTemplateAdd({
   React.useEffect(() => {
     if (editFormData?.data && editFormId) {
       const formData = editFormData.data;
-      const questions: FormFieldData[] = formData.fields.map((field) => ({
-        label: field.label,
-        type: field.type,
-        is_required: field.is_required,
-        order: field.order,
-        options: Array.isArray(field.options) ? field.options : [],
-        description: field.description || "",
-      }));
-      form.reset({
+      const typeValue = formData.type?.toString() || "";
+
+      if (!typeValue) {
+        console.error("No type value found in form data!");
+        return;
+      }
+
+      const questions: FormFieldData[] = formData.fields.map(
+        (field, index) => ({
+          label: field.label || "",
+          type: field.type || "",
+          is_required: field.is_required || false,
+          order: field.order ?? index,
+          options: Array.isArray(field.options) ? field.options : [],
+          description: field.description || "",
+        }),
+      );
+
+      console.log("Preparing to reset form with:", {
         name: formData.name,
-        type: formData.id.toString(),
-        questions: questions,
+        type: typeValue,
+        questionsCount: questions.length,
+      });
+
+      requestAnimationFrame(() => {
+        form.reset({
+          name: formData.name || "",
+          type: typeValue,
+          questions: questions,
+        });
       });
     }
   }, [editFormData, editFormId, form]);
@@ -110,7 +132,6 @@ export function useFormTemplateAdd({
     onSuccess: () => {
       toast.success("Create form successfully!");
       queryClient.invalidateQueries({ queryKey: ["forms"] });
-      router.push("/settings/form-template");
     },
     onError: (error: any) => {
       if (error?.response) {
@@ -156,7 +177,6 @@ export function useFormTemplateAdd({
       toast.success("Form updated successfully!");
       queryClient.invalidateQueries({ queryKey: ["forms"] });
       queryClient.invalidateQueries({ queryKey: ["form", editFormId] });
-      router.push("/settings/form-template");
     },
     onError: (error: any) => {
       if (error?.response) {
@@ -211,20 +231,13 @@ export function useFormTemplateAdd({
   }, [formsData?.data]);
 
   const handleSubmit = async (values: TemplateFormSchema) => {
+    setIsSubmitting(true);
     try {
-      const formTypeMap: Record<string, number> = {
-        "1": 1,
-        "2": 2,
-        "3": 3,
-      };
-
-      const typeNumber = formTypeMap[values.type] || parseInt(values.type);
-
+      let result;
       if (editFormId) {
         const payload = {
           name: values.name,
-          // type: typeNumber,
-          type: 1,
+          type: Number(values.type),
           description: `Form template: ${values.name}`,
         };
         const updateResponse = await updateFormMutation.mutateAsync({
@@ -250,13 +263,15 @@ export function useFormTemplateAdd({
           });
         }
 
-        form.reset();
-
-        return { success: true, formId: editFormId, data: updateResponse.data };
+        result = {
+          success: true,
+          formId: editFormId,
+          data: updateResponse.data,
+        };
       } else {
         const formResponse = await createFormMutation.mutateAsync({
           name: values.name,
-          type: typeNumber,
+          type: Number(values.type),
           description: `Form template: ${values.name}`,
         });
 
@@ -278,13 +293,26 @@ export function useFormTemplateAdd({
           });
         }
 
-        form.reset();
-
-        return { success: true, formId: formResponse.data?.id };
+        result = { success: true, formId: formResponse.data?.id };
       }
+
+      if (result.success) {
+        form.reset();
+        setOpenConfirm(false);
+
+        if (onSuccess) {
+          onSuccess();
+        } else {
+          router.push("/settings/form-template");
+        }
+      }
+
+      return result;
     } catch (error) {
       console.error("Form submission failed:", error);
       return { success: false, error };
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -292,7 +320,8 @@ export function useFormTemplateAdd({
     createFormMutation.isPending ||
     updateFormMutation.isPending ||
     addFieldMutation.isPending ||
-    isEditFormLoading;
+    isEditFormLoading ||
+    isSubmitting;
 
   return {
     forms: formsData?.data ?? [],
@@ -307,5 +336,8 @@ export function useFormTemplateAdd({
     updateFormMutation,
     addFieldMutation,
     isEditMode: !!editFormId,
+    openConfirm,
+    setOpenConfirm,
+    isSubmitting,
   };
 }
