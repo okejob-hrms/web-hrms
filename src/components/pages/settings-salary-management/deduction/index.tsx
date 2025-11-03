@@ -444,7 +444,7 @@ export default function SettingsSalaryDeduction() {
                   </Label>
                   <Input
                     type="number"
-                    value={form.employer_contribution}
+                    value={Number(form.employer_contribution)}
                     onChange={(e) =>
                       setForm((prev) => ({
                         ...prev,
@@ -462,7 +462,7 @@ export default function SettingsSalaryDeduction() {
                   </Label>
                   <Input
                     type="number"
-                    value={form.employee_contribution}
+                    value={Number(form.employee_contribution)}
                     onChange={(e) =>
                       setForm((prev) => ({
                         ...prev,
@@ -487,7 +487,7 @@ export default function SettingsSalaryDeduction() {
                         <Label>Min Income</Label>
                         <Input
                           type="number"
-                          value={rule.min_income}
+                          value={Number(rule.min_income)}
                           onChange={(e) => {
                             const arr = [...form.tiers];
                             arr[idx].min_income = e.target.value;
@@ -499,7 +499,7 @@ export default function SettingsSalaryDeduction() {
                         <Label>Max Income</Label>
                         <Input
                           type="number"
-                          value={rule.max_income}
+                          value={Number(rule.max_income)}
                           onChange={(e) => {
                             const arr = [...form.tiers];
                             arr[idx].max_income = e.target.value;
@@ -512,7 +512,7 @@ export default function SettingsSalaryDeduction() {
                           <Label>Tax Rate (%)</Label>
                           <Input
                             type="number"
-                            value={rule.tax_rate}
+                            value={Number(rule.tax_rate)}
                             onChange={(e) => {
                               const arr = [...form.tiers];
                               arr[idx].tax_rate = e.target.value;

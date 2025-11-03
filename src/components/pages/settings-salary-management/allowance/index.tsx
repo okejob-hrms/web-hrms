@@ -413,7 +413,7 @@ export default function SettingsBaseAllowance() {
                     <Input
                       type="number"
                       placeholder="Rp 0"
-                      value={jl.amount}
+                      value={Number(jl.amount)}
                       onChange={(e) => {
                         const arr = [...form.job_levels];
                         arr[idx].amount = e.target.value;
@@ -456,7 +456,7 @@ export default function SettingsBaseAllowance() {
                 }))
               }
             >
-              + Add Assignee
+              + Add Job Level
             </Button>
           </div>
 
