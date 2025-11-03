@@ -42,6 +42,7 @@ import { OvertimeListItem, RequestOvertime } from "@/services/overtime/types";
 import OvertimeDetailModal from "./sections/detail-modal";
 import OvertimeEditModal from "./sections/edit-modal";
 import { Button } from "@/components/ui/button";
+import { ILeaveResponse } from "@/services/employees/leave/types";
 
 export default function AttendanceLeaveRequest() {
   const {
@@ -88,24 +89,24 @@ export default function AttendanceLeaveRequest() {
       notes: detail?.notes ?? "",
     });
   }, [detail]);
-  const columns: ColumnDef<OvertimeListItem>[] = [
+  const columns: ColumnDef<ILeaveResponse>[] = [
     {
       accessorKey: "user.name",
       header: "Name",
       cell: ({ row }) => (
         <div className="flex gap-4 items-center min-w-[150px]">
-          <Avatar className="h-10 w-10">
-            <AvatarImage src={`${row.original.employee?.avatar_url}`} />
+          {/* <Avatar className="h-10 w-10">
+            <AvatarImage src={`${row.original.user?.avatar_url}`} />
             <AvatarFallback className="text-primary-hover bg-primary-background text-base font-medium">
-              {stringAvatar(row.original.employee?.name ?? "")}
+              {stringAvatar(row.original.user?.name ?? "")}
             </AvatarFallback>
-          </Avatar>
+          </Avatar> */}
           <div className="flex flex-col">
             <span className="font-semibold text-foreground text-sm">
-              {row.original.employee?.name}
+              {row.original.user?.name}
             </span>
             <span className="text-text-secondary">
-              #{row.original.employee?.id}
+              #{row.original.user?.id}
             </span>
           </div>
         </div>
@@ -125,11 +126,11 @@ export default function AttendanceLeaveRequest() {
 
         return (
           <div className="flex flex-col w-max-2xl">
-            <span className="text-muted-foreground text-xs">
+            {/* <span className="text-muted-foreground text-xs">
               {att.duration + "m" || "-"}
-            </span>
+            </span> */}
             <span className="text-primary">
-              {att.start_time || "-"} — {att.end_time || "-"}
+              {att.start_date || "-"} — {att.end_date || "-"}
             </span>
           </div>
         );

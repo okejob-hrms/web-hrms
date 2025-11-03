@@ -21,7 +21,11 @@ export const CreateLeaveRequestSchema = z.object({
   start_date: z.string(),
   end_date: z.string(),
   reason: z.string().min(1, "Reason is required"),
-  attachment: z.string().min(1, "Attachment is required"),
+  attachments: z.array(
+    z.object({
+      type: z.string(),
+    }),
+  ),
   approvers: z
     .array(
       z.object({
@@ -46,7 +50,7 @@ export type ICreateLeaveRequest = z.infer<typeof CreateLeaveRequestSchema>;
 
 export const useLeaveRequestForm = () => {
   const form = useForm<z.infer<typeof CreateLeaveRequestSchema>>({
-    resolver: zodResolver(CreateLeaveRequestSchema),
+    // resolver: zodResolver(CreateLeaveRequestSchema),
     // defaultValues: defaultCreateLeaveRequest,
   });
   const router = useRouter();
@@ -103,10 +107,10 @@ export const useLeaveRequestForm = () => {
     gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
-
+  console.log("leave req", leaveTypes?.data);
   const leaveTypeOptions = React.useMemo(() => {
-    if (leaveTypes?.data.data) {
-      return leaveTypes?.data.data.map((item) => ({
+    if (leaveTypes?.data) {
+      return leaveTypes?.data.map((item) => ({
         label: item.name,
         value: item.id.toString(),
       }));
@@ -132,7 +136,7 @@ export const useLeaveRequestForm = () => {
       onSuccess: () => {
         toast.success("Create leave successfully!");
         queryClient.invalidateQueries({ queryKey: ["leaves"] });
-        router.push("/");
+        router.push("/attendance/leave-request");
       },
       onError: (error: any) => {
         if (error?.response) {
@@ -199,7 +203,7 @@ export const useLeaveRequestForm = () => {
       start_date: dayjs(data.start_date).format("YYYY-MM-DD"),
       end_date: dayjs(data.end_date).format("YYYY-MM-DD"),
       reason: data.reason,
-      attachment: data.attachment,
+      attachment: data.attachments[0].type,
       approvers: data.approvers.map((approver) => ({
         id: Number(approver.id),
         user_id: Number(approver.user_id),
