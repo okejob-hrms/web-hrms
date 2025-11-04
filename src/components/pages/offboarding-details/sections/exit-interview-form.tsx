@@ -199,10 +199,6 @@ export const ExitInterviewForm = React.memo(function ExitInterviewForm({
     enabled: !!details?.form_id,
   });
 
-  React.useEffect(() => {
-    console.log(answer);
-  }, [answer]);
-
   const onSubmit = async (data: unknown) => {
     console.log("Form data:", data);
   };
