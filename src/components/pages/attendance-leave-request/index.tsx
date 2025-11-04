@@ -28,7 +28,11 @@ import {
   XCircle,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { getStatusOvertime } from "@/lib/helpers";
+import {
+  formatDateRange,
+  formatDayDifference,
+  getStatusOvertime,
+} from "@/lib/helpers";
 import OvertimeApproveModal from "./sections/approve-modal";
 import OvertimeRejectModal from "./sections/reject-modal";
 import OvertimeDeleteModal from "./sections/delete-modal";
@@ -120,17 +124,16 @@ export default function AttendanceLeaveRequest() {
     {
       accessorKey: "duration",
       header: "Duration",
+      size: 300,
       cell: ({ row }) => {
         const att = row.original;
         if (!att) return "-";
 
         return (
           <div className="flex flex-col w-max-2xl">
-            {/* <span className="text-muted-foreground text-xs">
-              {att.duration + "m" || "-"}
-            </span> */}
+            <span>{formatDayDifference(att.start_date, att.end_date)}</span>
             <span className="text-primary">
-              {att.start_date || "-"} — {att.end_date || "-"}
+              {formatDateRange(att.start_date, att.end_date)}
             </span>
           </div>
         );
@@ -168,7 +171,14 @@ export default function AttendanceLeaveRequest() {
       accessorKey: "updated_at",
       header: "Last Update",
       size: 200,
-      cell: ({ row }) => row.original.updated_at || "-",
+      cell: ({ row }) => (
+        <div className="flex flex-col">
+          <span>{dayjs(row.original.updated_at).format("MMMM D, YYYY")}</span>
+          <span className="text-sm text-text-disabled">
+            {dayjs(row.original.updated_at).format("HH:mm")}
+          </span>
+        </div>
+      ),
     },
     {
       accessorKey: "menu",

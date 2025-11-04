@@ -1,4 +1,7 @@
 import { z } from "zod";
+import duration from "dayjs/plugin/duration";
+import dayjs from "dayjs";
+dayjs.extend(duration);
 
 export const rupiahFormatter = (number: number) => {
   return new Intl.NumberFormat("id-ID", {
@@ -187,9 +190,8 @@ export const usePhoneValidation = () => {
   return { validate, format, convert };
 };
 
-
 // helpers attendance
-type BadgeVariant = 'default' | 'secondary' | 'destructive' | 'outline';
+type BadgeVariant = "default" | "secondary" | "destructive" | "outline";
 
 interface StatusConfig {
   variant: BadgeVariant;
@@ -200,26 +202,26 @@ interface StatusConfig {
 export function getStatusAttendance(status?: string): StatusConfig {
   if (!status) {
     return {
-      variant: 'default',
-      label: '-',
+      variant: "default",
+      label: "-",
     };
   }
 
-  let variant: BadgeVariant = 'default';
-  let className = '';
+  let variant: BadgeVariant = "default";
+  let className = "";
 
   switch (status) {
-    case 'Approved':
-      variant = 'secondary';
-      className = 'bg-green-100 text-green-700';
+    case "Approved":
+      variant = "secondary";
+      className = "bg-green-100 text-green-700";
       break;
-    case 'Waiting':
-    case 'Waiting for Approval':
-      variant = 'secondary';
-      className = 'bg-yellow-100 text-yellow-700';
+    case "Waiting":
+    case "Waiting for Approval":
+      variant = "secondary";
+      className = "bg-yellow-100 text-yellow-700";
       break;
-    case 'Rejected':
-      variant = 'destructive';
+    case "Rejected":
+      variant = "destructive";
       break;
   }
 
@@ -229,34 +231,43 @@ export function getStatusAttendance(status?: string): StatusConfig {
 export function getStatusOvertime(status?: number): StatusConfig {
   if (!status) {
     return {
-      variant: 'default',
-      label: '-',
+      variant: "default",
+      label: "-",
     };
   }
 
-  let variant: BadgeVariant = 'default';
-  let className = '';
+  let variant: BadgeVariant = "default";
+  let className = "";
 
   switch (status) {
     case 1:
-      variant = 'secondary';
-      className = 'bg-yellow-100 text-yellow-700';
+      variant = "secondary";
+      className = "bg-yellow-100 text-yellow-700";
       break;
     case 2:
-      variant = 'default';
-      className = 'bg-green-100 text-green-700';
+      variant = "default";
+      className = "bg-green-100 text-green-700";
       break;
     case 3:
-      variant = 'destructive';
+      variant = "destructive";
       break;
   }
 
-  return { variant, className, label: status === 1 ? 'Waiting for Approval' : status === 2 ? 'Approved' : 'Rejected'  };
+  return {
+    variant,
+    className,
+    label:
+      status === 1
+        ? "Waiting for Approval"
+        : status === 2
+          ? "Approved"
+          : "Rejected",
+  };
 }
 
 export async function getLocationDetail(lat: string, lng: string) {
   const res = await fetch(
-    `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
+    `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`,
   );
 
   if (!res.ok) throw new Error("Failed to fetch location");
@@ -268,61 +279,89 @@ export async function getLocationDetail(lat: string, lng: string) {
 export function getStatusPayroll(status?: string): StatusConfig {
   if (!status) {
     return {
-      variant: 'default',
-      label: '-',
+      variant: "default",
+      label: "-",
     };
   }
 
-  let variant: BadgeVariant = 'default';
-  let className = '';
+  let variant: BadgeVariant = "default";
+  let className = "";
 
   switch (status) {
-    case 'Draft':
-      variant = 'secondary';
-      className = 'bg-gray-100 text-gray-700';
+    case "Draft":
+      variant = "secondary";
+      className = "bg-gray-100 text-gray-700";
       break;
-    case 'Payslip Sent':
-      variant = 'secondary';
-      className = 'bg-green-100 text-green-700';
+    case "Payslip Sent":
+      variant = "secondary";
+      className = "bg-green-100 text-green-700";
       break;
-    case 'Pending':
-    case 'Waiting for Approval':
-      variant = 'secondary';
-      className = 'bg-yellow-100 text-yellow-700';
+    case "Pending":
+    case "Waiting for Approval":
+      variant = "secondary";
+      className = "bg-yellow-100 text-yellow-700";
       break;
-    case 'Rejected':
-      variant = 'destructive';
+    case "Rejected":
+      variant = "destructive";
       break;
   }
 
   return { variant, className, label: status };
 }
 
-
 export function getStatusGeneratingPayroll(status?: string): StatusConfig {
   if (!status) {
     return {
-      variant: 'default',
-      label: '-',
+      variant: "default",
+      label: "-",
     };
   }
 
-  let variant: BadgeVariant = 'default';
-  let className = '';
+  let variant: BadgeVariant = "default";
+  let className = "";
 
   switch (status) {
-    case 'Waiting':
-      variant = 'secondary';
-      className = 'bg-yellow-100 text-yellow-700';
+    case "Waiting":
+      variant = "secondary";
+      className = "bg-yellow-100 text-yellow-700";
       break;
-    case 'Done':
-      variant = 'secondary';
-      className = 'bg-green-100 text-green-700';
+    case "Done":
+      variant = "secondary";
+      className = "bg-green-100 text-green-700";
       break;
-    case 'Failed':
-      variant = 'destructive';
+    case "Failed":
+      variant = "destructive";
       break;
   }
 
   return { variant, className, label: status };
+}
+
+export function formatDayDifference(
+  startDate: string,
+  endDate: string,
+): string {
+  const start = dayjs(startDate);
+  const end = dayjs(endDate);
+  const diffInMs = end.diff(start);
+  const days = Math.floor(dayjs.duration(diffInMs).asDays());
+  return `${days} days`;
+}
+
+export function formatDateRange(startDate: string, endDate: string): string {
+  const start = dayjs(startDate);
+  const end = dayjs(endDate);
+
+  // Same month and year → "Dec 2 - Dec 4, 2025"
+  if (start.isSame(end, "month")) {
+    return `${start.format("MMM D")} - ${end.format("D, YYYY")}`;
+  }
+
+  // Same year but different months → "Dec 30 - Jan 2, 2025"
+  if (start.isSame(end, "year")) {
+    return `${start.format("MMM D")} - ${end.format("MMM D, YYYY")}`;
+  }
+
+  // Different years → "Dec 30, 2025 - Jan 2, 2026"
+  return `${start.format("MMM D, YYYY")} - ${end.format("MMM D, YYYY")}`;
 }
