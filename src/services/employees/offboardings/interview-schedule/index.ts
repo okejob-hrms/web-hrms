@@ -41,7 +41,7 @@ export const putInterviewSchedule = async (
   params: IInterviewScheduleRequest,
 ): Promise<ApiResponse<IInterviewScheduleResponse>> => {
   try {
-    const response = await api.put<ApiResponse<IInterviewScheduleResponse>>(
+    const response = await api.post<ApiResponse<IInterviewScheduleResponse>>(
       `employee/offboardings/${offboarding_id}/schedule`,
       { json: params },
     );

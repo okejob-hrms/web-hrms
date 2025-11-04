@@ -74,14 +74,13 @@ export const InterviewSchedule = React.memo(function InterviewSchedule({ offboar
     setOpenForm(false);
   };
 
-  // Always render the form component, but control its visibility with the open prop
   return (
     <>
       {data && data?.data ? (
         <div className="border border-grayscale-20 rounded-sm p-4 w-full">
           <div className="flex justify-between items-center">
             <h3 className="font-semibold text-lg text-black">Interview Schedule</h3>
-            <Button variant="outline" onClick={handleEditClick}>
+            <Button variant="outline" type="button" onClick={handleEditClick}>
               <Image src="/icons/editBlue.svg" width={20} height={20} alt="edit" />
               Edit Interview Schedule
             </Button>
@@ -117,18 +116,19 @@ export const InterviewSchedule = React.memo(function InterviewSchedule({ offboar
           setOpen={setOpenForm}
         />
       )}
-
-      {/* Always render the edit form modal, control visibility with open prop */}
-      {/* {data && data?.data && (
-        <InterviewScheduleForm 
-          offboarding_id={offboarding_id} 
-          isEditMode={true}
-          existingData={data.data}
-          onCancelEdit={handleCancelEdit}
-          open={openForm}
-          setOpen={setOpenForm}
-        />
-      )} */}
+      
+      {data && data?.data && (
+        <div className="hidden">
+          <InterviewScheduleForm 
+            offboarding_id={offboarding_id}
+            isEditMode={true}
+            existingData={data.data}
+            onCancelEdit={handleCancelEdit}
+            open={openForm}
+            setOpen={setOpenForm}
+          />
+        </div>
+      )}
     </>
   );
 });

@@ -1,3 +1,4 @@
+// interview-schedule-form.tsx
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -18,9 +19,10 @@ import { TextAreaForm } from "@/components/ui/textarea";
 import { useDebounce } from "@/hooks/use-debounce";
 import { ApiErrorResponse } from "@/lib/types";
 import { getEmployees } from "@/services/employees";
-import { getInterviewSchedule, postInterviewSchedule, putInterviewSchedule } from "@/services/employees/offboardings/interview-schedule";
+import { postInterviewSchedule, putInterviewSchedule } from "@/services/employees/offboardings/interview-schedule";
 import { IInterviewScheduleRequest, IInterviewScheduleResponse } from "@/services/employees/offboardings/interview-schedule/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import dayjs from "dayjs";
 import { Calendar, Clock } from "lucide-react";
 import * as React from "react";
 import { useForm } from "react-hook-form";
@@ -72,6 +74,7 @@ export const InterviewScheduleForm = React.memo(function InterviewScheduleForm({
     </div>
   );
 });
+
 interface ModalFormProps {
   offboarding_id: number;
   existingData?: IInterviewScheduleResponse;
@@ -88,12 +91,12 @@ export const ModalForm = React.memo(function ModalForm({
   setOpen
 }: ModalFormProps) {
   const isEditMode = !!existingData;
-  
+
   const defaultValues: IInterviewScheduleRequest = {
     date: existingData?.date || "",
     start_time: existingData?.start_time || "",
     end_time: existingData?.end_time || "",
-    participants: existingData?.participants || [],
+    participants: existingData?.participants.map(participant => ({ user_id: participant.user_id })) || [],
     notes: existingData?.notes || "",
   };
   
@@ -103,13 +106,15 @@ export const ModalForm = React.memo(function ModalForm({
 
   React.useEffect(() => {
     if (existingData) {
-      form.reset(defaultValues);
+      form.reset({
+        date: existingData.date || "",
+        start_time: dayjs(existingData.start_time, "HH:mm:ss").format("HH:mm") || "",
+        end_time: dayjs(existingData.end_time, "HH:mm:ss").format("HH:mm")|| "",
+        participants: existingData?.participants.map(participant => ({ user_id: participant.user_id })) || [],
+        notes: existingData.notes || "",
+      });
     }
-  }, [existingData]);
-
-  React.useEffect(() => {
-    console.log("is open modal ", open)
-  }, [open]);
+  }, [existingData, form]);
 
   const queryClient = useQueryClient();
   const [searchApprover, setSearchApprover] = React.useState("");
@@ -192,79 +197,16 @@ export const ModalForm = React.memo(function ModalForm({
     }
   };
 
-  // if (isEditMode) {
-  //   return (
-  //     <Dialog>
-  //     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-  //       <div className="bg-white rounded-lg p-6 w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
-  //         <Form {...form}>
-  //           <form
-  //             onSubmit={form.handleSubmit(handleSubmit)}
-  //             className="space-y-4"
-  //           >
-  //             <DialogHeader>
-  //               <DialogTitle>Edit Interview Schedule</DialogTitle>
-  //             </DialogHeader>
-  //             <div className="gap-2 grid grid-cols-1 md:grid-cols-2">
-  //               <DatePicker name="date" label="Date" />
-  //               <div className="grid grid-cols-2 gap-2">
-  //                 <InputForm
-  //                   icon={<Clock />}
-  //                   iconPosition="right"
-  //                   name="start_time"
-  //                   label="Start Time"
-  //                   required
-  //                 />
-  //                 <InputForm
-  //                   icon={<Clock />}
-  //                   iconPosition="right"
-  //                   name="end_time"
-  //                   label="End Time"
-  //                   required
-  //                 />
-  //               </div>
-  //               <div className="flex flex-col gap-2 md:col-span-2">
-  //                 <label className="text-sm text-text-secondary">
-  //                   Participant<span className="text-error">*</span>
-  //                 </label>
-  //                 <MultiSelectForm
-  //                   options={employeesOptions}
-  //                   name="participants"
-  //                   maxCount={3}
-  //                   searchPlaceholder="Search Employee"
-  //                   hideSelectAll
-  //                   disabled={isLoadingEmployees}
-  //                   valueTransformer={(value) => Number(value)}
-  //                   searchValue={searchApprover}
-  //                   onSearchChange={setSearchApprover}
-  //                 />
-  //               </div>
-  //               <TextAreaForm name="notes" label="Notes" className="col-span-2" />
-  //             </div>
-  //             <div className="flex justify-end gap-2 pt-4">
-  //               <Button type="button" variant="outline" onClick={handleCancel}>
-  //                 Cancel
-  //               </Button>
-  //               <Button type="submit" disabled={mutation.isPending}>
-  //                 {mutation.isPending ? "Saving..." : "Save Changes"}
-  //               </Button>
-  //             </div>
-  //           </form>
-  //         </Form>
-  //       </div>
-  //     </div>
-  //     </Dialog>
-  //   );
-  // }
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="w-fit">
-          <Calendar />
-          Set Interview Schedule
-        </Button>
-      </DialogTrigger>
+      {!isEditMode && (
+        <DialogTrigger asChild>
+          <Button className="w-fit">
+            <Calendar />
+            Set Interview Schedule
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="bg-white md:min-w-5xl overflow-y-scroll max-h-[90vh]">
         <Form {...form}>
           <form
@@ -272,7 +214,9 @@ export const ModalForm = React.memo(function ModalForm({
             className="space-y-4"
           >
             <DialogHeader>
-              <DialogTitle>Set Interview Schedule</DialogTitle>
+              <DialogTitle>
+                {isEditMode ? 'Edit Interview Schedule' : 'Set Interview Schedule'}
+              </DialogTitle>
             </DialogHeader>
             <div className="gap-2 grid grid-cols-1 md:grid-cols-2">
               <DatePicker name="date" label="Date" />
@@ -317,7 +261,7 @@ export const ModalForm = React.memo(function ModalForm({
                 </Button>
               </DialogClose>
               <Button type="submit" disabled={mutation.isPending}>
-                {mutation.isPending ? "Saving..." : "Save"}
+                {mutation.isPending ? "Saving..." : (isEditMode ? "Save Changes" : "Save")}
               </Button>
             </DialogFooter>
           </form>

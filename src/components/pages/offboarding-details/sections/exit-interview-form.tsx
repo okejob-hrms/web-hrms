@@ -118,7 +118,7 @@ const FormFieldRenderer = React.memo(function FormFieldRenderer({
         return (
           <div className="mt-2">
             {field.options?.map((option) => (
-              <CheckboxForm key={option} name={option} label={option} />
+              <CheckboxForm key={option} name={option} label={option} disabled />
             ))}
           </div>
         );
@@ -142,7 +142,7 @@ const FormFieldRenderer = React.memo(function FormFieldRenderer({
         );
 
       default:
-        return <InputForm name={field.form_id.toString()} className="mt-2" />;
+        return <InputForm name={field.form_id.toString()} className="mt-2" disabled />;
     }
   };
 
