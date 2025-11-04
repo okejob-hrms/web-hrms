@@ -4,12 +4,20 @@ import { Button } from "@/components/ui/button";
 import { CheckboxForm } from "@/components/ui/checkbox-form";
 import { Form } from "@/components/ui/form";
 import RadioCard from "@/components/ui/radio-card";
-import { Textarea, TextAreaForm } from "@/components/ui/textarea";
+import { TextAreaForm } from "@/components/ui/textarea";
 import Image from "next/image";
 import React from "react";
 import { useForm } from "react-hook-form";
 import { CompleteOffboardingModal } from "./modals/complete-offboarding";
 import { CancelOffboardingModal } from "./modals/cancel-offboarding";
+import { getDetailOffboarding } from "@/services/employees/offboardings";
+import { useQuery } from "@tanstack/react-query";
+import { getFormById } from "@/services/form";
+import { InputForm } from "@/components/ui/input";
+
+interface Props {
+  offboarding_id: number;
+}
 
 export const AlertProcess = React.memo(function InterviewScheduleForm() {
   return (
@@ -38,7 +46,9 @@ export const AlertProcess = React.memo(function InterviewScheduleForm() {
   );
 });
 
-export const ExitInterviewForm = React.memo(function ExitInterviewForm() {
+export const ExitInterviewForm = React.memo(function ExitInterviewForm({
+  offboarding_id,
+}: Props) {
   const form = useForm({
     defaultValues: {
       opportunity: false,
@@ -50,44 +60,20 @@ export const ExitInterviewForm = React.memo(function ExitInterviewForm() {
     },
   });
 
+  const { data: details } = useQuery({
+    queryKey: ["detail-offboarding", offboarding_id],
+    queryFn: () => getDetailOffboarding(offboarding_id),
+  });
+
+  const { data: forms } = useQuery({
+    queryKey: ["form", details?.form_id],
+    queryFn: () => getFormById(details!.form_id),
+    enabled: !!details?.form_id,
+  });
+
   const onSubmit = async (data: any) => {
     console.log(data);
   };
-
-  const options = [
-    {
-      name: "opportunity",
-      label: "Better career opportunity (promotion & role expansion)",
-    },
-    {
-      name: "salary",
-      label: "Salary/Compensation",
-    },
-    {
-      name: "work",
-      label: "Work-life balance",
-    },
-    {
-      name: "relationship",
-      label: "Relationship with supervisor/colleagues",
-    },
-    {
-      name: "family",
-      label: "Relocation / Family reason",
-    },
-    {
-      name: "others",
-      label: "Others",
-      children: (value: string, onChange: (value: string) => void) => (
-        <Textarea
-          value={value || ""}
-          onChange={(e) => onChange(e.target.value)}
-          className="mt-2 bg-grayscale-20"
-          disabled
-        />
-      ),
-    },
-  ];
 
   return (
     <div className="w-full flex flex-col gap-4">
@@ -98,119 +84,46 @@ export const ExitInterviewForm = React.memo(function ExitInterviewForm() {
           className="flex flex-col gap-4"
         >
           <div className="rounded-sm border border-grayscale-20 p-4 gap-4 flex flex-col">
-            <div className="rounded-sm border border-grayscale-20 p-4 gap-4">
-              <span className="font-medium">1. Reason for Leaving</span>
-              <div className="mt-2">
-                {options.map((item) => (
-                  <CheckboxForm
-                    key={item.name}
-                    name={item.name}
+            {forms?.data.fields.map((item) => (
+              <div
+                className="rounded-sm border border-grayscale-20 p-4 gap-4"
+                key={`${item.id}-${item.label}`}
+              >
+                <span className="font-medium">{item.label}</span>
+                {item.type === "checkbox" ? (
+                  <div className="mt-2">
+                    {item.options.map((item) => (
+                      <CheckboxForm
+                        key={item.name}
+                        name={item.name}
+                        label={item.label}
+                        disabled
+                      >
+                        {item.children}
+                      </CheckboxForm>
+                    ))}
+                  </div>
+                ) : item.type === "textarea" ? (
+                  <TextAreaForm
+                    data-state="disabled"
+                    name={item.form_id.toString()}
                     label={item.label}
                     disabled
-                  >
-                    {item.children}
-                  </CheckboxForm>
-                ))}
+                    inputClassName="bg-grayscale-20 text-text-disabled"
+                  />
+                ) : item.type === "range" ? (
+                  <div className="flex gap-2">
+                    <RadioCard disabled />
+                  </div>
+                ) : (
+                  <InputForm name={item.form_id.toString()} className="mt-2" />
+                )}
               </div>
-            </div>
-            <div className="rounded-sm border border-grayscale-20 p-4 gap-4 flex flex-col">
-              <span className="font-medium">2. Compensation & Benefit</span>
-              <div className="flex gap-2">
-                <RadioCard disabled />
-              </div>
-              <TextAreaForm
-                data-state="disabled"
-                name="compensationNotes"
-                label="Notes"
-                disabled
-                inputClassName="bg-grayscale-20 text-text-disabled"
-              />
-            </div>
-            <div className="rounded-sm border border-grayscale-20 p-4 gap-4 flex flex-col">
-              <span className="font-medium">3. Work Environment</span>
-              <div className="flex gap-2">
-                <RadioCard disabled />
-              </div>
-              <TextAreaForm
-                data-state="disabled"
-                name="environmentNotes"
-                label="Notes"
-                disabled
-                inputClassName="bg-grayscale-20 text-text-disabled"
-              />
-            </div>
-            <div className="rounded-sm border border-grayscale-20 p-4 gap-4 flex flex-col">
-              <span className="font-medium">
-                4. Relationship with Supervisor
-              </span>
-              <div className="flex gap-2">
-                <RadioCard disabled />
-              </div>
-              <TextAreaForm
-                data-state="disabled"
-                name="relationshipNotes"
-                label="Notes"
-                disabled
-                inputClassName="bg-grayscale-20 text-text-disabled"
-              />
-            </div>
-            <div className="rounded-sm border border-grayscale-20 p-4 gap-4 flex flex-col">
-              <span className="font-medium">5. Career Development</span>
-              <div className="flex gap-2">
-                <RadioCard disabled />
-              </div>
-              <TextAreaForm
-                data-state="disabled"
-                name="careerNotes"
-                label="Notes"
-                disabled
-                inputClassName="bg-grayscale-20 text-text-disabled"
-              />
-            </div>
-            <div className="rounded-sm border border-grayscale-20 p-4 gap-4 flex flex-col">
-              <span className="font-medium">6. Company Strengths</span>
-              <TextAreaForm
-                data-state="disabled"
-                name="strengthsNotes"
-                label="Notes"
-                disabled
-                inputClassName="bg-grayscale-20 text-text-disabled"
-              />
-            </div>
-            <div className="rounded-sm border border-grayscale-20 p-4 gap-4 flex flex-col">
-              <span className="font-medium">7. Company Weakness</span>
-              <TextAreaForm
-                data-state="disabled"
-                name="weaknessNotes"
-                label="Notes"
-                disabled
-                inputClassName="bg-grayscale-20 text-text-disabled"
-              />
-            </div>
-            <div className="rounded-sm border border-grayscale-20 p-4 gap-4 flex flex-col">
-              <span className="font-medium">8. Suggestion for Improvement</span>
-              <TextAreaForm
-                data-state="disabled"
-                name="suggestionNotes"
-                label="Notes"
-                disabled
-                inputClassName="bg-grayscale-20 text-text-disabled"
-              />
-            </div>
-            <div className="rounded-sm border border-grayscale-20 p-4 gap-4 flex flex-col">
-              <span className="font-medium">9. Final Comments</span>
-              <TextAreaForm
-                data-state="disabled"
-                name="finalNotes"
-                label="Notes"
-                disabled
-                inputClassName="bg-grayscale-20 text-text-disabled"
-              />
-            </div>
+            ))}
           </div>
           <div className="flex gap-4">
-            {/* <CompleteOffboardingModal offboardingId={offboarding_id} />
-            <CancelOffboardingModal offboardingId={offboarding_id} /> */}
+            <CompleteOffboardingModal offboardingId={offboarding_id} />
+            <CancelOffboardingModal offboardingId={offboarding_id} />
           </div>
         </form>
       </Form>

@@ -2,7 +2,11 @@ import { ApiResponse, PaginatedResponse } from "@/lib/types";
 import { api } from "@/lib/api";
 import qs from "qs";
 import { ICreateEmployeeResponse } from "../types";
-import { IMutateOffboardingRequests, IOffboardingResponse } from "./types";
+import {
+  IMutateOffboardingRequests,
+  IOffboardingDetailResponse,
+  IOffboardingResponse,
+} from "./types";
 
 interface Params {
   search?: string;
@@ -62,6 +66,15 @@ export const createInitiateOffboarding = (
     {
       json: params,
     },
+  );
+  return response.json();
+};
+
+export const getDetailOffboarding = (
+  offboarding_id: number,
+): Promise<IOffboardingDetailResponse> => {
+  const response = api.get<IOffboardingDetailResponse>(
+    `employee/offboardings/${offboarding_id}`,
   );
   return response.json();
 };
