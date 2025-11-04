@@ -1,25 +1,81 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+import * as React from "react";
+import { useForm } from "react-hook-form";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import Image from "next/image";
+import { toast } from "sonner";
+
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { CheckboxForm } from "@/components/ui/checkbox-form";
 import { Form } from "@/components/ui/form";
-import RadioCard from "@/components/ui/radio-card";
 import { TextAreaForm } from "@/components/ui/textarea";
-import Image from "next/image";
-import React from "react";
-import { useForm } from "react-hook-form";
+import { InputForm } from "@/components/ui/input";
+import RadioCard from "@/components/ui/radio-card";
 import { CompleteOffboardingModal } from "./modals/complete-offboarding";
 import { CancelOffboardingModal } from "./modals/cancel-offboarding";
-import { getDetailOffboarding } from "@/services/employees/offboardings";
-import { useQuery } from "@tanstack/react-query";
-import { getFormById } from "@/services/form";
-import { InputForm } from "@/components/ui/input";
 
-interface Props {
+import {
+  getAnswerSubmissionOffboarding,
+  postNotifyEmployee,
+} from "@/services/employees/offboardings/exit-interview";
+import { getFormById } from "@/services/form";
+import { getDetailOffboarding } from "@/services/employees/offboardings";
+
+import { ApiErrorResponse } from "@/lib/types";
+
+interface ExitInterviewFormProps {
   offboarding_id: number;
 }
 
-export const AlertProcess = React.memo(function InterviewScheduleForm() {
+interface FormField {
+  id: number;
+  label: string;
+  type: string;
+  form_id: number;
+  options?: string[];
+  children?: React.ReactNode;
+}
+
+interface AnswerPayload {
+  form_id: number;
+  submitted_by: number;
+}
+
+const AlertProcess = React.memo(function AlertProcess({
+  name,
+  offboardingId,
+}: {
+  name: string;
+  offboardingId: number;
+}) {
+  const notifyMutation = useMutation({
+    mutationFn: () => postNotifyEmployee(offboardingId),
+    onSuccess: () => {
+      toast.success("Success notify employee");
+    },
+    onError: (error: unknown) => {
+      if (error && typeof error === "object" && "response" in error) {
+        const apiError = error as { response: Response };
+        try {
+          apiError.response
+            .json()
+            .then((errorData: ApiErrorResponse) => {
+              toast.error(errorData.message || "Failed to notify employee");
+            })
+            .catch(() => {
+              toast.error("Failed to notify employee: Server error");
+            });
+        } catch (parseError) {
+          toast.error(`Failed to notify employee: Server error: ${parseError}`);
+        }
+      } else {
+        const errorMessage =
+          error instanceof Error ? error.message : "Unknown error";
+        toast.error(`Failed to notify employee: ${errorMessage}`);
+      }
+    },
+  });
+
   return (
     <div className="grid items-start w-full gap-4">
       <Alert className="flex items-center border border-primary-border bg-primary-background justify-between">
@@ -28,11 +84,16 @@ export const AlertProcess = React.memo(function InterviewScheduleForm() {
             Offboarding Process Initiated
           </AlertTitle>
           <AlertDescription>
-            Please notify [employee-name] to fill-in their exit form to proceed
-            with the next step.
+            Please notify {name} to fill-in their exit form to proceed with the
+            next step.
           </AlertDescription>
         </div>
-        <Button variant="outline" className="bg-white">
+        <Button
+          variant="outline"
+          className="bg-white"
+          onClick={() => notifyMutation.mutate()}
+          disabled={notifyMutation.isPending}
+        >
           <Image
             src="/icons/activity.svg"
             width={18}
@@ -46,9 +107,56 @@ export const AlertProcess = React.memo(function InterviewScheduleForm() {
   );
 });
 
+const FormFieldRenderer = React.memo(function FormFieldRenderer({
+  field,
+}: {
+  field: FormField;
+}) {
+  const renderField = () => {
+    switch (field.type) {
+      case "checkbox":
+        return (
+          <div className="mt-2">
+            {field.options?.map((option) => (
+              <CheckboxForm key={option} name={option} label={option} />
+            ))}
+          </div>
+        );
+
+      case "textarea":
+        return (
+          <TextAreaForm
+            data-state="disabled"
+            name={field.form_id.toString()}
+            label={field.label}
+            disabled
+            inputClassName="bg-grayscale-20 text-text-disabled"
+          />
+        );
+
+      case "range":
+        return (
+          <div className="flex gap-2">
+            <RadioCard disabled />
+          </div>
+        );
+
+      default:
+        return <InputForm name={field.form_id.toString()} className="mt-2" />;
+    }
+  };
+
+  return (
+    <div className="rounded-sm border border-grayscale-20 p-4 gap-4">
+      <span className="font-medium">{field.label}</span>
+      {renderField()}
+    </div>
+  );
+});
+
 export const ExitInterviewForm = React.memo(function ExitInterviewForm({
   offboarding_id,
-}: Props) {
+}: ExitInterviewFormProps) {
   const form = useForm({
     defaultValues: {
       opportunity: false,
@@ -60,67 +168,72 @@ export const ExitInterviewForm = React.memo(function ExitInterviewForm({
     },
   });
 
-  const { data: details } = useQuery({
+  const { data: details, isLoading: isLoadingDetails } = useQuery({
     queryKey: ["detail-offboarding", offboarding_id],
     queryFn: () => getDetailOffboarding(offboarding_id),
   });
 
-  const { data: forms } = useQuery({
+  const { data: answer, isLoading: isLoadingAnswer } = useQuery({
+    queryKey: ["answer-offboarding", offboarding_id],
+    queryFn: () => {
+      if (!details) {
+        throw new Error("Details not available");
+      }
+      const answerPayload: AnswerPayload = {
+        form_id: details.form_id,
+        submitted_by: details.user_id,
+      };
+      return getAnswerSubmissionOffboarding(offboarding_id, answerPayload);
+    },
+    enabled: !!details?.form_id && !!details?.user_id,
+  });
+
+  const { data: forms, isLoading: isLoadingForms } = useQuery({
     queryKey: ["form", details?.form_id],
-    queryFn: () => getFormById(details!.form_id),
+    queryFn: () => {
+      if (!details?.form_id) {
+        throw new Error("Form ID not available");
+      }
+      return getFormById(details.form_id);
+    },
     enabled: !!details?.form_id,
   });
 
-  const onSubmit = async (data: any) => {
-    console.log(data);
+  React.useEffect(() => {
+    console.log(answer);
+  }, [answer]);
+
+  const onSubmit = async (data: unknown) => {
+    console.log("Form data:", data);
   };
+
+  const shouldShowAlert = !answer && details?.user?.name;
+  const formFields = forms?.data?.fields || [];
+
+  if (isLoadingDetails || isLoadingForms || isLoadingAnswer) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="w-full flex flex-col gap-4">
-      <AlertProcess />
+      {shouldShowAlert && (
+        <AlertProcess name={details.user.name} offboardingId={offboarding_id} />
+      )}
+
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
           className="flex flex-col gap-4"
         >
           <div className="rounded-sm border border-grayscale-20 p-4 gap-4 flex flex-col">
-            {forms?.data.fields.map((item) => (
-              <div
-                className="rounded-sm border border-grayscale-20 p-4 gap-4"
-                key={`${item.id}-${item.label}`}
-              >
-                <span className="font-medium">{item.label}</span>
-                {item.type === "checkbox" ? (
-                  <div className="mt-2">
-                    {item.options.map((item) => (
-                      <CheckboxForm
-                        key={item.name}
-                        name={item.name}
-                        label={item.label}
-                        disabled
-                      >
-                        {item.children}
-                      </CheckboxForm>
-                    ))}
-                  </div>
-                ) : item.type === "textarea" ? (
-                  <TextAreaForm
-                    data-state="disabled"
-                    name={item.form_id.toString()}
-                    label={item.label}
-                    disabled
-                    inputClassName="bg-grayscale-20 text-text-disabled"
-                  />
-                ) : item.type === "range" ? (
-                  <div className="flex gap-2">
-                    <RadioCard disabled />
-                  </div>
-                ) : (
-                  <InputForm name={item.form_id.toString()} className="mt-2" />
-                )}
-              </div>
+            {formFields.map((field: FormField) => (
+              <FormFieldRenderer
+                key={`${field.id}-${field.label}`}
+                field={field}
+              />
             ))}
           </div>
+
           <div className="flex gap-4">
             <CompleteOffboardingModal offboardingId={offboarding_id} />
             <CancelOffboardingModal offboardingId={offboarding_id} />
