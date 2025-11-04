@@ -1,9 +1,9 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import * as React from "react";
-import { InterviewScheduleForm } from "./interview-schedule-form";
 import { ExitInterviewForm } from "./exit-interview-form";
 import { WorkingAndAssets } from "./working-and-assets";
 import { FinalSalaryBenefits } from "./final-salary-benefits";
+import { InterviewSchedule } from "./interview-schedule";
 
 interface Props {
   offboarding_id: number;
@@ -16,7 +16,7 @@ export const OffboardingTab = React.memo(function OffboardingTab({
     {
       name: "Interview Schedule",
       value: "interview-schedule",
-      children: <InterviewScheduleForm offboarding_id={offboarding_id} />,
+      children: <InterviewSchedule offboarding_id={offboarding_id} />
     },
     {
       name: "Exit Interview Form",
