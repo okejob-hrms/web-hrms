@@ -62,7 +62,7 @@ export const menus: Record<string, MenuItem[]> = {
         },
       ],
     },
-    { name: "Leave Configuration", value: "settings/leave-configuration" },
+    { name: "Leave Configuration", value: "settings/leave-management" },
     { name: "Form Template", value: "settings/form-template" },
     {
       name: "Salary Management",
@@ -103,7 +103,6 @@ export const getHideSidebar = (path: string) => {
   const hidePath = [
     "/auth",
     "/dashboard",
-    "/settings/access-control/add",
     "/settings/access-control/",
     "/settings/company/company-profile/edit",
     "/employee/organization/structure/edit",
@@ -113,8 +112,7 @@ export const getHideSidebar = (path: string) => {
     "/settings/time-attendance/overtime-configuration/edit",
     "/settings/form-template/add",
     "/settings/form-template/edit",
-    "/settings/company/company-branch/add",
-    "/settings/company/company-branch/edit",
+    "/settings/company/company-branch/",
     "/payroll",
     "/settings/leave-management/",
   ];
@@ -166,7 +164,7 @@ export const getLastPath = (pathname: string) => {
 
 export const toTitleCase = (str: string) => {
   return str
-    .replace(/-/g, " ")
+    .replace(/-/g, " ").replace(/_/g, ' ')
     .toLowerCase()
     .replace(/\b\w/g, (char) => char.toUpperCase());
 };

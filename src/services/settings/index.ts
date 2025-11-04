@@ -18,11 +18,11 @@ import {
   OvertimeApiModel,
   ICompanyBranches,
   IMutateCompanyBranchRequest,
-  LeaveConfigItem,
   LeaveBalance,
   LeaveBalanceRequest,
   LeaveConfig,
   LeaveTypeRequest,
+  LeaveConfigDetail,
 } from "./types";
 import { ApiResponse, PaginatedResponse } from "@/lib/types";
 
@@ -235,6 +235,28 @@ export const postAddBranch = async (
   }
 };
 
+export const putEditBranch = async (
+  id: number,
+  params: IMutateCompanyBranchRequest,
+): Promise<ApiResponse<ICompanyBranches>> => {
+  try {
+    return api
+      .put(`setting/branch/${id}`, { json: params })
+      .json<ApiResponse<ICompanyBranches>>();
+  } catch (error: any) {
+    if (error.name === "HTTPError") {
+      const errorResponse = await error.response.json();
+      const enhancedError = new Error(error.message);
+      (enhancedError as any).response = {
+        json: () => Promise.resolve(errorResponse),
+        status: error.response.status,
+      };
+      throw enhancedError;
+    }
+    throw error;
+  }
+};
+
 export const deleteBranch = async (
   id: string,
 ): Promise<ApiResponse<ICompanyBranches>> => {
@@ -260,6 +282,46 @@ export const getLeaveType = async (): Promise<LeaveConfig> => {
   const response = await api.get<LeaveConfig>("employee/leave-types");
   return response.json();
 };
+
+export const postLeaveType = async (
+  payload: LeaveTypeRequest,
+): Promise<LeaveConfig> => {
+  return api
+    .post(`employee/leave-types`, {
+      json: payload,
+    })
+    .json<LeaveConfig>();
+};
+
+export const putLeaveType = async (
+  id: number,
+  payload: LeaveTypeRequest,
+): Promise<LeaveConfig> => {
+  return api
+    .put(`employee/leave-types/${id}`, {
+      json: payload,
+    })
+    .json<LeaveConfig>();
+};
+
+export const getLeaveTypeDetail = async (
+  id: string,
+): Promise<LeaveConfigDetail> => {
+  return api
+    .get(`employee/leave-types/${id}`)
+    .json<LeaveConfigDetail>();
+};
+
+export const removeLeaveType = async (
+  id: number,
+): Promise<LeaveConfig> => {
+  return api
+    .delete(`employee/leave-types/${id}`, {
+      json: {},
+    })
+    .json<LeaveConfig>();
+};
+
 
 export const getLeaveBalance = async (): Promise<LeaveBalance> => {
   const response = await api.get<LeaveBalance>("employee/leave-balances");
@@ -295,15 +357,4 @@ export const removeLeaveBalance = async (
       json: {},
     })
     .json<LeaveBalance>();
-};
-
-
-export const postLeaveType = async (
-  payload: LeaveTypeRequest,
-): Promise<LeaveConfig> => {
-  return api
-    .post(`employee/leave-type`, {
-      json: payload,
-    })
-    .json<LeaveConfig>();
 };

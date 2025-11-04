@@ -146,6 +146,7 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
 
   React.useEffect(() => {
     if (employeeDetails && !isDataLoaded) {
+      console.log("Team members data:", employeeDetails.team_members[0].id);
       const socialMediaAccounts = employeeDetails.social_media_accounts || [];
       const validSocialMedia =
         socialMediaAccounts.length > 0
@@ -183,6 +184,7 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
         achievement: employeeDetails.achievement || "",
         personal_description: employeeDetails.personal_description || "",
         photo_profile: employeeDetails.photo_profile || "",
+        branch_id: employeeDetails.branch?.id.toString() || "",
         role_id: employeeDetails.employment?.job_level_id?.toString() || "",
         job_position_id:
           employeeDetails.employment?.job_position_id?.toString() || "",
@@ -191,8 +193,7 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
         job_level_id:
           employeeDetails.employment?.job_level_id?.toString() || "",
         status: employeeDetails.employment?.status?.toString() || "",
-        team_members:
-          employeeDetails.team_members?.[0]?.team_id?.toString() || "",
+        team_members: employeeDetails.team_members[0]?.id?.toString() || "",
         base_salary: Number(employeeDetails.employment?.base_salary) || 0,
         salary_nett: Number(employeeDetails.employment?.salary_nett) || 0,
         allowances: (employeeDetails.employment?.allowances || [])?.map(
@@ -215,13 +216,13 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
           primary_direct_report_id: Number(
             employeeDetails.reporting_relationships.filter(
               (item) => item.relationship_type === "primary",
-            )[0]?.employee_profile_id || 0,
+            )[0]?.direct_report_id || 0,
           ),
           additional_direct_report_id: (() => {
             const secondaryReport =
               employeeDetails.reporting_relationships.filter(
                 (item) => item.relationship_type === "secondary",
-              )[0]?.employee_profile_id;
+              )[0]?.direct_report_id;
             return secondaryReport ? Number(secondaryReport) : null;
           })(),
         }),
@@ -238,7 +239,7 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
     (values: z.infer<typeof employeeManagementFormScheme>) => {
       try {
         const {
-          countryCode,
+          country_code,
           employee_documents,
           attachments,
           work_experiences,
@@ -247,6 +248,7 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
           families,
           social_media_accounts,
           allowances,
+          team_members,
           ...restValues
         } = values;
 
@@ -274,12 +276,21 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
           date_of_birth: dayjs(values.date_of_birth).format("YYYY-MM-DD"),
           start_date: dayjs(values.start_date).format("YYYY-MM-DD"),
           end_date: dayjs(values.end_date).format("YYYY-MM-DD"),
-          team_members: [{ team_id: Number(values.team_members) || 0 }],
+          // team_members: [{ team_id: Number(values.team_members) || 0 }],
           allowances: validAllowances,
           attachments: attachments || [],
+          branch_id: Number(values.branch_id),
+          country_code: values.country_code || "",
         };
 
         const conditionalParams: Partial<IMutateEmployeeRequests> = {};
+
+        if (values.team_members) {
+          conditionalParams.team_members = [
+            { team_id: Number(values.team_members) || 0 },
+          ];
+        }
+
         if (hasValidSocialMediaAccounts(validSocialMedia)) {
           conditionalParams.social_media_accounts = validSocialMedia;
         }

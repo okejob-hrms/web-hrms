@@ -3,7 +3,6 @@
 import { Button } from "@/components/ui/button";
 import * as React from "react";
 import { DataTable } from "@/components/tables/data-table";
-import { IRole } from "@/services/settings/types";
 import { ColumnDef } from "@tanstack/react-table";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ArrowUp, ArrowDown, ChevronsUpDown, Ellipsis } from "lucide-react";
@@ -17,11 +16,19 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import { useFormTemplateList } from "./hook";
+import { IFormTemplate } from "@/services/form/types";
+import FormDeleteModal from "./sections/delete-modal";
 
 export default function FormTemplateList() {
-  const { roles, handleEdit, handleNew } = useFormTemplateList();
-
-  const columns: ColumnDef<IRole>[] = [
+  const {
+    forms,
+    handleNew,
+    openDelete,
+    setOpenDelete,
+    handleDelete,
+    setSelectedId,
+  } = useFormTemplateList();
+  const columns: ColumnDef<IFormTemplate>[] = [
     {
       accessorKey: "name",
       header: ({ column }) => {
@@ -51,19 +58,9 @@ export default function FormTemplateList() {
       size: 300,
     },
     {
-      accessorKey: "usage",
+      accessorKey: "type",
       header: "Form Usage",
       size: 300,
-      // cell: ({ row }) => {
-      //   const { date, hour } = formatDateTime(row.original.updated_at);
-      //   return (
-      //     <div>
-      //       <span>
-      //         {date} {hour}
-      //       </span>
-      //     </div>
-      //   );
-      // },
     },
     {
       accessorKey: "lastUpdate",
@@ -90,7 +87,7 @@ export default function FormTemplateList() {
               <Ellipsis className="text-grayscale-30" />
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem>
+              {/* <DropdownMenuItem>
                 <Link
                   href={`/settings/form-template/${row.original.id}`}
                   className="flex gap-2 justify-between items-center"
@@ -103,7 +100,7 @@ export default function FormTemplateList() {
                   />
                   Form Details
                 </Link>
-              </DropdownMenuItem>
+              </DropdownMenuItem> */}
               <DropdownMenuItem>
                 <Link
                   href={`/settings/form-template/edit/${row.original.id}`}
@@ -119,9 +116,12 @@ export default function FormTemplateList() {
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <Link
-                  href={`/settings/form-template/edit/${row.original.id}`}
-                  className="flex gap-2 justify-between items-center"
+                <button
+                  className="flex gap-2"
+                  onClick={() => {
+                    setSelectedId(String(row.original.id));
+                    setOpenDelete(true);
+                  }}
                 >
                   <Image
                     src="/icons/delete.svg"
@@ -130,7 +130,7 @@ export default function FormTemplateList() {
                     alt="icon-edit"
                   />
                   Delete
-                </Link>
+                </button>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -153,9 +153,14 @@ export default function FormTemplateList() {
               + New Form
             </Button>
           </div>
-          <DataTable columns={columns} data={roles} customSize={!isMobile} />
+          <DataTable columns={columns} data={forms} customSize={!isMobile} />
         </div>
       </div>
+      <FormDeleteModal
+        onDelete={() => handleDelete()}
+        isOpen={openDelete}
+        setIsOpen={(e) => setOpenDelete(e)}
+      />
     </div>
   );
 }

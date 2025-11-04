@@ -35,6 +35,7 @@ import { useDebounce } from "@/hooks/use-debounce";
 import { ComboboxForm } from "@/components/ui/combobox";
 import { Label } from "@/components/ui/label";
 import { ApiErrorResponse } from "@/lib/types";
+import { getBranches } from "@/services/settings";
 
 export const AddNewJobLevelModal: React.FC = () => {
   const [open, setOpen] = React.useState(false);
@@ -599,6 +600,21 @@ export const EmployeeinformationSection = React.memo(
     });
 
     const {
+      data: branch,
+      isLoading: isBranchLoading,
+      error: branchError,
+    } = useQuery({
+      queryKey: ["branch_id"],
+      queryFn: getBranches,
+      retry: (failureCount, error: any) => {
+        if (error?.response?.status >= 400) return false;
+        return failureCount < 3;
+      },
+      staleTime: 5 * 60 * 1000,
+      refetchOnWindowFocus: false,
+    });
+
+    const {
       data: teams,
       isLoading: isTeamsLoading,
       error: teamsError,
@@ -698,6 +714,16 @@ export const EmployeeinformationSection = React.memo(
       return [];
     }, [positions?.data]);
 
+    const branchOptions = React.useMemo(() => {
+      if (branch?.data) {
+        return branch.data.map((item) => ({
+          label: item.name,
+          value: item.id.toString(),
+        }));
+      }
+      return [];
+    }, [branch?.data]);
+
     const jobLevelOptions = React.useMemo(() => {
       if (jobLevels?.data) {
         return jobLevels.data.map((item) => ({
@@ -732,6 +758,16 @@ export const EmployeeinformationSection = React.memo(
           Employment Information
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-start w-full">
+          <SelectForm
+            name="branch_id"
+            label="Company"
+            options={branchOptions}
+            required
+            className="w-full"
+            modalChildren={<AddNewPositionModal />}
+            disabled={isBranchLoading || !!branchError}
+          />
+          <div></div>
           <SelectForm
             name="job_position_id"
             label="Position"

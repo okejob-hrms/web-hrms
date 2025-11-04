@@ -4,19 +4,17 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { 
   getLeaveBalance,
   getLeaveType,
-  postDeduction,
   postLeaveBalance,
-  putDeduction,
   putLeaveBalance,
-  removeDeduction,
-  removeLeaveBalance
+  removeLeaveBalance,
+  removeLeaveType
 } from '@/services/settings';
 import { 
   LeaveBalanceRequest,
   LeaveBalance,
-  LeaveConfigItem,
   LeaveBalanceItem,
   LeaveConfig,
+  LeaveConfigItem,
 } from '@/services/settings/types';
 import { PaginatedResponse } from '@/lib/types';
 import { useState } from 'react';
@@ -33,6 +31,8 @@ export function useLeaveManagement() {
   const router = useRouter();
   // LEAVE TYPE STATE
   const [loadingType, setLoadingType] = useState(false);
+  const [openDeleteType, setOpenDeleteType] = useState(false);
+  const [selectedType, setSelectedType] = useState<LeaveConfigItem>();
   
   
   // LEAVE BALANCE STATE
@@ -43,8 +43,6 @@ export function useLeaveManagement() {
   const [selectedBalance, setSelectedBalance] = useState<LeaveBalanceItem>();
 
   const queryClient = useQueryClient();
-
-
 
   // LEAVE TYPE
 
@@ -60,24 +58,43 @@ export function useLeaveManagement() {
     staleTime: 1000 * 60 * 5,
   });
 
+// mutation for delete
+  const deleteMutationType = useMutation<LeaveConfig, Error, number>({
+    mutationFn: (id) => removeLeaveType(id),
+    onSuccess: () => {
+      toast.success("Leave type deleted successfully");
+      queryClient.invalidateQueries({ queryKey: ["leaveType"] });
+      leaveTypeRefetch();
+      setOpenDeleteType(false);
+      setSelectedType(undefined);
+    },
+    onError: (err) => {
+      toast.error(`Failed to delete: ${err.message}`);
+    },
+  });
 
   const handleAddType = () => {
     router.push('/settings/leave-management/add')
   };
-  const handleEditType = () => {};
-  const handleDeleteType = () => {};
-  
 
+  const handleEditType = (id: number) => {
+    router.push(`/settings/leave-management/${id}/edit`)
+  };
+
+  const handleDeleteType = () => {
+    if(selectedType){
+      deleteMutationType.mutate(selectedType.id);
+    }
+  };
 
 // LEAVE BALANCE
-
   const { data: leaveBalanceData, refetch: leaveBalanceRefetch } = useQuery<LeaveBalance>({
     queryKey: ["leaveBalance"],
     queryFn: getLeaveBalance,
     staleTime: 1000 * 60 * 5,
   });
 
-  const saveMutationType = useMutation<
+  const saveMutationBalance = useMutation<
     LeaveBalance,
     Error,
     { id?: number; data: LeaveBalanceRequest }
@@ -103,7 +120,7 @@ export function useLeaveManagement() {
   });
 
   // mutation for delete
-  const deleteMutationType = useMutation<LeaveBalance, Error, number>({
+  const deleteMutationBalance = useMutation<LeaveBalance, Error, number>({
     mutationFn: (id) => removeLeaveBalance(id),
     onSuccess: () => {
       toast.success("Leave balance deleted successfully");
@@ -118,7 +135,7 @@ export function useLeaveManagement() {
   });
 
   const handleSaveLeaveBalance = (id: number | undefined, data: LeaveBalanceRequest) => {
-    saveMutationType.mutate({ id, data });
+    saveMutationBalance.mutate({ id, data });
   };
 
   const handleAddBalance = () => {
@@ -131,19 +148,24 @@ export function useLeaveManagement() {
   };
   const handleDeleteBalance = () => {
     if(selectedBalance){
-      deleteMutationType.mutate(selectedBalance.id);
+      deleteMutationBalance.mutate(selectedBalance.id);
     }
   };
 
   return {
     // LEAVE TYPE
     leaveTypeData,
+    setLoadingType,
     loadingType,
     handleAddType,
     handleEditType,
     handleDeleteType,
-
-
+    openDeleteType,
+    setOpenDeleteType,
+    selectedType,
+    setSelectedType,
+    
+    
     // LEAVE BALANCE
     leaveBalanceData,
     loadingBalance,
@@ -154,6 +176,7 @@ export function useLeaveManagement() {
     openFormBalance,
     setOpenFormBalance,
     setOpenDeleteBalance,
+    setOpenEditBalance,
     openEditBalance,
     openDeleteBalance,
     selectedBalance,

@@ -4,13 +4,13 @@ import dayjs from "dayjs";
 import localizedFormat from "dayjs/plugin/localizedFormat";
 import { IEmployeeDetailsResponse } from "@/services/employees/types";
 import { getEmployeeDetail } from "@/services/employees";
-import { OffboardingTab } from "./offboarding-tab";
+import { IOffboardingDetailResponse } from "@/services/employees/offboardings/types";
 
 dayjs.extend(localizedFormat);
 
 interface Props {
-  data: IEmployeeDetailsResponse;
-  offboarding_id: number;
+  offboardingDetails: IOffboardingDetailResponse;
+  employeeDetails: IEmployeeDetailsResponse;
 }
 
 interface DirectReportEmployee {
@@ -36,7 +36,10 @@ const safeGet = (value: string | number): string => {
 };
 
 export const EmployeeDetailsSection = React.memo(
-  function EmployeeDetailsSection({ data, offboarding_id }: Props) {
+  function EmployeeDetailsSection({
+    offboardingDetails,
+    employeeDetails,
+  }: Props) {
     const [primaryDirectReports, setPrimaryDirectReports] = React.useState<
       DirectReportEmployee[]
     >([]);
@@ -45,123 +48,128 @@ export const EmployeeDetailsSection = React.memo(
     const [isLoading, setIsLoading] = React.useState(false);
     const [error, setError] = React.useState<string | null>(null);
 
+    // React.useEffect(() => {
+    //   const fetchDirectReports = async () => {
+    //     try {
+    //       setIsLoading(true);
+    //       setError(null);
+
+    //       if (
+    //         !employeeDetails?.reporting_relationships ||
+    //         employeeDetails.reporting_relationships.length === 0
+    //       ) {
+    //         setIsLoading(false);
+    //         return;
+    //       }
+
+    //       const primaryRelationships = employeeDetails.reporting_relationships.filter(
+    //         (item) => item?.relationship_type === "primary",
+    //       );
+    //       const secondaryRelationships = employeeDetails.reporting_relationships.filter(
+    //         (item) => item?.relationship_type === "secondary",
+    //       );
+
+    //       const primaryReportsPromises = primaryRelationships.map(
+    //         async (relationship) => {
+    //           try {
+    //             if (!relationship?.direct_report_id) return null;
+
+    //             const employeeResponse = await getEmployeeDetail(
+    //               relationship.direct_report_id,
+    //             );
+
+    //             const employee = employeeResponse?.data;
+    //             if (!employee) return null;
+
+    //             return {
+    //               id: employee.id || 0,
+    //               name: employee.user?.name || "Unknown",
+    //               position:
+    //                 employee.employment?.job_position?.name ||
+    //                 "Unknown Position",
+    //               department:
+    //                 employee.employment?.department?.name ||
+    //                 "Unknown Department",
+    //             };
+    //           } catch (error) {
+    //             console.error(
+    //               `Failed to fetch employee ${relationship.direct_report_id}:`,
+    //               error,
+    //             );
+    //             return null;
+    //           }
+    //         },
+    //       );
+
+    //       const additionalReportsPromises = secondaryRelationships.map(
+    //         async (relationship) => {
+    //           try {
+    //             if (!relationship?.direct_report_id) return null;
+
+    //             const employeeResponse = await getEmployeeDetail(
+    //               relationship.direct_report_id,
+    //             );
+
+    //             const employee = employeeResponse?.data;
+    //             if (!employee) return null;
+
+    //             return {
+    //               id: employee.id || 0,
+    //               name: employee.user?.name || "Unknown",
+    //               position:
+    //                 employee.employment?.job_position?.name ||
+    //                 "Unknown Position",
+    //               department:
+    //                 employee.employment?.department?.name ||
+    //                 "Unknown Department",
+    //             };
+    //           } catch (error) {
+    //             console.error(
+    //               `Failed to fetch employee ${relationship.direct_report_id}:`,
+    //               error,
+    //             );
+    //             return null;
+    //           }
+    //         },
+    //       );
+
+    //       const [primaryResults, additionalResults] = await Promise.all([
+    //         Promise.all(primaryReportsPromises),
+    //         Promise.all(additionalReportsPromises),
+    //       ]);
+
+    //       setPrimaryDirectReports(
+    //         primaryResults.filter(
+    //           (item): item is DirectReportEmployee => item !== null,
+    //         ),
+    //       );
+    //       setAdditionalDirectReports(
+    //         additionalResults.filter(
+    //           (item): item is DirectReportEmployee => item !== null,
+    //         ),
+    //       );
+    //     } catch (error) {
+    //       console.error("Error fetching direct reports:", error);
+    //       setError("Failed to load direct reports");
+    //     } finally {
+    //       setIsLoading(false);
+    //     }
+    //   };
+
+    //   if (
+    //     employeeDetails?.reporting_relationships &&
+    //     employeeDetails.reporting_relationships.length > 0
+    //   ) {
+    //     fetchDirectReports();
+    //   }
+    // }, [employeeDetails?.reporting_relationships]);
+
     React.useEffect(() => {
-      const fetchDirectReports = async () => {
-        try {
-          setIsLoading(true);
-          setError(null);
+      console.log("employee ", employeeDetails);
+      console.log("offboarding ", offboardingDetails);
+    }, [employeeDetails, offboardingDetails]);
 
-          if (
-            !data?.reporting_relationships ||
-            data.reporting_relationships.length === 0
-          ) {
-            setIsLoading(false);
-            return;
-          }
-
-          const primaryRelationships = data.reporting_relationships.filter(
-            (item) => item?.relationship_type === "primary",
-          );
-          const secondaryRelationships = data.reporting_relationships.filter(
-            (item) => item?.relationship_type === "secondary",
-          );
-
-          const primaryReportsPromises = primaryRelationships.map(
-            async (relationship) => {
-              try {
-                if (!relationship?.direct_report_id) return null;
-
-                const employeeResponse = await getEmployeeDetail(
-                  relationship.direct_report_id,
-                );
-
-                const employee = employeeResponse?.data;
-                if (!employee) return null;
-
-                return {
-                  id: employee.id || 0,
-                  name: employee.user?.name || "Unknown",
-                  position:
-                    employee.employment?.job_position?.name ||
-                    "Unknown Position",
-                  department:
-                    employee.employment?.department?.name ||
-                    "Unknown Department",
-                };
-              } catch (error) {
-                console.error(
-                  `Failed to fetch employee ${relationship.direct_report_id}:`,
-                  error,
-                );
-                return null;
-              }
-            },
-          );
-
-          const additionalReportsPromises = secondaryRelationships.map(
-            async (relationship) => {
-              try {
-                if (!relationship?.direct_report_id) return null;
-
-                const employeeResponse = await getEmployeeDetail(
-                  relationship.direct_report_id,
-                );
-
-                const employee = employeeResponse?.data;
-                if (!employee) return null;
-
-                return {
-                  id: employee.id || 0,
-                  name: employee.user?.name || "Unknown",
-                  position:
-                    employee.employment?.job_position?.name ||
-                    "Unknown Position",
-                  department:
-                    employee.employment?.department?.name ||
-                    "Unknown Department",
-                };
-              } catch (error) {
-                console.error(
-                  `Failed to fetch employee ${relationship.direct_report_id}:`,
-                  error,
-                );
-                return null;
-              }
-            },
-          );
-
-          const [primaryResults, additionalResults] = await Promise.all([
-            Promise.all(primaryReportsPromises),
-            Promise.all(additionalReportsPromises),
-          ]);
-
-          setPrimaryDirectReports(
-            primaryResults.filter(
-              (item): item is DirectReportEmployee => item !== null,
-            ),
-          );
-          setAdditionalDirectReports(
-            additionalResults.filter(
-              (item): item is DirectReportEmployee => item !== null,
-            ),
-          );
-        } catch (error) {
-          console.error("Error fetching direct reports:", error);
-          setError("Failed to load direct reports");
-        } finally {
-          setIsLoading(false);
-        }
-      };
-
-      if (
-        data?.reporting_relationships &&
-        data.reporting_relationships.length > 0
-      ) {
-        fetchDirectReports();
-      }
-    }, [data?.reporting_relationships]);
-
-    if (!data) {
+    if (!employeeDetails || !offboardingDetails) {
       return (
         <div className="flex flex-col w-full gap-4 p-2">
           <div className="text-center text-gray-500">
@@ -179,41 +187,41 @@ export const EmployeeDetailsSection = React.memo(
           </h2>
           <div className="flex flex-col">
             <p className="text-sm text-text-disabled">Employee Name</p>
-            <p>{safeGet(data.user.name)}</p>
+            <p>{safeGet(offboardingDetails.user.name)}</p>
           </div>
           <div className="flex flex-col">
             <p className="text-sm text-text-disabled">Employee ID</p>
-            <p>{safeGet(data.user.id)}</p>
+            <p>{safeGet(offboardingDetails.user.id)}</p>
           </div>
           <div className="flex flex-col">
             <p className="text-sm text-text-disabled">Email</p>
-            <p>{safeGet(data.user.email)}</p>
+            <p>{safeGet(offboardingDetails.user.email)}</p>
           </div>
           <div className="flex flex-col">
             <p className="text-sm text-text-disabled">Phone Number</p>
-            <p>{safeGet(data.phone_number)}</p>
+            <p>{safeGet(employeeDetails.phone_number)}</p>
           </div>
           <div className="flex flex-col">
             <p className="text-sm text-text-disabled">ID Number</p>
-            <p>{safeGet(data.id_number)}</p>
+            <p>{safeGet(employeeDetails.id_number)}</p>
           </div>
           <div className="flex flex-col">
             <p className="text-sm text-text-disabled">
               Taxpayer ID Number (NPWP)
             </p>
-            <p>{safeGet(data.npwp)}</p>
+            <p>{safeGet(employeeDetails.npwp)}</p>
           </div>
           <div className="flex flex-col">
             <p className="text-sm text-text-disabled">Position</p>
-            <p>{safeGet(data.employment?.job_position?.name)}</p>
+            <p>{safeGet(employeeDetails.employment?.job_position?.name)}</p>
           </div>
           <div className="flex flex-col">
             <p className="text-sm text-text-disabled">Department</p>
-            <p>{safeGet(data.employment?.department?.name)}</p>
+            <p>{safeGet(employeeDetails.employment?.department?.name)}</p>
           </div>
           <div className="flex flex-col">
             <p className="text-sm text-text-disabled">Job Level</p>
-            <p>{safeGet(data.employment?.job_level?.name)}</p>
+            <p>{safeGet(employeeDetails.employment?.job_level?.name)}</p>
           </div>
           <div className="flex flex-col md:col-span-2">
             <p className="text-sm text-text-disabled">Primary Direct Report</p>
@@ -271,15 +279,15 @@ export const EmployeeDetailsSection = React.memo(
           </div>
           <div className="flex flex-col">
             <p className="text-sm text-text-disabled">Employee Start Date</p>
-            <p>{formatDate(data.employment?.start_date)}</p>
+            <p>{formatDate(employeeDetails.employment?.start_date)}</p>
           </div>
           <div className="flex flex-col">
             <p className="text-sm text-text-disabled">Effective Resign Date</p>
-            <p>{formatDate(data.employment?.end_date)}</p>
+            <p>{formatDate(employeeDetails.employment?.end_date)}</p>
           </div>
           <div className="flex flex-col">
             <p className="text-sm text-text-disabled">Last Working Date</p>
-            <p>{formatDate(data.employment?.end_date)}</p>
+            <p>{formatDate(employeeDetails.employment?.end_date)}</p>
           </div>
           <div className="flex flex-col md:col-span-3">
             <p className="text-sm text-text-disabled">Assigned Approver</p>
@@ -309,7 +317,6 @@ export const EmployeeDetailsSection = React.memo(
           </div>
           <Separator className="md:col-span-3" />
         </div>
-        {/* <OffboardingTab offboarding_id={offboarding_id} /> */}
       </div>
     );
   },

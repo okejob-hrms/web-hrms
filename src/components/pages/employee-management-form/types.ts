@@ -7,7 +7,7 @@ export const employeeManagementFormScheme = z.object({
   email: z.string().email("Invalid email").min(1, "required"),
   // role_id: z.number().int().min(1, "required"),
   role_id: z.string().min(1, "required"),
-  countryCode: z.string().min(1, "required"),
+  country_code: z.string().optional(),
   phone_number: phoneNumberSchema,
   gender: z.string(),
   place_of_birth: z.string().min(1, "required"),
@@ -156,6 +156,7 @@ export const employeeManagementFormScheme = z.object({
     .optional()
     .or(z.array(z.object({ id: z.number() })))
     .optional(),
+  branch_id: z.string().min(1, "required"),
 });
 
 export const employeeManagementFormDefaultValues = {
@@ -196,6 +197,7 @@ export const employeeManagementFormDefaultValues = {
   bank_id: "",
   account_name: "",
   account_number: "",
+  branch_id: "",
   attachments: [
     { type: "cv", path: "" },
     { type: "graduation_certificate", path: "" },

@@ -373,6 +373,23 @@ export interface LeaveConfig {
     status: string;
 }
 
+export interface LeaveConfigDetail {
+  status: string;
+  message: string;
+  data: {
+    id: number;
+    name: string;
+    created_at: string;
+    description: string;
+    entitlements: LeaveConfigEntitle[];
+    gender: string;
+    message: string;
+    quota_configuration: string;
+    status: string;
+    updated_at: string;
+  };
+}
+
 export interface LeaveConfigItem {
   id: number;
   name: string;
@@ -434,10 +451,10 @@ export interface LeaveTypeRequest {
 
 export interface QuotaConfigurationDetail {
   carry_over_allowed: boolean;
-  carry_over_expiry: string;
+  carry_over_expiry?: string;
   deduct_employee_balance: boolean;
   job_level: number;
-  max_carry_over_days: number;
+  max_carry_over_days?: number;
   quota_days: number;
 }
 

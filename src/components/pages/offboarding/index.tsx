@@ -156,8 +156,6 @@ export default function EmployeeOffboardingList() {
     refetchOnWindowFocus: false,
   });
 
-  console.log(employees);
-
   const handleFiltersChange = React.useCallback((newFilters: Filters) => {
     setFilters((prev) => ({
       ...prev,

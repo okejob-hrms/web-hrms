@@ -13,23 +13,24 @@ import { LeaveBalanceItem, LeaveConfigItem } from '@/services/settings/types';
 import LeaveBalanceForm from './section/form-modal';
 import dayjs from 'dayjs';
 import LeaveBalanceDelete from './section/delete-modal';
+import LeaveTypeDelete from './section/delete-type';
 
 export default function SettingsLeaveConfiguration() {
   const {
+    loadingType,
     leaveTypeData,
     handleEditType,
     handleDeleteType,
     handleAddType,
+    openDeleteType,
+    setOpenDeleteType,
+    setSelectedType,
 
     leaveBalanceData,
     loadingBalance,
-    handleSaveLeaveBalance,
-    handleAddBalance,
-    handleEditBalance,
     handleDeleteBalance,
     openFormBalance,
     setOpenFormBalance,
-    openEditBalance,
     openDeleteBalance,
     setOpenDeleteBalance,
     selectedBalance,
@@ -58,10 +59,11 @@ export default function SettingsLeaveConfiguration() {
           <div className="flex justify-end">
             <RowActions
               onEdit={() => {
-                handleEditType();
+                handleEditType(item.id);
               }}
               onDelete={() => {
-                handleDeleteType();
+                setSelectedType(item);
+                setOpenDeleteType(true);
               }}
             />
           </div>
@@ -213,6 +215,13 @@ export default function SettingsLeaveConfiguration() {
           onOpenChange={setOpenDeleteBalance}
           onDelete={() => handleDeleteBalance()}
           isLoading={loadingBalance}
+        />
+
+        <LeaveTypeDelete
+          open={openDeleteType}
+          onOpenChange={setOpenDeleteType}
+          onDelete={() => handleDeleteType()}
+          isLoading={loadingType}
         />
       </div>
     </div>

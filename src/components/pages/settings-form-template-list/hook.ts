@@ -1,31 +1,33 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import * as React from "react";
 import { useRouter } from "next/navigation";
-import { getRoles } from "@/services/settings";
-import { IRole } from "@/services/settings/types";
+import { deleteForm, getAllForm } from "@/services/form";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 export function useFormTemplateList() {
-  const [roles, setRoles] = useState<IRole[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const [openDelete, setOpenDelete] = React.useState(false);
+  const [selectedId, setSelectedId] = React.useState<string>("");
 
-  const fetchRoles = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
+  const { data, isLoading: loading } = useQuery({
+    queryKey: ["forms"],
+    queryFn: getAllForm,
+  });
 
-      const res = await getRoles();
-      setRoles(res.data ?? []);
-    } catch (err: unknown) {
-      console.error("Failed to fetch roles:", err);
-      setError(err instanceof Error ? err.message : "Unexpected error");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const { mutate: removeForm } = useMutation({
+    mutationFn: (id: number) => deleteForm(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["forms"] });
+      toast.success("Success delete form");
+      setOpenDelete(false);
+    },
+    onError: () => {
+      toast.error("Failed delete form");
+    },
+  });
 
   const handleNew = () => {
     router.push("/settings/form-template/add");
@@ -35,16 +37,19 @@ export function useFormTemplateList() {
     router.push(`/settings/form-template/${id}`);
   };
 
-  useEffect(() => {
-    fetchRoles();
-  }, [fetchRoles]);
+  const handleDelete = () => {
+    if (!selectedId) return;
+    removeForm(Number(selectedId));
+  };
 
   return {
-    roles,
+    forms: data?.data,
     loading,
-    error,
-    fetchRoles,
     handleNew,
     handleEdit,
+    openDelete,
+    setOpenDelete,
+    handleDelete,
+    setSelectedId,
   };
 }

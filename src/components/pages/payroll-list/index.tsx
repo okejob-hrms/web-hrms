@@ -6,35 +6,35 @@ import { ColumnDef } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import { Separator } from '@/components/ui/separator';
-import { Attendance } from '@/services/attendance/types';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Edit3, Ellipsis, Eye, Search, Trash } from 'lucide-react';
+import { Edit3, Ellipsis, Eye, Plus, Search, Trash, X } from 'lucide-react';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
-import { getStatusPayroll } from '@/lib/helpers';
+import { getStatusGeneratingPayroll, getStatusPayroll } from '@/lib/helpers';
 import { InputForm } from '@/components/ui/input';
 import { Form } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
 import { DatePicker } from '@/components/ui/date-picker';
 import dayjs from 'dayjs';
-import { useAttendance } from './hook';
+import { usePayroll } from './hook';
 import { Filters } from './types';
 import PayrunsAddModal from './section/add-modal';
 import { formatCurrency } from '@/lib/utils';
+import { ResponsePayrollItem } from '@/services/payroll/types';
 
 export const PayrollList = () => {
   const router = useRouter();
 
   const {
-    attendances,
+    payrollData,
+    dataPagination,
     pagination,
     setPagination,
-    handleGoDetailEmployee,
     setOpenAdd,
     openAdd,
     setOpenDelete,
@@ -44,14 +44,13 @@ export const PayrollList = () => {
     handleAddGroup,
     formData,
     setFormData,
-  } = useAttendance();
+  } = usePayroll();
 
-  const columns: ColumnDef<Attendance>[] = [
+  const columns: ColumnDef<ResponsePayrollItem>[] = [
     {
-      accessorKey: 'name',
+      accessorKey: 'period_label',
       header: 'Payruns',
       size: 200,
-      cell: ({ row }) => `Tim ${row.original.id} tahun 2025`,
     },
     {
       accessorKey: 'total',
@@ -71,18 +70,35 @@ export const PayrollList = () => {
       header: 'Send Payslip Date',
       size: 200,
       cell: ({ row }) =>
-        dayjs(row.original.created_at).format('MMMM D, YYYY') || '-',
+        row.original.send_payslip_at
+          ? dayjs(row.original.send_payslip_at).format('MMMM D, YYYY')
+          : '-',
     },
     {
       accessorKey: 'payslip_status',
       header: 'Payslip Status',
       size: 160,
       cell: ({ row }) => {
-        // const status = row.original.latest_attendance?.status_label;
-        const { variant, className, label } = getStatusPayroll(
-          row.original.id % 2 === 1 ? 'Pending' : 'Payslip Sent',
+        const status = row.original.status_label;
+        const { variant, className, label } = getStatusPayroll(status);
+        if (!row.original.status_label) return '-';
+
+        return (
+          <Badge variant={variant} className={className}>
+            {label}
+          </Badge>
         );
-        // if (!row.original.latest_attendance?.status_label) return '-';
+      },
+    },
+    {
+      accessorKey: 'generation_status_label',
+      header: 'Generation Status',
+      size: 160,
+      cell: ({ row }) => {
+        const status = row.original.generation_status_label;
+        const { variant, className, label } =
+          getStatusGeneratingPayroll(status);
+        if (!row.original.generation_status_label) return '-';
 
         return (
           <Badge variant={variant} className={className}>
@@ -103,39 +119,44 @@ export const PayrollList = () => {
       header: '',
       cell: ({ row }) => {
         return (
-          <DropdownMenu>
-            <DropdownMenuTrigger>
-              <Ellipsis className="text-grayscale-30" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem>
-                <button onClick={() => {}} className="flex gap-2">
-                  <Eye />
-                  Payruns Details
-                </button>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Link
-                  href={`/payroll/${row.original.id}/edit`}
-                  className="flex gap-2 justify-between items-center"
-                >
-                  <Edit3 />
-                  Edit Payruns
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <button
-                  onClick={() => {
-                    setOpenDelete(true);
-                  }}
-                  className="flex gap-2"
-                >
-                  <Trash />
-                  Delete Payruns
-                </button>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex gap-3 items-center">
+            {row.original.can_be_sent && (
+              <Button variant="outline">Send Payslip</Button>
+            )}
+            <DropdownMenu>
+              <DropdownMenuTrigger>
+                <Ellipsis className="text-grayscale-30" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem>
+                  <button onClick={() => {}} className="flex gap-2">
+                    <Eye />
+                    Payruns Details
+                  </button>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Link
+                    href={`/payroll/${row.original.id}/edit`}
+                    className="flex gap-2 justify-between items-center"
+                  >
+                    <Edit3 />
+                    Edit Payruns
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <button
+                    onClick={() => {
+                      setOpenDelete(true);
+                    }}
+                    className="flex gap-2"
+                  >
+                    <Trash />
+                    Delete Payruns
+                  </button>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         );
       },
     },
@@ -188,13 +209,15 @@ export const PayrollList = () => {
         <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6">
           <div className="flex md:flex-row flex-col justify-between w-full md:items-center items-start gap-4">
             <h2 className="font-semibold text-xl">Payroll</h2>
-            <Button onClick={() => setOpenAdd(true)}>+ New Payruns</Button>
+            <Button onClick={() => setOpenAdd(true)}>
+              <Plus /> New Payruns
+            </Button>
           </div>
 
           <DataTable
             columns={columns}
-            data={attendances?.data?.data}
-            pagination={attendances?.data}
+            data={payrollData?.data}
+            pagination={dataPagination}
             paginationState={pagination}
             setPaginationState={setPagination}
           />

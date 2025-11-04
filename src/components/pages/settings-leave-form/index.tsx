@@ -23,7 +23,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { useWatch } from 'react-hook-form';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { LeaveConfigValues, useLeaveTypeForm } from './hook';
 import { QuotaConfigurationDetailLocal } from '@/services/settings/types';
 import { ColumnDef } from '@tanstack/react-table';
@@ -38,16 +38,21 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
-export default function SettingsLeaveConfigurationForm() {
-  const { form, onSubmit, jobLevel } = useLeaveTypeForm();
+type SettingsLeaveConfigurationFormProps = {
+  id?: string;
+};
 
-  // NOTE: watch nested path for "same" mode detail
+export default function SettingsLeaveConfigurationForm({
+  id,
+}: SettingsLeaveConfigurationFormProps) {
+  const { form, onSubmit, jobLevel, handleDetailData, listing } =
+    useLeaveTypeForm();
+
   const quotaConfig = useWatch({
     control: form.control,
     name: 'quota_configuration',
   });
 
-  // watch the first (0) detail's carry_over_allowed for conditional display
   const detail0 = useWatch({
     control: form.control,
     name: 'quota_configuration_detail.0',
@@ -57,6 +62,7 @@ export default function SettingsLeaveConfigurationForm() {
   // ------------------------
   // Local State for per_level detail (dynamic)
   // ------------------------
+  console.log(listing);
   const [rows, setRows] = useState<QuotaConfigurationDetailLocal[]>([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [formRow, setFormRow] = useState<QuotaConfigurationDetailLocal>({
@@ -68,6 +74,16 @@ export default function SettingsLeaveConfigurationForm() {
     deduct_employee_balance: false,
   });
   const [editIndex, setEditIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (id) {
+      handleDetailData(id);
+    }
+  }, [id]);
+
+  useEffect(() => {
+    setRows(listing);
+  }, [listing]);
 
   const handleAddOrUpdate = () => {
     // Basic validation: require job_level & quota_days
@@ -112,18 +128,44 @@ export default function SettingsLeaveConfigurationForm() {
 
   // Table
   const columns: ColumnDef<QuotaConfigurationDetailLocal>[] = [
-    { accessorKey: 'job_level', header: 'Job Level', size: 160 },
+    {
+      accessorKey: 'job_level',
+      header: 'Job Level',
+      size: 160,
+      cell: ({ row }) => {
+        const selected = jobLevel?.data.filter(
+          (item) => item.id === Number(row.original.job_level),
+        )[0];
+        return <div>{selected?.name ?? '-'}</div>;
+      },
+    },
     { accessorKey: 'quota_days', header: 'Quota (days)', size: 160 },
     {
       accessorKey: 'carry_over_allowed',
       header: 'Carry Over',
       size: 200,
       cell: ({ row }) => (
-        <div className="">{row.original.carry_over_allowed ? 'Yes' : 'No'}</div>
+        <div>{row.original.carry_over_allowed ? 'Yes' : 'No'}</div>
       ),
     },
-    { accessorKey: 'max_carry_over_days', header: 'Max Carry', size: 160 },
-    { accessorKey: 'carry_over_expiry', header: 'Expiry', size: 160 },
+    {
+      accessorKey: 'max_carry_over_days',
+      header: 'Max Carry',
+      size: 160,
+      cell: ({ row }) => <div>{row.original.max_carry_over_days} day</div>,
+    },
+    {
+      accessorKey: 'carry_over_expiry',
+      header: 'Expiry',
+      size: 160,
+      cell: ({ row }) => (
+        <div>
+          {row.original.carry_over_expiry === 'null'
+            ? '-'
+            : row.original.carry_over_expiry}
+        </div>
+      ),
+    },
     {
       accessorKey: 'deduct_employee_balance',
       header: 'Deduct',
@@ -157,7 +199,6 @@ export default function SettingsLeaveConfigurationForm() {
 
   // Build payload and call onSubmit (hook's onSubmit should accept ApidogModel)
   const handleSubmit = (data: LeaveConfigValues) => {
-    console.log(data);
     const payload: LeaveConfigValues = {
       name: data.name,
       description: data.description,
@@ -166,39 +207,43 @@ export default function SettingsLeaveConfigurationForm() {
       quota_configuration_detail: [],
     };
 
-    // if (data.quota_configuration === 'same') {
-    //   // read nested fields using the form values (we expect them at quota_configuration_detail.0.*)
-    //   const d0 = data.quota_configuration_detail?.[0] || {};
-    //   payload.quota_configuration_detail = [
-    //     {
-    //       job_level: d0.job_level ?? 0,
-    //       quota_days: Number(d0.quota_days ?? 0),
-    //       carry_over_allowed: !!d0.carry_over_allowed,
-    //       max_carry_over_days: Number(d0.max_carry_over_days ?? 0),
-    //       carry_over_expiry: d0.carry_over_expiry ?? '',
-    //       deduct_employee_balance: !!d0.deduct_employee_balance,
-    //     },
-    //   ];
-    // } else if (data.quota_configuration === 'per_level') {
-    //   // use local rows state (FE-managed)
-    //   payload.quota_configuration_detail = rows.map((r) => ({
-    //     job_level: Number(r.job_level),
-    //     quota_days: Number(r.quota_days),
-    //     carry_over_allowed: !!r.carry_over_allowed,
-    //     max_carry_over_days: Number(r.max_carry_over_days ?? 0),
-    //     carry_over_expiry: r.carry_over_expiry ?? '',
-    //     deduct_employee_balance: !!r.deduct_employee_balance,
-    //   }));
-    // }
+    if (data.quota_configuration === 'same') {
+      // read nested fields using the form values (we expect them at quota_configuration_detail.0.*)
+      const d0 = data.quota_configuration_detail?.[0];
+      payload.quota_configuration_detail = [
+        {
+          job_level: d0?.job_level ?? 0,
+          quota_days: Number(d0?.quota_days ?? 0),
+          carry_over_allowed: !!d0?.carry_over_allowed,
+          max_carry_over_days: Number(d0?.max_carry_over_days ?? 0),
+          carry_over_expiry: d0?.carry_over_expiry ?? '',
+          deduct_employee_balance: !!d0?.deduct_employee_balance,
+        },
+      ];
+    } else if (data.quota_configuration === 'per_level') {
+      payload.quota_configuration_detail = rows.map((r) => ({
+        job_level: Number(r.job_level),
+        quota_days: Number(r.quota_days),
+        carry_over_allowed: !!r.carry_over_allowed,
+        max_carry_over_days: Number(r.max_carry_over_days ?? 0),
+        carry_over_expiry: r.carry_over_expiry ?? '',
+        deduct_employee_balance: !!r.deduct_employee_balance,
+      }));
+    }
 
-    // if unlimited or other cases, leave quota_configuration_detail empty array
-    onSubmit(payload);
+    onSubmit(Number(id) ?? undefined, payload);
   };
 
   return (
     <div className="max-w-4xl mx-auto p-6">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSubmit(form.getValues());
+          }}
+          className="space-y-8"
+        >
           {/* Basic Info */}
           <div>
             <h2 className="text-lg font-semibold mb-4">

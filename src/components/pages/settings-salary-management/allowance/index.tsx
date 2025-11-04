@@ -4,7 +4,7 @@ import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/tables/data-table';
 import { ColumnDef } from '@tanstack/react-table';
-import { Plus, CalendarIcon } from 'lucide-react';
+import { Plus, Trash2, CalendarIcon } from 'lucide-react';
 import { RowActions } from '@/components/tables/row-actions';
 import dayjs from 'dayjs';
 import {
@@ -23,25 +23,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Calendar } from '@/components/ui/calendar';
 import {
   Popover,
   PopoverTrigger,
   PopoverContent,
 } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import {
-  BaseSalaryItem,
-  RequestBaseSalary,
-  ResponseBaseSalary,
+  AllowanceItem,
+  RequestAllowance,
+  ResponseAllowance,
 } from '@/services/salary/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  getBaseSalary,
-  postBaseSalary,
-  putBaseSalary,
-  removeBaseSalary,
+  getAllowance,
+  postAllowance,
+  putAllowance,
+  removeAllowance,
 } from '@/services/salary';
 import { PaginatedResponse } from '@/lib/types';
 import { JobLevel } from '@/services/job-levels/types';
@@ -53,23 +53,22 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import Image from 'next/image';
-import { getJobPositionPagination } from '@/services/job-position';
 
 // =======================
 // Component
 // =======================
-export default function SettingsBaseSalary() {
+export default function SettingsBaseAllowance() {
   const [open, setOpen] = React.useState(false);
   const [openDelete, setOpenDelete] = React.useState(false);
   const [openDetail, setOpenDetail] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
-  const [editing, setEditing] = React.useState<BaseSalaryItem | null>(null);
+  const [editing, setEditing] = React.useState<AllowanceItem | null>(null);
   const queryClient = useQueryClient();
 
-  const { data: baseSalaryData, refetch: baseSalaryDataRefetch } =
-    useQuery<ResponseBaseSalary>({
-      queryKey: ['getBaseSalary'],
-      queryFn: getBaseSalary,
+  const { data: allowanceData, refetch: allowanceDataRefetch } =
+    useQuery<ResponseAllowance>({
+      queryKey: ['getAllowance'],
+      queryFn: getAllowance,
       staleTime: 1000 * 60 * 5,
     });
 
@@ -79,60 +78,49 @@ export default function SettingsBaseSalary() {
     staleTime: 1000 * 60 * 5,
   });
 
-  const { data: jobPosition } = useQuery({
-    queryKey: ['job_position_id'],
-    queryFn: () =>
-      getJobPositionPagination({
-        pageSize: 10000,
-        pageIndex: 0,
-      }),
-    retry: (failureCount) => {
-      return failureCount < 3;
-    },
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
-  });
-
   // =======================
   // Columns
   // =======================
-  const columns: ColumnDef<BaseSalaryItem>[] = [
+  const columns: ColumnDef<AllowanceItem>[] = [
     {
-      accessorKey: 'job_position_id',
-      header: 'Job Position',
-      cell: ({ row }) => {
-        const selected = jobPosition?.data.filter(
-          (item) => item.id === row.original.job_position_id,
-        )[0];
-        return selected?.name ?? '-';
-      },
+      accessorKey: 'name',
+      header: 'Allowance Type',
     },
     {
-      accessorKey: 'job_level_id',
+      accessorKey: 'job_levels',
       header: 'Job Level',
-      cell: ({ row }) => {
-        const selected = jobLevel?.data.filter(
-          (item) => item.id === row.original.job_level_id,
-        )[0];
-        return selected?.name ?? '-';
+      meta: {
+        className: 'min-w-[300px] w-[340px]',
       },
-    },
-    {
-      accessorKey: 'amount',
-      header: 'Base Salary Amount',
-      cell: ({ row }) =>
-        `Rp ${Number(row.original.amount).toLocaleString('id-ID')}`,
+      cell: ({ row }) => (
+        <div className="flex flex-wrap gap-2">
+          {row.original.job_levels.slice(0, 4).map((lv) => (
+            <span
+              key={lv.name}
+              className="px-2 py-1 text-xs rounded-full bg-blue-50 text-blue-700"
+            >
+              {lv.name}
+            </span>
+          ))}
+          {row.original.job_levels.length > 4 && (
+            <span className="px-2 py-1 text-xs rounded-full bg-blue-50 text-blue-700">
+              +{row.original.job_levels.length - 4}
+            </span>
+          )}
+        </div>
+      ),
     },
     {
       accessorKey: 'effective_date',
       header: 'Effective Date',
       cell: ({ row }) =>
-        dayjs(row.original.effective_date).format('MMMM D, YYYY'),
+        dayjs(row.original.effective_date).format('MMMM D, YYYY') ?? '-',
     },
     {
       accessorKey: 'updated_at',
       header: 'Last Update',
-      cell: ({ row }) => dayjs(row.original.updated_at).format('MMMM D, YYYY'),
+      cell: ({ row }) =>
+        dayjs(row.original.updated_at).format('MMMM D, YYYY') ?? '-',
     },
     {
       id: 'actions',
@@ -143,7 +131,12 @@ export default function SettingsBaseSalary() {
           <RowActions
             onEdit={() => {
               setEditing(item);
-              setForm(item);
+              setForm({
+                name: item.name,
+                effective_date: item.effective_date,
+                expire_date: item.expire_date,
+                job_levels: [...item.job_levels],
+              });
               setOpen(true);
             }}
             onDelete={() => {
@@ -161,21 +154,21 @@ export default function SettingsBaseSalary() {
   ];
 
   const saveMutation = useMutation<
-    ResponseBaseSalary,
+    ResponseAllowance,
     Error,
-    { id?: number; data: RequestBaseSalary }
+    { id?: number; data: RequestAllowance }
   >({
     mutationFn: ({ id, data }) => {
       if (id) {
-        return putBaseSalary(id, data);
+        return putAllowance(id, data);
       }
-      return postBaseSalary(data);
+      return postAllowance(data);
     },
     onMutate: () => setLoading(true),
     onSuccess: () => {
-      toast.success('Base salary successfully save');
-      queryClient.invalidateQueries({ queryKey: ['getBaseSalary'] });
-      baseSalaryDataRefetch();
+      toast.success('Allowance successfully save');
+      queryClient.invalidateQueries({ queryKey: ['getAllowance'] });
+      allowanceDataRefetch();
       setOpen(false);
       setEditing(null);
     },
@@ -186,13 +179,13 @@ export default function SettingsBaseSalary() {
   });
 
   // mutation for delete
-  const deleteMutation = useMutation<ResponseBaseSalary, Error, number>({
-    mutationFn: (id) => removeBaseSalary(id),
+  const deleteMutation = useMutation<ResponseAllowance, Error, number>({
+    mutationFn: (id) => removeAllowance(id),
     onMutate: () => setLoading(true),
     onSuccess: () => {
-      toast.success('Base salary deleted successfully');
-      queryClient.invalidateQueries({ queryKey: ['getBaseSalary'] });
-      baseSalaryDataRefetch();
+      toast.success('Allowance deleted successfully');
+      queryClient.invalidateQueries({ queryKey: ['getAllowance'] });
+      allowanceDataRefetch();
       setOpenDelete(false);
       setEditing(null);
     },
@@ -205,14 +198,16 @@ export default function SettingsBaseSalary() {
   // =======================
   // Form State
   // =======================
-  const [form, setForm] = React.useState<
-    Omit<BaseSalaryItem, 'id' | 'updated_at'>
-  >({
-    job_position_id: 0,
-    job_level_id: 0,
-    amount: 0,
+  const [form, setForm] = React.useState<{
+    name: string;
+    effective_date: string;
+    expire_date: string;
+    job_levels: { id: number; name: string; amount: string }[];
+  }>({
+    name: '',
     effective_date: '',
-    end_date: '',
+    expire_date: '',
+    job_levels: [{ id: 0, name: '', amount: '0' }],
   });
 
   const handleDelete = () => {
@@ -222,32 +217,39 @@ export default function SettingsBaseSalary() {
   };
 
   const handleSave = () => {
-    if (
-      !form.job_position_id ||
-      !form.job_level_id ||
-      !form.amount ||
-      !form.effective_date ||
-      !form.end_date
-    )
-      return toast.error('Please fill all data!');
+    if (!form.name || !form.effective_date || !form.expire_date)
+      return toast.error('Please fill all required fields');
 
-    saveMutation.mutate({ id: editing?.id, data: form });
+    console.log(form);
+
+    const payload = {
+      ...form,
+      description: '',
+      allowance_items: form.job_levels.map((item) => ({
+        job_level_id: Number(item.id),
+        amount: Number(item.amount),
+      })),
+    };
+
+    saveMutation.mutate({ id: editing?.id, data: payload });
   };
 
   const resetForm = () => {
     setForm({
-      job_position_id: 0,
-      job_level_id: 0,
-      amount: 0,
+      name: '',
       effective_date: '',
-      end_date: '',
+      expire_date: '',
+      job_levels: [{ id: 0, name: '', amount: '0' }],
     });
   };
 
+  // =======================
+  // UI
+  // =======================
   return (
     <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6">
       <div className="flex flex-col sm:flex-row sm:gap-4 justify-between">
-        <h2 className="font-semibold text-xl">Base Salary Management</h2>
+        <h2 className="font-semibold text-xl">Allowance Management</h2>
         <Button
           className="flex flex-row items-center gap-2"
           onClick={() => {
@@ -257,80 +259,34 @@ export default function SettingsBaseSalary() {
           }}
         >
           <Plus className="w-4 h-4" />
-          Add Base Salary
+          Set Up Allowance
         </Button>
       </div>
 
-      <DataTable columns={columns} data={baseSalaryData?.data} />
+      <DataTable columns={columns} data={allowanceData?.data} />
 
       {/* Modal Form */}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-md bg-white">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white">
           <DialogHeader>
             <DialogTitle>
-              {editing ? 'Edit Base Salary' : 'Set Up Base Salary'}
+              {editing ? 'Edit Base Allowance' : 'Set Up Base Allowance'}
             </DialogTitle>
           </DialogHeader>
 
+          {/* Form Fields */}
           <div className="grid gap-4 py-2">
             <div className="space-y-2">
               <Label>
-                Job Position<span className="text-red-500">*</span>
-              </Label>
-              <Select
-                value={String(form.job_position_id)}
-                onValueChange={(val) =>
-                  setForm((prev) => ({ ...prev, job_position_id: Number(val) }))
-                }
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select" />
-                </SelectTrigger>
-                <SelectContent>
-                  {jobPosition?.data.map((item) => (
-                    <SelectItem key={item.id} value={String(item.id)}>
-                      {item.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>
-                Job Level<span className="text-red-500">*</span>
-              </Label>
-              <Select
-                value={String(form.job_level_id)}
-                onValueChange={(val) =>
-                  setForm((prev) => ({ ...prev, job_level_id: Number(val) }))
-                }
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select" />
-                </SelectTrigger>
-                <SelectContent>
-                  {jobLevel?.data.map((item) => (
-                    <SelectItem key={item.id} value={String(item.id)}>
-                      {item.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>
-                Base Salary Amount<span className="text-red-500">*</span>
+                Allowance Name<span className="text-red-500">*</span>
               </Label>
               <Input
-                type="number"
-                placeholder="Rp 0"
-                value={Number(form.amount)}
+                placeholder="e.g. Transportation"
+                value={form.name}
                 onChange={(e) =>
                   setForm((prev) => ({
                     ...prev,
-                    amount: Number(e.target.value),
+                    name: e.target.value,
                   }))
                 }
               />
@@ -386,12 +342,12 @@ export default function SettingsBaseSalary() {
                     variant="outline"
                     className={cn(
                       'w-full justify-start text-left font-normal',
-                      !form.end_date && 'text-muted-foreground',
+                      !form.expire_date && 'text-muted-foreground',
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {form.end_date
-                      ? dayjs(form.end_date).format('MMMM D, YYYY')
+                    {form.expire_date
+                      ? dayjs(form.expire_date).format('MMMM D, YYYY')
                       : 'Select'}
                   </Button>
                 </PopoverTrigger>
@@ -399,18 +355,109 @@ export default function SettingsBaseSalary() {
                   <Calendar
                     mode="single"
                     selected={
-                      form.end_date ? new Date(form.end_date) : undefined
+                      form.expire_date ? new Date(form.expire_date) : undefined
                     }
                     onSelect={(date) =>
                       setForm((prev) => ({
                         ...prev,
-                        end_date: date ? dayjs(date).format('YYYY-MM-DD') : '',
+                        expire_date: date
+                          ? dayjs(date).format('YYYY-MM-DD')
+                          : '',
                       }))
                     }
                   />
                 </PopoverContent>
               </Popover>
             </div>
+
+            <hr className="my-2" />
+            <h4 className="font-medium">Base Allowance</h4>
+
+            {form.job_levels.map((jl, idx) => (
+              <div
+                key={idx}
+                className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-end relative"
+              >
+                <div className="space-y-2">
+                  <Label>
+                    Job Level<span className="text-red-500">*</span>
+                  </Label>
+                  <Select
+                    value={String(jl.id)}
+                    onValueChange={(val) => {
+                      console.log(val);
+                      const arr = [...form.job_levels];
+                      arr[idx].id = Number(val);
+                      setForm((prev) => ({ ...prev, job_levels: arr }));
+                    }}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select Job Level" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {jobLevel?.data.map((item) => (
+                        <SelectItem key={item.id} value={String(item.id)}>
+                          {item.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 space-y-2">
+                    <Label>
+                      Base Allowance Amount
+                      <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      type="number"
+                      placeholder="Rp 0"
+                      value={Number(jl.amount)}
+                      onChange={(e) => {
+                        const arr = [...form.job_levels];
+                        arr[idx].amount = e.target.value;
+                        setForm((prev) => ({ ...prev, job_levels: arr }));
+                      }}
+                    />
+                  </div>
+
+                  {form.job_levels.length > 1 && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        setForm((prev) => ({
+                          ...prev,
+                          job_levels: prev.job_levels.filter(
+                            (_, i) => i !== idx,
+                          ),
+                        }));
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4 text-red-500" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+            ))}
+
+            <Button
+              type="button"
+              variant="outline"
+              className="text-blue-600 w-fit mt-2 text-secondary border-secondary"
+              onClick={() =>
+                setForm((prev) => ({
+                  ...prev,
+                  job_levels: [
+                    ...prev.job_levels,
+                    { id: 0, name: '', amount: '0' },
+                  ],
+                }))
+              }
+            >
+              + Add Job Level
+            </Button>
           </div>
 
           <DialogFooter>
@@ -465,35 +512,14 @@ export default function SettingsBaseSalary() {
       <Dialog open={openDetail} onOpenChange={setOpenDetail}>
         <DialogContent className="max-w-md bg-white">
           <DialogHeader>
-            <DialogTitle>Detail Base Salary</DialogTitle>
+            <DialogTitle>Detail Allowance</DialogTitle>
           </DialogHeader>
 
           <div className="grid gap-4 py-2">
             <div className="space-y-2">
-              <Label>Job Position</Label>
-              <Label className="font-semibold">
-                {jobPosition?.data.filter(
-                  (item) => item.id === editing?.job_position_id,
-                )[0]?.name ?? '-'}
-              </Label>
+              <Label>Allowance Name</Label>
+              <Label className="font-semibold">{editing?.name}</Label>
             </div>
-
-            <div className="space-y-2">
-              <Label>Job Level</Label>
-              <Label className="font-semibold">
-                {jobLevel?.data.filter(
-                  (item) => item.id === editing?.job_level_id,
-                )[0]?.name ?? '-'}
-              </Label>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Base Salary Amount</Label>
-              <Label className="font-semibold">
-                {`Rp ${Number(editing?.amount).toLocaleString('id-ID')}`}
-              </Label>
-            </div>
-
             <div className="space-y-2">
               <Label>Effective Date</Label>
               <Label className="font-semibold">
@@ -504,9 +530,36 @@ export default function SettingsBaseSalary() {
             <div className="space-y-2">
               <Label>Effective To</Label>
               <Label className="font-semibold">
-                {dayjs(editing?.end_date).format('MMMM D, YYYY')}
+                {dayjs(editing?.expire_date).format('MMMM D, YYYY')}
               </Label>
             </div>
+
+            <hr />
+            <h1>Base Allowance</h1>
+
+            {editing?.job_levels.map((jl, idx) => (
+              <div className="flex gap-3" key={idx}>
+                <Label>#{idx + 1}</Label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-end relative">
+                  <div className="space-y-2">
+                    <Label>Job Level</Label>
+                    <Label className="font-semibold">
+                      {jobLevel?.data.filter((item) => item.id === jl.id)[0]
+                        ?.name ?? '-'}
+                    </Label>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 space-y-2">
+                      <Label>Base Allowance Amount</Label>
+                      <Label className="font-semibold">
+                        {`Rp ${Number(jl.amount).toLocaleString('id-ID')}`}
+                      </Label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
 
           <div className="flex justify-between items-center">

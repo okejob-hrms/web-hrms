@@ -8,7 +8,7 @@ import {
   HeaderBreadcumb,
   HeaderMenu,
 } from '@/components/partials/header';
-import { cn } from "@/lib/utils";
+import { cn } from '@/lib/utils';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { ModuleSidebar } from '@/components/partials/module-sidebar';
 import AppSkeleton from './app-skeleton';
@@ -19,7 +19,7 @@ import { getBreadcrumbs, getGenerateTitle, getHideSidebar } from '@/lib/menu';
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const hideSidebar = getHideSidebar(pathname) || false;
-  const noPaddingPages = ["/employee/organization/structure/edit"]; // add more if needed
+  const noPaddingPages = ['/employee/organization/structure/edit']; // add more if needed
   const removePadding = noPaddingPages.includes(pathname);
   const isAuthPage = pathname.startsWith('/auth');
   const breadcrumbs = getBreadcrumbs(pathname);
@@ -71,14 +71,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <HeaderBreadcumb items={breadcrumbs} />
           {hideSidebar ? (
             <div
-            className={cn(
-              "flex justify-center bg-white min-h-screen",
-              !removePadding && "md:py-10 py-4"
-            )}
-          >
+              className={cn(
+                'flex justify-center bg-white min-h-screen',
+                !removePadding && 'py-4 md:py-10',
+              )}
+            >
               <main className="w-full">
                 {loading ? (
-                  <div className="md:px-10 px-4">
+                  <div className="px-4 md:px-10">
                     <AppSkeleton />
                   </div>
                 ) : (
@@ -90,7 +90,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <SidebarProvider className="mx-auto w-full container md:py-10 flex flex-col md:flex-row md:gap-4">
               <SidebarTrigger className="md:hidden" />
               <ModuleSidebar defaultTitle={getGenerateTitle(pathname)} />
-              <main className="w-full">
+              <main className="w-full px-2 md:px-0 py-3 md:py-0">
                 {loading ? <AppSkeleton /> : children}
               </main>
             </SidebarProvider>

@@ -21,7 +21,7 @@ export const OffboardingTab = React.memo(function OffboardingTab({
     {
       name: "Exit Interview Form",
       value: "exit-interview-form",
-      children: <ExitInterviewForm />,
+      children: <ExitInterviewForm offboarding_id={offboarding_id} />,
     },
     {
       name: "Work Handover & Asset Return",

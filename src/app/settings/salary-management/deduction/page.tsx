@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import SettingsSalaryDeduction from '@/components/pages/settings-salary-management/deduction/page';
+import SettingsSalaryDeduction from '@/components/pages/settings-salary-management/deduction';
 
 export default function DeductionSalary() {
   return (
