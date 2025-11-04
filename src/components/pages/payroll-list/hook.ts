@@ -63,8 +63,6 @@ export function usePayroll() {
     total: payrollData?.pagination.total ?? 0,
     data: payrollData?.data ?? [],
   };
-
-  console.log(dataPagination);
   
   const { mutate: removeAttendance } = useMutation({
     mutationFn: (id: number) => deleteAttendance(id),

@@ -1,5 +1,5 @@
 import { api } from "@/lib/api";
-import { RequestPayrollGroup, ResponsePayrollList } from "./types";
+import { PayslipResponse, RequestPayrollGroup, ResponsePayrollDetail, ResponsePayrollList } from "./types";
 import { PaginationState } from "@tanstack/react-table";
 
 export const getPayroll = async (
@@ -35,6 +35,11 @@ export const getPayroll = async (
   return response.json();
 };
 
+export const getPayrollDetail = async (id: string): Promise<ResponsePayrollDetail> => {
+  const response = await api.get(`payruns/${id}`);
+  return response.json<ResponsePayrollDetail>();
+};
+
 export const postPayrollGroup = async (
   payload: RequestPayrollGroup,
 ): Promise<ResponsePayrollList> => {
@@ -43,4 +48,31 @@ export const postPayrollGroup = async (
       json: payload,
     })
     .json<ResponsePayrollList>();
+};
+
+
+export const getPayrollEmployee = async (
+  id: string,
+  pagination?: PaginationState,
+  filters?: { search?: string;}
+): Promise<PayslipResponse> => {
+  const searchParams: Record<string, string> = {};
+
+  if (pagination) {
+    const page = pagination.pageIndex + 1;
+    const per_page = pagination.pageSize;
+    searchParams.page = page.toString();
+    searchParams.per_page = per_page.toString();
+  }
+
+  if (filters?.search) {
+    searchParams.search = filters.search;
+  }
+
+  const response = await api.get<PayslipResponse>(
+    `payruns/${id}/payslips`,
+    { searchParams }
+  );
+
+  return response.json();
 };

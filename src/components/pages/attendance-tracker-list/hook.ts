@@ -8,6 +8,7 @@ import { Attendance, AttendanceSummary, AttendanceSummaryDetail } from "@/servic
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Filters } from "./types";
+import dayjs from "dayjs";
 
 export function useAttendance() {
   const [pagination, setPagination] = React.useState<PaginationState>({
@@ -23,6 +24,11 @@ export function useAttendance() {
   const [filters, setFilters] = React.useState<Filters>({
     date: '',
     search: '',
+  });
+
+  const [detailFilter, setDetailFilter] = React.useState(() => {
+    const now = dayjs();
+    return { month: now.format('MMMM'), year: now.year() };
   });
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -59,8 +65,8 @@ export function useAttendance() {
     isLoading: isDetailLoading,
     refetch: refetchDetail,
   } = useQuery({
-    queryKey: ["attendanceDetail", selectedId],
-    queryFn: () => getAttendanceDetail(selectedId),
+    queryKey: ["attendanceDetail", selectedId, detailFilter.month, detailFilter.year],
+    queryFn: () => getAttendanceDetail(selectedId, detailFilter.month, detailFilter.year),
     enabled: !!selectedId,
     placeholderData: keepPreviousData,
   });
@@ -115,6 +121,16 @@ export function useAttendance() {
     removeAttendance(Number(selectedId));
   };
 
+  const handleNextDetailMonth = () => {
+    const next = dayjs(`${detailFilter.year}-${detailFilter.month}-01`).add(1, 'month');
+    setDetailFilter({ month: next.format('MMMM'), year: next.year() });
+  };
+
+  const handlePrevDetailMonth = () => {
+    const prev = dayjs(`${detailFilter.year}-${detailFilter.month}-01`).subtract(1, 'month');
+    setDetailFilter({ month: prev.format('MMMM'), year: prev.year() });
+  };
+
   return {
     attendances: paginatedData,
     loading: isLoading || isFetching || isRefetching,
@@ -144,5 +160,8 @@ export function useAttendance() {
     openDelete,
     filters,
     setFilters,
+    detailFilter,
+    handleNextDetailMonth,
+    handlePrevDetailMonth,
   };
 }

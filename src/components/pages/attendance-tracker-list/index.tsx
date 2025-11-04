@@ -20,6 +20,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import {
   Check,
+  ChevronLeft,
+  ChevronRight,
   Clock4Icon,
   Edit3,
   Ellipsis,
@@ -71,7 +73,6 @@ export const AttendanceTrackerList = ({
     openDetail,
     setOpenDetail,
     setSelectedId,
-    refetchDetail,
     detailData,
     handleGoDetailEmployee,
     statEmployee,
@@ -86,6 +87,9 @@ export const AttendanceTrackerList = ({
     openDelete,
     setFilters,
     filters,
+    detailFilter,
+    handleNextDetailMonth,
+    handlePrevDetailMonth,
   } = useAttendance();
 
   const columns: ColumnDef<Attendance>[] = [
@@ -188,7 +192,7 @@ export const AttendanceTrackerList = ({
                     setOpenDetail(true);
                     setSelectedId(String(row.original.id));
                     setSelectedData(row.original);
-                    refetchDetail();
+                    // refetchDetail();
                   }}
                   className="flex gap-2"
                 >
@@ -429,6 +433,29 @@ export const AttendanceTrackerList = ({
                   </Button>
                 </div>
 
+                <Separator />
+
+                <div className="flex justify-between my-3">
+                  <div className="flex gap-2 items-center">
+                    <div className="font-bold font-xl">
+                      {detailFilter.month} {detailFilter.year}
+                    </div>
+                    <div className="flex gap-2 items-center">
+                      <Button
+                        variant="outline"
+                        onClick={() => handlePrevDetailMonth()}
+                      >
+                        <ChevronLeft />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => handleNextDetailMonth()}
+                      >
+                        <ChevronRight />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
                 <div className="py-3 flex sm:flex-row flex-col justify-between">
                   <div className="gap-2">
                     <div className="font-semibold text-xs">Late Check In</div>
@@ -464,122 +491,140 @@ export const AttendanceTrackerList = ({
                 </div>
               </div>
 
-              <div className="bg-gray-100 p-6 space-y-6 flex-1 overflow-y-auto border-t">
-                {detailData?.data.data.map((item, key) => {
-                  const status = item?.status_label;
-                  const { variant, className, label } =
-                    getStatusAttendance(status);
-                  return (
-                    <div
-                      className="border rounded-md p-4 bg-white space-y-5"
-                      key={key}
-                    >
-                      <div className="flex sm:flex-row flex-col gap-4">
-                        <div className="text-primary font-bold">
-                          {item.attendance_date}
-                        </div>
-                        <Badge
-                          variant="default"
-                          className="bg-blue-50 border-primary text-primary"
-                        >
-                          {item.metadata.shift_name}
-                        </Badge>
+              {detailData?.data?.data && detailData?.data?.data?.length > 0 ? (
+                <div className="bg-gray-100 p-6 space-y-6 flex-1 overflow-y-auto border-t">
+                  {detailData?.data?.data.map((item, key) => {
+                    const status = item?.status_label;
+                    const { variant, className, label } =
+                      getStatusAttendance(status);
+                    return (
+                      <div
+                        className="border rounded-md p-4 bg-white space-y-5"
+                        key={key}
+                      >
+                        <div className="flex sm:flex-row flex-col gap-4">
+                          <div className="text-primary font-bold">
+                            {item.attendance_date}
+                          </div>
+                          {item.metadata.shift_name && (
+                            <Badge
+                              variant="default"
+                              className="bg-blue-50 border-primary text-primary"
+                            >
+                              {item.metadata.shift_name}
+                            </Badge>
+                          )}
 
-                        <Badge variant={variant} className={className}>
-                          {label}
-                        </Badge>
-                      </div>
-                      <div className="flex sm:flex-row flex-col gap-4 justify-between items-center">
-                        <div className="flex flex-row gap-2 justify-between items-center">
-                          <div className="flex flex-col">
-                            <span className="text-muted-foreground text-xs">
-                              Clock-In
-                            </span>
-                            <span>{item.clock.in_at || '-'}</span>
-                          </div>
-                          <Minus className="text-muted-foreground" size={20} />
-                          <div className="flex flex-col">
-                            <span className="text-muted-foreground text-xs">
-                              {item.duration || '-'}
-                            </span>
-                          </div>
-                          <Minus className="text-muted-foreground" size={20} />
-                          <div className="flex flex-col">
-                            <span className="text-muted-foreground text-xs text-end">
-                              Clock-Out
-                            </span>
-                            <span className="text-warning text-end">
-                              {item.clock.out_at || '-'}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="flex flex-col space-y-2">
-                          <span className="text-muted-foreground text-xs">
-                            Attendance Approval
-                          </span>
-                          <div className="flex gap-4">
-                            {item.status !== 2 && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="bg-white text-red-500 border-red-500"
-                                onClick={() => {
-                                  setOpenReject(true);
-                                  setSelectedId(String(item.id));
-                                }}
-                              >
-                                <X />
-                                Reject
-                              </Button>
-                            )}
-                            {item.status !== 1 && (
-                              <Button
-                                variant="default"
-                                size="sm"
-                                onClick={() => {
-                                  setOpenApprove(true);
-                                  setSelectedId(String(item.id));
-                                }}
-                              >
-                                <Check />
-                                Approve
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex flex-col gap-3 py-2 border-t">
-                        <div className="flex flex-col space-y-1">
-                          <span className="text-muted-foreground text-sm">
-                            Location
-                          </span>
-                          <Badge
-                            variant="default"
-                            className="bg-blue-50 border-primary text-primary"
-                          >
-                            <div className="w-6">
-                              <MapPin size={16} />
-                            </div>
-                            <div className="whitespace-normal break-words max-w-full">
-                              {item.metadata.location_name}
-                            </div>
+                          <Badge variant={variant} className={className}>
+                            {label}
                           </Badge>
                         </div>
-                        <div className="flex flex-col space-y-1">
-                          <span className="text-muted-foreground text-sm">
-                            Notes
-                          </span>
+                        <div className="flex sm:flex-row flex-col gap-4 justify-between items-center">
+                          <div className="flex flex-row gap-2 justify-between items-center">
+                            <div className="flex flex-col">
+                              <span className="text-muted-foreground text-xs">
+                                Clock-In
+                              </span>
+                              <span>{item.clock.in_at || '-'}</span>
+                            </div>
+                            <Minus
+                              className="text-muted-foreground"
+                              size={20}
+                            />
+                            <div className="flex flex-col">
+                              <span className="text-muted-foreground text-xs">
+                                {item.duration || '-'}
+                              </span>
+                            </div>
+                            <Minus
+                              className="text-muted-foreground"
+                              size={20}
+                            />
+                            <div className="flex flex-col">
+                              <span className="text-muted-foreground text-xs text-end">
+                                Clock-Out
+                              </span>
+                              <span className="text-warning text-end">
+                                {item.clock.out_at || '-'}
+                              </span>
+                            </div>
+                          </div>
 
-                          <span className="text-muted-foreground text-sm">
-                            {item.notes ?? '-'}
-                          </span>
+                          <div className="flex flex-col space-y-2">
+                            <span className="text-muted-foreground text-xs">
+                              Attendance Approval
+                            </span>
+                            <div className="flex gap-4">
+                              {item.status !== 2 && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="bg-white text-red-500 border-red-500"
+                                  onClick={() => {
+                                    setOpenReject(true);
+                                    setSelectedId(String(item.id));
+                                  }}
+                                >
+                                  <X />
+                                  Reject
+                                </Button>
+                              )}
+                              {item.status !== 1 && (
+                                <Button
+                                  variant="default"
+                                  size="sm"
+                                  onClick={() => {
+                                    setOpenApprove(true);
+                                    setSelectedId(String(item.id));
+                                  }}
+                                >
+                                  <Check />
+                                  Approve
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex flex-col gap-3 py-2 border-t">
+                          <div className="flex flex-col space-y-1">
+                            <span className="text-muted-foreground text-sm">
+                              Location
+                            </span>
+                            <Badge
+                              variant="default"
+                              className="bg-blue-50 border-primary text-primary"
+                            >
+                              <div className="w-6">
+                                <MapPin size={16} />
+                              </div>
+                              <div className="whitespace-normal break-words max-w-full">
+                                {item.metadata.location_name ?? '-'}
+                              </div>
+                            </Badge>
+                          </div>
+                          {item.notes && (
+                            <div className="flex flex-col space-y-1">
+                              <span className="text-muted-foreground text-sm">
+                                Notes
+                              </span>
+
+                              <span className="text-muted-foreground text-sm">
+                                {item.notes ?? '-'}
+                              </span>
+                            </div>
+                          )}
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="bg-gray-100 p-6 space-y-6 flex-1 overflow-y-auto border-t">
+                  <div className="flex items-center justify-center">
+                    There is no attendance data for this period.
+                  </div>
+                </div>
+              )}
             </SheetContent>
           </Sheet>
 

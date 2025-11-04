@@ -62,7 +62,6 @@ export default function SettingsLeaveConfigurationForm({
   // ------------------------
   // Local State for per_level detail (dynamic)
   // ------------------------
-  console.log(listing);
   const [rows, setRows] = useState<QuotaConfigurationDetailLocal[]>([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [formRow, setFormRow] = useState<QuotaConfigurationDetailLocal>({

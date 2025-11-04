@@ -2,12 +2,14 @@
 
 import * as React from "react";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getAttendance, deleteAttendance } from "@/services/attendance";
+import { deleteAttendance } from "@/services/attendance";
 import { PaginationState } from "@tanstack/react-table";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { RequestPayrollGroup } from "@/services/payroll/types";
+import { Payslip, RequestPayrollGroup } from "@/services/payroll/types";
 import { Filters } from "./types";
+import { getPayrollDetail, getPayrollEmployee } from "@/services/payroll";
+import { PaginatedResponse } from "@/lib/types";
 
 export function usePayrollDetail() {
   const [pagination, setPagination] = React.useState<PaginationState>({
@@ -20,31 +22,51 @@ export function usePayrollDetail() {
     date: '',
     search: '',
   });
-  const [formData, setFormData] = React.useState<RequestPayrollGroup>({
-    period_year: new Date().getFullYear(),
-    period_month: new Date().getMonth(),
-    auto_send_payslip: false,
-    send_payslip_at: new Date().toDateString(),
-    notes: '',
-  });
   const [currentStep, setCurrentStep] = React.useState(1);
+  const [id, setId] = React.useState('');
   const router = useRouter();
   
   const queryClient = useQueryClient();
 
   // get list
   const {
-    data: paginatedData,
-    isLoading,
-    isFetching,
-    isRefetching,
+    data: detailData,
   } = useQuery({
-    queryKey: ["attendance", pagination, filters.search, filters.date],
-    queryFn: () => getAttendance(pagination, filters),
+    queryKey: ["detailPayroll", id],
+    queryFn: () => getPayrollDetail(id),
     placeholderData: keepPreviousData,
     refetchOnMount: "always",
     refetchOnWindowFocus: true,
   });
+
+  // get list
+  const {
+    data: employeeList,
+    isLoading,
+    isFetching,
+    isRefetching,
+  } = useQuery({
+    queryKey: ["payslip", id, pagination, filters.search, filters.date],
+    queryFn: () => getPayrollEmployee(id, pagination, filters),
+    placeholderData: keepPreviousData,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
+  });
+
+  const dataPagination: PaginatedResponse<Payslip> = {
+      current_page: employeeList?.pagination.current_page ?? 1,
+      current_page_url: `${employeeList?.pagination.first ?? ''}`,
+      first_page_url: employeeList?.pagination.first ?? '',
+      from: employeeList?.pagination.from ?? 0,
+      last_page: employeeList?.pagination.last_page ?? 1,
+      next_page_url: employeeList?.pagination.next ?? null,
+      path: 'api/v1/payruns',
+      per_page: employeeList?.pagination.per_page ?? 10,
+      prev_page_url: employeeList?.pagination.prev ?? null,
+      to: employeeList?.pagination.to ?? 0,
+      total: employeeList?.pagination.total ?? 0,
+      data: employeeList?.data.payslips ?? [],
+    };
   
   const { mutate: removeAttendance } = useMutation({
     mutationFn: (id: number) => deleteAttendance(id),
@@ -58,52 +80,49 @@ export function usePayrollDetail() {
     },
   });
 
-  const hasNextPage = !!paginatedData?.data?.next_page_url;
-  const hasPreviousPage = !!paginatedData?.data?.prev_page_url;
-
-  const handleGoDetailEmployee = (id:number) => {
-    router.push(`/employee/employee-management/${id}`)
-  }
-
   const handleAddGroup = (data: RequestPayrollGroup) => {
     console.log('data', data);
   }
 
   const handleCancel = () => {
-    if(currentStep === 1) {
-        router.back();
-    }else {
-        setCurrentStep(2);
-    }
+    router.push('/payroll');
   }
 
   const handleNext = () => {
-    if(currentStep === 1) {
-        setCurrentStep(2);
-    }else {
-        router.push('/payroll');
-    }
+    setCurrentStep(2);
+  }
+
+  const handleBack = () => {
+    setCurrentStep(1);
+  }
+
+  const handleSubmit = () => {
+    router.push('/payroll');
+  }
+
+  const getDetail = (idx: string) => {
+    setId(idx)
   }
 
   return {
-    attendances: paginatedData,
+    employeeList,
+    dataPagination,
     loading: isLoading || isFetching || isRefetching,
-    hasNextPage,
-    hasPreviousPage,
     pagination,
     setPagination,
-    handleGoDetailEmployee,
     setOpenDelete,
     openDelete,
     filters,
     setFilters,
     setOpenAdd,
     openAdd,
-    handleAddGroup, 
-    formData,
-    setFormData,
+    handleAddGroup,
     handleCancel,
     handleNext,
     currentStep,
+    getDetail,
+    detailData,
+    handleBack,
+    handleSubmit,
   };
 }
