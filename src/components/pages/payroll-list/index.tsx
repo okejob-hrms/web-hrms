@@ -129,10 +129,13 @@ export const PayrollList = () => {
               </DropdownMenuTrigger>
               <DropdownMenuContent>
                 <DropdownMenuItem>
-                  <button onClick={() => {}} className="flex gap-2">
+                  <Link
+                    href={`/payroll/${row.original.id}`}
+                    className="flex gap-2 justify-between items-center"
+                  >
                     <Eye />
                     Payruns Details
-                  </button>
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
                   <Link
@@ -142,17 +145,6 @@ export const PayrollList = () => {
                     <Edit3 />
                     Edit Payruns
                   </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <button
-                    onClick={() => {
-                      setOpenDelete(true);
-                    }}
-                    className="flex gap-2"
-                  >
-                    <Trash />
-                    Delete Payruns
-                  </button>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

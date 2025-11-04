@@ -2,6 +2,7 @@ import { api } from "@/lib/api";
 import { ApiResponse, PaginatedResponse } from "@/lib/types";
 import { Attendance, AttendanceDetail, AttendanceSummary, AttendanceSummaryDetail, RequestAttendance, RequestAttendanceStatus } from "./types";
 import { PaginationState } from "@tanstack/react-table";
+import { month } from "@/lib/utils";
 
 export const getAttendance = async (
   pagination?: PaginationState,
@@ -60,8 +61,12 @@ export const getAttendanceStat = async (): Promise<AttendanceSummary> => {
   return response.json();
 };
 
-export const getAttendanceDetail = async (id: string): Promise<ApiResponse<PaginatedResponse<AttendanceDetail>>> => {
-  const response = await api.get<ApiResponse<PaginatedResponse<AttendanceDetail>>>(`employee/attendances/users/${id}/history`);
+export const getAttendanceDetail = async (id: string, mo?: string, year?:number): Promise<ApiResponse<PaginatedResponse<AttendanceDetail>>> => {
+  const selectedMonth = month.find((a) => a.label === mo);
+  const reformatMonth = String(selectedMonth?.id ?? '').padStart(2, '0');
+  const response = await api.get<ApiResponse<PaginatedResponse<AttendanceDetail>>>(
+    mo && year ? `employee/attendances/users/${id}/history?period=${year}-${reformatMonth}` : `employee/attendances/users/${id}/history`
+  );
   return response.json();
 };
 
