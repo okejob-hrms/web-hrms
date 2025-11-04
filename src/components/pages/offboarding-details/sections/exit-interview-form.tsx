@@ -22,6 +22,7 @@ import { getFormById } from "@/services/form";
 import { getDetailOffboarding } from "@/services/employees/offboardings";
 
 import { ApiErrorResponse } from "@/lib/types";
+import AppSkeleton from "@/components/partials/app-skeleton";
 
 interface ExitInterviewFormProps {
   offboarding_id: number;
@@ -207,7 +208,7 @@ export const ExitInterviewForm = React.memo(function ExitInterviewForm({
   const formFields = forms?.data?.fields || [];
 
   if (isLoadingDetails || isLoadingForms || isLoadingAnswer) {
-    return <div>Loading...</div>;
+    return <div className="w-full"><AppSkeleton /></div>;
   }
 
   return (
