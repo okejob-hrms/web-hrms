@@ -241,21 +241,26 @@ export const PhoneInput = ({
   const handleCountryCodeChange = (newCountryCode: string) => {
     const currentPhone = parsedPhone.phoneNumber;
     const fullNumber = currentPhone ? `${newCountryCode}${currentPhone}` : "";
-    const countryCodeVal = newCountryCode.split("+")[1]
+    const countryCodeVal = newCountryCode.split("+")[1];
     setValue(name, fullNumber, { shouldValidate: true });
-    countryCodeName && setValue(countryCodeName, countryCodeVal, { shouldValidate: true });
+    countryCodeName &&
+      setValue(countryCodeName, countryCodeVal, { shouldValidate: true });
   };
 
   React.useEffect(() => {
-    if (name && parsedPhone.phoneNumber)  {
+    if (name && parsedPhone.phoneNumber) {
       const currentPhone = parsedPhone.phoneNumber;
       setValue(name, currentPhone, { shouldValidate: true });
     }
-    if (countryCodeName && parsedPhone.countryCode && parsedPhone.countryCode !== "+1") {
+    if (
+      countryCodeName &&
+      parsedPhone.countryCode &&
+      parsedPhone.countryCode !== "+1"
+    ) {
       const countryCodeVal = parsedPhone.countryCode.split("+")[1];
       setValue(countryCodeName, countryCodeVal, { shouldValidate: true });
     }
-  }, [])
+  }, []);
 
   return (
     <FormField

@@ -1,17 +1,82 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+import * as React from "react";
+import { useForm } from "react-hook-form";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import Image from "next/image";
+import { toast } from "sonner";
+
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { CheckboxForm } from "@/components/ui/checkbox-form";
 import { Form } from "@/components/ui/form";
+import { TextAreaForm } from "@/components/ui/textarea";
+import { InputForm } from "@/components/ui/input";
 import RadioCard from "@/components/ui/radio-card";
-import { Textarea, TextAreaForm } from "@/components/ui/textarea";
-import Image from "next/image";
-import React from "react";
-import { useForm } from "react-hook-form";
 import { CompleteOffboardingModal } from "./modals/complete-offboarding";
 import { CancelOffboardingModal } from "./modals/cancel-offboarding";
 
-export const AlertProcess = React.memo(function InterviewScheduleForm() {
+import {
+  getAnswerSubmissionOffboarding,
+  postNotifyEmployee,
+} from "@/services/employees/offboardings/exit-interview";
+import { getFormById } from "@/services/form";
+import { getDetailOffboarding } from "@/services/employees/offboardings";
+
+import { ApiErrorResponse } from "@/lib/types";
+import AppSkeleton from "@/components/partials/app-skeleton";
+
+interface ExitInterviewFormProps {
+  offboarding_id: number;
+}
+
+interface FormField {
+  id: number;
+  label: string;
+  type: string;
+  form_id: number;
+  options?: string[];
+  children?: React.ReactNode;
+}
+
+interface AnswerPayload {
+  form_id: number;
+  submitted_by: number;
+}
+
+const AlertProcess = React.memo(function AlertProcess({
+  name,
+  offboardingId,
+}: {
+  name: string;
+  offboardingId: number;
+}) {
+  const notifyMutation = useMutation({
+    mutationFn: () => postNotifyEmployee(offboardingId),
+    onSuccess: () => {
+      toast.success("Success notify employee");
+    },
+    onError: (error: unknown) => {
+      if (error && typeof error === "object" && "response" in error) {
+        const apiError = error as { response: Response };
+        try {
+          apiError.response
+            .json()
+            .then((errorData: ApiErrorResponse) => {
+              toast.error(errorData.message || "Failed to notify employee");
+            })
+            .catch(() => {
+              toast.error("Failed to notify employee: Server error");
+            });
+        } catch (parseError) {
+          toast.error(`Failed to notify employee: Server error: ${parseError}`);
+        }
+      } else {
+        const errorMessage =
+          error instanceof Error ? error.message : "Unknown error";
+        toast.error(`Failed to notify employee: ${errorMessage}`);
+      }
+    },
+  });
+
   return (
     <div className="grid items-start w-full gap-4">
       <Alert className="flex items-center border border-primary-border bg-primary-background justify-between">
@@ -20,11 +85,16 @@ export const AlertProcess = React.memo(function InterviewScheduleForm() {
             Offboarding Process Initiated
           </AlertTitle>
           <AlertDescription>
-            Please notify [employee-name] to fill-in their exit form to proceed
-            with the next step.
+            Please notify {name} to fill-in their exit form to proceed with the
+            next step.
           </AlertDescription>
         </div>
-        <Button variant="outline" className="bg-white">
+        <Button
+          variant="outline"
+          className="bg-white"
+          onClick={() => notifyMutation.mutate()}
+          disabled={notifyMutation.isPending}
+        >
           <Image
             src="/icons/activity.svg"
             width={18}
@@ -38,7 +108,56 @@ export const AlertProcess = React.memo(function InterviewScheduleForm() {
   );
 });
 
-export const ExitInterviewForm = React.memo(function ExitInterviewForm() {
+const FormFieldRenderer = React.memo(function FormFieldRenderer({
+  field,
+}: {
+  field: FormField;
+}) {
+  const renderField = () => {
+    switch (field.type) {
+      case "checkbox":
+        return (
+          <div className="mt-2">
+            {field.options?.map((option) => (
+              <CheckboxForm key={option} name={option} label={option} disabled />
+            ))}
+          </div>
+        );
+
+      case "textarea":
+        return (
+          <TextAreaForm
+            data-state="disabled"
+            name={field.form_id.toString()}
+            label={field.label}
+            disabled
+            inputClassName="bg-grayscale-20 text-text-disabled"
+          />
+        );
+
+      case "range":
+        return (
+          <div className="flex gap-2">
+            <RadioCard disabled />
+          </div>
+        );
+
+      default:
+        return <InputForm name={field.form_id.toString()} className="mt-2" disabled />;
+    }
+  };
+
+  return (
+    <div className="rounded-sm border border-grayscale-20 p-4 gap-4">
+      <span className="font-medium">{field.label}</span>
+      {renderField()}
+    </div>
+  );
+});
+
+export const ExitInterviewForm = React.memo(function ExitInterviewForm({
+  offboarding_id,
+}: ExitInterviewFormProps) {
   const form = useForm({
     defaultValues: {
       opportunity: false,
@@ -50,167 +169,71 @@ export const ExitInterviewForm = React.memo(function ExitInterviewForm() {
     },
   });
 
-  const onSubmit = async (data: any) => {
-    console.log(data);
+  const { data: details, isLoading: isLoadingDetails } = useQuery({
+    queryKey: ["detail-offboarding", offboarding_id],
+    queryFn: () => getDetailOffboarding(offboarding_id),
+  });
+
+  const { data: answer, isLoading: isLoadingAnswer } = useQuery({
+    queryKey: ["answer-offboarding", offboarding_id],
+    queryFn: () => {
+      if (!details) {
+        throw new Error("Details not available");
+      }
+      const answerPayload: AnswerPayload = {
+        form_id: details.form_id,
+        submitted_by: details.user_id,
+      };
+      return getAnswerSubmissionOffboarding(offboarding_id, answerPayload);
+    },
+    enabled: !!details?.form_id && !!details?.user_id,
+  });
+
+  const { data: forms, isLoading: isLoadingForms } = useQuery({
+    queryKey: ["form", details?.form_id],
+    queryFn: () => {
+      if (!details?.form_id) {
+        throw new Error("Form ID not available");
+      }
+      return getFormById(details.form_id);
+    },
+    enabled: !!details?.form_id,
+  });
+
+  const onSubmit = async (data: unknown) => {
+    console.log("Form data:", data);
   };
 
-  const options = [
-    {
-      name: "opportunity",
-      label: "Better career opportunity (promotion & role expansion)",
-    },
-    {
-      name: "salary",
-      label: "Salary/Compensation",
-    },
-    {
-      name: "work",
-      label: "Work-life balance",
-    },
-    {
-      name: "relationship",
-      label: "Relationship with supervisor/colleagues",
-    },
-    {
-      name: "family",
-      label: "Relocation / Family reason",
-    },
-    {
-      name: "others",
-      label: "Others",
-      children: (value: string, onChange: (value: string) => void) => (
-        <Textarea
-          value={value || ""}
-          onChange={(e) => onChange(e.target.value)}
-          className="mt-2 bg-grayscale-20"
-          disabled
-        />
-      ),
-    },
-  ];
+  const shouldShowAlert = !answer && details?.user?.name;
+  const formFields = forms?.data?.fields || [];
+
+  if (isLoadingDetails || isLoadingForms || isLoadingAnswer) {
+    return <div className="w-full"><AppSkeleton /></div>;
+  }
 
   return (
     <div className="w-full flex flex-col gap-4">
-      <AlertProcess />
+      {shouldShowAlert && (
+        <AlertProcess name={details.user.name} offboardingId={offboarding_id} />
+      )}
+
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
           className="flex flex-col gap-4"
         >
           <div className="rounded-sm border border-grayscale-20 p-4 gap-4 flex flex-col">
-            <div className="rounded-sm border border-grayscale-20 p-4 gap-4">
-              <span className="font-medium">1. Reason for Leaving</span>
-              <div className="mt-2">
-                {options.map((item) => (
-                  <CheckboxForm
-                    key={item.name}
-                    name={item.name}
-                    label={item.label}
-                    disabled
-                  >
-                    {item.children}
-                  </CheckboxForm>
-                ))}
-              </div>
-            </div>
-            <div className="rounded-sm border border-grayscale-20 p-4 gap-4 flex flex-col">
-              <span className="font-medium">2. Compensation & Benefit</span>
-              <div className="flex gap-2">
-                <RadioCard disabled />
-              </div>
-              <TextAreaForm
-                data-state="disabled"
-                name="compensationNotes"
-                label="Notes"
-                disabled
-                inputClassName="bg-grayscale-20 text-text-disabled"
+            {formFields.map((field: FormField) => (
+              <FormFieldRenderer
+                key={`${field.id}-${field.label}`}
+                field={field}
               />
-            </div>
-            <div className="rounded-sm border border-grayscale-20 p-4 gap-4 flex flex-col">
-              <span className="font-medium">3. Work Environment</span>
-              <div className="flex gap-2">
-                <RadioCard disabled />
-              </div>
-              <TextAreaForm
-                data-state="disabled"
-                name="environmentNotes"
-                label="Notes"
-                disabled
-                inputClassName="bg-grayscale-20 text-text-disabled"
-              />
-            </div>
-            <div className="rounded-sm border border-grayscale-20 p-4 gap-4 flex flex-col">
-              <span className="font-medium">
-                4. Relationship with Supervisor
-              </span>
-              <div className="flex gap-2">
-                <RadioCard disabled />
-              </div>
-              <TextAreaForm
-                data-state="disabled"
-                name="relationshipNotes"
-                label="Notes"
-                disabled
-                inputClassName="bg-grayscale-20 text-text-disabled"
-              />
-            </div>
-            <div className="rounded-sm border border-grayscale-20 p-4 gap-4 flex flex-col">
-              <span className="font-medium">5. Career Development</span>
-              <div className="flex gap-2">
-                <RadioCard disabled />
-              </div>
-              <TextAreaForm
-                data-state="disabled"
-                name="careerNotes"
-                label="Notes"
-                disabled
-                inputClassName="bg-grayscale-20 text-text-disabled"
-              />
-            </div>
-            <div className="rounded-sm border border-grayscale-20 p-4 gap-4 flex flex-col">
-              <span className="font-medium">6. Company Strengths</span>
-              <TextAreaForm
-                data-state="disabled"
-                name="strengthsNotes"
-                label="Notes"
-                disabled
-                inputClassName="bg-grayscale-20 text-text-disabled"
-              />
-            </div>
-            <div className="rounded-sm border border-grayscale-20 p-4 gap-4 flex flex-col">
-              <span className="font-medium">7. Company Weakness</span>
-              <TextAreaForm
-                data-state="disabled"
-                name="weaknessNotes"
-                label="Notes"
-                disabled
-                inputClassName="bg-grayscale-20 text-text-disabled"
-              />
-            </div>
-            <div className="rounded-sm border border-grayscale-20 p-4 gap-4 flex flex-col">
-              <span className="font-medium">8. Suggestion for Improvement</span>
-              <TextAreaForm
-                data-state="disabled"
-                name="suggestionNotes"
-                label="Notes"
-                disabled
-                inputClassName="bg-grayscale-20 text-text-disabled"
-              />
-            </div>
-            <div className="rounded-sm border border-grayscale-20 p-4 gap-4 flex flex-col">
-              <span className="font-medium">9. Final Comments</span>
-              <TextAreaForm
-                data-state="disabled"
-                name="finalNotes"
-                label="Notes"
-                disabled
-                inputClassName="bg-grayscale-20 text-text-disabled"
-              />
-            </div>
+            ))}
           </div>
+
           <div className="flex gap-4">
-            {/* <CompleteOffboardingModal offboardingId={offboarding_id} />
-            <CancelOffboardingModal offboardingId={offboarding_id} /> */}
+            <CompleteOffboardingModal offboardingId={offboarding_id} />
+            <CancelOffboardingModal offboardingId={offboarding_id} />
           </div>
         </form>
       </Form>

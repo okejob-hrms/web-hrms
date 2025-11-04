@@ -90,7 +90,7 @@ export interface IMutateEmployeeRequests {
   branch_id: number;
   primary_direct_report_id?: number | null;
   additional_direct_report_id?: number | null;
-  team_members: {
+  team_members?: {
     team_id: number;
   }[];
   start_date: string;

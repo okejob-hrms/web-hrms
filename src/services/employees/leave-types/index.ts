@@ -6,7 +6,7 @@ import { PaginationState } from "@tanstack/react-table";
 
 export const getLeaveTypes = async (
   pagination?: PaginationState,
-): Promise<ApiResponse<PaginatedResponse<ILeaveTypeResponse>>> => {
+): Promise<ApiResponse<ILeaveTypeResponse[]>> => {
   const searchParams: Record<string, string> = {};
 
   if (pagination) {

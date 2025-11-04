@@ -23,18 +23,13 @@ import {
   IMutateOffboardingRequests,
   MutateOffboardingRequestsSchema,
 } from "@/services/employees/offboardings/types";
+import { getAllForm } from "@/services/form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import * as React from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-
-const EXIT_INTERVIEW_FORMS = [
-  { label: "Capture Exit Interview v1.0", value: "1" },
-  { label: "Capture Exit Interview v2.0", value: "2" },
-  { label: "Capture Exit Interview v3.0", value: "3" },
-];
 
 export const InitiateOffboardingEmployee = React.memo(
   function InitiateOffboardingEmployee() {
@@ -66,6 +61,24 @@ export const InitiateOffboardingEmployee = React.memo(
       gcTime: 10 * 60 * 1000,
       refetchOnWindowFocus: false,
     });
+
+    const { data: forms } = useQuery({
+      queryKey: ["forms"],
+      queryFn: getAllForm,
+      staleTime: 5 * 60 * 1000,
+      gcTime: 10 * 60 * 1000,
+      refetchOnWindowFocus: false,
+    });
+
+    const formOptions = React.useMemo(() => {
+      if (forms?.data) {
+        return forms.data.map((item) => ({
+          label: item.name,
+          value: item.id.toString(),
+        }));
+      }
+      return [];
+    }, [forms?.data]);
 
     const employeesOptions = React.useMemo(() => {
       if (employees?.data?.data) {
@@ -180,7 +193,7 @@ export const InitiateOffboardingEmployee = React.memo(
                 name="form_id"
                 label="Exit Interview Form"
                 required
-                options={EXIT_INTERVIEW_FORMS}
+                options={formOptions}
               />
 
               <DialogFooter className="gap-2">

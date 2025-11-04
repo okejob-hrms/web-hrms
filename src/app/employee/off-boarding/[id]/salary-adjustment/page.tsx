@@ -5,6 +5,7 @@ import AppSkeleton from "@/components/partials/app-skeleton";
 import { getEmployeeDetail } from "@/services/employees";
 import { useQuery } from "@tanstack/react-query";
 import { SalaryAdjustmentForm } from "@/components/pages/offboarding-details/sections/salary-adjustment-form";
+import { getDetailOffboarding } from "@/services/employees/offboardings";
 
 export default function OffboardingSalaryAdjustmentPage({
   params,
@@ -16,26 +17,44 @@ export default function OffboardingSalaryAdjustmentPage({
   const numericId = Number(id);
 
   const {
-    data: employeeDetails,
-    isLoading,
-    isError,
+    data: offboardingDetails,
+    isLoading: isLoadingOffboardingDetails,
+    isError: isErrorOffboardingDetails,
   } = useQuery({
-    queryKey: ["employee-detail", numericId],
-    queryFn: () => getEmployeeDetail(numericId),
+    queryKey: ["offboarding-detail", numericId],
+    queryFn: () => getDetailOffboarding(numericId),
     enabled: !!numericId,
   });
 
-  if (isLoading) {
+  const {
+    data: employeeDetails,
+    isLoading: isLoadingEmployeeDetails,
+    isError: isErrorEmployeeDetails,
+  } = useQuery({
+    queryKey: ["employee-detail", offboardingDetails!.user_id],
+    queryFn: () => getEmployeeDetail(offboardingDetails!.user_id),
+    enabled: !!offboardingDetails!.user_id,
+  });
+
+  if (isLoadingOffboardingDetails || isLoadingEmployeeDetails) {
     return <AppSkeleton />;
   }
 
-  if (isError || !employeeDetails) {
+  if (
+    isErrorOffboardingDetails ||
+    isErrorEmployeeDetails ||
+    !employeeDetails ||
+    !offboardingDetails
+  ) {
     return <div>Data not found</div>;
   }
 
   return (
     <div className="font-sans min-h-screen space-y-4">
-      <EmployeeDetailsSection data={employeeDetails.data} offboarding_id={id} />
+      <EmployeeDetailsSection
+        offboardingDetails={offboardingDetails}
+        employeeDetails={employeeDetails.data}
+      />
       <SalaryAdjustmentForm offboarding_id={id} />
     </div>
   );

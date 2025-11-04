@@ -87,7 +87,7 @@ export default function FormTemplateList() {
               <Ellipsis className="text-grayscale-30" />
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem>
+              {/* <DropdownMenuItem>
                 <Link
                   href={`/settings/form-template/${row.original.id}`}
                   className="flex gap-2 justify-between items-center"
@@ -100,7 +100,7 @@ export default function FormTemplateList() {
                   />
                   Form Details
                 </Link>
-              </DropdownMenuItem>
+              </DropdownMenuItem> */}
               <DropdownMenuItem>
                 <Link
                   href={`/settings/form-template/edit/${row.original.id}`}

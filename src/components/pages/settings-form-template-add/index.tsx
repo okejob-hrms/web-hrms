@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { SelectForm } from "@/components/ui/select-form";
 import { FormTemplate } from "./sections/form-template";
+import ConfirmModal from "./sections/confirm-modal";
 
 interface SettingsFormTemplateAddProps {
   editFormId?: number;
@@ -20,10 +21,19 @@ export const SettingsFormTemplateAdd = React.memo(
     onSuccess,
     onCancel,
   }: SettingsFormTemplateAddProps) {
-    const { formOptions, handleSubmit, form, isLoading, isEditMode } =
-      useFormTemplateAdd({
-        editFormId,
-      });
+    const {
+      formOptions,
+      handleSubmit,
+      form,
+      isLoading,
+      isEditMode,
+      openConfirm,
+      setOpenConfirm,
+      isSubmitting,
+    } = useFormTemplateAdd({
+      editFormId,
+      onSuccess,
+    });
 
     const { fields, append, remove } = useFieldArray({
       control: form.control,
@@ -54,15 +64,16 @@ export const SettingsFormTemplateAdd = React.memo(
       [form],
     );
 
-    const onSubmit = React.useCallback(
-      async (data: any) => {
-        const result = await handleSubmit(data);
-        if (result.success && onSuccess) {
-          onSuccess();
-        }
-      },
-      [handleSubmit, onSuccess],
-    );
+    const handleConfirmSubmit = React.useCallback(async () => {
+      const isValid = await form.trigger();
+      if (!isValid) {
+        console.log("Form validation failed");
+        return;
+      }
+
+      const formData = form.getValues();
+      await handleSubmit(formData);
+    }, [form, handleSubmit]);
 
     const handleCancel = React.useCallback(() => {
       if (onCancel) {
@@ -74,16 +85,20 @@ export const SettingsFormTemplateAdd = React.memo(
 
     const hasQuestions = fields.length > 0;
 
+    const onTypeChange = (index: number, type: string) => {
+      if (type === "checkbox" && !form.watch(`questions.${index}.options`)) {
+        form.setValue(`questions.${index}.options`, []);
+      }
+      updateQuestionType(index, type);
+    };
+
     return (
       <div className="font-sans md:px-[125px] px-4 space-y-4">
         <h1 className="font-semibold text-lg text-black">
           {isEditMode ? "Edit Form Template" : "Form Details"}
         </h1>
         <FormProvider {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="grid grid-cols-2 gap-4"
-          >
+          <form className="grid grid-cols-2 gap-4">
             <InputForm name="name" label="Form Name" required />
             <SelectForm
               name="type"
@@ -115,7 +130,7 @@ export const SettingsFormTemplateAdd = React.memo(
                     type={form.watch(`questions.${index}.type`)}
                     onRemove={() => removeQuestion(index)}
                     canRemove={true}
-                    onTypeChange={(type) => updateQuestionType(index, type)}
+                    onTypeChange={(type) => onTypeChange(index, type)}
                   />
                 ))}
                 <Button
@@ -135,19 +150,27 @@ export const SettingsFormTemplateAdd = React.memo(
                 variant="outline"
                 className="md:w-[174px]"
                 onClick={handleCancel}
+                disabled={isLoading}
               >
                 Cancel
               </Button>
               <Button
-                type="submit"
+                type="button"
                 className="md:w-[174px]"
                 disabled={!hasQuestions || isLoading}
+                onClick={() => setOpenConfirm(true)}
               >
                 {isLoading ? "Saving..." : isEditMode ? "Update" : "Save"}
               </Button>
             </div>
           </form>
         </FormProvider>
+        <ConfirmModal
+          onConfirm={handleConfirmSubmit}
+          isOpen={openConfirm}
+          setIsOpen={setOpenConfirm}
+          isLoading={isSubmitting}
+        />
       </div>
     );
   },

@@ -1,14 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Plus } from "lucide-react";
 import Image from "next/image";
 import * as React from "react";
-
-interface CheckboxOption {
-  id: string;
-  value: string;
-}
+import { useFormContext } from "react-hook-form";
 
 interface CheckboxFieldProps {
   questionIndex: number;
@@ -17,76 +14,83 @@ interface CheckboxFieldProps {
 export const CheckboxField = React.memo(function CheckboxField({
   questionIndex,
 }: CheckboxFieldProps) {
-  const [options, setOptions] = React.useState<CheckboxOption[]>([
-    { id: crypto.randomUUID(), value: "" },
-  ]);
-  const [hasOther, setHasOther] = React.useState(false);
+  const { setValue, watch } = useFormContext();
+  const questions = watch("questions");
+  const currentQuestion = questions[questionIndex];
+
+  const options = currentQuestion?.options || [];
 
   const handleAddOption = () => {
-    setOptions((prev) => [...prev, { id: crypto.randomUUID(), value: "" }]);
+    const newOptions = [...options, ""];
+    setValue(`questions.${questionIndex}.options`, newOptions);
   };
 
-  const handleRemoveOption = (id: string) => {
+  const handleRemoveOption = (index: number) => {
     if (options.length > 1) {
-      setOptions((prev) => prev.filter((option) => option.id !== id));
+      const newOptions = options.filter((_: any, i: number) => i !== index);
+      setValue(`questions.${questionIndex}.options`, newOptions);
     }
   };
 
-  const handleOptionChange = (id: string, value: string) => {
-    setOptions((prev) =>
-      prev.map((option) => (option.id === id ? { ...option, value } : option)),
-    );
+  const handleOptionChange = (index: number, value: string) => {
+    const newOptions = [...options];
+    newOptions[index] = value;
+    setValue(`questions.${questionIndex}.options`, newOptions);
   };
 
   const handleAddOther = () => {
-    setHasOther(true);
+    const newOptions = [...options, "Other"];
+    setValue(`questions.${questionIndex}.options`, newOptions);
   };
 
   const handleRemoveOther = () => {
-    setHasOther(false);
+    const newOptions = options.filter((option: string) => option !== "Other");
+    setValue(`questions.${questionIndex}.options`, newOptions);
   };
+
+  const hasOther = options.includes("Other");
 
   return (
     <div className="col-span-2 flex flex-col gap-2">
       <p className="text-sm font-normal">
         Answer Option<span className="text-error">*</span>
       </p>
-      {options.map((option, index) => (
-        <div key={option.id} className="flex items-center gap-2">
-          <Checkbox />
-          <Input
-            value={option.value}
-            onChange={(e) => handleOptionChange(option.id, e.target.value)}
-            placeholder={`Option ${index + 1}`}
-          />
-          <Button
-            variant="ghost"
-            type="button"
-            onClick={() => handleRemoveOption(option.id)}
-            disabled={options.length === 1}
-          >
-            <Image
-              width={16}
-              height={16}
-              src="/icons/deleteOutlined.svg"
-              alt="trash"
-            />
-          </Button>
-        </div>
-      ))}
-      {hasOther && (
-        <div className="flex items-center gap-2">
-          <Checkbox />
-          <Input value="Other" disabled placeholder="Other" />
-          <Button variant="ghost" type="button" onClick={handleRemoveOther}>
-            <Image
-              width={16}
-              height={16}
-              src="/icons/deleteOutlined.svg"
-              alt="trash"
-            />
-          </Button>
-        </div>
+      {options.map(
+        (
+          option: string | number | readonly string[] | undefined,
+          index: number,
+        ) => {
+          const isOther = option === "Other";
+
+          return (
+            <div key={index} className="flex items-center gap-2">
+              <Checkbox />
+              <Input
+                value={option}
+                onChange={(e) =>
+                  !isOther && handleOptionChange(index, e.target.value)
+                }
+                placeholder={isOther ? "Other" : `Option ${index + 1}`}
+                disabled={isOther}
+              />
+              <Button
+                variant="ghost"
+                type="button"
+                onClick={() =>
+                  isOther ? handleRemoveOther() : handleRemoveOption(index)
+                }
+                disabled={options.length === 1 && !isOther}
+              >
+                <Image
+                  width={16}
+                  height={16}
+                  src="/icons/deleteOutlined.svg"
+                  alt="trash"
+                />
+              </Button>
+            </div>
+          );
+        },
       )}
       <div className="flex items-center gap-2">
         <Button

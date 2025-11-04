@@ -1,3 +1,4 @@
+// interview-schedule-form.tsx
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -16,20 +17,46 @@ import { InputForm } from "@/components/ui/input";
 import { MultiSelectForm } from "@/components/ui/multi-select";
 import { TextAreaForm } from "@/components/ui/textarea";
 import { useDebounce } from "@/hooks/use-debounce";
+import { ApiErrorResponse } from "@/lib/types";
 import { getEmployees } from "@/services/employees";
-import { postInterviewSchedule } from "@/services/employees/offboardings/interview-schedule";
-import { IInterviewScheduleRequest } from "@/services/employees/offboardings/interview-schedule/types";
+import { postInterviewSchedule, putInterviewSchedule } from "@/services/employees/offboardings/interview-schedule";
+import { IInterviewScheduleRequest, IInterviewScheduleResponse } from "@/services/employees/offboardings/interview-schedule/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import dayjs from "dayjs";
 import { Calendar, Clock } from "lucide-react";
 import * as React from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
+interface InterviewScheduleFormProps {
+  offboarding_id: number;
+  isEditMode?: boolean;
+  existingData?: IInterviewScheduleResponse;
+  onCancelEdit?: () => void;
+  open: boolean;
+  setOpen: any;
+}
+
 export const InterviewScheduleForm = React.memo(function InterviewScheduleForm({
   offboarding_id,
-}: {
-  offboarding_id: number;
-}) {
+  isEditMode = false,
+  existingData,
+  onCancelEdit,
+  open, 
+  setOpen
+}: InterviewScheduleFormProps) {
+  if (isEditMode) {
+    return (
+      <ModalForm 
+        offboarding_id={offboarding_id} 
+        existingData={existingData} 
+        onCancelEdit={onCancelEdit} 
+        open={open} 
+        setOpen={setOpen} 
+      />
+    );
+  }
+
   return (
     <div className="grid items-start w-full gap-4">
       <Alert className="flex items-center border border-primary-border bg-primary-background">
@@ -42,20 +69,54 @@ export const InterviewScheduleForm = React.memo(function InterviewScheduleForm({
             the meeting details so the employee and other participants can join.
           </AlertDescription>
         </div>
-        <ModalForm offboarding_id={offboarding_id} />
+        <ModalForm offboarding_id={offboarding_id} open={open} setOpen={setOpen} />
       </Alert>
     </div>
   );
 });
 
-export const ModalForm = React.memo(function InitiateOffboardingEmployee({
-  offboarding_id,
-}: {
+interface ModalFormProps {
   offboarding_id: number;
-}) {
-  const form = useForm<IInterviewScheduleRequest>();
+  existingData?: IInterviewScheduleResponse;
+  onCancelEdit?: () => void;
+  open: boolean;
+  setOpen: any;
+}
+
+export const ModalForm = React.memo(function ModalForm({
+  offboarding_id,
+  existingData,
+  onCancelEdit,
+  open,
+  setOpen
+}: ModalFormProps) {
+  const isEditMode = !!existingData;
+
+  const defaultValues: IInterviewScheduleRequest = {
+    date: existingData?.date || "",
+    start_time: existingData?.start_time || "",
+    end_time: existingData?.end_time || "",
+    participants: existingData?.participants.map(participant => ({ user_id: participant.user_id })) || [],
+    notes: existingData?.notes || "",
+  };
+  
+  const form = useForm<IInterviewScheduleRequest>({
+    defaultValues,
+  });
+
+  React.useEffect(() => {
+    if (existingData) {
+      form.reset({
+        date: existingData.date || "",
+        start_time: dayjs(existingData.start_time, "HH:mm:ss").format("HH:mm") || "",
+        end_time: dayjs(existingData.end_time, "HH:mm:ss").format("HH:mm")|| "",
+        participants: existingData?.participants.map(participant => ({ user_id: participant.user_id })) || [],
+        notes: existingData.notes || "",
+      });
+    }
+  }, [existingData, form]);
+
   const queryClient = useQueryClient();
-  const [open, setOpen] = React.useState(false);
   const [searchApprover, setSearchApprover] = React.useState("");
   const debouncedApprover = useDebounce(searchApprover, 300);
   const { data: employees, isLoading: isLoadingEmployees } = useQuery({
@@ -69,15 +130,43 @@ export const ModalForm = React.memo(function InitiateOffboardingEmployee({
 
   const mutation = useMutation({
     mutationFn: (data: IInterviewScheduleRequest) =>
-      postInterviewSchedule(offboarding_id, data),
+      isEditMode 
+        ? putInterviewSchedule(offboarding_id, data)
+        : postInterviewSchedule(offboarding_id, data),
     onSuccess: () => {
-      toast.success("Facility return created successfully");
+      toast.success(`Schedule ${isEditMode ? 'updated' : 'created'} successfully`);
       form.reset();
       setOpen(false);
-      queryClient.invalidateQueries({ queryKey: ["facility-handover"] });
+      if (onCancelEdit) {
+        onCancelEdit();
+      }
+      queryClient.invalidateQueries({ queryKey: ["interview-schedule"] });
     },
     onError: (error: any) => {
-      toast.error(error.message || "Failed to create facility return");
+      if (error?.response) {
+        try {
+          error.response
+            .json()
+            .then((errorData: ApiErrorResponse) => {
+              toast.error(
+                errorData.message || `Failed to ${isEditMode ? 'update' : 'create'} schedule`,
+              );
+            })
+            .catch(() => {
+              toast.error(
+                `Failed to ${isEditMode ? 'update' : 'create'} schedule: Server error`,
+              );
+            });
+        } catch (parseError) {
+          toast.error(
+            `Failed to ${isEditMode ? 'update' : 'create'} schedule: Server error : ${parseError}`,
+          );
+        }
+      } else {
+        toast.error(
+          `Failed to ${isEditMode ? 'update' : 'create'} schedule: ${error.message || "Unknown error"}`,
+        );
+      }
     },
   });
 
@@ -103,16 +192,21 @@ export const ModalForm = React.memo(function InitiateOffboardingEmployee({
   const handleCancel = () => {
     form.reset();
     setOpen(false);
+    if (onCancelEdit) {
+      onCancelEdit();
+    }
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="w-fit">
-          <Calendar />
-          Set Interview Schedule
-        </Button>
-      </DialogTrigger>
+      {!isEditMode && (
+        <DialogTrigger asChild>
+          <Button className="w-fit">
+            <Calendar />
+            Set Interview Schedule
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="bg-white md:min-w-5xl overflow-y-scroll max-h-[90vh]">
         <Form {...form}>
           <form
@@ -120,7 +214,9 @@ export const ModalForm = React.memo(function InitiateOffboardingEmployee({
             className="space-y-4"
           >
             <DialogHeader>
-              <DialogTitle>Set Interview Schedule</DialogTitle>
+              <DialogTitle>
+                {isEditMode ? 'Edit Interview Schedule' : 'Set Interview Schedule'}
+              </DialogTitle>
             </DialogHeader>
             <div className="gap-2 grid grid-cols-1 md:grid-cols-2">
               <DatePicker name="date" label="Date" />
@@ -129,14 +225,14 @@ export const ModalForm = React.memo(function InitiateOffboardingEmployee({
                   icon={<Clock />}
                   iconPosition="right"
                   name="start_time"
-                  label="Time"
+                  label="Start Time"
                   required
                 />
                 <InputForm
                   icon={<Clock />}
                   iconPosition="right"
                   name="end_time"
-                  label="Time"
+                  label="End Time"
                   required
                 />
               </div>
@@ -165,7 +261,7 @@ export const ModalForm = React.memo(function InitiateOffboardingEmployee({
                 </Button>
               </DialogClose>
               <Button type="submit" disabled={mutation.isPending}>
-                {mutation.isPending ? "Saving..." : "Save"}
+                {mutation.isPending ? "Saving..." : (isEditMode ? "Save Changes" : "Save")}
               </Button>
             </DialogFooter>
           </form>
