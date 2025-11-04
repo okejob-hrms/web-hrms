@@ -89,7 +89,7 @@ export function useAttendenceForm() {
     if (employeesList?.data?.data) {
       return employeesList.data.data.map((item) => ({
         label: item.name,
-        value: item.id.toString(),
+        value: item.user_id.toString(),
         subtitle: item.job_position,
         image: item.photo_profile,
       }));
@@ -99,7 +99,7 @@ export function useAttendenceForm() {
 
   const mapResponseToForm = (data: AttendanceDetail): AttendanceFormValues => {
     return {
-      user_id: String(Number(selectedId) - 1) ?? "",
+      user_id: String(Number(selectedId)) ?? "",
       attendance_date: dayjs(data.attendance_date).toDate(),
       shift_id: data.metadata.shift_id ?? 0,
       clock_in_at: data.clock.in_at ?? "",

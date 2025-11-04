@@ -61,11 +61,11 @@ export const getAttendanceStat = async (): Promise<AttendanceSummary> => {
   return response.json();
 };
 
-export const getAttendanceDetail = async (id: string, mo: string, year:number): Promise<ApiResponse<PaginatedResponse<AttendanceDetail>>> => {
+export const getAttendanceDetail = async (id: string, mo?: string, year?:number): Promise<ApiResponse<PaginatedResponse<AttendanceDetail>>> => {
   const selectedMonth = month.find((a) => a.label === mo);
   const reformatMonth = String(selectedMonth?.id ?? '').padStart(2, '0');
   const response = await api.get<ApiResponse<PaginatedResponse<AttendanceDetail>>>(
-    `employee/attendances/users/${id}/history?period=${year}-${reformatMonth}`
+    mo && year ? `employee/attendances/users/${id}/history?period=${year}-${reformatMonth}` : `employee/attendances/users/${id}/history`
   );
   return response.json();
 };
