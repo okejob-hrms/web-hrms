@@ -1,4 +1,3 @@
-// interview-schedule-form.tsx
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -19,8 +18,14 @@ import { TextAreaForm } from "@/components/ui/textarea";
 import { useDebounce } from "@/hooks/use-debounce";
 import { ApiErrorResponse } from "@/lib/types";
 import { getEmployees } from "@/services/employees";
-import { postInterviewSchedule, putInterviewSchedule } from "@/services/employees/offboardings/interview-schedule";
-import { IInterviewScheduleRequest, IInterviewScheduleResponse } from "@/services/employees/offboardings/interview-schedule/types";
+import {
+  postInterviewSchedule,
+  putInterviewSchedule,
+} from "@/services/employees/offboardings/interview-schedule";
+import {
+  IInterviewScheduleRequest,
+  IInterviewScheduleResponse,
+} from "@/services/employees/offboardings/interview-schedule/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import dayjs from "dayjs";
 import { Calendar, Clock } from "lucide-react";
@@ -42,17 +47,17 @@ export const InterviewScheduleForm = React.memo(function InterviewScheduleForm({
   isEditMode = false,
   existingData,
   onCancelEdit,
-  open, 
-  setOpen
+  open,
+  setOpen,
 }: InterviewScheduleFormProps) {
   if (isEditMode) {
     return (
-      <ModalForm 
-        offboarding_id={offboarding_id} 
-        existingData={existingData} 
-        onCancelEdit={onCancelEdit} 
-        open={open} 
-        setOpen={setOpen} 
+      <ModalForm
+        offboarding_id={offboarding_id}
+        existingData={existingData}
+        onCancelEdit={onCancelEdit}
+        open={open}
+        setOpen={setOpen}
       />
     );
   }
@@ -69,7 +74,11 @@ export const InterviewScheduleForm = React.memo(function InterviewScheduleForm({
             the meeting details so the employee and other participants can join.
           </AlertDescription>
         </div>
-        <ModalForm offboarding_id={offboarding_id} open={open} setOpen={setOpen} />
+        <ModalForm
+          offboarding_id={offboarding_id}
+          open={open}
+          setOpen={setOpen}
+        />
       </Alert>
     </div>
   );
@@ -88,7 +97,7 @@ export const ModalForm = React.memo(function ModalForm({
   existingData,
   onCancelEdit,
   open,
-  setOpen
+  setOpen,
 }: ModalFormProps) {
   const isEditMode = !!existingData;
 
@@ -96,25 +105,48 @@ export const ModalForm = React.memo(function ModalForm({
     date: existingData?.date || "",
     start_time: existingData?.start_time || "",
     end_time: existingData?.end_time || "",
-    participants: existingData?.participants.map(participant => ({ user_id: participant.user_id })) || [],
+    participants:
+      existingData?.participants.map((participant) => ({
+        user_id: participant.user_id,
+      })) || [],
     notes: existingData?.notes || "",
   };
-  
+
+  const getDefaultValues = () => {
+    if (existingData) {
+      return {
+        date: existingData.date || "",
+        start_time:
+          dayjs(existingData.start_time, "HH:mm:ss").format("HH:mm") || "",
+        end_time:
+          dayjs(existingData.end_time, "HH:mm:ss").format("HH:mm") || "",
+        participants:
+          existingData.participants?.map((participant) => ({
+            user_id: participant.user_id,
+          })) || [],
+        notes: existingData.notes || "",
+      };
+    }
+
+    return {
+      date: "",
+      start_time: "",
+      end_time: "",
+      participants: [],
+      notes: "",
+    };
+  };
+
   const form = useForm<IInterviewScheduleRequest>({
-    defaultValues,
+    defaultValues: getDefaultValues(),
   });
 
   React.useEffect(() => {
-    if (existingData) {
-      form.reset({
-        date: existingData.date || "",
-        start_time: dayjs(existingData.start_time, "HH:mm:ss").format("HH:mm") || "",
-        end_time: dayjs(existingData.end_time, "HH:mm:ss").format("HH:mm")|| "",
-        participants: existingData?.participants.map(participant => ({ user_id: participant.user_id })) || [],
-        notes: existingData.notes || "",
-      });
+    if (open) {
+      const values = getDefaultValues();
+      form.reset(values);
     }
-  }, [existingData, form]);
+  }, [existingData, open, form]);
 
   const queryClient = useQueryClient();
   const [searchApprover, setSearchApprover] = React.useState("");
@@ -130,11 +162,13 @@ export const ModalForm = React.memo(function ModalForm({
 
   const mutation = useMutation({
     mutationFn: (data: IInterviewScheduleRequest) =>
-      isEditMode 
+      isEditMode
         ? putInterviewSchedule(offboarding_id, data)
         : postInterviewSchedule(offboarding_id, data),
     onSuccess: () => {
-      toast.success(`Schedule ${isEditMode ? 'updated' : 'created'} successfully`);
+      toast.success(
+        `Schedule ${isEditMode ? "updated" : "created"} successfully`,
+      );
       form.reset();
       setOpen(false);
       if (onCancelEdit) {
@@ -149,22 +183,23 @@ export const ModalForm = React.memo(function ModalForm({
             .json()
             .then((errorData: ApiErrorResponse) => {
               toast.error(
-                errorData.message || `Failed to ${isEditMode ? 'update' : 'create'} schedule`,
+                errorData.message ||
+                  `Failed to ${isEditMode ? "update" : "create"} schedule`,
               );
             })
             .catch(() => {
               toast.error(
-                `Failed to ${isEditMode ? 'update' : 'create'} schedule: Server error`,
+                `Failed to ${isEditMode ? "update" : "create"} schedule: Server error`,
               );
             });
         } catch (parseError) {
           toast.error(
-            `Failed to ${isEditMode ? 'update' : 'create'} schedule: Server error : ${parseError}`,
+            `Failed to ${isEditMode ? "update" : "create"} schedule: Server error : ${parseError}`,
           );
         }
       } else {
         toast.error(
-          `Failed to ${isEditMode ? 'update' : 'create'} schedule: ${error.message || "Unknown error"}`,
+          `Failed to ${isEditMode ? "update" : "create"} schedule: ${error.message || "Unknown error"}`,
         );
       }
     },
@@ -180,13 +215,20 @@ export const ModalForm = React.memo(function ModalForm({
     return [];
   }, [employees?.data]);
 
-  const handleSubmit = (values: IInterviewScheduleRequest) => {
-    mutation.mutate({
+  const handleSubmit = (values: any) => {
+    const submitData = {
       ...values,
-      participants: values.participants.map((item) => ({
-        user_id: item as unknown as number,
-      })),
-    });
+      participants: Array.isArray(values.participants)
+        ? values.participants.map((p: any) => {
+            if (typeof p === "object" && p !== null) {
+              return { user_id: p.user_id };
+            }
+            return { user_id: Number(p) };
+          })
+        : [],
+    };
+
+    mutation.mutate(submitData);
   };
 
   const handleCancel = () => {
@@ -215,7 +257,9 @@ export const ModalForm = React.memo(function ModalForm({
           >
             <DialogHeader>
               <DialogTitle>
-                {isEditMode ? 'Edit Interview Schedule' : 'Set Interview Schedule'}
+                {isEditMode
+                  ? "Edit Interview Schedule"
+                  : "Set Interview Schedule"}
               </DialogTitle>
             </DialogHeader>
             <div className="gap-2 grid grid-cols-1 md:grid-cols-2">
@@ -261,7 +305,11 @@ export const ModalForm = React.memo(function ModalForm({
                 </Button>
               </DialogClose>
               <Button type="submit" disabled={mutation.isPending}>
-                {mutation.isPending ? "Saving..." : (isEditMode ? "Save Changes" : "Save")}
+                {mutation.isPending
+                  ? "Saving..."
+                  : isEditMode
+                    ? "Save Changes"
+                    : "Save"}
               </Button>
             </DialogFooter>
           </form>
