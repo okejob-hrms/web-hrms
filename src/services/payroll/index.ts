@@ -76,3 +76,13 @@ export const getPayrollEmployee = async (
 
   return response.json();
 };
+
+export const postFinalPayrun = async (
+  id: string,
+): Promise<ResponsePayrollList> => {
+  return api
+    .post(`payruns/${id}/set-final`, {
+      json: {},
+    })
+    .json<ResponsePayrollList>();
+};

@@ -120,34 +120,38 @@ export const PayrollList = () => {
       cell: ({ row }) => {
         return (
           <div className="flex gap-3 items-center">
+            {row.original.generation_status === 2 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger>
+                  <Ellipsis className="text-grayscale-30" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem>
+                    <Link
+                      href={`/payroll/${row.original.id}`}
+                      className="flex gap-2 justify-between items-center"
+                    >
+                      <Eye />
+                      Payruns Details
+                    </Link>
+                  </DropdownMenuItem>
+                  {!row.original.can_be_sent && (
+                    <DropdownMenuItem>
+                      <Link
+                        href={`/payroll/${row.original.id}/edit`}
+                        className="flex gap-2 justify-between items-center"
+                      >
+                        <Edit3 />
+                        Edit Payruns
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
             {row.original.can_be_sent && (
               <Button variant="outline">Send Payslip</Button>
             )}
-            <DropdownMenu>
-              <DropdownMenuTrigger>
-                <Ellipsis className="text-grayscale-30" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem>
-                  <Link
-                    href={`/payroll/${row.original.id}`}
-                    className="flex gap-2 justify-between items-center"
-                  >
-                    <Eye />
-                    Payruns Details
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Link
-                    href={`/payroll/${row.original.id}/edit`}
-                    className="flex gap-2 justify-between items-center"
-                  >
-                    <Edit3 />
-                    Edit Payruns
-                  </Link>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
           </div>
         );
       },
