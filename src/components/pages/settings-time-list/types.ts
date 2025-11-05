@@ -14,6 +14,7 @@ export const lateDeductionFormScheme = z
     starts_on: z.string().optional(),
     ends_on: z.string().optional(),
     note: z.string().optional(),
+    max_minutes: z.number(),
   })
   .refine(
     (data) => !data.is_payroll_deduction || data.payroll_amount !== undefined,
@@ -25,6 +26,13 @@ export const lateDeductionFormScheme = z
   .refine((data) => !data.is_leave_impact || !!data.leave_impact, {
     message: "Leave impact is required when leave impact is enabled",
     path: ["leave_impact"],
-  });
+  },)
+  .refine(
+    (data) => data.duration_type === 'range' || data.payroll_amount !== undefined,
+    {
+      message: "Max minutes is required for range duration type",
+      path: ["max_minutes"],
+    },
+  )
 
 export type LateDeductionValues = z.infer<typeof lateDeductionFormScheme>;

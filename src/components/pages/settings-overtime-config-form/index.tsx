@@ -61,10 +61,13 @@ export default function SettingsOvertimeConfigForm() {
   });
 
   const handleSubmit = (values: OvertimeConfigValues) => {
-    // console.log(values);
-    onSubmit({
+    const payload = {
       ...values,
-    });
+      tiering_rules: listTier,
+      exceptions: listExceptions,
+    };
+
+    onSubmit(payload);
   };
 
   //MANAGE TIER
@@ -176,6 +179,7 @@ export default function SettingsOvertimeConfigForm() {
             <DropdownMenuContent>
               <DropdownMenuItem>
                 <button
+                  type="button"
                   onClick={() => {
                     setOpenTier(true);
                     setTierField({
@@ -193,6 +197,7 @@ export default function SettingsOvertimeConfigForm() {
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <button
+                  type="button"
                   onClick={() => handleDeleteTier(index)}
                   className="flex gap-2"
                 >
@@ -236,6 +241,7 @@ export default function SettingsOvertimeConfigForm() {
             <DropdownMenuContent>
               <DropdownMenuItem>
                 <button
+                  type="button"
                   onClick={() => {
                     setOpenExceptions(true);
                     setExceptionsField({
@@ -252,6 +258,7 @@ export default function SettingsOvertimeConfigForm() {
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <button
+                  type="button"
                   onClick={() => handleDeleteExceptions(index)}
                   className="flex gap-2"
                 >

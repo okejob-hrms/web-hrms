@@ -102,7 +102,7 @@ export function useOvertimeConfigForm() {
     mutationFn: (values: OvertimeConfigValues) =>
       postOvertimeConfig(mapToApiPayload(values)),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['overtimeConfig'] });
+      queryClient.invalidateQueries({ queryKey: ['overtimeDatas'] });
       toast.success('Overtime config updated successfully.');
       router.push('/settings/time-attendance/overtime-configuration');
     },
