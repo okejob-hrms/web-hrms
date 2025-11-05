@@ -100,6 +100,12 @@ export default function SettingsSalaryDeduction() {
         dayjs(row.original.effective_date).format('MMMM D, YYYY') ?? '-',
     },
     {
+      accessorKey: 'effective_to',
+      header: 'Effective To',
+      cell: ({ row }) =>
+        dayjs(row.original.effective_to).format('MMMM D, YYYY') ?? '-',
+    },
+    {
       accessorKey: 'updated_at',
       header: 'Last Update',
       cell: ({ row }) =>
@@ -117,8 +123,8 @@ export default function SettingsSalaryDeduction() {
               setForm({
                 name: item.name,
                 deduction_type: item.deduction_type,
-                effective_date: item.effective_date,
-                effective_to: item.effective_to,
+                effective_date: dayjs(item.effective_date).format('YYYY-MM-DD'),
+                effective_to: dayjs(item.effective_to).format('YYYY-MM-DD'),
                 description: item.description,
                 tiers: item.tiers || [],
                 employee_contribution: item.employee_contribution,
