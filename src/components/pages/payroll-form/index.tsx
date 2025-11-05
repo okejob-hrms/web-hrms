@@ -16,10 +16,11 @@ import { PieChart, Pie, Cell, Tooltip } from 'recharts';
 import WorkingHourSummary from './section/working-hour-summary';
 // import { Skeleton } from '@/components/ui/skeleton';
 import { Payslip } from '@/services/payroll/types';
+import { usePathname, useRouter } from 'next/navigation';
+import PayrunApproveModal from './section/confirm-modal';
 
 type PayrollFormFormProps = {
   id?: string;
-  isDetail?: boolean;
 };
 
 const COLORS = [
@@ -52,7 +53,7 @@ const currency = (value: number) => 'Rp ' + value.toLocaleString('id-ID');
 
 const total = dataPayroll.reduce((sum, d) => sum + d.value, 0);
 
-export default function PayrollForm({ id, isDetail }: PayrollFormFormProps) {
+export default function PayrollForm({ id }: PayrollFormFormProps) {
   const {
     employeeList,
     dataPagination,
@@ -67,6 +68,9 @@ export default function PayrollForm({ id, isDetail }: PayrollFormFormProps) {
     currentStep,
     getDetail,
     detailData,
+    loadingSave,
+    setOpenConfirm,
+    openConfirm,
   } = usePayrollDetail();
 
   React.useEffect(() => {
@@ -74,6 +78,9 @@ export default function PayrollForm({ id, isDetail }: PayrollFormFormProps) {
       getDetail(id);
     }
   }, [id]);
+  const router = useRouter();
+  const pathname = usePathname();
+  const isDetail = !pathname.includes('/edit');
 
   const columns: ColumnDef<Payslip>[] = [
     {
@@ -114,9 +121,11 @@ export default function PayrollForm({ id, isDetail }: PayrollFormFormProps) {
                 <span className="text-muted-foreground">Hours</span>
               </div>
             </div>
-            <Button type="button" variant="link" className="text-primary">
-              <Edit3 />
-            </Button>
+            {currentStep === 1 && !isDetail && (
+              <Button type="button" variant="link" className="text-primary">
+                <Edit3 />
+              </Button>
+            )}
           </div>
         );
       },
@@ -140,9 +149,11 @@ export default function PayrollForm({ id, isDetail }: PayrollFormFormProps) {
               {row.original.allowance.length} Benefit
             </Badge>
           </div>
-          <Button type="button" variant="link" className="text-primary">
-            <Edit3 />
-          </Button>
+          {currentStep === 1 && !isDetail && (
+            <Button type="button" variant="link" className="text-primary">
+              <Edit3 />
+            </Button>
+          )}
         </div>
       ),
     },
@@ -166,9 +177,11 @@ export default function PayrollForm({ id, isDetail }: PayrollFormFormProps) {
               Hours
             </div>
           </div>
-          <Button type="button" variant="link" className="text-primary">
-            <Edit3 />
-          </Button>
+          {currentStep === 1 && !isDetail && (
+            <Button type="button" variant="link" className="text-primary">
+              <Edit3 />
+            </Button>
+          )}
         </div>
       ),
     },
@@ -188,9 +201,11 @@ export default function PayrollForm({ id, isDetail }: PayrollFormFormProps) {
                 {formatCurrency(Number(row.original.total_additional_earnings))}
               </span>
             </div>
-            <Button type="button" variant="link" className="text-primary">
-              <Edit3 />
-            </Button>
+            {currentStep === 1 && !isDetail && (
+              <Button type="button" variant="link" className="text-primary">
+                <Edit3 />
+              </Button>
+            )}
           </div>
           <div className="mt-2">
             <span className="text-gray-400 text-xs">Reimbursement</span>
@@ -202,9 +217,11 @@ export default function PayrollForm({ id, isDetail }: PayrollFormFormProps) {
                 {formatCurrency(Number(row.original.additional_earning))}
               </span>
             </div>
-            <Button type="button" variant="link" className="text-primary">
-              <Edit3 />
-            </Button>
+            {currentStep === 1 && !isDetail && (
+              <Button type="button" variant="link" className="text-primary">
+                <Edit3 />
+              </Button>
+            )}
           </div>
         </div>
       ),
@@ -220,9 +237,11 @@ export default function PayrollForm({ id, isDetail }: PayrollFormFormProps) {
               {formatCurrency(Number(row.original.deduction))}
             </span>
           </div>
-          <Button type="button" variant="link" className="text-primary">
-            <Edit3 />
-          </Button>
+          {currentStep === 1 && !isDetail && (
+            <Button type="button" variant="link" className="text-primary">
+              <Edit3 />
+            </Button>
+          )}
         </div>
       ),
     },
@@ -274,25 +293,27 @@ export default function PayrollForm({ id, isDetail }: PayrollFormFormProps) {
             <h2 className="font-semibold text-xl mb-0">Payruns Detail</h2>
           </div>
           <div className="col-span-2">
-            <div className="flex justify-end gap-2">
-              <Button
-                onClick={() => handleCancel()}
-                type="button"
-                variant="outline"
-                className="min-w-[100px] bg-white text-primary border-1 border font-medium py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <Edit3 />
-                Edit Payruns
-              </Button>
-              <Button
-                onClick={() => handleNext()}
-                type="button"
-                className="min-w-[100px] bg-primary hover:bg-[#14506e] text-white font-medium py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <Send />
-                Send Payruns
-              </Button>
-            </div>
+            {isDetail && (
+              <div className="flex justify-end gap-2">
+                <Button
+                  onClick={() => router.push(`/payroll/${id}/edit`)}
+                  type="button"
+                  variant="outline"
+                  className="min-w-[100px] bg-white text-primary border-1 border font-medium py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Edit3 />
+                  Edit Payruns
+                </Button>
+                <Button
+                  onClick={() => handleNext()}
+                  type="button"
+                  className="min-w-[100px] bg-primary hover:bg-[#14506e] text-white font-medium py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Send />
+                  Send Payruns
+                </Button>
+              </div>
+            )}
           </div>
           <div className="col-span-1">
             <div className="text-sm text-gray-500">Payment Period</div>
@@ -381,78 +402,72 @@ export default function PayrollForm({ id, isDetail }: PayrollFormFormProps) {
               </div>
             )}
 
-            {currentStep === 2 ||
-              (isDetail && (
-                <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6 mt-4">
-                  <div className="flex gap-2">
-                    <h2 className="font-semibold text-xl">
-                      Total Company Spend
-                    </h2>
-                  </div>
-                  <div className="flex flex-col items-center justify-center">
-                    <div className="relative">
-                      <PieChart width={300} height={300} className="absolute">
-                        <Pie
-                          data={dataPayroll}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={80}
-                          outerRadius={100}
-                          paddingAngle={3}
-                          dataKey="value"
-                        >
-                          {dataPayroll.map((entry, index) => (
-                            <Cell
-                              key={`cell-${index}`}
-                              fill={COLORS[index % COLORS.length]}
-                            />
-                          ))}
-                        </Pie>
-                        <Tooltip
-                          formatter={(value: number, name: string) => [
-                            currency(value),
-                            name,
-                          ]}
-                        />
-                      </PieChart>
-                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
-                        <p className="text-sm font-semibold">
-                          {currency(total)}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          Total Amount
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-3">
-                      {dataPayroll.map((d, i) => (
-                        <div key={i} className="flex items-center space-x-2">
-                          <div
-                            className="w-3 h-3 rounded-full"
-                            style={{ backgroundColor: COLORS[i] }}
+            {(currentStep === 2 || isDetail) && (
+              <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6 mt-4">
+                <div className="flex gap-2">
+                  <h2 className="font-semibold text-xl">Total Company Spend</h2>
+                </div>
+                <div className="flex flex-col items-center justify-center">
+                  <div className="relative">
+                    <PieChart width={300} height={300} className="absolute">
+                      <Pie
+                        data={dataPayroll}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={80}
+                        outerRadius={100}
+                        paddingAngle={3}
+                        dataKey="value"
+                      >
+                        {dataPayroll.map((entry, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={COLORS[index % COLORS.length]}
                           />
-                          <div>
-                            <p className="text-sm font-semibold">
-                              {currency(d.value)}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {d.name}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        formatter={(value: number, name: string) => [
+                          currency(value),
+                          name,
+                        ]}
+                      />
+                    </PieChart>
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
+                      <p className="text-sm font-semibold">{currency(total)}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Total Amount
+                      </p>
                     </div>
                   </div>
-                </div>
-              ))}
 
-            {currentStep === 2 ||
-              (isDetail && (
-                <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6 mt-4">
-                  <WorkingHourSummary regularHour={320} overtimeHour={100} />
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-3">
+                    {dataPayroll.map((d, i) => (
+                      <div key={i} className="flex items-center space-x-2">
+                        <div
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: COLORS[i] }}
+                        />
+                        <div>
+                          <p className="text-sm font-semibold">
+                            {currency(d.value)}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {d.name}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              ))}
+              </div>
+            )}
+
+            {(currentStep === 2 || isDetail) && (
+              <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6 mt-4">
+                <WorkingHourSummary regularHour={320} overtimeHour={100} />
+              </div>
+            )}
 
             <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6 mt-4">
               <div className="flex md:flex-row flex-col justify-between w-full md:items-center items-start gap-4">
@@ -461,7 +476,7 @@ export default function PayrollForm({ id, isDetail }: PayrollFormFormProps) {
                     {currentStep === 1 ? 'Employee Gross Pay List' : 'Nett Pay'}
                   </h2>
                   <Badge className="bg-primary-background text-primary rounded-full">
-                    120 Employee
+                    {dataPagination.total} Employee
                   </Badge>
                 </div>
                 <Input
@@ -525,10 +540,11 @@ export default function PayrollForm({ id, isDetail }: PayrollFormFormProps) {
                     </Button>
                     <Button
                       onClick={() => {
-                        handleSubmit();
+                        setOpenConfirm(true);
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                       }}
                       type="button"
+                      isLoading={loadingSave}
                       className="min-w-[100px] bg-primary hover:bg-primary-800 text-white font-medium py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Finalize Payruns
@@ -537,6 +553,12 @@ export default function PayrollForm({ id, isDetail }: PayrollFormFormProps) {
                 )}
               </div>
             )}
+
+            <PayrunApproveModal
+              onUpdate={() => handleSubmit(id || '')}
+              isOpen={openConfirm}
+              setIsOpen={(e) => setOpenConfirm(e)}
+            />
           </div>
         </div>
       </div>

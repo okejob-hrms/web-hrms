@@ -292,7 +292,7 @@ export function getStatusPayroll(status?: string): StatusConfig {
       variant = "secondary";
       className = "bg-gray-100 text-gray-700";
       break;
-    case "Payslip Sent":
+    case "Final":
       variant = "secondary";
       className = "bg-green-100 text-green-700";
       break;
@@ -321,11 +321,11 @@ export function getStatusGeneratingPayroll(status?: string): StatusConfig {
   let className = "";
 
   switch (status) {
-    case "Waiting":
+    case "Pending":
       variant = "secondary";
       className = "bg-yellow-100 text-yellow-700";
       break;
-    case "Done":
+    case "Completed":
       variant = "secondary";
       className = "bg-green-100 text-green-700";
       break;

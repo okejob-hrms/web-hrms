@@ -2,13 +2,12 @@
 
 import * as React from "react";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { deleteAttendance } from "@/services/attendance";
 import { PaginationState } from "@tanstack/react-table";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Payslip, RequestPayrollGroup } from "@/services/payroll/types";
 import { Filters } from "./types";
-import { getPayrollDetail, getPayrollEmployee } from "@/services/payroll";
+import { getPayrollDetail, getPayrollEmployee, postFinalPayrun } from "@/services/payroll";
 import { PaginatedResponse } from "@/lib/types";
 
 export function usePayrollDetail() {
@@ -17,13 +16,14 @@ export function usePayrollDetail() {
     pageSize: 10,
   });
   const [openAdd, setOpenAdd] = React.useState(false);
-  const [openDelete, setOpenDelete] = React.useState(false);
+  const [openConfirm, setOpenConfirm] = React.useState(false);
   const [filters, setFilters] = React.useState<Filters>({
     date: '',
     search: '',
   });
   const [currentStep, setCurrentStep] = React.useState(1);
   const [id, setId] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
   const router = useRouter();
   
   const queryClient = useQueryClient();
@@ -68,21 +68,21 @@ export function usePayrollDetail() {
       data: employeeList?.data.payslips ?? [],
     };
   
-  const { mutate: removeAttendance } = useMutation({
-    mutationFn: (id: number) => deleteAttendance(id),
+  const mutationPostFinal = useMutation({
+    mutationFn: (payrunId: string) => postFinalPayrun(payrunId),
+    onMutate: () => setLoading(true),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["attendance"] });
-      toast.success("Success delete attendance");
-      setOpenDelete(false);
+      toast.success("Payrun successfully saved as final");
+      queryClient.invalidateQueries({ queryKey: ["payroll"] });
+      setOpenAdd(false);
+      setOpenConfirm(false);
+      router.push('/payroll');
     },
-    onError: () => {
-      toast.error("Failed delete attendance");
+    onError: (err) => {
+      toast.error(`Failed to save: ${err.message}`);
     },
+    onSettled: () => setLoading(false),
   });
-
-  const handleAddGroup = (data: RequestPayrollGroup) => {
-    console.log('data', data);
-  }
 
   const handleCancel = () => {
     router.push('/payroll');
@@ -96,8 +96,12 @@ export function usePayrollDetail() {
     setCurrentStep(1);
   }
 
-  const handleSubmit = () => {
-    router.push('/payroll');
+  const handleSubmit = (id: string) => {
+    if (!id) {
+      toast.error("Payroll ID not found");
+      return;
+    }
+    mutationPostFinal.mutate(id)
   }
 
   const getDetail = (idx: string) => {
@@ -110,13 +114,12 @@ export function usePayrollDetail() {
     loading: isLoading || isFetching || isRefetching,
     pagination,
     setPagination,
-    setOpenDelete,
-    openDelete,
+    openConfirm,
+    setOpenConfirm,
     filters,
     setFilters,
     setOpenAdd,
     openAdd,
-    handleAddGroup,
     handleCancel,
     handleNext,
     currentStep,
@@ -124,5 +127,6 @@ export function usePayrollDetail() {
     detailData,
     handleBack,
     handleSubmit,
+    loadingSave: loading,
   };
 }
