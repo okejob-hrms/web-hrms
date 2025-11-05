@@ -164,11 +164,11 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
           ? new Date(employeeDetails.date_of_birth)
           : new Date(),
         start_date: employeeDetails.employment?.start_date
-          ? new Date(employeeDetails.employment.start_date)
-          : new Date(),
+          ? dayjs(employeeDetails.employment.start_date).format("YYYY-MM-DD")
+          : "",
         end_date: employeeDetails.employment?.end_date
-          ? new Date(employeeDetails.employment.end_date)
-          : new Date(),
+          ? dayjs(employeeDetails.employment.end_date).format("YYYY-MM-DD")
+          : "",
         blood_type: employeeDetails.blood_type || "",
         marital_status: employeeDetails.marital_status?.toString() || "",
         height: Number(employeeDetails.height) || 0,
@@ -277,7 +277,6 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
           bank_id: Number(values.bank_id) || 0,
           date_of_birth: dayjs(values.date_of_birth).format("YYYY-MM-DD"),
           start_date: dayjs(values.start_date).format("YYYY-MM-DD"),
-          end_date: dayjs(values.end_date).format("YYYY-MM-DD"),
           // team_members: [{ team_id: Number(values.team_members) || 0 }],
           allowances: validAllowances,
           attachments: attachments || [],
@@ -357,6 +356,12 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
         ) {
           conditionalParams.additional_direct_report_id = Number(
             values.additional_direct_report_id,
+          );
+        }
+
+        if (values.end_date) {
+          conditionalParams.end_date = dayjs(values.end_date).format(
+            "YYYY-MM-DD",
           );
         }
 

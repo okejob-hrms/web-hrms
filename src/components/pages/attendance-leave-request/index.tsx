@@ -1,452 +1,48 @@
+// components/leave-request/index.tsx
 "use client";
 
 import * as React from "react";
-import { DataTable } from "@/components/tables/data-table";
-import { ColumnDef } from "@tanstack/react-table";
-import { Separator } from "@/components/ui/separator";
-import { Filters } from "./types";
-import InfoList from "@/components/ui/info-list";
+import LeaveSummary from "./sections/leave-summary";
+import LeaveFilters from "./sections/leave-filters";
+import LeaveModals from "./sections/leave-modals";
 import { useLeaveRequest } from "./hook";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { cn, stringAvatar } from "@/lib/utils";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  CircleCheckBigIcon,
-  CircleXIcon,
-  Clock4Icon,
-  Edit3,
-  Ellipsis,
-  Eye,
-  Plus,
-  Search,
-  Trash,
-  XCircle,
-} from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import {
-  formatDateRange,
-  formatDayDifference,
-  getStatusOvertime,
-} from "@/lib/helpers";
-import OvertimeApproveModal from "./sections/approve-modal";
-import OvertimeRejectModal from "./sections/reject-modal";
-import OvertimeDeleteModal from "./sections/delete-modal";
-import { InputForm } from "@/components/ui/input";
-import { Form } from "@/components/ui/form";
-import { useForm } from "react-hook-form";
-import { DatePicker } from "@/components/ui/date-picker";
-import dayjs from "dayjs";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { OvertimeListItem, RequestOvertime } from "@/services/overtime/types";
-import OvertimeDetailModal from "./sections/detail-modal";
-import OvertimeEditModal from "./sections/edit-modal";
-import { Button } from "@/components/ui/button";
-import { ILeaveResponse } from "@/services/employees/leave/types";
+import LeaveTable from "./sections/leave-table";
 
 export default function AttendanceLeaveRequest() {
-  const {
-    attendances,
-    pagination,
-    setPagination,
-    setSelectedData,
-    openDetail,
-    setOpenDetail,
-    setSelectedId,
-    handleApprove,
-    handleReject,
-    handleDelete,
-    setOpenApprove,
-    openApprove,
-    setOpenReject,
-    openReject,
-    setOpenDelete,
-    openDelete,
-    setFilters,
-    filters,
-    setOpenEdit,
-    openEdit,
-    handleEdit,
-    handleNavigateAddRequestPage,
-  } = useLeaveRequest();
-  const [detail, setDetail] = React.useState<OvertimeListItem>();
-  const [formData, setFormData] = React.useState<RequestOvertime>({
-    user_id: 0,
-    overtime_date: "",
-    request_date: "",
-    start_time: "",
-    end_time: "",
-    notes: "",
-  });
-
-  React.useEffect(() => {
-    setFormData({
-      user_id: detail?.employee?.id ?? 0,
-      overtime_date: dayjs(detail?.overtime_date).format("YYYY-MM-DD"),
-      request_date: dayjs(detail?.request_date).format("YYYY-MM-DD"),
-      start_time: detail?.start_time ?? "00:00",
-      end_time: detail?.end_time ?? "00:00",
-      notes: detail?.notes ?? "",
-    });
-  }, [detail]);
-  const columns: ColumnDef<ILeaveResponse>[] = [
-    {
-      accessorKey: "user.name",
-      header: "Name",
-      cell: ({ row }) => (
-        <div className="flex gap-4 items-center min-w-[150px]">
-          {/* <Avatar className="h-10 w-10">
-            <AvatarImage src={`${row.original.user?.avatar_url}`} />
-            <AvatarFallback className="text-primary-hover bg-primary-background text-base font-medium">
-              {stringAvatar(row.original.user?.name ?? "")}
-            </AvatarFallback>
-          </Avatar> */}
-          <div className="flex flex-col">
-            <span className="font-semibold text-foreground text-sm">
-              {row.original.user?.name}
-            </span>
-            <span className="text-text-secondary">
-              #{row.original.user?.id}
-            </span>
-          </div>
-        </div>
-      ),
-    },
-    {
-      accessorKey: "leave_type.name",
-      header: "Leave",
-      size: 200,
-    },
-    {
-      accessorKey: "duration",
-      header: "Duration",
-      size: 300,
-      cell: ({ row }) => {
-        const att = row.original;
-        if (!att) return "-";
-
-        return (
-          <div className="flex flex-col w-max-2xl">
-            <span>{formatDayDifference(att.start_date, att.end_date)}</span>
-            <span className="text-primary">
-              {formatDateRange(att.start_date, att.end_date)}
-            </span>
-          </div>
-        );
-      },
-    },
-    {
-      accessorKey: "reason",
-      header: "Reason",
-      size: 200,
-    },
-    {
-      accessorKey: "notes",
-      header: "Notes",
-      size: 200,
-      cell: ({ row }) => row.original.notes || "-",
-    },
-
-    {
-      accessorKey: "status",
-      header: "Status",
-      size: 160,
-      cell: ({ row }) => {
-        const status = row.original.status;
-        const { variant, className, label } = getStatusOvertime(status);
-        if (!row.original.status) return "-";
-
-        return (
-          <Badge variant={variant} className={className}>
-            {label}
-          </Badge>
-        );
-      },
-    },
-    {
-      accessorKey: "updated_at",
-      header: "Last Update",
-      size: 200,
-      cell: ({ row }) => (
-        <div className="flex flex-col">
-          <span>{dayjs(row.original.updated_at).format("MMMM D, YYYY")}</span>
-          <span className="text-sm text-text-disabled">
-            {dayjs(row.original.updated_at).format("HH:mm")}
-          </span>
-        </div>
-      ),
-    },
-    {
-      accessorKey: "menu",
-      header: "",
-      cell: ({ row }) => {
-        return (
-          <DropdownMenu>
-            <DropdownMenuTrigger>
-              <Ellipsis className="text-grayscale-30" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem>
-                <button
-                  onClick={() => {
-                    setSelectedId(String(row.original.id));
-                    setDetail(row.original);
-                    setSelectedData(row.original);
-                    setOpenDetail(true);
-                  }}
-                  className="flex gap-2"
-                >
-                  <Eye />
-                  Overtime Request Details
-                </button>
-              </DropdownMenuItem>
-              {row.original.status === 1 && (
-                <>
-                  <DropdownMenuItem>
-                    <button
-                      onClick={() => {
-                        setOpenApprove(true);
-                        setSelectedId(String(row.original?.id));
-                        setSelectedData(row.original);
-                      }}
-                      className="flex gap-2"
-                    >
-                      <Clock4Icon />
-                      Approve Request
-                    </button>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <button
-                      onClick={() => {
-                        setOpenReject(true);
-                        setSelectedId(String(row.original?.id));
-                        setSelectedData(row.original);
-                      }}
-                      className="flex gap-2"
-                    >
-                      <XCircle />
-                      Reject Request
-                    </button>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <button
-                      onClick={() => {
-                        setOpenEdit(true);
-                        setSelectedId(String(row.original?.id));
-                        setSelectedData(row.original);
-                        setDetail(row.original);
-                      }}
-                      className="flex gap-2"
-                    >
-                      <Edit3 />
-                      Edit Overtime Request
-                    </button>
-                  </DropdownMenuItem>
-                </>
-              )}
-              <DropdownMenuItem>
-                <button
-                  onClick={() => {
-                    setOpenDelete(true);
-                    setSelectedId(String(row.original?.id));
-                  }}
-                  className="flex gap-2"
-                >
-                  <Trash />
-                  Delete Request
-                </button>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        );
-      },
-    },
-  ];
-
-  const form = useForm<Filters>({
-    defaultValues: {
-      search: "",
-      date: "",
-    },
-  });
-
-  const tabs = [
-    {
-      name: "Waiting for approval",
-      value: 1,
-      icon: <Clock4Icon />,
-    },
-    {
-      name: "Approved",
-      value: 2,
-      icon: <CircleCheckBigIcon />,
-    },
-    {
-      name: "Rejected",
-      value: 3,
-      icon: <CircleXIcon />,
-    },
-  ];
+  const leaveRequest = useLeaveRequest();
 
   return (
     <div className="font-sans min-h-screen flex flex-col space-y-6 px-6">
       <h2 className="font-semibold text-xl">Summary</h2>
-      <div className="grid grid-cols-1 gap-2">
-        <div className="grid xl:grid-cols-2 grid-cols-1 gap-2">
-          <InfoList
-            title="New Leave Request"
-            compare="vs"
-            time="yesterday"
-            value={attendances?.summary.new_requests.today}
-          />
-          <InfoList
-            title="Employee On Leave Today"
-            compare=""
-            time=""
-            value={attendances?.summary.on_leave.today}
-          />
-        </div>
-        <div className="grid xl:grid-cols-3 grid-cols-1 gap-2">
-          <InfoList
-            title="Waiting for Approval"
-            compare="vs"
-            time="yesterday"
-            value={attendances?.summary.pending}
-          />
-          <InfoList
-            title="Approved Leave Request"
-            compare=""
-            time=""
-            value={attendances?.summary.approved}
-          />
-          <InfoList
-            title="Rejected Leave Request"
-            compare=""
-            time=""
-            value={attendances?.summary.rejected}
-          />
-        </div>
-      </div>
 
-      <Tabs
-        defaultValue={String(tabs[0].value)}
-        className="w-full mx-auto"
-        onValueChange={(value) =>
-          setFilters((prev) => ({
-            ...prev,
-            status: Number(value),
-          }))
-        }
-      >
-        <TabsList className="p-1 w-full bg-secondary-background min-h-12">
-          {tabs.map((tab) => (
-            <TabsTrigger
-              key={tab.value}
-              value={String(tab.value)}
-              className={cn(
-                "px-2.5 sm:px-3 text-secondary-hover",
-                "data-[state=active]:bg-secondary data-[state=active]:text-white",
-              )}
-            >
-              <code className="flex items-center gap-1 text-[13px] [&>svg]:h-4 [&>svg]:w-4">
-                {tab.icon} {tab.name}
-              </code>
-            </TabsTrigger>
-          ))}
-        </TabsList>
-      </Tabs>
+      <LeaveSummary summary={leaveRequest.leaves?.summary} />
 
-      <div className="flex flex-col justify-between gap-4">
-        <Form {...form}>
-          <form className="flex flex-col md:flex-row md:items-end gap-2 md:h-10">
-            <InputForm
-              name="search"
-              placeholder="Search by Employee Name or Email"
-              icon={<Search className="size-5 text-grayscale-20" />}
-              iconPosition="right"
-              value={filters.search}
-              onChange={(e) => {
-                setFilters((prev) => ({
-                  ...prev,
-                  search: e.target.value,
-                }));
-                setPagination((prev) => ({ ...prev, pageIndex: 0 }));
-              }}
-            />
+      <LeaveFilters
+        filters={leaveRequest.filters}
+        setFilters={leaveRequest.setFilters}
+        setPagination={leaveRequest.setPagination}
+      />
 
-            <Separator orientation="vertical" />
+      <LeaveTable
+        data={leaveRequest.leaves?.data.data}
+        pagination={leaveRequest.leaves?.data}
+        paginationState={leaveRequest.pagination}
+        setPaginationState={leaveRequest.setPagination}
+        loading={leaveRequest.loading}
+        onSelectLeave={leaveRequest.selectLeave}
+        onOpenModal={leaveRequest.openModal}
+        onNavigateAdd={leaveRequest.handleNavigateAddRequestPage}
+      />
 
-            <DatePicker
-              className="min-w-[180px]"
-              name="date"
-              onChange={(e) => {
-                setFilters((prev) => ({
-                  ...prev,
-                  date: e ? dayjs(e).format("YYYY-MM-DD") : "",
-                }));
-                setPagination((prev) => ({ ...prev, pageIndex: 0 }));
-              }}
-            />
-          </form>
-        </Form>
-
-        <Separator />
-        <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6">
-          <div className="flex md:flex-row flex-col justify-between w-full md:items-center items-start gap-4">
-            <h2 className="font-semibold text-xl">Leave Request</h2>
-            <Button onClick={handleNavigateAddRequestPage}>
-              <Plus /> New Leave Request
-            </Button>
-          </div>
-
-          <DataTable
-            columns={columns}
-            data={attendances?.data.data}
-            pagination={attendances?.data}
-            paginationState={pagination}
-            setPaginationState={setPagination}
-          />
-
-          <OvertimeDetailModal
-            onUpdate={() => handleApprove()}
-            onReject={() => handleReject()}
-            isOpen={openDetail}
-            setIsOpen={(e) => setOpenDetail(e)}
-            data={detail}
-          />
-
-          <OvertimeApproveModal
-            onUpdate={() => handleApprove()}
-            isOpen={openApprove}
-            setIsOpen={(e) => setOpenApprove(e)}
-          />
-
-          <OvertimeRejectModal
-            onUpdate={() => handleReject()}
-            isOpen={openReject}
-            setIsOpen={(e) => setOpenReject(e)}
-          />
-
-          <OvertimeDeleteModal
-            onUpdate={() => handleDelete()}
-            isOpen={openDelete}
-            setIsOpen={(e) => setOpenDelete(e)}
-          />
-
-          <OvertimeEditModal
-            onUpdate={() => handleEdit(formData)}
-            isOpen={openEdit}
-            setIsOpen={(e) => setOpenEdit(e)}
-            data={detail}
-            formData={formData}
-            setFormData={setFormData}
-          />
-        </div>
-      </div>
+      <LeaveModals
+        modalState={leaveRequest.modalState}
+        selectedData={leaveRequest.selectedData}
+        onCloseModal={leaveRequest.closeModal}
+        onApprove={leaveRequest.handleApprove}
+        onReject={leaveRequest.handleReject}
+        onDelete={leaveRequest.handleDelete}
+        getEmployeeData={leaveRequest.getEmployeeData}
+      />
     </div>
   );
 }

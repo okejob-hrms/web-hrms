@@ -7,60 +7,77 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import {
-  deleteOvertime,
-  putOvertime,
-  putOvertimeStatus,
-} from "@/services/overtime";
 import { PaginationState } from "@tanstack/react-table";
 import { toast } from "sonner";
-import { Filters } from "./types";
-import {
-  OvertimeListItem,
-  RequestOvertime,
-  RequestOvertimeStatus,
-} from "@/services/overtime/types";
-import { getLeaves } from "@/services/employees/leave";
 import { useRouter } from "next/navigation";
+import {
+  getLeaves,
+  deleteLeave,
+  updateLeave,
+  updateStatusLeave,
+} from "@/services/employees/leave";
+import { getEmployeeDetail } from "@/services/employees";
+import {
+  ILeaveResponse,
+  IMutateLeaveRequest,
+  IMutateLeaveStatus,
+} from "@/services/employees/leave/types";
+import { Filters } from "./types";
 
 export function useLeaveRequest() {
   const router = useRouter();
+  const queryClient = useQueryClient();
+
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: 0,
     pageSize: 10,
   });
-  const [openDetail, setOpenDetail] = React.useState(false);
-  const [openApprove, setOpenApprove] = React.useState(false);
-  const [openDelete, setOpenDelete] = React.useState(false);
-  const [openReject, setOpenReject] = React.useState(false);
-  const [openEdit, setOpenEdit] = React.useState(false);
-  const [selectedData, setSelectedData] = React.useState<OvertimeListItem>();
 
-  const [selectedId, setSelectedId] = React.useState<string>("");
   const [filters, setFilters] = React.useState<Filters>({
     date: "",
     search: "",
     status: 1,
   });
-  const queryClient = useQueryClient();
+
+  const [modalState, setModalState] = React.useState({
+    detail: false,
+    approve: false,
+    delete: false,
+    reject: false,
+    edit: false,
+  });
+
+  const [selectedData, setSelectedData] = React.useState<ILeaveResponse>();
+  const [selectedId, setSelectedId] = React.useState<string>("");
 
   const {
     data: leaves,
     isLoading,
     isFetching,
     isRefetching,
+    error,
   } = useQuery({
-    queryKey: [
-      "leaves",
-      pagination,
-      filters.search,
-      filters.date,
-      filters.status,
-    ],
+    queryKey: ["leaves", pagination, filters],
     queryFn: () => getLeaves(pagination, filters),
     placeholderData: keepPreviousData,
-    refetchOnMount: "always",
-    refetchOnWindowFocus: true,
+  });
+
+  const { mutate: updateLeaveRequest } = useMutation({
+    mutationFn: ({
+      id,
+      payload,
+    }: {
+      id: number;
+      payload: IMutateLeaveRequest;
+    }) => updateLeave(payload, id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["leaves"] });
+      toast.success("Successfully updated leave status");
+      closeAllModals();
+    },
+    onError: () => {
+      toast.error("Failed to update leave status");
+    },
   });
 
   const { mutate: updateStatus } = useMutation({
@@ -69,109 +86,120 @@ export function useLeaveRequest() {
       payload,
     }: {
       id: number;
-      payload: RequestOvertimeStatus;
-    }) => putOvertimeStatus(id, payload),
+      payload: IMutateLeaveStatus;
+    }) => updateStatusLeave(payload, id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["overtime"] });
-      toast.success("Success update overtime status");
-      setOpenApprove(false);
-      setOpenReject(false);
-      setOpenDetail(false);
-      setOpenEdit(false);
+      queryClient.invalidateQueries({ queryKey: ["leaves"] });
+      toast.success("Successfully updated leave status");
+      closeAllModals();
     },
     onError: () => {
-      toast.error("Failed update overtime status");
+      toast.error("Failed to update leave status");
     },
   });
 
-  const { mutate: updateOvertime } = useMutation({
-    mutationFn: ({ id, payload }: { id: number; payload: RequestOvertime }) =>
-      putOvertime(id, payload),
+  const { mutate: removeLeave } = useMutation({
+    mutationFn: (id: number) => deleteLeave(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["overtime"] });
-      toast.success("Success update overtime request");
-      setOpenApprove(false);
-      setOpenReject(false);
-      setOpenDetail(false);
-      setOpenEdit(false);
+      queryClient.invalidateQueries({ queryKey: ["leaves"] });
+      toast.success("Successfully deleted leave request");
+      setModalState((prev) => ({ ...prev, delete: false }));
     },
     onError: () => {
-      toast.error("Failed update overtime request");
+      toast.error("Failed to delete leave request");
     },
   });
 
-  const { mutate: removeOvertime } = useMutation({
-    mutationFn: (id: number) => deleteOvertime(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["overtime"] });
-      toast.success("Success delete overtime");
-      setOpenDelete(false);
+  const getEmployeeData = React.useCallback(
+    async (user_id: number) => {
+      try {
+        const data = await queryClient.fetchQuery({
+          queryKey: ["employee-detail", user_id],
+          queryFn: () => getEmployeeDetail(user_id),
+        });
+        return data.data;
+      } catch (error) {
+        console.error("Error fetching employee data:", error);
+        return null;
+      }
     },
-    onError: () => {
-      toast.error("Failed delete overtime");
-    },
-  });
+    [queryClient],
+  );
 
-  const handleApprove = () => {
+  const handleApprove = React.useCallback(() => {
     if (!selectedId) return;
-    const dataPayload = {
-      status: 2,
-    };
-    updateStatus({ id: Number(selectedId), payload: dataPayload });
-  };
+    updateStatus({
+      id: Number(selectedId),
+      payload: { action: "approve" },
+    });
+  }, [selectedId, updateStatus]);
 
-  const handleReject = () => {
+  const handleReject = React.useCallback(() => {
     if (!selectedId) return;
-    const dataPayload = {
-      status: 2,
-    };
-    updateStatus({ id: Number(selectedId), payload: dataPayload });
-  };
+    updateStatus({
+      id: Number(selectedId),
+      payload: { action: "reject" },
+    });
+  }, [selectedId, updateStatus]);
 
-  const handleDelete = () => {
+  const handleDelete = React.useCallback(() => {
     if (!selectedId) return;
-    removeOvertime(Number(selectedId));
-  };
+    removeLeave(Number(selectedId));
+  }, [selectedId, removeLeave]);
 
-  const handleEdit = (data: RequestOvertime) => {
-    if (!selectedId) return;
-    const dataConvert: RequestOvertime = {
-      ...data,
-      start_time: data.start_time.slice(0, 5),
-      end_time: data.end_time.slice(0, 5),
-    };
-
-    updateOvertime({ id: Number(selectedId), payload: dataConvert });
-  };
-
-  const handleNavigateAddRequestPage = () => {
+  const handleNavigateAddRequestPage = React.useCallback(() => {
     router.push("/attendance/leave-request/add");
-  };
+  }, [router]);
+
+  const openModal = React.useCallback((modal: keyof typeof modalState) => {
+    setModalState((prev) => ({ ...prev, [modal]: true }));
+  }, []);
+
+  const closeModal = React.useCallback((modal: keyof typeof modalState) => {
+    setModalState((prev) => ({ ...prev, [modal]: false }));
+  }, []);
+
+  const closeAllModals = React.useCallback(() => {
+    setModalState({
+      detail: false,
+      approve: false,
+      delete: false,
+      reject: false,
+      edit: false,
+    });
+  }, []);
+
+  const selectLeave = React.useCallback((leave: ILeaveResponse) => {
+    setSelectedData(leave);
+    setSelectedId(String(leave.id));
+  }, []);
 
   return {
-    attendances: leaves,
-    loading: isLoading || isFetching || isRefetching,
+    leaves,
+    selectedData,
+    selectedId,
+
+    loading: isLoading || isFetching,
+    error,
+
     pagination,
     setPagination,
-    setOpenDetail,
-    openDetail,
-    setSelectedData,
-    selectedData,
-    setSelectedId,
+
+    filters,
+    setFilters,
+
+    modalState,
+    openModal,
+    closeModal,
+    closeAllModals,
+
     handleApprove,
     handleReject,
     handleDelete,
-    openApprove,
-    setOpenApprove,
-    setOpenReject,
-    openReject,
-    setOpenDelete,
-    openDelete,
-    filters,
-    setFilters,
-    openEdit,
-    setOpenEdit,
-    handleEdit,
     handleNavigateAddRequestPage,
+
+    getEmployeeData,
+    selectLeave,
+    setSelectedData,
   };
 }

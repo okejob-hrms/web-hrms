@@ -8,6 +8,7 @@ import {
   ILeaveResponse,
   ILeaveSummary,
   IMutateLeaveRequest,
+  IMutateLeaveStatus,
   IUserLeaveBalanceResponse,
 } from "./types";
 import { api } from "@/lib/api";
@@ -109,6 +110,30 @@ export const deleteLeave = async (
     const response = await api.delete<
       ApiResponse<PaginatedResponse<ILeaveResponse>>
     >(`employee/leaves/${id}`);
+    return response.json();
+  } catch (error: any) {
+    if (error.name === "HTTPError") {
+      const errorResponse = await error.response.json();
+      const enhancedError = new Error(error.message);
+      (enhancedError as any).response = {
+        json: () => Promise.resolve(errorResponse),
+        status: error.response.status,
+      };
+      throw enhancedError;
+    }
+    throw error;
+  }
+};
+
+export const updateStatusLeave = async (
+  params: IMutateLeaveStatus,
+  id: number,
+): Promise<ApiResponse<ILeaveResponse>> => {
+  try {
+    const response = await api.post<ApiResponse<ILeaveResponse>>(
+      `employee/leaves/${id}/action`,
+      { json: params },
+    );
     return response.json();
   } catch (error: any) {
     if (error.name === "HTTPError") {

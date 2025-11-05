@@ -9,6 +9,7 @@ export interface IUser {
   is_first_login: boolean;
   first_login_at: string | null;
   deleted_at: string | null;
+  avatar_url?: string | null;
 }
 
 export interface ILeaveType {
@@ -63,6 +64,12 @@ export interface IMutateLeaveRequest {
     user_id: number;
     approver_type: string;
   }[];
+}
+
+export interface IMutateLeaveStatus {
+  action: string;
+  notes?: string;
+  approver_id?: number;
 }
 
 export interface ILeaveSummary {
