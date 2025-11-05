@@ -38,10 +38,12 @@ const MapPicker = dynamic(() => import('@/components/ui/map'), { ssr: false });
 
 type AttendanceTrackerFormProps = {
   id?: string;
+  slug?: string;
 };
 
 export default function AttendanceTrackerForm({
   id,
+  slug,
 }: AttendanceTrackerFormProps) {
   const {
     form,
@@ -66,8 +68,8 @@ export default function AttendanceTrackerForm({
   };
 
   React.useEffect(() => {
-    if (id) {
-      handleDetailData(id);
+    if (id && slug) {
+      handleDetailData(id, slug);
     }
   }, [id]);
 

@@ -235,7 +235,7 @@ export const AttendanceTrackerList = ({
 
               <DropdownMenuItem>
                 <Link
-                  href={`/attendance/attendance-tracker/${row.original.id}`}
+                  href={`/attendance/attendance-tracker/${row.original.id}/${row.original.latest_attendance?.id}`}
                   className="flex gap-2 justify-between items-center"
                 >
                   <Edit3 />

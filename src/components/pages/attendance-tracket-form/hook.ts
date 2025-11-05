@@ -11,7 +11,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { getEmployees } from '@/services/employees';
 import dayjs from 'dayjs';
 import { toast } from 'sonner';
-import { getAttendanceDetail, postAttendance, putAttendance } from '@/services/attendance';
+import { getAttendanceDetail, getAttendanceDetailById, postAttendance, putAttendance } from '@/services/attendance';
 import { AttendanceDetail } from '@/services/attendance/types';
 
 // -------------------------
@@ -48,6 +48,7 @@ export function useAttendenceForm() {
   const [openMap, setOpenMap] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedId, setSelectedId] = useState<string>('');
+  const [selectedAttendance, setSelectedAttendance] = useState('');
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [map, setMap] = useState({
     lat: 0,
@@ -79,9 +80,9 @@ export function useAttendenceForm() {
   const {
     data: detailData,
   } = useQuery({
-    queryKey: ["attendanceDetail", selectedId],
-    queryFn: () => getAttendanceDetail(selectedId),
-    enabled: !!selectedId,
+    queryKey: ["attendanceDetailById", selectedAttendance],
+    queryFn: () => getAttendanceDetailById(selectedAttendance),
+    enabled: !!selectedAttendance,
     placeholderData: keepPreviousData,
   });
 
@@ -116,14 +117,13 @@ export function useAttendenceForm() {
   });
   
   useEffect(() => {
-    if (detailData?.data?.data?.length) {
-      const detail = detailData.data.data[0];
-      setSelectedDate(detail.attendance_date);
-      form.reset(mapResponseToForm(detail));
+    if (detailData?.data) {
+      setSelectedDate(detailData.data.attendance_date);
+      form.reset(mapResponseToForm(detailData.data));
 
       setSelectedMap({
-        lat: Number(detail.location.latitude),
-        lng: Number(detail.location.longitude),
+        lat: Number(detailData.data.location.latitude),
+        lng: Number(detailData.data.location.longitude),
       });
     }
   }, [detailData, form]);
@@ -136,7 +136,7 @@ export function useAttendenceForm() {
       return postAttendance(payload);
     },
     onSuccess: (_, { selectedId }) => {
-      queryClient.invalidateQueries({ queryKey: ['attendanceDetail'] });
+      queryClient.invalidateQueries({ queryKey: ['attendance'] });
       toast.success(selectedId ? "Update attendance successful." : "Create attendance successful.");
       setIsLoading(false);
       router.push('/attendance/attendance-tracker');
@@ -179,7 +179,7 @@ export function useAttendenceForm() {
       payload = { ...payload, status: 0 };
     }
 
-    mutation.mutate({ selectedId,  attendanceId: String(detailData?.data.data[0].id), payload });
+    mutation.mutate({ selectedId,  attendanceId: String(detailData?.data.id), payload });
   };
 
   const handleBack = () => {
@@ -191,8 +191,9 @@ export function useAttendenceForm() {
     setOpenMap(false);
   }
 
-  const handleDetailData = (id: string) => {
+  const handleDetailData = (id: string, slug: string) => {
     setSelectedId(id);
+    setSelectedAttendance(slug);
   }
 
 

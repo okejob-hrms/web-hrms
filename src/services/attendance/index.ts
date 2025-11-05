@@ -99,3 +99,12 @@ export const deleteAttendance = async (
     })
     .json<ApiResponse<PaginatedResponse<Attendance>>>();
 };
+
+export const getAttendanceDetailById = (
+  id: string,
+): Promise<ApiResponse<AttendanceDetail>> => {
+  const response = api.get<ApiResponse<AttendanceDetail>>(
+    `employee/attendances/${id}`,
+  );
+  return response.json();
+};
