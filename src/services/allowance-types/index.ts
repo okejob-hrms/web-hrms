@@ -3,11 +3,9 @@ import { ApiResponse, PaginatedResponse } from "@/lib/types";
 import { AllowanceTypes } from "./types";
 
 export const getAllowanceTypes = async (): Promise<
-  ApiResponse<PaginatedResponse<AllowanceTypes>>
+  ApiResponse<AllowanceTypes[]>
 > => {
-  const response = await api.get<
-    ApiResponse<PaginatedResponse<AllowanceTypes>>
-  >(
+  const response = await api.get<ApiResponse<AllowanceTypes[]>>(
     "allowance-types",
     // JSON.stringify(payload),
   );

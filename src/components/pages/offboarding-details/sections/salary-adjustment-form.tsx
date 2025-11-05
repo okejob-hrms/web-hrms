@@ -45,8 +45,8 @@ export const SalaryAdjustmentForm = React.memo(function SalaryAdjustmentForm({
   });
 
   const allowanceTypesOptions = React.useMemo(() => {
-    if (allowanceTypes?.data.data) {
-      return allowanceTypes.data.data.map((item) => ({
+    if (allowanceTypes?.data) {
+      return allowanceTypes.data.map((item) => ({
         label: item.name,
         value: item.id.toString(),
       }));

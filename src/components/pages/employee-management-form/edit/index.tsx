@@ -105,7 +105,7 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
     });
 
   const form = useForm<z.infer<typeof employeeManagementFormScheme>>({
-    resolver: zodResolver(employeeManagementFormScheme),
+    // resolver: zodResolver(employeeManagementFormScheme),
     defaultValues: employeeManagementFormDefaultValues,
     mode: "onChange",
   });
@@ -200,6 +200,7 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
           (item) => ({
             allowance_type_id: item.allowance_type_id?.toString() || "",
             allowance_value: Number(item.allowance_value) || 0,
+            // allowance_name: item.allowance_name || "",
           }),
         ),
         bank_id: employeeDetails.bank_account?.bank_id?.toString() || "",
@@ -263,6 +264,7 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
         ]).map((item) => ({
           allowance_type_id: Number(item.allowance_type_id),
           allowance_value: Number(item.allowance_value),
+          allowance_name: item.allowance_name || "",
         }));
 
         const baseParams: IMutateEmployeeRequests = {
@@ -387,7 +389,6 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
         value.additional_direct_report_id !== undefined
       ) {
         const numValue = Number(value.additional_direct_report_id);
-        // Prevent setting to 0
         if (numValue === 0 || isNaN(numValue)) {
           form.setValue("additional_direct_report_id", null);
         } else if (

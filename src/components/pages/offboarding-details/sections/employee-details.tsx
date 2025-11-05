@@ -164,11 +164,6 @@ export const EmployeeDetailsSection = React.memo(
     //   }
     // }, [employeeDetails?.reporting_relationships]);
 
-    React.useEffect(() => {
-      console.log("employee ", employeeDetails);
-      console.log("offboarding ", offboardingDetails);
-    }, [employeeDetails, offboardingDetails]);
-
     if (!employeeDetails || !offboardingDetails) {
       return (
         <div className="flex flex-col w-full gap-4 p-2">

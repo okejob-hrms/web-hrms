@@ -16,7 +16,7 @@ export const OffboardingTab = React.memo(function OffboardingTab({
     {
       name: "Interview Schedule",
       value: "interview-schedule",
-      children: <InterviewSchedule offboarding_id={offboarding_id} />
+      children: <InterviewSchedule offboarding_id={offboarding_id} />,
     },
     {
       name: "Exit Interview Form",

@@ -4,8 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import Image from "next/image";
 import * as React from "react";
 import { InterviewScheduleForm } from "./interview-schedule-form";
-import dayjs from 'dayjs';
-import customParseFormat from 'dayjs/plugin/customParseFormat';
+import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { stringAvatar } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -59,11 +59,13 @@ const EmployeeProfile = React.memo(function EmployeeProfile({
   );
 });
 
-export const InterviewSchedule = React.memo(function InterviewSchedule({ offboarding_id }: Props) {
+export const InterviewSchedule = React.memo(function InterviewSchedule({
+  offboarding_id,
+}: Props) {
   const [openForm, setOpenForm] = React.useState(false);
   const { data } = useQuery({
     queryKey: ["interview-schedule"],
-    queryFn: () => getInterviewSchedule(offboarding_id)
+    queryFn: () => getInterviewSchedule(offboarding_id),
   });
 
   const handleEditClick = () => {
@@ -79,47 +81,63 @@ export const InterviewSchedule = React.memo(function InterviewSchedule({ offboar
       {data && data?.data ? (
         <div className="border border-grayscale-20 rounded-sm p-4 w-full">
           <div className="flex justify-between items-center">
-            <h3 className="font-semibold text-lg text-black">Interview Schedule</h3>
+            <h3 className="font-semibold text-lg text-black">
+              Interview Schedule
+            </h3>
             <Button variant="outline" type="button" onClick={handleEditClick}>
-              <Image src="/icons/editBlue.svg" width={20} height={20} alt="edit" />
+              <Image
+                src="/icons/editBlue.svg"
+                width={20}
+                height={20}
+                alt="edit"
+              />
               Edit Interview Schedule
             </Button>
           </div>
           <div className="grid grid-cols-3 gap-2">
             <div className="flex flex-col gap-1">
               <span className="text-text-disabled text-sm">Date</span>
-              <span className="text-black text-base">{dayjs(data.data.date).format("MMMM D, YYYY")}</span>
+              <span className="text-black text-base">
+                {dayjs(data.data.date).format("MMMM D, YYYY")}
+              </span>
             </div>
             <div className="flex flex-col gap-1">
               <span className="text-text-disabled text-sm">Time</span>
-              <span className="text-black text-base">{dayjs(data.data.start_time, "HH:mm:ss").format("HH:mm A")} - {dayjs(data.data.end_time, "HH:mm:ss").format("HH:mm A")}</span>
+              <span className="text-black text-base">
+                {dayjs(data.data.start_time, "HH:mm:ss").format("HH:mm A")} -{" "}
+                {dayjs(data.data.end_time, "HH:mm:ss").format("HH:mm A")}
+              </span>
             </div>
             <div className="flex flex-col gap-2 col-start-1 col-end-3">
               <span className="text-text-disabled text-sm">Participant</span>
-              {data.data.participants ? data.data.participants.map((item) => (
-                <div key={item.user_id} className="block ml-4">
-                  <EmployeeProfile userId={item.user_id} />
-                </div>
-              )) : "-"}
+              {data.data.participants
+                ? data.data.participants.map((item) => (
+                    <div key={item.user_id} className="block ml-4">
+                      <EmployeeProfile userId={item.user_id} />
+                    </div>
+                  ))
+                : "-"}
             </div>
             <div className="flex flex-col gap-1 col-start-1 col-end-3">
               <span className="text-text-disabled text-sm">Notes</span>
-              <span className="text-black text-base">{data.data.notes ?? "-"}</span>
+              <span className="text-black text-base">
+                {data.data.notes ?? "-"}
+              </span>
             </div>
           </div>
         </div>
       ) : (
-        <InterviewScheduleForm 
-          offboarding_id={offboarding_id} 
+        <InterviewScheduleForm
+          offboarding_id={offboarding_id}
           onCancelEdit={handleCancelEdit}
           open={openForm}
           setOpen={setOpenForm}
         />
       )}
-      
+
       {data && data?.data && (
         <div className="hidden">
-          <InterviewScheduleForm 
+          <InterviewScheduleForm
             offboarding_id={offboarding_id}
             isEditMode={true}
             existingData={data.data}
