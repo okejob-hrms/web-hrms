@@ -54,12 +54,14 @@ interface UseFormTemplateAddProps {
   editFormId?: number;
   initialData?: Partial<TemplateFormSchema>;
   onSuccess?: () => void;
+  onCancel?: () => void;
 }
 
 export function useFormTemplateAdd({
   editFormId,
   initialData,
   onSuccess,
+  onCancel,
 }: UseFormTemplateAddProps = {}) {
   const [openConfirm, setOpenConfirm] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -85,9 +87,11 @@ export function useFormTemplateAdd({
   });
 
   const { data: editFormData, isLoading: isEditFormLoading } = useQuery({
-    queryKey: ["form", editFormId],
+    queryKey: ["form-details", editFormId],
     queryFn: () => getFormById(editFormId!),
     enabled: !!editFormId,
+    refetchOnMount: "always",
+    staleTime: 0,
   });
 
   React.useEffect(() => {
@@ -175,8 +179,9 @@ export function useFormTemplateAdd({
     }) => postUpdateForm(form_id, payload),
     onSuccess: () => {
       toast.success("Form updated successfully!");
+      queryClient.invalidateQueries({ queryKey: ["form"] });
       queryClient.invalidateQueries({ queryKey: ["forms"] });
-      queryClient.invalidateQueries({ queryKey: ["form", editFormId] });
+      queryClient.invalidateQueries({ queryKey: ["form-details", editFormId] });
     },
     onError: (error: any) => {
       if (error?.response) {
@@ -316,6 +321,15 @@ export function useFormTemplateAdd({
     }
   };
 
+  const handleCancel = React.useCallback(() => {
+    if (onCancel) {
+      onCancel();
+    } else {
+      form.reset();
+    }
+    router.push("/settings/form-template");
+  }, [onCancel, form, router]);
+
   const isLoading =
     createFormMutation.isPending ||
     updateFormMutation.isPending ||
@@ -330,6 +344,7 @@ export function useFormTemplateAdd({
     formsError,
     formSchema,
     handleSubmit,
+    handleCancel,
     form,
     isLoading,
     createFormMutation,

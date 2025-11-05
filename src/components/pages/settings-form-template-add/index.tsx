@@ -30,9 +30,11 @@ export const SettingsFormTemplateAdd = React.memo(
       openConfirm,
       setOpenConfirm,
       isSubmitting,
+      handleCancel,
     } = useFormTemplateAdd({
       editFormId,
       onSuccess,
+      onCancel,
     });
 
     const { fields, append, remove } = useFieldArray({
@@ -74,14 +76,6 @@ export const SettingsFormTemplateAdd = React.memo(
       const formData = form.getValues();
       await handleSubmit(formData);
     }, [form, handleSubmit]);
-
-    const handleCancel = React.useCallback(() => {
-      if (onCancel) {
-        onCancel();
-      } else {
-        form.reset();
-      }
-    }, [onCancel, form]);
 
     const hasQuestions = fields.length > 0;
 
@@ -170,6 +164,7 @@ export const SettingsFormTemplateAdd = React.memo(
           isOpen={openConfirm}
           setIsOpen={setOpenConfirm}
           isLoading={isSubmitting}
+          isEditMode={isEditMode}
         />
       </div>
     );
