@@ -16,6 +16,7 @@ interface Props {
   isOpen: boolean;
   setIsOpen: (x: boolean) => void;
   isLoading?: boolean;
+  isEditMode?: boolean;
 }
 
 export default function ConfirmModal({
@@ -23,6 +24,7 @@ export default function ConfirmModal({
   isOpen,
   setIsOpen,
   isLoading = false,
+  isEditMode,
 }: Props) {
   const handleConfirm = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -61,7 +63,8 @@ export default function ConfirmModal({
               alt="confirmation"
             />
             <AlertDialogTitle className="text-lg text-center font-semibold text-black mb-2">
-              Are you sure you want to create this form?
+              Are you sure you want to {isEditMode ? "update" : "create"} this
+              form?
             </AlertDialogTitle>
             <AlertDialogDescription className="text-sm text-center text-text-secondary">
               Please make sure all information is accurate before proceeding.
@@ -81,7 +84,11 @@ export default function ConfirmModal({
               disabled={isLoading}
               className="flex-1 text-white bg-primary rounded-md py-2 font-medium hover:bg-red-50"
             >
-              {isLoading ? "Creating..." : "Create Form"}
+              {isLoading
+                ? "Creating..."
+                : isEditMode
+                  ? "Update Form"
+                  : "Create Form"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

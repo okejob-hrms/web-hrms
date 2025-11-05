@@ -6,7 +6,11 @@ import { usePathname } from "next/navigation";
 
 export default function FormTemplateAdd() {
   const pathname = usePathname();
-  return (
-    <SettingsFormTemplateAdd editFormId={Number(pathname.split("/")[4])} />
-  );
+  if (Number(pathname.split("/")[4])) {
+    return (
+      <SettingsFormTemplateAdd editFormId={Number(pathname.split("/")[4])} />
+    );
+  }
+
+  return <SettingsFormTemplateAdd />;
 }
