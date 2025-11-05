@@ -6,10 +6,9 @@ import AttendanceTrackerForm from '@/components/pages/attendance-tracket-form';
 export default function AttendanceTrackerEdit({
   params,
 }: {
-  params: { id: string; slug: string };
+  params: Promise<{ id: string; slug: string }>;
 }) {
-  const { id, slug } = params;
-
+  const { id, slug } = React.use(params);
   return (
     <div className="font-sans min-h-screen">
       <AttendanceTrackerForm id={id} slug={slug} />
