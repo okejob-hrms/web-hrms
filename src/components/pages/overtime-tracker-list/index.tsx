@@ -179,79 +179,68 @@ export default function OvertimeTrackerList() {
       cell: ({ row }) => {
         return (
           <DropdownMenu>
-            <DropdownMenuTrigger>
+            <DropdownMenuTrigger asChild>
               <Ellipsis className="text-grayscale-30" />
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem>
-                <button
-                  onClick={() => {
-                    setSelectedId(String(row.original.id));
-                    setDetail(row.original);
-                    setSelectedData(row.original);
-                    setOpenDetail(true);
-                  }}
-                  className="flex gap-2"
-                >
-                  <Eye />
-                  Overtime Request Details
-                </button>
+              <DropdownMenuItem
+                onSelect={() => {
+                  setSelectedId(String(row.original.id));
+                  setDetail(row.original);
+                  setSelectedData(row.original);
+                  setOpenDetail(true);
+                }}
+              >
+                <Eye className="mr-2" />
+                Overtime Request Details
               </DropdownMenuItem>
+
               {row.original.status === 1 && (
                 <>
-                  <DropdownMenuItem>
-                    <button
-                      onClick={() => {
-                        setOpenApprove(true);
-                        setSelectedId(String(row.original?.id));
-                        setSelectedData(row.original);
-                      }}
-                      className="flex gap-2"
-                    >
-                      <Clock4Icon />
-                      Approve Request
-                    </button>
+                  <DropdownMenuItem
+                    onSelect={() => {
+                      setOpenApprove(true);
+                      setSelectedId(String(row.original?.id));
+                      setSelectedData(row.original);
+                    }}
+                  >
+                    <Clock4Icon className="mr-2" />
+                    Approve Request
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <button
-                      onClick={() => {
-                        setOpenReject(true);
-                        setSelectedId(String(row.original?.id));
-                        setSelectedData(row.original);
-                      }}
-                      className="flex gap-2"
-                    >
-                      <XCircle />
-                      Reject Request
-                    </button>
+
+                  <DropdownMenuItem
+                    onSelect={() => {
+                      setOpenReject(true);
+                      setSelectedId(String(row.original?.id));
+                      setSelectedData(row.original);
+                    }}
+                  >
+                    <XCircle className="mr-2" />
+                    Reject Request
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <button
-                      onClick={() => {
-                        setOpenEdit(true);
-                        setSelectedId(String(row.original?.id));
-                        setSelectedData(row.original);
-                        setDetail(row.original);
-                      }}
-                      className="flex gap-2"
-                    >
-                      <Edit3 />
-                      Edit Overtime Request
-                    </button>
+
+                  <DropdownMenuItem
+                    onSelect={() => {
+                      setOpenEdit(true);
+                      setSelectedId(String(row.original?.id));
+                      setSelectedData(row.original);
+                      setDetail(row.original);
+                    }}
+                  >
+                    <Edit3 className="mr-2" />
+                    Edit Overtime Request
                   </DropdownMenuItem>
                 </>
               )}
-              <DropdownMenuItem>
-                <button
-                  onClick={() => {
-                    setOpenDelete(true);
-                    setSelectedId(String(row.original?.id));
-                  }}
-                  className="flex gap-2"
-                >
-                  <Trash />
-                  Delete Request
-                </button>
+
+              <DropdownMenuItem
+                onSelect={() => {
+                  setOpenDelete(true);
+                  setSelectedId(String(row.original?.id));
+                }}
+              >
+                <Trash className="mr-2" />
+                Delete Request
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

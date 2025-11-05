@@ -34,6 +34,7 @@ export function useOvertime() {
     isLoading,
     isFetching,
     isRefetching,
+    refetch: refetchOvertime,
   } = useQuery({
     queryKey: ["overtime", pagination, filters.search, filters.date, filters.status],
     queryFn: () => getOvertime(pagination, filters),
@@ -46,12 +47,12 @@ export function useOvertime() {
     mutationFn: ({ id, payload }: { id: number; payload: RequestOvertimeStatus }) =>
       putOvertimeStatus(id, payload),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["overtime"] });
       toast.success('Success update overtime status');
       setOpenApprove(false);
       setOpenReject(false);
       setOpenDetail(false);
       setOpenEdit(false);
+      refetchOvertime();
     },
     onError: () => {
       toast.error('Failed update overtime status');
@@ -62,12 +63,12 @@ export function useOvertime() {
     mutationFn: ({ id, payload }: { id: number; payload: RequestOvertime }) =>
       putOvertime(id, payload),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["overtime"] });
       toast.success('Success update overtime request');
       setOpenApprove(false);
       setOpenReject(false);
       setOpenDetail(false);
       setOpenEdit(false);
+      refetchOvertime();
     },
     onError: () => {
       toast.error('Failed update overtime request');
@@ -77,9 +78,9 @@ export function useOvertime() {
   const { mutate: removeOvertime } = useMutation({
     mutationFn: (id: number) => deleteOvertime(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["overtime"] });
       toast.success("Success delete overtime");
       setOpenDelete(false);
+      refetchOvertime();
     },
     onError: () => {
       toast.error("Failed delete overtime");
@@ -87,7 +88,7 @@ export function useOvertime() {
   });
 
   const handleApprove = () => {
-        if (!selectedId) return;
+    if (!selectedId) return;
     const dataPayload = {
       status: 2,
     }

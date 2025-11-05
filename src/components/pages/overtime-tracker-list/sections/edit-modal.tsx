@@ -4,6 +4,7 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
+  AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
@@ -53,6 +54,7 @@ export default function OvertimeEditModal({
             <AlertDialogTitle className="text-lg text-center font-semibold text-black mb-2">
               Edit Overtime Request
             </AlertDialogTitle>
+            <AlertDialogDescription></AlertDialogDescription>
           </AlertDialogHeader>
           <div className="flex flex-col items-center justify-center">
             <Avatar className="h-18 w-18">
