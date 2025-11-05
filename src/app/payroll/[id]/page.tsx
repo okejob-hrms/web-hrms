@@ -11,7 +11,7 @@ export default function PayrollTrackerDetail({
   const { id } = React.use(params);
   return (
     <div className="font-sans min-h-screen">
-      <PayrollForm id={id} isDetail />
+      <PayrollForm id={id} />
     </div>
   );
 }
