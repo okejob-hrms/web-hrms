@@ -192,7 +192,9 @@ export default function LateDeductionForm({
               />
 
               {/* Duration Time */}
-              <div className="grid grid-cols-2">
+              <div
+                className={`${form.watch('duration_type') === 'range' ? 'grid grid-cols-2 gap-2' : 'grid grid-cols-1'}`}
+              >
                 <Label className="col-span-2">
                   Duration Time <span className="text-red-500">*</span>
                 </Label>

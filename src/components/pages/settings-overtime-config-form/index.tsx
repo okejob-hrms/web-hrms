@@ -61,10 +61,13 @@ export default function SettingsOvertimeConfigForm() {
   });
 
   const handleSubmit = (values: OvertimeConfigValues) => {
-    // console.log(values);
-    onSubmit({
+    const payload = {
       ...values,
-    });
+      tiering_rules: listTier,
+      exceptions: listExceptions,
+    };
+
+    onSubmit(payload);
   };
 
   //MANAGE TIER
