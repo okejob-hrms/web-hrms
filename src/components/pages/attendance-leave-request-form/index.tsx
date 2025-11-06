@@ -8,6 +8,7 @@ import { MultiSelectForm } from "@/components/ui/multi-select";
 import { DatePicker } from "@/components/ui/date-picker";
 import { TextAreaForm } from "@/components/ui/textarea";
 import { Button, UploadButton } from "@/components/ui/button";
+import AppSkeleton from "@/components/partials/app-skeleton";
 
 export const AttendanceLeaveRequestForm = React.memo(
   function AttendanceLeaveRequestForm() {
@@ -18,12 +19,18 @@ export const AttendanceLeaveRequestForm = React.memo(
       setSearchApprover,
       employeesOptions,
       leaveTypeOptions,
-      isPendingCreateLeave,
+      isPending,
       handleCancel,
       onSubmit,
       leaveBalance,
       valueTransformer,
+      isEditMode,
+      isLoadingDetail,
     } = useLeaveRequestForm();
+
+    if (isEditMode && isLoadingDetail) {
+      return <AppSkeleton />;
+    }
 
     return (
       <div className="font-sans md:px-[125px] px-4 space-y-4">
@@ -34,6 +41,7 @@ export const AttendanceLeaveRequestForm = React.memo(
               label="Employee Name"
               required
               options={employeesOptions}
+              disabled={isEditMode}
             />
             <span className="text-sm text-text-secondary">
               Used Leave Balance :{" "}
@@ -91,15 +99,13 @@ export const AttendanceLeaveRequestForm = React.memo(
               name="attachments"
               label="Attachments"
               required
-              // defaultFile={document || undefined}
-              // error={errors && errors[index]?.path.message}
             />
           </form>
           <div className="flex gap-4 col-span-2">
             <Button
               type="button"
               variant="outline"
-              disabled={isPendingCreateLeave}
+              disabled={isPending}
               className="min-w-[186px]"
               onClick={handleCancel}
             >
@@ -107,11 +113,15 @@ export const AttendanceLeaveRequestForm = React.memo(
             </Button>
             <Button
               type="submit"
-              disabled={isPendingCreateLeave}
+              disabled={isPending}
               className="min-w-[186px]"
               onClick={form.handleSubmit(onSubmit)}
             >
-              {isPendingCreateLeave ? "Loading..." : "Add Leave Request"}
+              {isPending
+                ? "Loading..."
+                : isEditMode
+                  ? "Update Leave Request"
+                  : "Add Leave Request"}
             </Button>
           </div>
         </Form>

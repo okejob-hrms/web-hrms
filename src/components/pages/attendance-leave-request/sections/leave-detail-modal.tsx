@@ -24,6 +24,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { IEmployeeDetailsResponse } from "@/services/employees/types";
+import { useQuery } from "@tanstack/react-query";
+import { getUserLeaveBalance } from "@/services/employees/leave";
 
 interface Props {
   isOpen: boolean;
@@ -49,12 +51,34 @@ export default function LeaveDetailModal({
   getEmployeeData,
 }: Props) {
   const [approversData, setApproversData] = useState<ApproverData[]>([]);
+  const [leaveBalance, setLeaveBalance] = useState("-");
   const [employeeData, setEmployeeData] = useState({
     name: "-",
     job_position: "-",
     job_level: "-",
   });
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchUsedBalanceData = async () => {
+      if (!data || !isOpen) return;
+      setLoading(true);
+
+      try {
+        const usedLeaveBalance = await getUserLeaveBalance(data.user_id);
+        if (usedLeaveBalance) {
+          setLeaveBalance(
+            `${usedLeaveBalance.data.time_off_used} / ${usedLeaveBalance.data.available_time_off} Days`,
+          );
+        }
+      } catch (err) {
+        console.error("Error get user balance: ", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUsedBalanceData();
+  }, [data, isOpen, getUserLeaveBalance]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -190,7 +214,7 @@ export default function LeaveDetailModal({
               </div>
               <div>
                 <div className="text-sm text-gray-500">Used Leave Balance</div>
-                <div>{data.leave_type.quota_configuration}</div>
+                <div>{leaveBalance}</div>
               </div>
               <div className="col-span-2">
                 <div className="text-sm text-gray-500">Reason</div>

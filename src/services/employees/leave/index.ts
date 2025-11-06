@@ -5,6 +5,7 @@ import {
   PaginatedResponse,
 } from "@/lib/types";
 import {
+  ILeaveDetails,
   ILeaveResponse,
   ILeaveSummary,
   IMutateLeaveRequest,
@@ -44,6 +45,16 @@ export const getLeaves = async (
   const response = await api.get<ILeaveResponse>("employee/leaves", {
     searchParams,
   });
+
+  return response.json();
+};
+
+export const getDetailLeave = async (
+  id: number,
+): Promise<ApiResponse<ILeaveDetails>> => {
+  const response = await api.get<ApiResponse<ILeaveDetails>>(
+    `employee/leaves/${id}`,
+  );
 
   return response.json();
 };
