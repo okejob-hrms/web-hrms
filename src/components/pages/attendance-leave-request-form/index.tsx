@@ -65,7 +65,7 @@ export const AttendanceLeaveRequestForm = React.memo(
                 }`}
               >
                 Assigned Approver
-                <span className="text-red-500 ml-1">*</span>
+                {/* <span className="text-red-500 ml-1">*</span> */}
               </label>
               <MultiSelectForm
                 options={employeesOptions}

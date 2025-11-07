@@ -95,8 +95,25 @@ export function useLeaveRequest() {
       toast.success("Successfully updated leave status");
       closeAllModals();
     },
-    onError: () => {
-      toast.error("Failed to update leave status");
+    onError: (error: any) => {
+      if (error?.response) {
+        try {
+          error.response
+            .json()
+            .then((errorData: ApiErrorResponse) => {
+              toast.error(errorData.message || "Failed to update leave status");
+            })
+            .catch(() => {
+              toast.error("Failed to updated leave status: Server error");
+            });
+        } catch (parseError) {
+          toast.error("Failed to updated leave status: Server error");
+        }
+      } else {
+        toast.error(
+          `Failed to updated leave status: ${error.message || "Unknown error"}`,
+        );
+      }
     },
   });
 

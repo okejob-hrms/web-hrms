@@ -24,8 +24,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { IEmployeeDetailsResponse } from "@/services/employees/types";
-import { useQuery } from "@tanstack/react-query";
 import { getUserLeaveBalance } from "@/services/employees/leave";
+import { CircleX, ClockCheck } from "lucide-react";
 
 interface Props {
   isOpen: boolean;
@@ -262,14 +262,16 @@ export default function LeaveDetailModal({
           </AlertDialogCancel>
           <AlertDialogCancel
             onClick={handleReject}
-            className="flex-1 bg-white text-red-500 hover:text-red-500 hover:opacity-50 rounded-md py-2 font-medium border-red-500"
+            className="flex-1 bg-white text-red-500 hover:text-red-500 hover:opacity-50 rounded-md py-2 font-medium border-red-500 px-4"
           >
+            <CircleX />
             Reject
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={handleApprove}
-            className="flex-1 bg-primary text-white rounded-md py-2 font-medium"
+            className="flex-1 bg-primary text-white rounded-md py-2 font-medium px-5"
           >
+            <ClockCheck />
             Approve Request
           </AlertDialogAction>
         </AlertDialogFooter>

@@ -20,24 +20,25 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 export const CreateLeaveRequestSchema = z.object({
-  user_id: z.string().min(1, "User ID is required"),
-  leave_type_id: z.number().min(1, "Leave type ID is required"),
-  start_date: z.string(),
-  end_date: z.string(),
+  user_id: z.string().min(1, "Employee name is required"),
+  leave_type_id: z.string().min(1, "Leave type is required"),
+  start_date: z.string().min(1, "Start date is required"),
+  end_date: z.string().min(1, "End date is required"),
   reason: z.string().min(1, "Reason is required"),
-  attachments: z.array(
-    z.object({
-      type: z.string(),
-    }),
-  ),
-  approvers: z
+  attachments: z
     .array(
       z.object({
-        id: z.number(),
-        user_id: z.number(),
+        type: z.string(),
       }),
     )
-    .min(1, "Approver is required"),
+    .min(1, "Attachment is required"),
+  approvers: z.array(
+    z.object({
+      id: z.number(),
+      user_id: z.number(),
+    }),
+  ),
+  // .min(1, "Approver is required"),
 });
 
 export type ICreateLeaveRequest = z.infer<typeof CreateLeaveRequestSchema>;
@@ -45,6 +46,15 @@ export type ICreateLeaveRequest = z.infer<typeof CreateLeaveRequestSchema>;
 export const useLeaveRequestForm = () => {
   const form = useForm<z.infer<typeof CreateLeaveRequestSchema>>({
     resolver: zodResolver(CreateLeaveRequestSchema),
+    defaultValues: {
+      user_id: "",
+      leave_type_id: "",
+      start_date: dayjs(new Date()).format("YYYY-MM-DD"),
+      end_date: dayjs(new Date()).format("YYYY-MM-DD"),
+      attachments: [],
+      reason: "",
+      approvers: [],
+    },
   });
 
   const router = useRouter();
@@ -122,20 +132,21 @@ export const useLeaveRequestForm = () => {
   React.useEffect(() => {
     if (detailLeave?.data && isEditMode) {
       const leaveData = detailLeave.data;
-
-      form.reset({
-        user_id: leaveData.user_id.toString(),
-        leave_type_id: leaveData.leave_type_id,
-        start_date: leaveData.start_date,
-        end_date: leaveData.end_date,
-        reason: leaveData.reason,
-        attachments: leaveData.attachment
-          ? [{ type: leaveData.attachment }]
-          : [],
-        approvers: leaveData.approvers.map((approver) => ({
-          id: approver.approver_id,
-          user_id: approver.user_id,
-        })),
+      requestAnimationFrame(() => {
+        form.reset({
+          user_id: leaveData.user_id.toString(),
+          leave_type_id: leaveData.leave_type_id.toString(),
+          start_date: leaveData.start_date,
+          end_date: leaveData.end_date,
+          reason: leaveData.reason,
+          attachments: leaveData.attachment
+            ? [{ type: leaveData.attachment }]
+            : [],
+          approvers: leaveData.approvers.map((approver) => ({
+            id: approver.approver_id,
+            user_id: approver.user_id,
+          })),
+        })
       });
     }
   }, [detailLeave, isEditMode, form]);
@@ -256,7 +267,7 @@ export const useLeaveRequestForm = () => {
   const onSubmit = (data: ICreateLeaveRequest) => {
     const requestPayload: IMutateLeaveRequest = {
       user_id: Number(data.user_id),
-      leave_type_id: data.leave_type_id,
+      leave_type_id: Number(data.leave_type_id),
       start_date: dayjs(data.start_date).format("YYYY-MM-DD"),
       end_date: dayjs(data.end_date).format("YYYY-MM-DD"),
       reason: data.reason,

@@ -1,59 +1,59 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import { Button } from '@/components/ui/button';
-import { DataTable } from '@/components/tables/data-table';
-import { ColumnDef } from '@tanstack/react-table';
-import { Plus, CalendarIcon } from 'lucide-react';
-import { RowActions } from '@/components/tables/row-actions';
-import dayjs from 'dayjs';
+import * as React from "react";
+import { Button } from "@/components/ui/button";
+import { DataTable } from "@/components/tables/data-table";
+import { ColumnDef } from "@tanstack/react-table";
+import { Plus, CalendarIcon } from "lucide-react";
+import { RowActions } from "@/components/tables/row-actions";
+import dayjs from "dayjs";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Calendar } from '@/components/ui/calendar';
+} from "@/components/ui/select";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
   PopoverTrigger,
   PopoverContent,
-} from '@/components/ui/popover';
-import { cn } from '@/lib/utils';
-import { toast } from 'sonner';
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 import {
   BaseSalaryItem,
   RequestBaseSalary,
   ResponseBaseSalary,
-} from '@/services/salary/types';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+} from "@/services/salary/types";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   getBaseSalary,
   postBaseSalary,
   putBaseSalary,
   removeBaseSalary,
-} from '@/services/salary';
-import { PaginatedResponse } from '@/lib/types';
-import { JobLevel } from '@/services/job-levels/types';
-import { getJobLevels } from '@/services/job-levels';
+} from "@/services/salary";
+import { PaginatedResponse } from "@/lib/types";
+import { JobLevel } from "@/services/job-levels/types";
+import { getJobLevels } from "@/services/job-levels";
 import {
   AlertDialog,
   AlertDialogContent,
   AlertDialogFooter,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import Image from 'next/image';
-import { getJobPositionPagination } from '@/services/job-position';
+} from "@/components/ui/alert-dialog";
+import Image from "next/image";
+import { getJobPositionPagination } from "@/services/job-position";
 
 // =======================
 // Component
@@ -68,19 +68,19 @@ export default function SettingsBaseSalary() {
 
   const { data: baseSalaryData, refetch: baseSalaryDataRefetch } =
     useQuery<ResponseBaseSalary>({
-      queryKey: ['getBaseSalary'],
-      queryFn: getBaseSalary,
+      queryKey: ["getBaseSalary"],
+      queryFn: () => getBaseSalary(),
       staleTime: 1000 * 60 * 5,
     });
 
   const { data: jobLevel } = useQuery<PaginatedResponse<JobLevel>>({
-    queryKey: ['jobLevel'],
+    queryKey: ["jobLevel"],
     queryFn: getJobLevels,
     staleTime: 1000 * 60 * 5,
   });
 
   const { data: jobPosition } = useQuery({
-    queryKey: ['job_position_id'],
+    queryKey: ["job_position_id"],
     queryFn: () =>
       getJobPositionPagination({
         pageSize: 10000,
@@ -98,45 +98,45 @@ export default function SettingsBaseSalary() {
   // =======================
   const columns: ColumnDef<BaseSalaryItem>[] = [
     {
-      accessorKey: 'job_position_id',
-      header: 'Job Position',
+      accessorKey: "job_position_id",
+      header: "Job Position",
       cell: ({ row }) => {
         const selected = jobPosition?.data.filter(
           (item) => item.id === row.original.job_position_id,
         )[0];
-        return selected?.name ?? '-';
+        return selected?.name ?? "-";
       },
     },
     {
-      accessorKey: 'job_level_id',
-      header: 'Job Level',
+      accessorKey: "job_level_id",
+      header: "Job Level",
       cell: ({ row }) => {
         const selected = jobLevel?.data.filter(
           (item) => item.id === row.original.job_level_id,
         )[0];
-        return selected?.name ?? '-';
+        return selected?.name ?? "-";
       },
     },
     {
-      accessorKey: 'amount',
-      header: 'Base Salary Amount',
+      accessorKey: "amount",
+      header: "Base Salary Amount",
       cell: ({ row }) =>
-        `Rp ${Number(row.original.amount).toLocaleString('id-ID')}`,
+        `Rp ${Number(row.original.amount).toLocaleString("id-ID")}`,
     },
     {
-      accessorKey: 'effective_date',
-      header: 'Effective Date',
+      accessorKey: "effective_date",
+      header: "Effective Date",
       cell: ({ row }) =>
-        dayjs(row.original.effective_date).format('MMMM D, YYYY'),
+        dayjs(row.original.effective_date).format("MMMM D, YYYY"),
     },
     {
-      accessorKey: 'updated_at',
-      header: 'Last Update',
-      cell: ({ row }) => dayjs(row.original.updated_at).format('MMMM D, YYYY'),
+      accessorKey: "updated_at",
+      header: "Last Update",
+      cell: ({ row }) => dayjs(row.original.updated_at).format("MMMM D, YYYY"),
     },
     {
-      id: 'actions',
-      header: '',
+      id: "actions",
+      header: "",
       cell: ({ row }) => {
         const item = row.original;
         return (
@@ -173,8 +173,8 @@ export default function SettingsBaseSalary() {
     },
     onMutate: () => setLoading(true),
     onSuccess: () => {
-      toast.success('Base salary successfully save');
-      queryClient.invalidateQueries({ queryKey: ['getBaseSalary'] });
+      toast.success("Base salary successfully save");
+      queryClient.invalidateQueries({ queryKey: ["getBaseSalary"] });
       baseSalaryDataRefetch();
       setOpen(false);
       setEditing(null);
@@ -190,8 +190,8 @@ export default function SettingsBaseSalary() {
     mutationFn: (id) => removeBaseSalary(id),
     onMutate: () => setLoading(true),
     onSuccess: () => {
-      toast.success('Base salary deleted successfully');
-      queryClient.invalidateQueries({ queryKey: ['getBaseSalary'] });
+      toast.success("Base salary deleted successfully");
+      queryClient.invalidateQueries({ queryKey: ["getBaseSalary"] });
       baseSalaryDataRefetch();
       setOpenDelete(false);
       setEditing(null);
@@ -206,13 +206,13 @@ export default function SettingsBaseSalary() {
   // Form State
   // =======================
   const [form, setForm] = React.useState<
-    Omit<BaseSalaryItem, 'id' | 'updated_at'>
+    Omit<BaseSalaryItem, "id" | "updated_at">
   >({
     job_position_id: 0,
     job_level_id: 0,
     amount: 0,
-    effective_date: '',
-    end_date: '',
+    effective_date: "",
+    end_date: "",
   });
 
   const handleDelete = () => {
@@ -229,7 +229,7 @@ export default function SettingsBaseSalary() {
       !form.effective_date ||
       !form.end_date
     )
-      return toast.error('Please fill all data!');
+      return toast.error("Please fill all data!");
 
     saveMutation.mutate({ id: editing?.id, data: form });
   };
@@ -239,8 +239,8 @@ export default function SettingsBaseSalary() {
       job_position_id: 0,
       job_level_id: 0,
       amount: 0,
-      effective_date: '',
-      end_date: '',
+      effective_date: "",
+      end_date: "",
     });
   };
 
@@ -268,7 +268,7 @@ export default function SettingsBaseSalary() {
         <DialogContent className="max-w-md bg-white">
           <DialogHeader>
             <DialogTitle>
-              {editing ? 'Edit Base Salary' : 'Set Up Base Salary'}
+              {editing ? "Edit Base Salary" : "Set Up Base Salary"}
             </DialogTitle>
           </DialogHeader>
 
@@ -345,14 +345,14 @@ export default function SettingsBaseSalary() {
                   <Button
                     variant="outline"
                     className={cn(
-                      'w-full justify-start text-left font-normal',
-                      !form.effective_date && 'text-muted-foreground',
+                      "w-full justify-start text-left font-normal",
+                      !form.effective_date && "text-muted-foreground",
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {form.effective_date
-                      ? dayjs(form.effective_date).format('MMMM D, YYYY')
-                      : 'Select'}
+                      ? dayjs(form.effective_date).format("MMMM D, YYYY")
+                      : "Select"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="p-0" align="start">
@@ -367,8 +367,8 @@ export default function SettingsBaseSalary() {
                       setForm((prev) => ({
                         ...prev,
                         effective_date: date
-                          ? dayjs(date).format('YYYY-MM-DD')
-                          : '',
+                          ? dayjs(date).format("YYYY-MM-DD")
+                          : "",
                       }))
                     }
                   />
@@ -385,14 +385,14 @@ export default function SettingsBaseSalary() {
                   <Button
                     variant="outline"
                     className={cn(
-                      'w-full justify-start text-left font-normal',
-                      !form.end_date && 'text-muted-foreground',
+                      "w-full justify-start text-left font-normal",
+                      !form.end_date && "text-muted-foreground",
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {form.end_date
-                      ? dayjs(form.end_date).format('MMMM D, YYYY')
-                      : 'Select'}
+                      ? dayjs(form.end_date).format("MMMM D, YYYY")
+                      : "Select"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="p-0" align="start">
@@ -404,7 +404,7 @@ export default function SettingsBaseSalary() {
                     onSelect={(date) =>
                       setForm((prev) => ({
                         ...prev,
-                        end_date: date ? dayjs(date).format('YYYY-MM-DD') : '',
+                        end_date: date ? dayjs(date).format("YYYY-MM-DD") : "",
                       }))
                     }
                   />
@@ -429,7 +429,7 @@ export default function SettingsBaseSalary() {
             {/* Warning Icon (SVG) */}
             <span className="mb-2">
               <Image
-                src={'/icons/deleteContained.svg'}
+                src={"/icons/deleteContained.svg"}
                 width={50}
                 height={50}
                 alt={`icon-delete`}
@@ -474,7 +474,7 @@ export default function SettingsBaseSalary() {
               <Label className="font-semibold">
                 {jobPosition?.data.filter(
                   (item) => item.id === editing?.job_position_id,
-                )[0]?.name ?? '-'}
+                )[0]?.name ?? "-"}
               </Label>
             </div>
 
@@ -483,28 +483,28 @@ export default function SettingsBaseSalary() {
               <Label className="font-semibold">
                 {jobLevel?.data.filter(
                   (item) => item.id === editing?.job_level_id,
-                )[0]?.name ?? '-'}
+                )[0]?.name ?? "-"}
               </Label>
             </div>
 
             <div className="space-y-2">
               <Label>Base Salary Amount</Label>
               <Label className="font-semibold">
-                {`Rp ${Number(editing?.amount).toLocaleString('id-ID')}`}
+                {`Rp ${Number(editing?.amount).toLocaleString("id-ID")}`}
               </Label>
             </div>
 
             <div className="space-y-2">
               <Label>Effective Date</Label>
               <Label className="font-semibold">
-                {dayjs(editing?.effective_date).format('MMMM D, YYYY')}
+                {dayjs(editing?.effective_date).format("MMMM D, YYYY")}
               </Label>
             </div>
 
             <div className="space-y-2">
               <Label>Effective To</Label>
               <Label className="font-semibold">
-                {dayjs(editing?.end_date).format('MMMM D, YYYY')}
+                {dayjs(editing?.end_date).format("MMMM D, YYYY")}
               </Label>
             </div>
           </div>
