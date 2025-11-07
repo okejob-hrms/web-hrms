@@ -179,6 +179,7 @@ export interface IEmployeeDetailsResponse {
       employment_id: number;
       allowance_type_id: number;
       allowance_value: string;
+      allowance_name: string;
       deleted_at: string | null;
       created_at: string;
       updated_at: string | null;
