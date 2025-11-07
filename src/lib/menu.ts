@@ -85,6 +85,9 @@ export const menus: Record<string, MenuItem[]> = {
     { name: "Performance Management", value: "settings/performance" },
     { name: "Mobile & ESS", value: "settings/mobile-ess" },
   ],
+  performance: [
+    { name: "Self Assessment", value: "performance/self-assessment" }
+  ]
 };
 
 export const getGenerateTitle = (title: string) => {
