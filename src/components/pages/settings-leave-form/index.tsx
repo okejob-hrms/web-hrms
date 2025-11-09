@@ -45,7 +45,7 @@ type SettingsLeaveConfigurationFormProps = {
 export default function SettingsLeaveConfigurationForm({
   id,
 }: SettingsLeaveConfigurationFormProps) {
-  const { form, onSubmit, jobLevel, handleDetailData, listing } =
+  const { form, onSubmit, jobLevel, handleDetailData, listing, onBack } =
     useLeaveTypeForm();
 
   const quotaConfig = useWatch({
@@ -485,7 +485,7 @@ export default function SettingsLeaveConfigurationForm({
 
           {/* Buttons */}
           <div className="flex justify-end gap-3 pt-4">
-            <Button type="button" variant="outline">
+            <Button type="button" variant="outline" onClick={() => onBack()}>
               Cancel
             </Button>
             <Button type="submit">Save</Button>

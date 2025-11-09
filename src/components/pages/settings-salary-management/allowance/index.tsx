@@ -133,8 +133,8 @@ export default function SettingsBaseAllowance() {
               setEditing(item);
               setForm({
                 name: item.name,
-                effective_date: item.effective_date,
-                expire_date: item.expire_date,
+                effective_date: dayjs(item.effective_date).format('YYYY-MM-DD'),
+                expire_date: dayjs(item.expire_date).format('YYYY-MM-DD'),
                 job_levels: [...item.job_levels],
               });
               setOpen(true);
@@ -220,8 +220,6 @@ export default function SettingsBaseAllowance() {
     if (!form.name || !form.effective_date || !form.expire_date)
       return toast.error('Please fill all required fields');
 
-    console.log(form);
-
     const payload = {
       ...form,
       description: '',
@@ -296,78 +294,32 @@ export default function SettingsBaseAllowance() {
               <Label>
                 Effective Date<span className="text-red-500">*</span>
               </Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      'w-full justify-start text-left font-normal',
-                      !form.effective_date && 'text-muted-foreground',
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {form.effective_date
-                      ? dayjs(form.effective_date).format('MMMM D, YYYY')
-                      : 'Select'}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={
-                      form.effective_date
-                        ? new Date(form.effective_date)
-                        : undefined
-                    }
-                    onSelect={(date) =>
-                      setForm((prev) => ({
-                        ...prev,
-                        effective_date: date
-                          ? dayjs(date).format('YYYY-MM-DD')
-                          : '',
-                      }))
-                    }
-                  />
-                </PopoverContent>
-              </Popover>
+              <Input
+                type="date"
+                value={form.effective_date}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    effective_date: e.target.value,
+                  }))
+                }
+              />
             </div>
 
             <div className="space-y-2">
               <Label>
                 Effective To<span className="text-red-500">*</span>
               </Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      'w-full justify-start text-left font-normal',
-                      !form.expire_date && 'text-muted-foreground',
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {form.expire_date
-                      ? dayjs(form.expire_date).format('MMMM D, YYYY')
-                      : 'Select'}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={
-                      form.expire_date ? new Date(form.expire_date) : undefined
-                    }
-                    onSelect={(date) =>
-                      setForm((prev) => ({
-                        ...prev,
-                        expire_date: date
-                          ? dayjs(date).format('YYYY-MM-DD')
-                          : '',
-                      }))
-                    }
-                  />
-                </PopoverContent>
-              </Popover>
+              <Input
+                type="date"
+                value={form.expire_date}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    expire_date: e.target.value,
+                  }))
+                }
+              />
             </div>
 
             <hr className="my-2" />

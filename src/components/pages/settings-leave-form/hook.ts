@@ -161,6 +161,10 @@ export function useLeaveTypeForm() {
     setSelectedId(id);
   }
 
+  const onBack = () => {
+      router.push('/settings/leave-management')
+  }
+
   return {
     form,
     onSubmit,
@@ -170,5 +174,6 @@ export function useLeaveTypeForm() {
     loadingType,
     handleDetailData,
     listing,
+    onBack
  };
 }

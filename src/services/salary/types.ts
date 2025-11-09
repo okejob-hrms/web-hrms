@@ -107,3 +107,13 @@ export interface DeductionSalaryTier {
     tax_rate: string;
     updated_at: string;
 }
+
+export interface DeductionSalaryItemTypeList {
+    status: string;
+    data: DeductionSalaryItemType[];
+}
+
+export interface DeductionSalaryItemType {
+    id: number;
+    name: string;
+}

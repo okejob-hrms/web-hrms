@@ -72,7 +72,7 @@ export default function SettingsOvertimeConfigForm() {
 
   //MANAGE TIER
   const handleSaveTier = () => {
-    if (!tierField?.from_hour || !tierField?.to_hour || !tierField?.rate) {
+    if (!tierField?.from_hour || !tierField?.rate) {
       toast.error('Please fill all data');
       return;
     }
@@ -596,12 +596,12 @@ export default function SettingsOvertimeConfigForm() {
                 type="number"
                 placeholder="0"
                 value={tierField.from_hour}
-                onChange={(e) =>
+                onChange={(e) => {
                   setTierField((prev) => ({
                     ...prev,
-                    start: e.target.value,
-                  }))
-                }
+                    from_hour: e.target.value,
+                  }));
+                }}
               />
               <span className="text-gray-500">-</span>
               <Input

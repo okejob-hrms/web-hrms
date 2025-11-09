@@ -60,7 +60,7 @@ export default function LateDeductionForm({
       shift_id: [],
       duration_type: 'lte',
       min_minutes: 0,
-      payroll_amount: undefined,
+      payroll_amount: 0,
       leave_impact: undefined,
       is_payroll_deduction: false,
       is_leave_impact: false,
@@ -77,7 +77,7 @@ export default function LateDeductionForm({
     shift_id: [],
     duration_type: 'lte',
     min_minutes: 0,
-    payroll_amount: undefined,
+    payroll_amount: 0,
     leave_impact: 'half_day',
     is_payroll_deduction: false,
     is_leave_impact: false,
@@ -132,7 +132,9 @@ export default function LateDeductionForm({
       ends_on: data.ends_on || '',
       note: data.note || '',
       is_leave_impact: data.leave_impact === 'half_day' ? true : false,
-      max_minutes: data.max_minutes || 0,
+      ...(data.duration_type === 'range' && {
+        max_minutes: data.max_minutes ?? 0,
+      }),
     };
 
     onOpenChange(false);
@@ -152,7 +154,10 @@ export default function LateDeductionForm({
 
         <Form {...form}>
           <form
-            onSubmit={form.handleSubmit(onSubmit)}
+            onSubmit={(e) => {
+              e.preventDefault();
+              form.handleSubmit(onSubmit)(e);
+            }}
             className="flex flex-col gap-4 mt-4"
           >
             <div className="grid sm:grid-cols-2 grid-cols-1 gap-4">
@@ -193,7 +198,7 @@ export default function LateDeductionForm({
 
               {/* Duration Time */}
               <div
-                className={`${form.watch('duration_type') === 'range' ? 'grid grid-cols-2 gap-2' : 'grid grid-cols-1'}`}
+                className={`${form.watch('duration_type') === 'range' ? 'grid grid-cols-2' : 'grid grid-cols-1'} gap-2`}
               >
                 <Label className="col-span-2">
                   Duration Time <span className="text-red-500">*</span>
@@ -371,14 +376,12 @@ export default function LateDeductionForm({
               <AlertDialogCancel
                 className="min-w-[100px] border-2 border-[#18618B] text-[#18618B] bg-white hover:bg-[#e6f1f7] font-medium py-2 rounded-lg"
                 onClick={handleClose}
-                disabled={isLoading}
               >
                 Cancel
               </AlertDialogCancel>
               <Button
                 type="submit"
                 isLoading={isLoading}
-                disabled={!form.formState.isValid}
                 className="min-w-[100px] bg-[#18618B] hover:bg-[#14506e] text-white font-medium py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Save

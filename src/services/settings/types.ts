@@ -426,12 +426,17 @@ export interface LeaveBalanceItem {
   balance: number;
   created_at: string;
   id: number;
-  job_level: null;
+  job_level: JobLevelData;
   job_level_id: number;
   reset_period_day: number;
   reset_period_month: number;
   updated_at: string;
   user: null;
+}
+
+export interface JobLevelData {
+  id: number;
+  name: string;
 }
 
 export interface LeaveBalanceRequest { 

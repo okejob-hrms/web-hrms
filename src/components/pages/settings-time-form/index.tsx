@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import { CompanyFormValues, useCompanyForm } from "./hook";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { CompanyFormValues, useCompanyForm } from './hook';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select';
 import {
   Form,
   FormLabel,
@@ -17,11 +17,12 @@ import {
   FormField,
   FormItem,
   FormMessage,
-} from "@/components/ui/form";
-import { useEffect, useState } from "react";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Trash2 } from "lucide-react";
-import TitleContent from "@/components/ui/title";
+} from '@/components/ui/form';
+import { useEffect, useState } from 'react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Plus, Trash2 } from 'lucide-react';
+import TitleContent from '@/components/ui/title';
+import { AttendanceConfigData } from '../settings-time-list/hook';
 
 export default function SettingsAttendanceConfigurationForm() {
   const {
@@ -33,21 +34,25 @@ export default function SettingsAttendanceConfigurationForm() {
     shiftData,
   } = useCompanyForm();
 
-  console.log("dataWorkSchedule", dataWorkSchedule);
-
-  const [workSchedules, setWorkSchedules] = useState(
-    dataWorkSchedule?.rawWorkSchedules || [],
-  );
+  const [workSchedules, setWorkSchedules] = useState<
+    NonNullable<AttendanceConfigData['rawWorkSchedules']>
+  >([]);
 
   const defaultValueNew = {
     shift_id: shiftData?.data[0]?.id ?? 0,
-    shift_name: shiftData?.data[0]?.name ?? "Night Shift",
-    start_time: "09:00",
-    end_time: "17:00",
-    break_start_time: "12:00",
-    break_end_time: "13:00",
+    shift_name: shiftData?.data[0]?.name ?? 'Night Shift',
+    start_time: '09:00',
+    end_time: '17:00',
+    break_start_time: '12:00',
+    break_end_time: '13:00',
     ends_next_day: false,
   };
+
+  useEffect(() => {
+    if (dataWorkSchedule?.rawWorkSchedules) {
+      setWorkSchedules(dataWorkSchedule.rawWorkSchedules);
+    }
+  }, [dataWorkSchedule]);
 
   const handleSubmit = (values: CompanyFormValues) => {
     const dataWork = workSchedules
@@ -76,7 +81,7 @@ export default function SettingsAttendanceConfigurationForm() {
   };
 
   useEffect(() => {
-    console.log("updated workSchedules", workSchedules);
+    console.log('updated workSchedules', workSchedules);
   }, [workSchedules]);
 
   return (

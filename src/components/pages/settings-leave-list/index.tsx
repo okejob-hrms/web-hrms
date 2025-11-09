@@ -73,7 +73,15 @@ export default function SettingsLeaveConfiguration() {
   ];
 
   const columnsBalance: ColumnDef<LeaveBalanceItem>[] = [
-    { accessorKey: 'job_level_id', header: 'Job Level', size: 160 },
+    {
+      accessorKey: 'job_level_id',
+      header: 'Job Level',
+      size: 160,
+      cell: ({ row }) => {
+        const item = row.original;
+        return <div className="flex">{item.job_level.name}</div>;
+      },
+    },
     { accessorKey: 'balance', header: 'Leave Balance', size: 160 },
     {
       id: 'reset_period_days',

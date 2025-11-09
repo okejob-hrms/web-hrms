@@ -143,7 +143,11 @@ export default function SettingsBaseSalary() {
           <RowActions
             onEdit={() => {
               setEditing(item);
-              setForm(item);
+              setForm({
+                ...item,
+                effective_date: dayjs(item.effective_date).format('YYYY-MM-DD'),
+                end_date: dayjs(item.end_date).format('YYYY-MM-DD'),
+              });
               setOpen(true);
             }}
             onDelete={() => {
@@ -340,76 +344,32 @@ export default function SettingsBaseSalary() {
               <Label>
                 Effective Date<span className="text-red-500">*</span>
               </Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      'w-full justify-start text-left font-normal',
-                      !form.effective_date && 'text-muted-foreground',
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {form.effective_date
-                      ? dayjs(form.effective_date).format('MMMM D, YYYY')
-                      : 'Select'}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={
-                      form.effective_date
-                        ? new Date(form.effective_date)
-                        : undefined
-                    }
-                    onSelect={(date) =>
-                      setForm((prev) => ({
-                        ...prev,
-                        effective_date: date
-                          ? dayjs(date).format('YYYY-MM-DD')
-                          : '',
-                      }))
-                    }
-                  />
-                </PopoverContent>
-              </Popover>
+              <Input
+                type="date"
+                value={form.effective_date}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    effective_date: e.target.value,
+                  }))
+                }
+              />
             </div>
 
             <div className="space-y-2">
               <Label>
                 Effective To<span className="text-red-500">*</span>
               </Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      'w-full justify-start text-left font-normal',
-                      !form.end_date && 'text-muted-foreground',
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {form.end_date
-                      ? dayjs(form.end_date).format('MMMM D, YYYY')
-                      : 'Select'}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={
-                      form.end_date ? new Date(form.end_date) : undefined
-                    }
-                    onSelect={(date) =>
-                      setForm((prev) => ({
-                        ...prev,
-                        end_date: date ? dayjs(date).format('YYYY-MM-DD') : '',
-                      }))
-                    }
-                  />
-                </PopoverContent>
-              </Popover>
+              <Input
+                type="date"
+                value={form.end_date}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    end_date: e.target.value,
+                  }))
+                }
+              />
             </div>
           </div>
 

@@ -1,6 +1,6 @@
  
 import { api } from "@/lib/api";
-import { DeductionSalaryItem, RequestAllowance, 
+import { DeductionSalaryItem, DeductionSalaryItemType, DeductionSalaryItemTypeList, RequestAllowance, 
   RequestBaseSalary, 
   RequestDeductionSalary, 
   ResponseAllowance, 
@@ -121,4 +121,9 @@ export const removeDeductionSalary = async (
       json: {},
     })
     .json<ApiResponse<PaginatedResponse<DeductionSalaryItem>>>();
+};
+
+export const getDeductionSalaryType = async (): Promise<DeductionSalaryItemTypeList> => {
+  const response = await api.get("setting/deduction-types");
+  return response.json();
 };

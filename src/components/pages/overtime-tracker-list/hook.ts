@@ -48,11 +48,11 @@ export function useOvertime() {
       putOvertimeStatus(id, payload),
     onSuccess: () => {
       toast.success('Success update overtime status');
+      queryClient.invalidateQueries({ queryKey: ['overtime'] });
       setOpenApprove(false);
       setOpenReject(false);
       setOpenDetail(false);
       setOpenEdit(false);
-      refetchOvertime();
     },
     onError: () => {
       toast.error('Failed update overtime status');
@@ -98,7 +98,7 @@ export function useOvertime() {
   const handleReject = () => {
     if (!selectedId) return;
     const dataPayload = {
-      status: 2,
+      status: 3,
     }
     updateStatus({ id: Number(selectedId), payload: dataPayload });
   };
