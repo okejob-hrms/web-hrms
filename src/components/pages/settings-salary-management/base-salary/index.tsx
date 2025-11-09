@@ -69,7 +69,7 @@ export default function SettingsBaseSalary() {
   const { data: baseSalaryData, refetch: baseSalaryDataRefetch } =
     useQuery<ResponseBaseSalary>({
       queryKey: ['getBaseSalary'],
-      queryFn: getBaseSalary,
+      queryFn: () => getBaseSalary(),
       staleTime: 1000 * 60 * 5,
     });
 

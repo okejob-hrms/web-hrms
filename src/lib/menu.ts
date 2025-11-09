@@ -80,11 +80,14 @@ export const menus: Record<string, MenuItem[]> = {
           name: "Salary Deduction Management",
           value: "settings/salary-management/deduction",
         },
-      ]
+      ],
     },
     { name: "Performance Management", value: "settings/performance" },
     { name: "Mobile & ESS", value: "settings/mobile-ess" },
   ],
+  performance: [
+    { name: "Self Assessment", value: "performance/self-assessment" }
+  ]
 };
 
 export const getGenerateTitle = (title: string) => {
@@ -121,6 +124,7 @@ export const getHideSidebar = (path: string) => {
   const offboardingDetailPattern = /^\/employee\/off-boarding\/\d+$/;
   const salaryAdjustmentPattern =
     /^\/employee\/off-boarding\/\d+\/salary-adjustment$/;
+  const leaveRequestEditPattern = /^\/attendance\/leave-request\/edit\/\d+$/;
 
   if (employeeDetailPattern.test(path)) {
     return true;
@@ -131,6 +135,10 @@ export const getHideSidebar = (path: string) => {
   }
 
   if (salaryAdjustmentPattern.test(path)) {
+    return true;
+  }
+
+  if (leaveRequestEditPattern.test(path)) {
     return true;
   }
 
@@ -164,7 +172,8 @@ export const getLastPath = (pathname: string) => {
 
 export const toTitleCase = (str: string) => {
   return str
-    .replace(/-/g, " ").replace(/_/g, ' ')
+    .replace(/-/g, " ")
+    .replace(/_/g, " ")
     .toLowerCase()
     .replace(/\b\w/g, (char) => char.toUpperCase());
 };

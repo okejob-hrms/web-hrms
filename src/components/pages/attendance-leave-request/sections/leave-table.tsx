@@ -18,6 +18,7 @@ import {
   CircleCheckBigIcon,
   CircleXIcon,
   Clock4Icon,
+  Edit3,
   Ellipsis,
   Eye,
   Plus,
@@ -33,6 +34,7 @@ import {
 import dayjs from "dayjs";
 import { ILeaveResponse } from "@/services/employees/leave/types";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 
 interface Props {
   data: ILeaveResponse[] | undefined;
@@ -59,6 +61,7 @@ export default function LeaveTable({
   onOpenModal,
   onNavigateAdd,
 }: Props) {
+  const router = useRouter();
   const columns: ColumnDef<ILeaveResponse>[] = React.useMemo(
     () => [
       {
@@ -206,13 +209,25 @@ export default function LeaveTable({
 
                 <DropdownMenuItem asChild>
                   <button
+                    onClick={() =>
+                      router.push(`/attendance/leave-request/edit/${leave.id}`)
+                    }
+                    className="flex gap-2 w-full text-left"
+                  >
+                    <Edit3 className="w-4 h-4" />
+                    Edit Overtime Request
+                  </button>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem asChild>
+                  <button
                     onClick={() => {
                       onSelectLeave(leave);
                       onOpenModal("delete");
                     }}
                     className="flex gap-2 w-full text-left text-red-600"
                   >
-                    <Trash className="w-4 h-4" />
+                    <Trash className="w-4 h-4 text-red-600" />
                     Delete Request
                   </button>
                 </DropdownMenuItem>

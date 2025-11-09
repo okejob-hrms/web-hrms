@@ -18,6 +18,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { getBaseSalary } from "@/services/salary";
 
 export const SalaryInformationSection = React.memo(
   function SalaryInformation() {
@@ -25,6 +26,8 @@ export const SalaryInformationSection = React.memo(
     const [isModalOpen, setIsModalOpen] = React.useState(false);
     const [tempAllowances, setTempAllowances] = React.useState<any[]>([]);
     const watchedAllowances = watch("allowances") || [];
+    const watchedJobPosition = watch("job_position_id") || null;
+    const watchedJobLevel = watch("job_level_id") || null;
 
     const { replace } = useFieldArray({
       control,
@@ -37,6 +40,14 @@ export const SalaryInformationSection = React.memo(
       staleTime: 5 * 60 * 1000,
       refetchOnWindowFocus: false,
     });
+
+    const { data: baseSalary } = useQuery({
+      queryKey: ["base-salary", watchedJobLevel, watchedJobPosition],
+      queryFn: () => getBaseSalary({ job_level_id: watchedJobLevel, job_position_id: watchedJobPosition }),
+      enabled: !!watchedJobPosition && !!watchedJobLevel
+    })
+
+    console.log("base salary", baseSalary?.data)
 
     const allowanceTypesOptions = React.useMemo(() => {
       if (allowanceTypes?.data) {

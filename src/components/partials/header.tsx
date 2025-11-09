@@ -78,7 +78,7 @@ const menuItems = [
     name: 'performance',
     label: 'Performance',
     icon: '/icons/storeReport.svg',
-    path: '/performance',
+    path: '/performance/self-assessment',
     children: [],
   },
   {

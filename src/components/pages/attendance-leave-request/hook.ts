@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import * as React from "react";
@@ -23,6 +24,7 @@ import {
   IMutateLeaveStatus,
 } from "@/services/employees/leave/types";
 import { Filters } from "./types";
+import { ApiErrorResponse } from "@/lib/types";
 
 export function useLeaveRequest() {
   const router = useRouter();
@@ -93,8 +95,25 @@ export function useLeaveRequest() {
       toast.success("Successfully updated leave status");
       closeAllModals();
     },
-    onError: () => {
-      toast.error("Failed to update leave status");
+    onError: (error: any) => {
+      if (error?.response) {
+        try {
+          error.response
+            .json()
+            .then((errorData: ApiErrorResponse) => {
+              toast.error(errorData.message || "Failed to update leave status");
+            })
+            .catch(() => {
+              toast.error("Failed to updated leave status: Server error");
+            });
+        } catch (parseError) {
+          toast.error("Failed to updated leave status: Server error");
+        }
+      } else {
+        toast.error(
+          `Failed to updated leave status: ${error.message || "Unknown error"}`,
+        );
+      }
     },
   });
 
@@ -105,8 +124,27 @@ export function useLeaveRequest() {
       toast.success("Successfully deleted leave request");
       setModalState((prev) => ({ ...prev, delete: false }));
     },
-    onError: () => {
-      toast.error("Failed to delete leave request");
+    onError: (error: any) => {
+      if (error?.response) {
+        try {
+          error.response
+            .json()
+            .then((errorData: ApiErrorResponse) => {
+              toast.error(
+                errorData.message || "Failed to delete leave request",
+              );
+            })
+            .catch(() => {
+              toast.error("Failed to delete leave request: Server error");
+            });
+        } catch (parseError) {
+          toast.error("Failed to delete leave request: Server error");
+        }
+      } else {
+        toast.error(
+          `Failed to delete leave request: ${error.message || "Unknown error"}`,
+        );
+      }
     },
   });
 
@@ -142,10 +180,15 @@ export function useLeaveRequest() {
     });
   }, [selectedId, updateStatus]);
 
-  const handleDelete = React.useCallback(() => {
+  // const handleDelete = React.useCallback(() => {
+  //   if (!selectedId) return;
+  //   removeLeave(Number(selectedId));
+  // }, [selectedId, removeLeave]);
+
+  const handleDelete = () => {
     if (!selectedId) return;
     removeLeave(Number(selectedId));
-  }, [selectedId, removeLeave]);
+  };
 
   const handleNavigateAddRequestPage = React.useCallback(() => {
     router.push("/attendance/leave-request/add");

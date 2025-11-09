@@ -146,7 +146,6 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
 
   React.useEffect(() => {
     if (employeeDetails && !isDataLoaded) {
-      console.log("Team members data:", employeeDetails.team_members[0].id);
       const socialMediaAccounts = employeeDetails.social_media_accounts || [];
       const validSocialMedia =
         socialMediaAccounts.length > 0
@@ -200,7 +199,7 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
           (item) => ({
             allowance_type_id: item.allowance_type_id?.toString() || "",
             allowance_value: Number(item.allowance_value) || 0,
-            // allowance_name: item.allowance_name || "",
+            allowance_name: item.allowance_name || "",
           }),
         ),
         bank_id: employeeDetails.bank_account?.bank_id?.toString() || "",
@@ -237,7 +236,7 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
   }, [employeeDetails, isDataLoaded, form]);
 
   const onSubmit = React.useCallback(
-    (values: z.infer<typeof employeeManagementFormScheme>) => {
+    (values: z.infer<typeof employeeManagementFormScheme> | any) => {
       try {
         const {
           country_code,
@@ -250,6 +249,16 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
           social_media_accounts,
           allowances,
           team_members,
+          id,
+          user_id,
+          user,
+          marital_status_label,
+          branch,
+          employment,
+          bank_account,
+          reporting_relationships,
+          photo_profile_url,
+          updated_at,
           ...restValues
         } = values;
 
@@ -261,6 +270,7 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
         const validAllowances = filterValidData(allowances || [], [
           "allowance_type_id",
           "allowance_value",
+          "allowance_name"
         ]).map((item) => ({
           allowance_type_id: Number(item.allowance_type_id),
           allowance_value: Number(item.allowance_value),

@@ -1,6 +1,10 @@
- 
 import { api } from "@/lib/api";
-import { DeductionSalaryItem, DeductionSalaryItemType, DeductionSalaryItemTypeList, RequestAllowance, 
+import { 
+  DeductionSalaryItem, 
+  DeductionSalaryItemType, 
+  DeductionSalaryItemTypeList, 
+  IParamSearch, 
+  RequestAllowance, 
   RequestBaseSalary, 
   RequestDeductionSalary, 
   ResponseAllowance, 
@@ -8,13 +12,16 @@ import { DeductionSalaryItem, DeductionSalaryItemType, DeductionSalaryItemTypeLi
   ResponseDeductionSalary,
 } from "./types";
 import { ApiResponse, PaginatedResponse } from "@/lib/types";
+import qs from "qs";
 
 export const getAllowance = async (): Promise<ResponseAllowance> => {
   const response = await api.get("allowance-types");
   return response.json();
 };
 
-export const getAllowanceById = async (id: number): Promise<ResponseAllowance> => {
+export const getAllowanceById = async (
+  id: number,
+): Promise<ResponseAllowance> => {
   const response = await api.get(`allowance-types/${id}`);
   return response.json<ResponseAllowance>();
 };
@@ -50,8 +57,12 @@ export const removeAllowance = async (
     .json<ResponseAllowance>();
 };
 
-export const getBaseSalary = async (): Promise<ResponseBaseSalary> => {
-  const response = await api.get("base-salaries");
+export const getBaseSalary = async (
+  search?: IParamSearch,
+): Promise<ResponseBaseSalary> => {
+  const response = await api.get(
+    search ? `base-salaries?${qs.stringify(search)}` : "base-salaries",
+  );
   return response.json();
 };
 
@@ -86,8 +97,9 @@ export const removeBaseSalary = async (
     .json<ResponseBaseSalary>();
 };
 
-
-export const getDeductionSalary = async (): Promise<ApiResponse<PaginatedResponse<DeductionSalaryItem>>> => {
+export const getDeductionSalary = async (): Promise<
+  ApiResponse<PaginatedResponse<DeductionSalaryItem>>
+> => {
   const response = await api.get("setting/salary-deduction");
   return response.json();
 };

@@ -24,6 +24,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { IEmployeeDetailsResponse } from "@/services/employees/types";
+import { getUserLeaveBalance } from "@/services/employees/leave";
+import { CircleX, ClockCheck } from "lucide-react";
 
 interface Props {
   isOpen: boolean;
@@ -49,12 +51,34 @@ export default function LeaveDetailModal({
   getEmployeeData,
 }: Props) {
   const [approversData, setApproversData] = useState<ApproverData[]>([]);
+  const [leaveBalance, setLeaveBalance] = useState("-");
   const [employeeData, setEmployeeData] = useState({
     name: "-",
     job_position: "-",
     job_level: "-",
   });
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchUsedBalanceData = async () => {
+      if (!data || !isOpen) return;
+      setLoading(true);
+
+      try {
+        const usedLeaveBalance = await getUserLeaveBalance(data.user_id);
+        if (usedLeaveBalance) {
+          setLeaveBalance(
+            `${usedLeaveBalance.data.time_off_used} / ${usedLeaveBalance.data.available_time_off} Days`,
+          );
+        }
+      } catch (err) {
+        console.error("Error get user balance: ", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUsedBalanceData();
+  }, [data, isOpen, getUserLeaveBalance]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -190,7 +214,7 @@ export default function LeaveDetailModal({
               </div>
               <div>
                 <div className="text-sm text-gray-500">Used Leave Balance</div>
-                <div>{data.leave_type.quota_configuration}</div>
+                <div>{leaveBalance}</div>
               </div>
               <div className="col-span-2">
                 <div className="text-sm text-gray-500">Reason</div>
@@ -238,14 +262,16 @@ export default function LeaveDetailModal({
           </AlertDialogCancel>
           <AlertDialogCancel
             onClick={handleReject}
-            className="flex-1 bg-white text-red-500 hover:text-red-500 hover:opacity-50 rounded-md py-2 font-medium border-red-500"
+            className="flex-1 bg-white text-red-500 hover:text-red-500 hover:opacity-50 rounded-md py-2 font-medium border-red-500 px-4"
           >
+            <CircleX />
             Reject
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={handleApprove}
-            className="flex-1 bg-primary text-white rounded-md py-2 font-medium"
+            className="flex-1 bg-primary text-white rounded-md py-2 font-medium px-5"
           >
+            <ClockCheck />
             Approve Request
           </AlertDialogAction>
         </AlertDialogFooter>
