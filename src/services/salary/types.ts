@@ -25,6 +25,7 @@ export interface RequestAllowance {
 
 export interface AllowanceItemJobList {
   id: number;
+  job_level_id: number;
   name: string;
   amount: string;
 }

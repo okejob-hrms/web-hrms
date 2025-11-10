@@ -202,12 +202,17 @@ export default function SettingsBaseAllowance() {
     name: string;
     effective_date: string;
     expire_date: string;
-    job_levels: { id: number; name: string; amount: string }[];
+    job_levels: {
+      id: number;
+      job_level_id: number;
+      name: string;
+      amount: string;
+    }[];
   }>({
     name: '',
     effective_date: '',
     expire_date: '',
-    job_levels: [{ id: 0, name: '', amount: '0' }],
+    job_levels: [{ id: 0, job_level_id: 0, name: '', amount: '0' }],
   });
 
   const handleDelete = () => {
@@ -224,7 +229,7 @@ export default function SettingsBaseAllowance() {
       ...form,
       description: '',
       allowance_items: form.job_levels.map((item) => ({
-        job_level_id: Number(item.id),
+        job_level_id: Number(item.job_level_id),
         amount: Number(item.amount),
       })),
     };
@@ -237,7 +242,7 @@ export default function SettingsBaseAllowance() {
       name: '',
       effective_date: '',
       expire_date: '',
-      job_levels: [{ id: 0, name: '', amount: '0' }],
+      job_levels: [{ id: 0, job_level_id: 0, name: '', amount: '0' }],
     });
   };
 
@@ -335,11 +340,11 @@ export default function SettingsBaseAllowance() {
                     Job Level<span className="text-red-500">*</span>
                   </Label>
                   <Select
-                    value={String(jl.id)}
+                    value={String(jl.job_level_id)}
                     onValueChange={(val) => {
                       console.log(val);
                       const arr = [...form.job_levels];
-                      arr[idx].id = Number(val);
+                      arr[idx].job_level_id = Number(val);
                       setForm((prev) => ({ ...prev, job_levels: arr }));
                     }}
                   >
@@ -403,7 +408,7 @@ export default function SettingsBaseAllowance() {
                   ...prev,
                   job_levels: [
                     ...prev.job_levels,
-                    { id: 0, name: '', amount: '0' },
+                    { id: 0, job_level_id: 0, name: '', amount: '0' },
                   ],
                 }))
               }
@@ -496,8 +501,9 @@ export default function SettingsBaseAllowance() {
                   <div className="space-y-2">
                     <Label>Job Level</Label>
                     <Label className="font-semibold">
-                      {jobLevel?.data.filter((item) => item.id === jl.id)[0]
-                        ?.name ?? '-'}
+                      {jobLevel?.data.filter(
+                        (item) => item.id === jl.job_level_id,
+                      )[0]?.name ?? '-'}
                     </Label>
                   </div>
 
