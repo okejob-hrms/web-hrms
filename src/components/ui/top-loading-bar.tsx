@@ -32,7 +32,7 @@ export function TopLoadingBar() {
     <AnimatePresence>
       {visible && (
         <motion.div
-          className="fixed top-0 left-0 h-[8px] bg-primary z-[9999] shadow-md"
+          className="fixed top-0 left-0 h-[5px] bg-primary/90 z-[9999] shadow-md"
           initial={{ width: '0%' }}
           animate={{ width: `${progress}%` }}
           exit={{ opacity: 0 }}
