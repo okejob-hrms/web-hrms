@@ -22,12 +22,17 @@ import { getBaseSalary } from "@/services/salary";
 
 export const SalaryInformationSection = React.memo(
   function SalaryInformation() {
-    const { control, watch, getValues } = useFormContext();
+    const { control, watch, getValues, setValue } = useFormContext();
     const [isModalOpen, setIsModalOpen] = React.useState(false);
     const [tempAllowances, setTempAllowances] = React.useState<any[]>([]);
     const watchedAllowances = watch("allowances") || [];
     const watchedJobPosition = watch("job_position_id") || null;
     const watchedJobLevel = watch("job_level_id") || null;
+
+    const formatCurrency = (value: string | number) => {
+      const numValue = typeof value === "string" ? parseFloat(value) : value;
+      return new Intl.NumberFormat("id-ID").format(numValue);
+    };
 
     const { replace } = useFieldArray({
       control,
@@ -43,11 +48,22 @@ export const SalaryInformationSection = React.memo(
 
     const { data: baseSalary } = useQuery({
       queryKey: ["base-salary", watchedJobLevel, watchedJobPosition],
-      queryFn: () => getBaseSalary({ job_level_id: watchedJobLevel, job_position_id: watchedJobPosition }),
-      enabled: !!watchedJobPosition && !!watchedJobLevel
-    })
+      queryFn: () =>
+        getBaseSalary({
+          job_level_id: watchedJobLevel,
+          job_position_id: watchedJobPosition,
+        }),
+      enabled: !!watchedJobPosition && !!watchedJobLevel,
+    });
 
-    console.log("base salary", baseSalary?.data)
+    console.log("base salary", baseSalary?.data);
+
+    React.useEffect(() => {
+      if (baseSalary?.data?.[0]?.amount) {
+        setValue("base_salary", baseSalary.data[0].amount);
+      }
+      setValue("base_salary", 0);
+    }, [baseSalary?.data, setValue]);
 
     const allowanceTypesOptions = React.useMemo(() => {
       if (allowanceTypes?.data) {
@@ -107,11 +123,6 @@ export const SalaryInformationSection = React.memo(
         (item) => item.id.toString() === typeId,
       );
       return type?.name || "";
-    };
-
-    const formatCurrency = (value: string | number) => {
-      const numValue = typeof value === "string" ? parseFloat(value) : value;
-      return new Intl.NumberFormat("id-ID").format(numValue);
     };
 
     const handleAllowanceTypeChange = (index: number, typeId: string) => {

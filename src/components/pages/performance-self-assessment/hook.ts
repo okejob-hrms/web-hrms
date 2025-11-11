@@ -13,28 +13,28 @@ export function useSelfAssessment() {
   const [selectedId, setSelectedId] = React.useState<string>("");
 
   const { data, isLoading: loading } = useQuery({
-    queryKey: ["forms"],
+    queryKey: ["self-assessments"],
     queryFn: getAllForm,
   });
 
   const { mutate: removeForm } = useMutation({
     mutationFn: (id: number) => deleteForm(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["forms"] });
-      toast.success("Success delete form");
+      queryClient.invalidateQueries({ queryKey: ["self-assessments"] });
+      toast.success("Success delete self assessment");
       setOpenDelete(false);
     },
     onError: () => {
-      toast.error("Failed delete form");
+      toast.error("Failed delete self assessment");
     },
   });
 
   const handleNew = () => {
-    router.push("/settings/form-template/add");
+    router.push("/performance/self-assessment/add");
   };
 
   const handleEdit = (id: number | string) => {
-    router.push(`/settings/form-template/${id}`);
+    router.push(`/performance/self-assessment/${id}`);
   };
 
   const handleDelete = () => {

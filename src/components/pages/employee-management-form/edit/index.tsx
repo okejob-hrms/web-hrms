@@ -193,7 +193,7 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
           employeeDetails.employment?.job_level_id?.toString() || "",
         status: employeeDetails.employment?.status?.toString() || "",
         team_members: employeeDetails.team_members[0]?.id?.toString() || "",
-        base_salary: Number(employeeDetails.employment?.base_salary) || 0,
+        // base_salary: Number(employeeDetails.employment?.base_salary) || 0,
         salary_nett: Number(employeeDetails.employment?.salary_nett) || 0,
         allowances: (employeeDetails.employment?.allowances || [])?.map(
           (item) => ({
@@ -270,7 +270,7 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
         const validAllowances = filterValidData(allowances || [], [
           "allowance_type_id",
           "allowance_value",
-          "allowance_name"
+          "allowance_name",
         ]).map((item) => ({
           allowance_type_id: Number(item.allowance_type_id),
           allowance_value: Number(item.allowance_value),

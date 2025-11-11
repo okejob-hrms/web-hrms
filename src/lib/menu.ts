@@ -86,8 +86,8 @@ export const menus: Record<string, MenuItem[]> = {
     { name: "Mobile & ESS", value: "settings/mobile-ess" },
   ],
   performance: [
-    { name: "Self Assessment", value: "performance/self-assessment" }
-  ]
+    { name: "Self Assessment", value: "performance/self-assessment" },
+  ],
 };
 
 export const getGenerateTitle = (title: string) => {
@@ -118,6 +118,7 @@ export const getHideSidebar = (path: string) => {
     "/settings/company/company-branch/",
     "/payroll",
     "/settings/leave-management/",
+    "/performance/self-assessment/add",
   ];
 
   const employeeDetailPattern = /^\/employee\/employee-management\/\d+$/;
