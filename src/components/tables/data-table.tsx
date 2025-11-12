@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import * as React from 'react';
+import * as React from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -10,7 +10,7 @@ import {
   RowSelectionState,
   OnChangeFn,
   PaginationState,
-} from '@tanstack/react-table';
+} from "@tanstack/react-table";
 
 import {
   Table,
@@ -19,11 +19,12 @@ import {
   TableHead,
   TableBody,
   TableCell,
-} from '@/components/ui/table';
-import { cn } from '@/lib/utils';
-import { GeneralPagination } from '../ui/pagination';
-import { PaginatedResponse } from '@/lib/types';
-import { Skeleton } from '../ui/skeleton';
+  TableFooter,
+} from "@/components/ui/table";
+import { cn } from "@/lib/utils";
+import { GeneralPagination } from "../ui/pagination";
+import { PaginatedResponse } from "@/lib/types";
+import { Skeleton } from "../ui/skeleton";
 
 interface DataTableProps<TData, TValue = unknown> {
   columns: ColumnDef<TData, TValue>[];
@@ -42,6 +43,7 @@ interface DataTableProps<TData, TValue = unknown> {
   loading?: boolean;
   colLeftFixed?: boolean;
   colRightFixed?: boolean;
+  tableFooter?: React.ReactNode;
 }
 
 export function DataTable<TData, TValue>({
@@ -61,6 +63,7 @@ export function DataTable<TData, TValue>({
   loading,
   colLeftFixed,
   colRightFixed,
+  tableFooter,
 }: DataTableProps<TData, TValue>) {
   const enableRowSelection = !!rowSelection;
   const isPaginated =
@@ -97,11 +100,11 @@ export function DataTable<TData, TValue>({
             </div>
           </>
         ) : (
-          <div className={cn('overflow-x-auto', wrapperTableClassName)}>
+          <div className={cn("overflow-x-auto", wrapperTableClassName)}>
             <Table
               className={cn(
-                'w-full',
-                customSize ? 'table-fixed min-w-[800px]' : 'min-w-[800px]',
+                "w-full",
+                customSize ? "table-fixed min-w-[800px]" : "min-w-[800px]",
                 tableClassName,
               )}
             >
@@ -124,17 +127,17 @@ export function DataTable<TData, TValue>({
                               : undefined
                           }
                           className={cn(
-                            'bg-gray-50 p-4 md:sticky top-0 z-10 text-left font-medium text-text-secondary',
+                            "bg-gray-50 p-4 md:sticky top-0 z-10 text-left font-medium text-text-secondary",
                             customSize
-                              ? 'break-words whitespace-normal'
-                              : 'min-w-[120px]',
+                              ? "break-words whitespace-normal"
+                              : "min-w-[120px]",
                             tableHeadClassName,
                             colLeftFixed &&
                               isFirstCol &&
-                              'md:sticky left-0 z-30 border-r border-gray-300 bg-gray-50',
+                              "md:sticky left-0 z-30 border-r border-gray-300 bg-gray-50",
                             colRightFixed &&
                               isLastCol &&
-                              'md:sticky right-0 z-30 border-l border-gray-300 bg-gray-50',
+                              "md:sticky right-0 z-30 border-l border-gray-300 bg-gray-50",
                           )}
                         >
                           {header.isPlaceholder
@@ -157,7 +160,7 @@ export function DataTable<TData, TValue>({
                       className="hover:bg-gray-50/50"
                       data-state={
                         enableRowSelection && row.getIsSelected()
-                          ? 'selected'
+                          ? "selected"
                           : undefined
                       }
                     >
@@ -177,17 +180,17 @@ export function DataTable<TData, TValue>({
                                 : undefined
                             }
                             className={cn(
-                              'p-4 text-sm',
+                              "p-4 text-sm",
                               customSize
-                                ? 'break-words whitespace-normal'
-                                : 'min-w-[120px]',
+                                ? "break-words whitespace-normal"
+                                : "min-w-[120px]",
                               tableCellClassName,
                               colLeftFixed &&
                                 isFirstCol &&
-                                'md:sticky left-0 z-20 border-r border-gray-300 bg-gray-50',
+                                "md:sticky left-0 z-20 border-r border-gray-300 bg-gray-50",
                               colRightFixed &&
                                 isLastCol &&
-                                'md:sticky right-0 z-20 border-l border-gray-300 bg-gray-50',
+                                "md:sticky right-0 z-20 border-l border-gray-300 bg-gray-50",
                             )}
                           >
                             {customSize ? (
@@ -232,6 +235,7 @@ export function DataTable<TData, TValue>({
                   </TableRow>
                 )}
               </TableBody>
+              <TableFooter>{tableFooter}</TableFooter>
             </Table>
           </div>
         )}

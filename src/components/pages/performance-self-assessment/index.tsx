@@ -29,7 +29,7 @@ export default function SelfAssessmentList() {
   } = useSelfAssessment();
   const columns: ColumnDef<IFormTemplate>[] = [
     {
-      accessorKey: "name",
+      accessorKey: "period",
       header: ({ column }) => {
         const isSorted = column.getIsSorted();
         const SortIcon = () =>
@@ -43,7 +43,7 @@ export default function SelfAssessmentList() {
 
         return (
           <div className="flex flex-row gap-2 items-center">
-            <span>Form Name</span>
+            <span>Assessment Period</span>
             <button
               type="button"
               onClick={() => column.toggleSorting(isSorted === "asc")}
@@ -54,87 +54,99 @@ export default function SelfAssessmentList() {
           </div>
         );
       },
-      size: 300,
     },
     {
-      accessorKey: "type",
-      header: "Form Usage",
-      size: 300,
-    },
-    {
-      accessorKey: "lastUpdate",
-      header: "Last Update",
-      size: 300,
-      cell: ({ row }) => {
-        const { date, hour } = formatDateTime(row.original.updated_at);
+      accessorKey: "status",
+      header: ({ column }) => {
+        const isSorted = column.getIsSorted();
+        const SortIcon = () =>
+          isSorted === "asc" ? (
+            <ArrowUp className="w-3 h-3" />
+          ) : isSorted === "desc" ? (
+            <ArrowDown className="w-3 h-3" />
+          ) : (
+            <ChevronsUpDown className="w-3 h-3 opacity-50" />
+          );
+
         return (
-          <div>
-            <span>
-              {date} {hour}
-            </span>
+          <div className="flex flex-row gap-2 items-center">
+            <span>Status</span>
+            <button
+              type="button"
+              onClick={() => column.toggleSorting(isSorted === "asc")}
+              className="flex items-center gap-1"
+            >
+              <SortIcon />
+            </button>
           </div>
         );
       },
     },
     {
-      accessorKey: "menu",
-      header: "",
-      cell: ({ row }) => {
+      accessorKey: "start_date",
+      header: ({ column }) => {
+        const isSorted = column.getIsSorted();
+        const SortIcon = () =>
+          isSorted === "asc" ? (
+            <ArrowUp className="w-3 h-3" />
+          ) : isSorted === "desc" ? (
+            <ArrowDown className="w-3 h-3" />
+          ) : (
+            <ChevronsUpDown className="w-3 h-3 opacity-50" />
+          );
+
         return (
-          <DropdownMenu>
-            <DropdownMenuTrigger>
-              <Ellipsis className="text-grayscale-30" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              {/* <DropdownMenuItem>
-								<Link
-									href={`/settings/form-template/${row.original.id}`}
-									className="flex gap-2 justify-between items-center"
-								>
-									<Image
-										src="/icons/eyeVisibleGrey.svg"
-										height={16}
-										width={16}
-										alt="icon-eye"
-									/>
-									Form Details
-								</Link>
-							</DropdownMenuItem> */}
-              <DropdownMenuItem>
-                <Link
-                  href={`/settings/form-template/edit/${row.original.id}`}
-                  className="flex gap-2 justify-between items-center"
-                >
-                  <Image
-                    src="/icons/editGrey.svg"
-                    height={16}
-                    width={16}
-                    alt="icon-edit"
-                  />
-                  Edit
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <button
-                  className="flex gap-2"
-                  onClick={() => {
-                    setSelectedId(String(row.original.id));
-                    setOpenDelete(true);
-                  }}
-                >
-                  <Image
-                    src="/icons/delete.svg"
-                    height={16}
-                    width={16}
-                    alt="icon-edit"
-                  />
-                  Delete
-                </button>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex flex-row gap-2 items-center">
+            <span>Start Date</span>
+            <button
+              type="button"
+              onClick={() => column.toggleSorting(isSorted === "asc")}
+              className="flex items-center gap-1"
+            >
+              <SortIcon />
+            </button>
+          </div>
         );
       },
+    },
+    {
+      accessorKey: "end_date",
+      header: ({ column }) => {
+        const isSorted = column.getIsSorted();
+        const SortIcon = () =>
+          isSorted === "asc" ? (
+            <ArrowUp className="w-3 h-3" />
+          ) : isSorted === "desc" ? (
+            <ArrowDown className="w-3 h-3" />
+          ) : (
+            <ChevronsUpDown className="w-3 h-3 opacity-50" />
+          );
+
+        return (
+          <div className="flex flex-row gap-2 items-center">
+            <span>End Date</span>
+            <button
+              type="button"
+              onClick={() => column.toggleSorting(isSorted === "asc")}
+              className="flex items-center gap-1"
+            >
+              <SortIcon />
+            </button>
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "submitted",
+      header: "Submitted",
+    },
+    {
+      accessorKey: "progress",
+      header: "Progress",
+    },
+    {
+      accessorKey: "created_by",
+      header: "Created By",
     },
   ];
 

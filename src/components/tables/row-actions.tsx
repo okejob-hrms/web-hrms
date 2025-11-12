@@ -1,12 +1,12 @@
-import React from 'react';
+import React from "react";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuPortal,
-} from '@/components/ui/dropdown-menu';
-import { MoreHorizontal, Edit3, Trash2, Eye } from 'lucide-react';
+} from "@/components/ui/dropdown-menu";
+import { MoreHorizontal, Edit3, Trash2, Eye } from "lucide-react";
 
 interface RowActionsProps {
   onEdit: () => void;
