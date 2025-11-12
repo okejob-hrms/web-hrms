@@ -9,70 +9,8 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { ChevronDown, ChevronUp, Loader2 } from "lucide-react";
-import { useQuery, keepPreviousData } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { getEmployeeGroupJobLevel } from "@/services/employees/group";
-
-const dummyJobLevelGroups = {
-  data: [
-    {
-      job_level_id: 1,
-      job_level_name: "Founder",
-      employees: [
-        {
-          id: 1,
-          name: "Olivia Rhye",
-          job_position: "CEO",
-          photo_profile_url: "/images/avatar-1.png",
-        },
-      ],
-      employees_count: 1,
-    },
-    {
-      job_level_id: 2,
-      job_level_name: "Managerial",
-      employees: [
-        {
-          id: 2,
-          name: "Phoenix Baker",
-          job_position: "CTO",
-          photo_profile_url: "/images/avatar-2.png",
-        },
-        {
-          id: 3,
-          name: "Lana Steiner",
-          job_position: "COO",
-          photo_profile_url: "/images/avatar-3.png",
-        },
-      ],
-      employees_count: 2,
-    },
-    {
-      job_level_id: 3,
-      job_level_name: "Engineering",
-      employees: [
-        {
-          id: 4,
-          name: "Candice Wu",
-          job_position: "Head of Engineering",
-          photo_profile_url: "/images/avatar-4.png",
-        },
-        {
-          id: 5,
-          name: "Jane Cooper",
-          job_position: "Frontend Engineer",
-          photo_profile_url: "/images/avatar-5.png",
-        },
-        {
-          id: 6,
-          name: "Leslie Alexander",
-          job_position: "Frontend Engineer",
-          photo_profile_url: "/images/avatar-6.png",
-        },
-      ],
-      employees_count: 3,
-    },
-  ],
-};
 
 interface EmployeeListSidebarProps {
   onEmployeeSelect: (employeeId: number) => void;
@@ -108,11 +46,11 @@ export const EmployeeListSidebar = ({
   const {
     data: fetchJobLevelGroups,
     isLoading,
+    isFetching,
     isError,
   } = useQuery({
     queryKey: ["employeeGroupsByJobLevel", debouncedSearchTerm],
     queryFn: () => getEmployeeGroupJobLevel({ search: debouncedSearchTerm }),
-    placeholderData: keepPreviousData,
   });
 
   const jobLevelGroups = fetchJobLevelGroups?.data ?? [];
@@ -127,7 +65,7 @@ export const EmployeeListSidebar = ({
         className="mb-4"
       />
       <div className="flex-1 overflow-y-auto space-y-4">
-        {isLoading && (
+        {isLoading || isFetching && (
           <div className="flex justify-center items-center h-full">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
