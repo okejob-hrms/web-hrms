@@ -10,6 +10,7 @@ import {
   useNodesState,
   useEdgesState,
   Background,
+  ReactFlowProvider,
   type Node,
   type Edge,
 } from "@xyflow/react";
@@ -23,6 +24,7 @@ import { getOrgChart } from "@/services/employees/organization-structure";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { EmployeeNode, NodeCardData } from "./types";
+import DownloadButton from "./sections/download-button";
 
 const dagreGraph = new dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
 const nodeWidth = 220;
@@ -117,64 +119,58 @@ export default function OrganizationChart() {
   };
 
   return (
-    <div className="font-sans min-h-screen">
-      <div className="flex justify-between w-full items-center mb-3">
-        <div className="flex flex-col sm:flex-row justify-between w-full items-start sm:items-center gap-4 sm:gap-0">
-          <div className="flex gap-2 items-center flex-wrap">
-            <h2 className="font-semibold text-xl">Organization Structure</h2>
+    <ReactFlowProvider>
+      <div className="font-sans min-h-screen">
+        <div className="flex justify-between w-full items-center mb-3">
+          <div className="flex flex-col sm:flex-row justify-between w-full items-start sm:items-center gap-4 sm:gap-0">
+            <div className="flex gap-2 items-center flex-wrap">
+              <h2 className="font-semibold text-xl">Organization Structure</h2>
+            </div>
+            <div className="flex flex-row gap-2">
+              {/* <div className="flex flex-row text-[10px] align-middle gap-[5px] items-center">
+                <Image
+                  src="/icons/update.svg"
+                  width={10}
+                  height={10}
+                  alt="update icon"
+                />
+                <span>Last Update</span>
+                <span className="text-primary">Jul 20, 2025</span>
+                <span className="text-primary">16:00</span>
+              </div> */}
+              <DownloadButton/>
+              <Button onClick={handleEditClick} className="whitespace-nowrap">
+                <Image
+                  src="/icons/edit.svg"
+                  width={18}
+                  height={18}
+                  alt="edit icon"
+                />{" "}
+                Edit Structure
+              </Button>
+            </div>
           </div>
-          <div className="flex flex-row gap-2">
-            {/* <div className="flex flex-row text-[10px] align-middle gap-[5px] items-center">
-              <Image
-                src="/icons/update.svg"
-                width={10}
-                height={10}
-                alt="update icon"
-              />
-              <span>Last Update</span>
-              <span className="text-primary">Jul 20, 2025</span>
-              <span className="text-primary">16:00</span>
-            </div> */}
-            <Button className="bg-white border border-primary text-primary whitespace-nowrap hover:bg-white/90">
-              <Image
-                src="/icons/download.svg"
-                width={18}
-                height={18}
-                alt="download icon"
-              />{" "}
-              Download
-            </Button>
-            <Button onClick={handleEditClick} className="whitespace-nowrap">
-              <Image
-                src="/icons/edit.svg"
-                width={18}
-                height={18}
-                alt="edit icon"
-              />{" "}
-              Edit Structure
-            </Button>
-          </div>
-        </div>
-      </div>{" "}
-      <div style={{ width: "100%", height: "80vh" }}>
-        {isError && <div>Failed to load organization chart</div>}
+        </div>{" "}
+        <div style={{ width: "100%", height: "80vh" }}>
+          {isError && <div>Failed to load organization chart</div>}
 
-        {!isLoading && !isError && (
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            nodeTypes={nodeTypes}
-            fitView
-            style={{ backgroundColor: "#EDEDED" }}
-            className="bg-grayscale-10"
-          >
-            <Background />
-            <CustomControls />
-          </ReactFlow>
-        )}
+          {!isLoading && !isError && (
+            <ReactFlow
+              nodes={nodes}
+              edges={edges}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              nodeTypes={nodeTypes}
+              fitView
+              style={{ backgroundColor: "#EDEDED" }}
+              className="bg-grayscale-10"
+            >
+              <Background />
+              <CustomControls />
+            </ReactFlow>
+          )}
+        </div>
       </div>
-    </div>
+    </ReactFlowProvider>
   );
 }
