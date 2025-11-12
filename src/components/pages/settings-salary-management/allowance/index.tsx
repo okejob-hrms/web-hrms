@@ -133,8 +133,8 @@ export default function SettingsBaseAllowance() {
               setEditing(item);
               setForm({
                 name: item.name,
-                effective_date: item.effective_date,
-                expire_date: item.expire_date,
+                effective_date: dayjs(item.effective_date).format('YYYY-MM-DD'),
+                expire_date: dayjs(item.expire_date).format('YYYY-MM-DD'),
                 job_levels: [...item.job_levels],
               });
               setOpen(true);
@@ -202,12 +202,17 @@ export default function SettingsBaseAllowance() {
     name: string;
     effective_date: string;
     expire_date: string;
-    job_levels: { id: number; name: string; amount: string }[];
+    job_levels: {
+      id: number;
+      job_level_id: number;
+      name: string;
+      amount: string;
+    }[];
   }>({
     name: '',
     effective_date: '',
     expire_date: '',
-    job_levels: [{ id: 0, name: '', amount: '0' }],
+    job_levels: [{ id: 0, job_level_id: 0, name: '', amount: '0' }],
   });
 
   const handleDelete = () => {
@@ -220,13 +225,11 @@ export default function SettingsBaseAllowance() {
     if (!form.name || !form.effective_date || !form.expire_date)
       return toast.error('Please fill all required fields');
 
-    console.log(form);
-
     const payload = {
       ...form,
       description: '',
       allowance_items: form.job_levels.map((item) => ({
-        job_level_id: Number(item.id),
+        job_level_id: Number(item.job_level_id),
         amount: Number(item.amount),
       })),
     };
@@ -239,7 +242,7 @@ export default function SettingsBaseAllowance() {
       name: '',
       effective_date: '',
       expire_date: '',
-      job_levels: [{ id: 0, name: '', amount: '0' }],
+      job_levels: [{ id: 0, job_level_id: 0, name: '', amount: '0' }],
     });
   };
 
@@ -296,78 +299,32 @@ export default function SettingsBaseAllowance() {
               <Label>
                 Effective Date<span className="text-red-500">*</span>
               </Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      'w-full justify-start text-left font-normal',
-                      !form.effective_date && 'text-muted-foreground',
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {form.effective_date
-                      ? dayjs(form.effective_date).format('MMMM D, YYYY')
-                      : 'Select'}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={
-                      form.effective_date
-                        ? new Date(form.effective_date)
-                        : undefined
-                    }
-                    onSelect={(date) =>
-                      setForm((prev) => ({
-                        ...prev,
-                        effective_date: date
-                          ? dayjs(date).format('YYYY-MM-DD')
-                          : '',
-                      }))
-                    }
-                  />
-                </PopoverContent>
-              </Popover>
+              <Input
+                type="date"
+                value={form.effective_date}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    effective_date: e.target.value,
+                  }))
+                }
+              />
             </div>
 
             <div className="space-y-2">
               <Label>
                 Effective To<span className="text-red-500">*</span>
               </Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      'w-full justify-start text-left font-normal',
-                      !form.expire_date && 'text-muted-foreground',
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {form.expire_date
-                      ? dayjs(form.expire_date).format('MMMM D, YYYY')
-                      : 'Select'}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={
-                      form.expire_date ? new Date(form.expire_date) : undefined
-                    }
-                    onSelect={(date) =>
-                      setForm((prev) => ({
-                        ...prev,
-                        expire_date: date
-                          ? dayjs(date).format('YYYY-MM-DD')
-                          : '',
-                      }))
-                    }
-                  />
-                </PopoverContent>
-              </Popover>
+              <Input
+                type="date"
+                value={form.expire_date}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    expire_date: e.target.value,
+                  }))
+                }
+              />
             </div>
 
             <hr className="my-2" />
@@ -383,11 +340,11 @@ export default function SettingsBaseAllowance() {
                     Job Level<span className="text-red-500">*</span>
                   </Label>
                   <Select
-                    value={String(jl.id)}
+                    value={String(jl.job_level_id)}
                     onValueChange={(val) => {
                       console.log(val);
                       const arr = [...form.job_levels];
-                      arr[idx].id = Number(val);
+                      arr[idx].job_level_id = Number(val);
                       setForm((prev) => ({ ...prev, job_levels: arr }));
                     }}
                   >
@@ -451,7 +408,7 @@ export default function SettingsBaseAllowance() {
                   ...prev,
                   job_levels: [
                     ...prev.job_levels,
-                    { id: 0, name: '', amount: '0' },
+                    { id: 0, job_level_id: 0, name: '', amount: '0' },
                   ],
                 }))
               }
@@ -544,8 +501,9 @@ export default function SettingsBaseAllowance() {
                   <div className="space-y-2">
                     <Label>Job Level</Label>
                     <Label className="font-semibold">
-                      {jobLevel?.data.filter((item) => item.id === jl.id)[0]
-                        ?.name ?? '-'}
+                      {jobLevel?.data.filter(
+                        (item) => item.id === jl.job_level_id,
+                      )[0]?.name ?? '-'}
                     </Label>
                   </div>
 

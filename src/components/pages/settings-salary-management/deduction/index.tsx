@@ -32,6 +32,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   getDeductionSalary,
+  getDeductionSalaryType,
   postDeductionSalary,
   putDeductionSalary,
   removeDeductionSalary,
@@ -63,6 +64,13 @@ export default function SettingsSalaryDeduction() {
     queryFn: getDeductionSalary,
     staleTime: 1000 * 60 * 5,
   });
+
+  const { data: deductionDataType, refetch: deductionDataTypeRefetch } =
+    useQuery({
+      queryKey: ['getDeductionSalaryType'],
+      queryFn: getDeductionSalaryType,
+      staleTime: 1000 * 60 * 5,
+    });
 
   // =======================
   // Columns
@@ -228,9 +236,14 @@ export default function SettingsSalaryDeduction() {
   };
 
   const handleSave = () => {
-    if (!form.name || !form.effective_date)
+    if (!form.name || !form.effective_date || !form.deduction_type)
       return toast.error('Please fill all required fields');
-    console.log(form);
+    if (!form.contribution_type)
+      return toast.error('Please fill contribution type');
+    if (!form.employee_contribution || !form.employer_contribution)
+      return toast.error(
+        'Please fill employee contribution and employer contribution',
+      );
 
     saveMutation.mutate({
       id: editing?.id,

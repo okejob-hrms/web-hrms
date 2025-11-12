@@ -106,8 +106,8 @@ export function useOvertimeConfigForm() {
       toast.success('Overtime config updated successfully.');
       router.push('/settings/time-attendance/overtime-configuration');
     },
-    onError: () => {
-      toast.error('Failed to update overtime config.');
+    onError: (error) => {
+      toast.error(`Failed on ${error.message}`);
     },
   });
 

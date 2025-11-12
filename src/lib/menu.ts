@@ -86,8 +86,8 @@ export const menus: Record<string, MenuItem[]> = {
     { name: "Mobile & ESS", value: "settings/mobile-ess" },
   ],
   performance: [
-    { name: "Self Assessment", value: "performance/self-assessment" }
-  ]
+    { name: "Self Assessment", value: "performance/self-assessment" },
+  ],
 };
 
 export const getGenerateTitle = (title: string) => {
@@ -118,6 +118,7 @@ export const getHideSidebar = (path: string) => {
     "/settings/company/company-branch/",
     "/payroll",
     "/settings/leave-management/",
+    "/performance/self-assessment/add",
   ];
 
   const employeeDetailPattern = /^\/employee\/employee-management\/\d+$/;
@@ -125,6 +126,7 @@ export const getHideSidebar = (path: string) => {
   const salaryAdjustmentPattern =
     /^\/employee\/off-boarding\/\d+\/salary-adjustment$/;
   const leaveRequestEditPattern = /^\/attendance\/leave-request\/edit\/\d+$/;
+  const selfAssessmentDetailsPattern = /^\/performance\/self-assessment\/\d+$/;
 
   if (employeeDetailPattern.test(path)) {
     return true;
@@ -139,6 +141,10 @@ export const getHideSidebar = (path: string) => {
   }
 
   if (leaveRequestEditPattern.test(path)) {
+    return true;
+  }
+
+  if (selfAssessmentDetailsPattern.test(path)) {
     return true;
   }
 

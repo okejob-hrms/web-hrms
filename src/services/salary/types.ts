@@ -25,6 +25,7 @@ export interface RequestAllowance {
 
 export interface AllowanceItemJobList {
   id: number;
+  job_level_id: number;
   name: string;
   amount: string;
 }
@@ -112,4 +113,14 @@ export interface IParamSearch {
   JobPosition?: string;
   job_level_id?: string;
   job_position_id?: string;
+}
+
+export interface DeductionSalaryItemTypeList {
+    status: string;
+    data: DeductionSalaryItemType[];
+}
+
+export interface DeductionSalaryItemType {
+    id: number;
+    name: string;
 }

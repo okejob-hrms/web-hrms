@@ -121,6 +121,7 @@ export function useCompanyForm() {
     if (typeof window !== "undefined") {
       const storedData = localStorage.getItem("dataBranch");
       if (storedData) {
+        console.log('JSON.parse(storedData)', JSON.parse(storedData));
         setData(JSON.parse(storedData) as AttendanceConfigData);
         setBranch(JSON.parse(localStorage.getItem("branch") || "null"));
       }
@@ -128,7 +129,7 @@ export function useCompanyForm() {
   }, []);
 
   // Get shift list
-  const { data: shiftData, isLoading: isShiftLoading } =
+  const { data: shiftData } =
     useQuery<ShiftResponse>({
       queryKey: ["shift"],
       queryFn: getShift,
@@ -141,10 +142,10 @@ export function useCompanyForm() {
   });
 
   useEffect(() => {
-    if (data && !isShiftLoading) {
+    if (data && shiftData) {
       form.reset(mapFromApiResponse(data));
     }
-  }, [data, isShiftLoading, form]);
+  }, [data, shiftData, form]);
 
   const mutation = useMutation({
     mutationFn: (values: CompanyFormValues) =>
