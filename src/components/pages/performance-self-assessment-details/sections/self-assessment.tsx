@@ -1,16 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import DataTable from "@/components/tables/data-table";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { ColumnDef } from "@tanstack/react-table";
 import { Edit } from "lucide-react";
 import * as React from "react";
+import { AssessmentForm } from "./assessment-form";
 
 const columns: ColumnDef<any>[] = [
   {
@@ -61,8 +56,8 @@ export const SelfAssessment = () => {
         tableFooter={
           <TableRow className="bg-primary-background py-4 px-6">
             <TableCell className="text-right">Total Score</TableCell>
-            <TableCell>$2,500.00</TableCell>
-            <TableCell>$2,500.00</TableCell>
+            <TableCell>-</TableCell>
+            <TableCell>-</TableCell>
           </TableRow>
         }
       />
@@ -74,45 +69,7 @@ export const SelfAssessment = () => {
           <Edit /> Edit
         </Button>
       </div>
-      <Accordion
-        type="single"
-        collapsible
-        className="w-full"
-        defaultValue="item-1"
-      >
-        <AccordionItem value="item-1">
-          <AccordionTrigger className="text-primary font-semibold text-base border-b border-b-primary-border rounded-none">
-            Product Information
-          </AccordionTrigger>
-          <AccordionContent className="flex flex-col gap-4 text-balance py-2">
-            <p>
-              Our flagship product combines cutting-edge technology with sleek
-              design. Built with premium materials, it offers unparalleled
-              performance and reliability.
-            </p>
-            <p>
-              Key features include advanced processing capabilities, and an
-              intuitive user interface designed for both beginners and experts.
-            </p>
-          </AccordionContent>
-        </AccordionItem>
-        <AccordionItem value="item-2">
-          <AccordionTrigger className="text-primary font-semibold text-base border-b border-b-primary-border rounded-none">
-            Product Information
-          </AccordionTrigger>
-          <AccordionContent className="flex flex-col gap-4 text-balance py-2">
-            <p>
-              Our flagship product combines cutting-edge technology with sleek
-              design. Built with premium materials, it offers unparalleled
-              performance and reliability.
-            </p>
-            <p>
-              Key features include advanced processing capabilities, and an
-              intuitive user interface designed for both beginners and experts.
-            </p>
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
+      <AssessmentForm />
     </div>
   );
 };
