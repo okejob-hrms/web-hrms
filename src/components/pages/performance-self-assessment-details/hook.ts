@@ -1,0 +1,30 @@
+import { getEmployeeDetail } from "@/services/employees";
+import { useQuery } from "@tanstack/react-query";
+import { usePathname } from "next/navigation";
+import * as React from "react";
+
+export const useSelfAssessmentDetails = () => {
+  const pathname = usePathname();
+
+  const id = React.useMemo(() => {
+    const segments = pathname.split("/");
+    const idSegment = segments[segments.length - 1];
+    return idSegment && !isNaN(Number(idSegment)) ? Number(idSegment) : null;
+  }, [pathname]);
+
+  const {
+    data: employeeDetails,
+    isLoading: isLoadingEmployeeDetails,
+    isError: isErrorEmployeeDetails,
+  } = useQuery({
+    queryKey: ["employee-detail", id],
+    queryFn: () => getEmployeeDetail(id!),
+    enabled: !!id,
+  });
+
+  return {
+    employeeDetails,
+    isLoadingEmployeeDetails,
+    isErrorEmployeeDetails,
+  };
+};
