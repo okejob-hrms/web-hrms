@@ -5,10 +5,12 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tansta
 import { PaginationState } from "@tanstack/react-table";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Payslip, RequestPayrollGroup } from "@/services/payroll/types";
+import { AdditionalItem, AdditionalRequest, AllowanceItem, AllowanceRequest, OvertimePayrun, OvertimeRequest, Payslip, PenaltyPayrun, PenaltyRequest, RequestPayrollGroup, WorkHourPayrun, WorkingHourRequest } from "@/services/payroll/types";
 import { Filters } from "./types";
-import { getPayrollDetail, getPayrollEmployee, postFinalPayrun } from "@/services/payroll";
+import { getPayrollDetail, getPayrollEmployee, postFinalPayrun, putAdditionalPayrun, putAllowancePayrun, putOvertimePayrun, putPenaltyPayrun, putWorkingHourPayrun } from "@/services/payroll";
 import { PaginatedResponse } from "@/lib/types";
+import { AllowanceTypeResponse } from "@/services/salary/types";
+import { getAllowanceType } from "@/services/salary";
 
 export function usePayrollDetail() {
   const [pagination, setPagination] = React.useState<PaginationState>({
@@ -23,14 +25,39 @@ export function usePayrollDetail() {
   });
   const [currentStep, setCurrentStep] = React.useState(1);
   const [id, setId] = React.useState('');
+  const [idRow, setIdRow] = React.useState('');
   const [loading, setLoading] = React.useState(false);
   const router = useRouter();
+
+  const [openAllowance, setOpenAllowance] = React.useState(false);
+  const [allowances, setAllowances] = React.useState<AllowanceItem[]>();
   
+  const [openWorkingHour, setOpenWorkingHour] = React.useState(false);
+  const [workingHours, setWorkingHours] = React.useState<WorkHourPayrun>({
+    working_days: 0,
+    working_hours: 0,
+  });
+
+  const [openOvertime, setOpenOvertime] = React.useState(false);
+  const [overtimes, setOvertimes] = React.useState<OvertimePayrun>({
+    overtime_amount: 0,
+  });
+
+  const [openAdditional, setOpenAdditional] = React.useState(false);
+  const [additionals, setAdditionals] = React.useState<AdditionalItem[]>();
+  
+  const [openPenalty, setOpenPenalty] = React.useState(false);
+  const [penaltys, setPenaltys] = React.useState<PenaltyPayrun>({
+    penalties_amount: 0,
+  });
+
+
   const queryClient = useQueryClient();
 
   // get list
   const {
     data: detailData,
+    refetch: detailDataRefetch,
   } = useQuery({
     queryKey: ["detailPayroll", id],
     queryFn: () => getPayrollDetail(id),
@@ -52,6 +79,14 @@ export function usePayrollDetail() {
     refetchOnMount: "always",
     refetchOnWindowFocus: true,
   });
+
+  //getAllowance
+  const { data: allowanceType} =
+    useQuery<AllowanceTypeResponse>({
+      queryKey: ['getAllowance'],
+      queryFn: getAllowanceType,
+      staleTime: 1000 * 60 * 5,
+    });
 
   const dataPagination: PaginatedResponse<Payslip> = {
       current_page: employeeList?.pagination.current_page ?? 1,
@@ -76,7 +111,7 @@ export function usePayrollDetail() {
       queryClient.invalidateQueries({ queryKey: ["payroll"] });
       setOpenAdd(false);
       setOpenConfirm(false);
-      router.push('/payroll');
+      router.push('/payroll/list');
     },
     onError: (err) => {
       toast.error(`Failed to save: ${err.message}`);
@@ -85,7 +120,7 @@ export function usePayrollDetail() {
   });
 
   const handleCancel = () => {
-    router.push('/payroll');
+    router.push('/payroll/list');
   }
 
   const handleNext = () => {
@@ -108,6 +143,148 @@ export function usePayrollDetail() {
     setId(idx)
   }
 
+  const mutationPutAllowance = useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: AllowanceRequest }) =>
+      putAllowancePayrun(id, payload),
+
+    onMutate: () => setLoading(true),
+
+    onSuccess: () => {
+      toast.success("Allowance successfully updated");
+      queryClient.invalidateQueries({ queryKey: ["payslip"] });
+      setOpenAllowance(false);
+      detailDataRefetch();
+    },
+
+    onError: (err) => {
+      toast.error(`Failed to save: ${err.message}`);
+    },
+
+    onSettled: () => setLoading(false),
+  });
+
+   const handleSaveAllowance = () => {
+    const data: AllowanceRequest = {
+      payslip_id: Number(idRow),
+      allowance: allowances || []
+    }
+    mutationPutAllowance.mutate({id: id, payload: data})
+  };
+
+
+  const mutationPutWorkingHour = useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: WorkingHourRequest }) =>
+      putWorkingHourPayrun(id, payload),
+
+    onMutate: () => setLoading(true),
+
+    onSuccess: () => {
+      toast.success("Working Hour successfully updated");
+      queryClient.invalidateQueries({ queryKey: ["payslip"] });
+      setOpenWorkingHour(false);
+      detailDataRefetch();
+    },
+
+    onError: (err) => {
+      toast.error(`Failed to save: ${err.message}`);
+    },
+
+    onSettled: () => setLoading(false),
+  });
+
+   const handleSaveWorkingHour = () => {
+    const data: WorkingHourRequest = {
+      payslip_id: Number(idRow),
+      ...workingHours
+    }
+    mutationPutWorkingHour.mutate({id: id, payload: data})
+  };
+
+  const mutationPutOvertime = useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: OvertimeRequest }) =>
+      putOvertimePayrun(id, payload),
+
+    onMutate: () => setLoading(true),
+
+    onSuccess: () => {
+      toast.success("Overtime successfully updated");
+      queryClient.invalidateQueries({ queryKey: ["payslip"] });
+      setOpenOvertime(false);
+      detailDataRefetch();
+    },
+
+    onError: (err) => {
+      toast.error(`Failed to save: ${err.message}`);
+    },
+
+    onSettled: () => setLoading(false),
+  });
+
+   const handleSaveOvertime = () => {
+    const data: OvertimeRequest = {
+      payslip_id: Number(idRow),
+      ...overtimes
+    }
+    mutationPutOvertime.mutate({id: id, payload: data})
+  };
+
+  const mutationPutAdditional = useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: AdditionalRequest }) =>
+      putAdditionalPayrun(id, payload),
+
+    onMutate: () => setLoading(true),
+
+    onSuccess: () => {
+      toast.success("Additional successfully updated");
+      queryClient.invalidateQueries({ queryKey: ["payslip"] });
+      setOpenAdditional(false);
+      detailDataRefetch();
+    },
+
+    onError: (err) => {
+      toast.error(`Failed to save: ${err.message}`);
+    },
+
+    onSettled: () => setLoading(false),
+  });
+
+   const handleSaveAdditional = () => {
+    const data: AdditionalRequest = {
+      payslip_id: Number(idRow),
+      earnings: additionals || []
+    }
+    mutationPutAdditional.mutate({id: id, payload: data})
+  };
+
+  const mutationPutPenalty = useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: PenaltyRequest }) =>
+      putPenaltyPayrun(id, payload),
+
+    onMutate: () => setLoading(true),
+
+    onSuccess: () => {
+      toast.success("Penalty successfully updated");
+      queryClient.invalidateQueries({ queryKey: ["payslip"] });
+      setOpenPenalty(false);
+      detailDataRefetch();
+    },
+
+    onError: (err) => {
+      toast.error(`Failed to save: ${err.message}`);
+    },
+
+    onSettled: () => setLoading(false),
+  });
+
+   const handleSavePenalty = () => {
+    const data: PenaltyRequest = {
+      payslip_id: Number(idRow),
+      ...penaltys
+    }
+    mutationPutPenalty.mutate({id: id, payload: data})
+  };
+
+
   return {
     employeeList,
     dataPagination,
@@ -128,5 +305,42 @@ export function usePayrollDetail() {
     handleBack,
     handleSubmit,
     loadingSave: loading,
+    setIdRow,
+
+    //allowance
+    openAllowance,
+    setOpenAllowance,
+    allowances,
+    setAllowances,
+    handleSaveAllowance,
+    allowanceType,
+
+    //working_hour
+    openWorkingHour,
+    setOpenWorkingHour,
+    workingHours,
+    setWorkingHours,
+    handleSaveWorkingHour,
+
+    //overtime
+    openOvertime,
+    setOpenOvertime,
+    overtimes,
+    setOvertimes,
+    handleSaveOvertime,
+
+    //Additional
+    openAdditional,
+    setOpenAdditional,
+    additionals,
+    setAdditionals,
+    handleSaveAdditional,
+
+    //penalties
+    openPenalty,
+    setOpenPenalty,
+    penaltys,
+    setPenaltys,
+    handleSavePenalty,
   };
 }

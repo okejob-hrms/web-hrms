@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Filters } from "./types";
 import { RequestPayrollGroup, ResponsePayrollItem, ResponsePayrollList } from "@/services/payroll/types";
-import { getPayroll, postPayrollGroup } from "@/services/payroll";
+import { getPayroll, postPayrollGroup, postRegenerate } from "@/services/payroll";
 import { PaginatedResponse } from "@/lib/types";
 
 export function usePayroll() {
@@ -105,6 +105,29 @@ export function usePayroll() {
     submitMutation.mutate({data: values})
   }
 
+  const mutationPostRegenerate = useMutation({
+    mutationFn: (payrunId: string) => postRegenerate(payrunId),
+    onMutate: () => setLoading(true),
+    onSuccess: () => {
+      toast.success("Payrun successfully regenerate");
+      queryClient.invalidateQueries({ queryKey: ["payroll"] });
+      payrollDataRefetch();
+    },
+    onError: (err) => {
+      toast.error(`Failed to save: ${err.message}`);
+    },
+    onSettled: () => setLoading(false),
+  });
+
+  const handleRegenerate = (id: string) => {
+    if (!id) {
+      toast.error("Payroll ID not found");
+      return;
+    }
+    mutationPostRegenerate.mutate(id)
+  }
+
+
   return {
     payrollData,
     dataPagination,
@@ -121,5 +144,6 @@ export function usePayroll() {
     handleAddGroup, 
     formData,
     setFormData,
+    handleRegenerate,
   };
 }

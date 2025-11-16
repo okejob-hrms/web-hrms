@@ -28,6 +28,8 @@ export interface ResponsePayrollItem {
     status_label: string;
     tenant_id: number;
     updated_at: string;
+    total_gross_pay: string;
+    total_payslips: string;
 }
 
 export interface ResponsePayrollAuthor {
@@ -88,6 +90,8 @@ export interface Payrun {
   generation_status_label: string;
   notes: string | null;
   total_payruns: number | null;
+  total_gross_pay: string;
+  total_payslips: string;
   locked_at: string | null;
   sent_at: string | null;
   can_be_locked: boolean;
@@ -114,7 +118,7 @@ export interface Payslip {
   working_days: number;
   allowance: PayslipAllowance[];
   overtime: [];
-  additional_earning: [];
+  additional_earning: PayslipAdditionalItem[];
   deduction: [];
   currency: string;
   status: number;
@@ -132,6 +136,13 @@ export interface Payslip {
   total_allowances: number;
   total_overtime: number;
   total_additional_earnings: number;
+  total_deductions: number;
+}
+
+export interface PayslipAdditionalItem {
+  id: number;
+  name: string;
+  amount: number;
 }
 
 export interface PayslipEmployee {
@@ -169,4 +180,54 @@ export interface Pagination {
   last: string;
   prev: string | null;
   next: string | null;
+}
+
+export interface AllowanceItem {
+  allowance_name: string;
+  allowance_value: string;
+  allowance_type_id: string;
+};
+
+export interface AllowanceRequest {
+  payslip_id: number;
+  allowance: AllowanceItem[];
+}
+
+export interface WorkHourPayrun {
+  working_hours: number;
+  working_days: number;
+}
+
+export interface WorkingHourRequest {
+  payslip_id: number;
+  working_hours: number;
+  working_days: number;
+}
+
+export interface OvertimePayrun {
+  overtime_amount: number;
+}
+
+export interface OvertimeRequest {
+  payslip_id: number;
+  overtime_amount: number;
+}
+
+export interface AdditionalItem {
+  name: string;
+  amount: number;
+}
+
+export interface AdditionalRequest {
+  payslip_id: number;
+  earnings: AdditionalItem[];
+}
+
+export interface PenaltyPayrun {
+  penalties_amount: number;
+}
+
+export interface PenaltyRequest {
+  payslip_id: number;
+  penalties_amount: number;
 }
