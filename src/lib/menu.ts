@@ -89,11 +89,11 @@ export const menus: Record<string, MenuItem[]> = {
     },
     {
       name: "Performance Management",
-      value: "settings/performance",
+      value: "settings/competencies",
       subItem: [
         {
           name: "Performance Competencies",
-          value: "settings/performance-competencies",
+          value: "settings/competencies",
         },
       ],
     },
