@@ -116,11 +116,24 @@ export interface IParamSearch {
 }
 
 export interface DeductionSalaryItemTypeList {
-    status: string;
-    data: DeductionSalaryItemType[];
+  status: string;
+  data: DeductionSalaryItemType[];
 }
 
 export interface DeductionSalaryItemType {
-    id: number;
-    name: string;
+  id: number;
+  name: string;
+}
+
+export interface AllowanceTypeResponse {
+  status: string;
+  data: AllowanceType[];
+}
+
+export interface AllowanceType {
+  created_at: string;
+  description: string;
+  id: number;
+  name: string;
+  updated_at: string;
 }

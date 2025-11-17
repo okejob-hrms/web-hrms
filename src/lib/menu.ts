@@ -38,6 +38,11 @@ export const menus: Record<string, MenuItem[]> = {
     { name: "Overtime", value: "attendance/over-time" },
   ],
 
+  payroll: [
+    { name: "Payrun Management", value: "payroll/list" },
+    { name: "Request Access", value: "payroll/request" },
+  ],
+
   settings: [
     { name: "Access Control", value: "settings/access-control" },
     {
@@ -125,7 +130,7 @@ export const getHideSidebar = (path: string) => {
     "/settings/form-template/add",
     "/settings/form-template/edit",
     "/settings/company/company-branch/",
-    "/payroll",
+    "/payroll/list/",
     "/settings/leave-management/",
     "/performance/self-assessment/add",
   ];

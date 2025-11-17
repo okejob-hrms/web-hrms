@@ -309,6 +309,34 @@ export function getStatusPayroll(status?: string): StatusConfig {
   return { variant, className, label: status };
 }
 
+export function getStatusPayrollReq(status?: string): StatusConfig {
+  if (!status) {
+    return {
+      variant: "default",
+      label: "-",
+    };
+  }
+
+  let variant: BadgeVariant = "default";
+  let className = "";
+
+  switch (status) {
+    case "Approved":
+      variant = "secondary";
+      className = "bg-green-100 text-green-700";
+      break;
+    case "Pending":
+      variant = "secondary";
+      className = "bg-yellow-100 text-yellow-700";
+      break;
+    case "Rejected":
+      variant = "destructive";
+      break;
+  }
+
+  return { variant, className, label: status };
+}
+
 export function getStatusGeneratingPayroll(status?: string): StatusConfig {
   if (!status) {
     return {

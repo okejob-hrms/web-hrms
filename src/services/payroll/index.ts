@@ -1,5 +1,5 @@
 import { api } from "@/lib/api";
-import { PayslipResponse, RequestPayrollGroup, ResponsePayrollDetail, ResponsePayrollList } from "./types";
+import { AdditionalRequest, AllowanceRequest, OvertimeRequest, PayslipResponse, PenaltyRequest, RequestPayrollGroup, ResponsePayrollDetail, ResponsePayrollList, WorkingHourRequest } from "./types";
 import { PaginationState } from "@tanstack/react-table";
 
 export const getPayroll = async (
@@ -82,6 +82,72 @@ export const postFinalPayrun = async (
 ): Promise<ResponsePayrollList> => {
   return api
     .post(`payruns/${id}/set-final`, {
+      json: {},
+    })
+    .json<ResponsePayrollList>();
+};
+
+
+export const putAllowancePayrun = async (
+  id: string,
+  payload: AllowanceRequest,
+): Promise<ResponsePayrollList> => {
+  return api
+    .put(`payruns/${id}/payslips/allowances`, {
+      json: payload,
+    })
+    .json<ResponsePayrollList>();
+};
+
+export const putWorkingHourPayrun = async (
+  id: string,
+  payload: WorkingHourRequest,
+): Promise<ResponsePayrollList> => {
+  return api
+    .put(`payruns/${id}/payslips/working-hours`, {
+      json: payload,
+    })
+    .json<ResponsePayrollList>();
+};
+
+export const putOvertimePayrun = async (
+  id: string,
+  payload: OvertimeRequest,
+): Promise<ResponsePayrollList> => {
+  return api
+    .put(`payruns/${id}/payslips/overtime`, {
+      json: payload,
+    })
+    .json<ResponsePayrollList>();
+};
+
+export const putAdditionalPayrun = async (
+  id: string,
+  payload: AdditionalRequest,
+): Promise<ResponsePayrollList> => {
+  return api
+    .put(`payruns/${id}/payslips/additional-earning`, {
+      json: payload,
+    })
+    .json<ResponsePayrollList>();
+};
+
+export const putPenaltyPayrun = async (
+  id: string,
+  payload: PenaltyRequest,
+): Promise<ResponsePayrollList> => {
+  return api
+    .put(`payruns/${id}/payslips/penalties`, {
+      json: payload,
+    })
+    .json<ResponsePayrollList>();
+};
+
+export const postRegenerate = async (
+  id: string,
+): Promise<ResponsePayrollList> => {
+  return api
+    .post(`payruns/${id}/retry-generate-payslips`, {
       json: {},
     })
     .json<ResponsePayrollList>();

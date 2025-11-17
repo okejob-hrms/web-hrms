@@ -5,7 +5,7 @@ import { DataTable } from '@/components/tables/data-table';
 import { ColumnDef } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, Edit3, Send } from 'lucide-react';
+import { ArrowLeft, Edit3, Send, Clock } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import dayjs from 'dayjs';
@@ -18,6 +18,12 @@ import WorkingHourSummary from './section/working-hour-summary';
 import { Payslip } from '@/services/payroll/types';
 import { usePathname, useRouter } from 'next/navigation';
 import PayrunApproveModal from './section/confirm-modal';
+import AllowanceModal from './section/allowance-modal';
+import WorkHourModal from './section/work-hour-modal';
+import AdditionalModal from './section/additional-modal';
+import OvertimeModal from './section/overtime-modal';
+import PenaltyModal from './section/penalty-modal';
+import { PayrunsHistorySheet } from './section/audit-trail';
 
 type PayrollFormFormProps = {
   id?: string;
@@ -71,6 +77,32 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
     loadingSave,
     setOpenConfirm,
     openConfirm,
+    openAllowance,
+    setOpenAllowance,
+    allowances,
+    setAllowances,
+    handleSaveAllowance,
+    setIdRow,
+    openWorkingHour,
+    setOpenWorkingHour,
+    workingHours,
+    setWorkingHours,
+    handleSaveWorkingHour,
+    openOvertime,
+    setOpenOvertime,
+    overtimes,
+    setOvertimes,
+    handleSaveOvertime,
+    openAdditional,
+    setOpenAdditional,
+    additionals,
+    setAdditionals,
+    handleSaveAdditional,
+    openPenalty,
+    setOpenPenalty,
+    penaltys,
+    setPenaltys,
+    handleSavePenalty,
   } = usePayrollDetail();
 
   React.useEffect(() => {
@@ -81,6 +113,31 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
   const router = useRouter();
   const pathname = usePathname();
   const isDetail = !pathname.includes('/edit');
+  const [openHistory, setOpenHistory] = React.useState(false);
+
+  const historyData = [
+    {
+      time: 'November 1, 5:42 AM',
+      author: 'Demi Wilkinson',
+      details: ['Payruns cycle created'],
+    },
+    {
+      time: 'November 1, 5:43 AM',
+      author: 'Demi Wilkinson',
+      details: [
+        'Olivia Rhye working hours updated : 22d 160h → 22d 200h',
+        'Olivia Rhye allowance updated : 1.000.000 → 1.500.000',
+      ],
+    },
+    {
+      time: 'November 1, 5:44 AM',
+      author: 'Demi Wilkinson',
+      details: [
+        'Olivia Rhye overtime updated : 2.000.000 → 4.000.000',
+        'Olivia Rhye reimbursement added : 1.000.000',
+      ],
+    },
+  ];
 
   const columns: ColumnDef<Payslip>[] = [
     {
@@ -122,7 +179,19 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
               </div>
             </div>
             {currentStep === 1 && !isDetail && (
-              <Button type="button" variant="link" className="text-primary">
+              <Button
+                type="button"
+                variant="link"
+                className="text-primary"
+                onClick={() => {
+                  setIdRow(String(row.original.id));
+                  setWorkingHours({
+                    working_days: row.original.working_days,
+                    working_hours: row.original.working_hours,
+                  });
+                  setOpenWorkingHour(true);
+                }}
+              >
                 <Edit3 />
               </Button>
             )}
@@ -150,7 +219,21 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
             </Badge>
           </div>
           {currentStep === 1 && !isDetail && (
-            <Button type="button" variant="link" className="text-primary">
+            <Button
+              type="button"
+              variant="link"
+              className="text-primary"
+              onClick={() => {
+                const list = row.original.allowance.map((item) => ({
+                  allowance_name: String(item.allowance_name),
+                  allowance_value: String(item.allowance_value),
+                  allowance_type_id: String(item.allowance_type_id),
+                }));
+                setIdRow(String(row.original.id));
+                setAllowances(list);
+                setOpenAllowance(true);
+              }}
+            >
               <Edit3 />
             </Button>
           )}
@@ -169,16 +252,27 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
                 {formatCurrency(Number(row.original.total_overtime))}
               </span>
             </div>
-            <div className="text-gray-400 text-xs">
+            {/* <div className="text-gray-400 text-xs">
               Overtime:{' '}
               <span className="text-primary">
                 {Number(row.original.overtime)}
               </span>{' '}
               Hours
-            </div>
+            </div> */}
           </div>
           {currentStep === 1 && !isDetail && (
-            <Button type="button" variant="link" className="text-primary">
+            <Button
+              type="button"
+              variant="link"
+              className="text-primary"
+              onClick={() => {
+                setIdRow(String(row.original.id));
+                setOvertimes({
+                  overtime_amount: row.original.total_overtime,
+                });
+                setOpenOvertime(true);
+              }}
+            >
               <Edit3 />
             </Button>
           )}
@@ -191,34 +285,38 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
       header: 'Additional Earnings',
       cell: ({ row }) => (
         <div className="min-w-[250px]">
-          <div>
-            <span className="text-gray-400 text-xs">Bonus</span>
-          </div>
           <div className="flex items-center justify-between pr-10">
-            <div className="text-gray-400">
-              Rp{' '}
-              <span className="text-gray-800">
-                {formatCurrency(Number(row.original.total_additional_earnings))}
-              </span>
+            <div className="space-y-2">
+              <div className="text-gray-400">
+                Rp{' '}
+                <span className="text-gray-800">
+                  {formatCurrency(
+                    Number(row.original.total_additional_earnings),
+                  )}
+                </span>
+              </div>
+              <Badge
+                variant="default"
+                className="bg-primary/10 border-primary text-primary"
+              >
+                {row.original.additional_earning.length} Earnings
+              </Badge>
             </div>
             {currentStep === 1 && !isDetail && (
-              <Button type="button" variant="link" className="text-primary">
-                <Edit3 />
-              </Button>
-            )}
-          </div>
-          <div className="mt-2">
-            <span className="text-gray-400 text-xs">Reimbursement</span>
-          </div>
-          <div className="flex items-center justify-between pr-10">
-            <div className="text-gray-400">
-              Rp{' '}
-              <span className="text-gray-800">
-                {formatCurrency(Number(row.original.additional_earning))}
-              </span>
-            </div>
-            {currentStep === 1 && !isDetail && (
-              <Button type="button" variant="link" className="text-primary">
+              <Button
+                type="button"
+                variant="link"
+                className="text-primary"
+                onClick={() => {
+                  const list = row.original.additional_earning.map((item) => ({
+                    name: item.name,
+                    amount: item.amount,
+                  }));
+                  setIdRow(String(row.original.id));
+                  setAdditionals(list);
+                  setOpenAdditional(true);
+                }}
+              >
                 <Edit3 />
               </Button>
             )}
@@ -234,11 +332,22 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
           <div className="text-gray-400">
             - Rp{' '}
             <span className="text-gray-800">
-              {formatCurrency(Number(row.original.deduction))}
+              {formatCurrency(Number(row.original.total_deductions))}
             </span>
           </div>
           {currentStep === 1 && !isDetail && (
-            <Button type="button" variant="link" className="text-primary">
+            <Button
+              type="button"
+              variant="link"
+              className="text-primary"
+              onClick={() => {
+                setIdRow(String(row.original.id));
+                setPenaltys({
+                  penalties_amount: row.original.total_deductions,
+                });
+                setOpenPenalty(true);
+              }}
+            >
               <Edit3 />
             </Button>
           )}
@@ -296,7 +405,7 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
             {isDetail && (
               <div className="flex justify-end gap-2">
                 <Button
-                  onClick={() => router.push(`/payroll/${id}/edit`)}
+                  onClick={() => router.push(`/payroll/list/${id}/edit`)}
                   type="button"
                   variant="outline"
                   className="min-w-[100px] bg-white text-primary border-1 border font-medium py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
@@ -311,6 +420,15 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
                 >
                   <Send />
                   Send Payruns
+                </Button>
+                <Button
+                  onClick={() => setOpenHistory(true)}
+                  type="button"
+                  variant="outline"
+                  className="min-w-[100px] bg-white border-orange-500 border-1 border font-medium py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed text-orange-500"
+                >
+                  <Clock />
+                  Payruns History
                 </Button>
               </div>
             )}
@@ -558,6 +676,52 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
               onUpdate={() => handleSubmit(id || '')}
               isOpen={openConfirm}
               setIsOpen={(e) => setOpenConfirm(e)}
+            />
+
+            <AllowanceModal
+              open={openAllowance}
+              onOpenChange={setOpenAllowance}
+              data={allowances || []}
+              setData={setAllowances}
+              onSave={handleSaveAllowance}
+            />
+
+            <WorkHourModal
+              open={openWorkingHour}
+              onOpenChange={setOpenWorkingHour}
+              data={workingHours || []}
+              setData={setWorkingHours}
+              onSave={handleSaveWorkingHour}
+            />
+
+            <OvertimeModal
+              open={openOvertime}
+              onOpenChange={setOpenOvertime}
+              data={overtimes || []}
+              setData={setOvertimes}
+              onSave={handleSaveOvertime}
+            />
+
+            <AdditionalModal
+              open={openAdditional}
+              onOpenChange={setOpenAdditional}
+              data={additionals || []}
+              setData={setAdditionals}
+              onSave={handleSaveAdditional}
+            />
+
+            <PenaltyModal
+              open={openPenalty}
+              onOpenChange={setOpenPenalty}
+              data={penaltys || []}
+              setData={setPenaltys}
+              onSave={handleSavePenalty}
+            />
+
+            <PayrunsHistorySheet
+              open={openHistory}
+              onOpenChange={setOpenHistory}
+              history={historyData}
             />
           </div>
         </div>

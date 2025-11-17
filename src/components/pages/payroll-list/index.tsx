@@ -37,13 +37,12 @@ export const PayrollList = () => {
     setPagination,
     setOpenAdd,
     openAdd,
-    setOpenDelete,
-    openDelete,
     setFilters,
     filters,
     handleAddGroup,
     formData,
     setFormData,
+    handleRegenerate,
   } = usePayroll();
 
   const columns: ColumnDef<ResponsePayrollItem>[] = [
@@ -54,13 +53,23 @@ export const PayrollList = () => {
     },
     {
       accessorKey: 'total',
+      header: 'Total Payslip',
+      size: 200,
+      cell: ({ row }) => (
+        <span className="text-gray-800">
+          {formatCurrency(Number(row.original.total_payslips))}
+        </span>
+      ),
+    },
+    {
+      accessorKey: 'total',
       header: 'Total Pay',
       size: 200,
       cell: ({ row }) => (
         <span className="text-gray-400">
           Rp{' '}
           <span className="text-gray-800">
-            {formatCurrency(Number(123456700 * row.original.id))}
+            {formatCurrency(Number(row.original.total_gross_pay))}
           </span>
         </span>
       ),
@@ -128,7 +137,7 @@ export const PayrollList = () => {
                 <DropdownMenuContent>
                   <DropdownMenuItem>
                     <Link
-                      href={`/payroll/${row.original.id}`}
+                      href={`/payroll/list/${row.original.id}`}
                       className="flex gap-2 justify-between items-center"
                     >
                       <Eye />
@@ -138,7 +147,7 @@ export const PayrollList = () => {
                   {!row.original.can_be_sent && (
                     <DropdownMenuItem>
                       <Link
-                        href={`/payroll/${row.original.id}/edit`}
+                        href={`/payroll/list/${row.original.id}/edit`}
                         className="flex gap-2 justify-between items-center"
                       >
                         <Edit3 />
@@ -151,6 +160,18 @@ export const PayrollList = () => {
             )}
             {row.original.can_be_sent && (
               <Button variant="outline">Send Payslip</Button>
+            )}
+
+            {row.original.generation_status === 3 && (
+              <Button
+                variant="outline"
+                className="border-red-600 text-red-600"
+                onClick={() => {
+                  handleRegenerate(String(row.original.id));
+                }}
+              >
+                Regenerate
+              </Button>
             )}
           </div>
         );
@@ -204,7 +225,7 @@ export const PayrollList = () => {
         <Separator />
         <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6">
           <div className="flex md:flex-row flex-col justify-between w-full md:items-center items-start gap-4">
-            <h2 className="font-semibold text-xl">Payroll</h2>
+            <h2 className="font-semibold text-xl">Payruns</h2>
             <Button onClick={() => setOpenAdd(true)}>
               <Plus /> New Payruns
             </Button>

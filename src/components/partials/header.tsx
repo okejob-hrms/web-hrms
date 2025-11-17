@@ -69,7 +69,7 @@ const menuItems = [
       {
         label: 'Payroll',
         desc: 'Streamline salary calculations, benefits, and monthly payroll processing.',
-        path: '/payroll',
+        path: '/payroll/list',
         icon: '/icons/cash.svg',
       },
     ],
