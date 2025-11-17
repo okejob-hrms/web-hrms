@@ -82,7 +82,16 @@ export const menus: Record<string, MenuItem[]> = {
         },
       ],
     },
-    { name: "Performance Management", value: "settings/performance" },
+    {
+      name: "Performance Management",
+      value: "settings/performance",
+      subItem: [
+        {
+          name: "Performance Competencies",
+          value: "settings/performance-competencies",
+        },
+      ],
+    },
     { name: "Mobile & ESS", value: "settings/mobile-ess" },
   ],
   performance: [
@@ -127,6 +136,8 @@ export const getHideSidebar = (path: string) => {
     /^\/employee\/off-boarding\/\d+\/salary-adjustment$/;
   const leaveRequestEditPattern = /^\/attendance\/leave-request\/edit\/\d+$/;
   const selfAssessmentDetailsPattern = /^\/performance\/self-assessment\/\d+$/;
+  const competenciesDetailsPattern = /^\/settings\/competencies\/\d+$/;
+  const formTemplateDetailsPattern = /^\/settings\/form-template\/\d+$/;
 
   if (employeeDetailPattern.test(path)) {
     return true;
@@ -145,6 +156,14 @@ export const getHideSidebar = (path: string) => {
   }
 
   if (selfAssessmentDetailsPattern.test(path)) {
+    return true;
+  }
+
+  if (competenciesDetailsPattern.test(path)) {
+    return true;
+  }
+
+  if (formTemplateDetailsPattern.test(path)) {
     return true;
   }
 

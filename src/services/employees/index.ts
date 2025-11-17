@@ -112,3 +112,12 @@ export const getEmployeeDetail = (
   );
   return response.json();
 };
+
+export const getEmployeeDetailByUserId = (
+  user_id: number,
+): Promise<ApiResponse<IEmployeeDetailsResponse>> => {
+  const response = api.get<ApiResponse<IEmployeeDetailsResponse>>(
+    `employees/user/${user_id}`,
+  );
+  return response.json();
+};

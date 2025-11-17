@@ -192,7 +192,7 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
         job_level_id:
           employeeDetails.employment?.job_level_id?.toString() || "",
         status: employeeDetails.employment?.status?.toString() || "",
-        team_members: employeeDetails.team_members[0]?.id?.toString() || "",
+        team_member: employeeDetails.team_member.team_id.toString() || "",
         // base_salary: Number(employeeDetails.employment?.base_salary) || 0,
         salary_nett: Number(employeeDetails.employment?.salary_nett) || 0,
         allowances: (employeeDetails.employment?.allowances || [])?.map(
@@ -248,7 +248,7 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
           families,
           social_media_accounts,
           allowances,
-          team_members,
+          team_member,
           id,
           user_id,
           user,
@@ -287,7 +287,6 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
           bank_id: Number(values.bank_id) || 0,
           date_of_birth: dayjs(values.date_of_birth).format("YYYY-MM-DD"),
           start_date: dayjs(values.start_date).format("YYYY-MM-DD"),
-          // team_members: [{ team_id: Number(values.team_members) || 0 }],
           allowances: validAllowances,
           attachments: attachments || [],
           branch_id: Number(values.branch_id),
@@ -296,10 +295,8 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
 
         const conditionalParams: Partial<IMutateEmployeeRequests> = {};
 
-        if (values.team_members) {
-          conditionalParams.team_members = [
-            { team_id: Number(values.team_members) || 0 },
-          ];
+        if (values.team_member) {
+          conditionalParams.team_id = Number(values.team_member);
         }
 
         if (hasValidSocialMediaAccounts(validSocialMedia)) {

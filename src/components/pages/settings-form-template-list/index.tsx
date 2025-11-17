@@ -18,6 +18,7 @@ import Image from "next/image";
 import { useFormTemplateList } from "./hook";
 import { IFormTemplate } from "@/services/form/types";
 import FormDeleteModal from "./sections/delete-modal";
+import { FormAddModal } from "./sections/add-modal";
 
 export default function FormTemplateList() {
   const {
@@ -25,8 +26,12 @@ export default function FormTemplateList() {
     handleNew,
     openDelete,
     setOpenDelete,
+    openAdd,
+    setOpenAdd,
     handleDelete,
     setSelectedId,
+    formOptions,
+    handleSave,
   } = useFormTemplateList();
   const columns: ColumnDef<IFormTemplate>[] = [
     {
@@ -87,7 +92,7 @@ export default function FormTemplateList() {
               <Ellipsis className="text-grayscale-30" />
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              {/* <DropdownMenuItem>
+              <DropdownMenuItem>
                 <Link
                   href={`/settings/form-template/${row.original.id}`}
                   className="flex gap-2 justify-between items-center"
@@ -100,7 +105,7 @@ export default function FormTemplateList() {
                   />
                   Form Details
                 </Link>
-              </DropdownMenuItem> */}
+              </DropdownMenuItem>
               <DropdownMenuItem>
                 <Link
                   href={`/settings/form-template/edit/${row.original.id}`}
@@ -160,6 +165,12 @@ export default function FormTemplateList() {
         onDelete={() => handleDelete()}
         isOpen={openDelete}
         setIsOpen={(e) => setOpenDelete(e)}
+      />
+      <FormAddModal
+        formOptions={formOptions}
+        open={openAdd}
+        onOpenChange={setOpenAdd}
+        onSave={handleSave}
       />
     </div>
   );

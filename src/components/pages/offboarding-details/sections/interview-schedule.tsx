@@ -9,7 +9,7 @@ import customParseFormat from "dayjs/plugin/customParseFormat";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { stringAvatar } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getEmployeeDetail } from "@/services/employees";
+import { getEmployeeDetailByUserId } from "@/services/employees";
 
 dayjs.extend(customParseFormat);
 
@@ -24,7 +24,7 @@ const EmployeeProfile = React.memo(function EmployeeProfile({
 }) {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["employee-detail", userId],
-    queryFn: () => getEmployeeDetail(userId),
+    queryFn: () => getEmployeeDetailByUserId(userId),
   });
 
   if (isLoading) {

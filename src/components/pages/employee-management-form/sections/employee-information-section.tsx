@@ -861,7 +861,7 @@ export const EmployeeinformationSection = React.memo(
             valueType="number"
           />
           <SelectForm
-            name="team_members"
+            name="team_member"
             label="Team"
             options={teamOptions}
             required

@@ -7,6 +7,7 @@ import {
   postAddField,
   getFormById,
   postUpdateForm,
+  deleteForm,
 } from "@/services/form";
 import {
   IFormTemplate,
@@ -50,21 +51,21 @@ const formSchema = z.object({
 
 export type TemplateFormSchema = FormTemplateFormData;
 
-interface UseFormTemplateAddProps {
+interface UseFormTemplateDetailsProps {
   editFormId?: number;
   initialData?: Partial<TemplateFormSchema>;
   onSuccess?: () => void;
   onCancel?: () => void;
 }
 
-export function useFormTemplateAdd({
+export function useFormTemplateDetails({
   editFormId,
   initialData,
   onSuccess,
   onCancel,
-}: UseFormTemplateAddProps = {}) {
+}: UseFormTemplateDetailsProps = {}) {
+  const [openDelete, setOpenDelete] = React.useState(false);
   const [openConfirm, setOpenConfirm] = React.useState(false);
-  const [openAdd, setOpenAdd] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const queryClient = useQueryClient();
   const router = useRouter();
@@ -87,7 +88,7 @@ export function useFormTemplateAdd({
     queryFn: getAllForm,
   });
 
-  const { data: editFormData, isLoading: isEditFormLoading } = useQuery({
+  const { data: formDetails, isLoading: isEditFormLoading } = useQuery({
     queryKey: ["form-details", editFormId],
     queryFn: () => getFormById(editFormId!),
     enabled: !!editFormId,
@@ -96,8 +97,8 @@ export function useFormTemplateAdd({
   });
 
   React.useEffect(() => {
-    if (editFormData?.data && editFormId) {
-      const formData = editFormData.data;
+    if (formDetails?.data && editFormId) {
+      const formData = formDetails.data;
       const typeValue = formData.type?.toString() || "";
 
       if (!typeValue) {
@@ -130,24 +131,25 @@ export function useFormTemplateAdd({
         });
       });
     }
-  }, [editFormData, editFormId, form]);
+  }, [formDetails, editFormId, form]);
 
-  React.useEffect(() => {
-    if (editFormData?.data && editFormId) {
-      const formData = editFormData.data;
-      const typeValue = formData.type?.toString() || "";
+  const { mutate: removeForm } = useMutation({
+    mutationFn: (id: number) => deleteForm(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["forms"] });
+      toast.success("Success delete form");
+      router.push("/settings/form-template");
+      setOpenDelete(false);
+    },
+    onError: () => {
+      toast.error("Failed delete form");
+    },
+  });
 
-      if (!typeValue) {
-        console.error("No type value found in form data!");
-        return;
-      }
-
-      form.reset({
-        name: formData.name || "",
-        type: typeValue,
-      });
-    }
-  }, [editFormData, editFormId, form]);
+  const handleDelete = () => {
+    if (!editFormId) return;
+    removeForm(Number(editFormId));
+  };
 
   const createFormMutation = useMutation({
     mutationFn: postCreateForm,
@@ -339,19 +341,10 @@ export function useFormTemplateAdd({
     }
   };
 
-  const handleCancel = React.useCallback(() => {
-    if (onCancel) {
-      onCancel();
-    } else {
-      form.reset();
-    }
-    router.push("/settings/form-template");
-  }, [onCancel, form, router]);
-
-  const handleSave = (e: IMutateFormRequest) => {
-    console.log("submit", e);
-    createFormMutation.mutate(e);
-  };
+  const handleEdit = React.useCallback(() => {
+    form.reset();
+    router.push(`/settings/form-template/edit/${editFormId}`);
+  }, [form, router]);
 
   const isLoading =
     createFormMutation.isPending ||
@@ -367,7 +360,7 @@ export function useFormTemplateAdd({
     formsError,
     formSchema,
     handleSubmit,
-    handleCancel,
+    handleEdit,
     form,
     isLoading,
     createFormMutation,
@@ -377,9 +370,9 @@ export function useFormTemplateAdd({
     openConfirm,
     setOpenConfirm,
     isSubmitting,
-    formData: editFormData?.data,
-    openAdd,
-    setOpenAdd,
-    handleSave,
+    formData: formDetails?.data,
+    openDelete,
+    setOpenDelete,
+    handleDelete,
   };
 }

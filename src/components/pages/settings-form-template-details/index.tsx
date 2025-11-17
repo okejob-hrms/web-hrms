@@ -1,29 +1,27 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { InputForm } from "@/components/ui/input";
 import * as React from "react";
 import { FormProvider, useFieldArray } from "react-hook-form";
-import { useFormTemplateAdd } from "./hook";
 import { Button } from "@/components/ui/button";
-import { Edit, Plus } from "lucide-react";
-import { SelectForm } from "@/components/ui/select-form";
-import { FormTemplate } from "./sections/form-template";
+import { Edit, Plus, Trash } from "lucide-react";
 import ConfirmModal from "./sections/confirm-modal";
-import { FormAddModal } from "../settings-form-template-list/sections/add-modal";
+import { FormFieldRenderer } from "./sections/form-field-renderer";
+import { FormField } from "./type";
+import { useFormTemplateDetails } from "./hook";
+import FormDeleteModal from "../settings-form-template-list/sections/delete-modal";
 
-interface SettingsFormTemplateAddProps {
+interface SettingsFormTemplateDetailsProps {
   editFormId?: number;
   onSuccess?: () => void;
   onCancel?: () => void;
 }
 
-export const SettingsFormTemplateAdd = React.memo(
-  function SettingsFormTemplateAdd({
+export const SettingsFormTemplateDetails = React.memo(
+  function SettingsFormTemplateDetails({
     editFormId,
     onSuccess,
     onCancel,
-  }: SettingsFormTemplateAddProps) {
+  }: SettingsFormTemplateDetailsProps) {
     const {
-      formOptions,
       handleSubmit,
       form,
       isLoading,
@@ -31,18 +29,18 @@ export const SettingsFormTemplateAdd = React.memo(
       openConfirm,
       setOpenConfirm,
       isSubmitting,
-      handleCancel,
+      handleEdit,
       formData,
-      openAdd,
-      setOpenAdd,
-      handleSave,
-    } = useFormTemplateAdd({
+      openDelete,
+      setOpenDelete,
+      handleDelete,
+    } = useFormTemplateDetails({
       editFormId,
       onSuccess,
       onCancel,
     });
 
-    const { fields, append, remove } = useFieldArray({
+    const { fields, append } = useFieldArray({
       control: form.control,
       name: "questions",
     });
@@ -56,13 +54,6 @@ export const SettingsFormTemplateAdd = React.memo(
         options: [],
       });
     }, [append, fields.length]);
-
-    const removeQuestion = React.useCallback(
-      (index: number) => {
-        remove(index);
-      },
-      [remove],
-    );
 
     const updateQuestionType = React.useCallback(
       (index: number, type: string) => {
@@ -93,20 +84,7 @@ export const SettingsFormTemplateAdd = React.memo(
 
     return (
       <div className="font-sans md:px-[125px] px-4 space-y-4">
-        <div className="flex gap-2 items-center">
-          <h1 className="font-semibold text-lg text-black">
-            {isEditMode ? "Edit Form Template" : "Form Details"}
-          </h1>
-          <Button
-            type="button"
-            onClick={() => setOpenAdd(true)}
-            variant="ghost"
-            size="sm"
-            className="text-primary"
-          >
-            <Edit /> Edit
-          </Button>
-        </div>
+        <h1 className="font-semibold text-lg text-black">Form Details</h1>
         <FormProvider {...form}>
           <form className="grid grid-cols-2 gap-4">
             <div className="flex flex-col">
@@ -132,45 +110,35 @@ export const SettingsFormTemplateAdd = React.memo(
                 </Button>
               </div>
             ) : (
-              <div className="col-span-2 flex flex-col gap-2 items-center">
-                {fields.map((field, index) => (
-                  <FormTemplate
-                    key={field.id}
-                    index={index}
-                    type={form.watch(`questions.${index}.type`)}
-                    onRemove={() => removeQuestion(index)}
-                    canRemove={true}
-                    onTypeChange={(type) => onTypeChange(index, type)}
+              <div className="col-span-2 flex flex-col gap-2 items-center w-full">
+                {formData?.fields.map((field: FormField) => (
+                  <FormFieldRenderer
+                    key={`${field.id}-${field.label}`}
+                    field={field}
                   />
                 ))}
-                <Button
-                  variant="outline"
-                  type="button"
-                  className="text-primary"
-                  onClick={addQuestion}
-                >
-                  <Plus /> Add Question
-                </Button>
               </div>
             )}
 
-            <div className="col-span-2 flex gap-4">
+            <div className="col-span-2 flex justify-between gap-4">
               <Button
                 type="button"
                 variant="outline"
                 className="md:w-[174px]"
-                onClick={handleCancel}
+                onClick={handleEdit}
                 disabled={isLoading}
               >
-                Cancel
+                <Edit />
+                Edit Form
               </Button>
               <Button
                 type="button"
-                className="md:w-[174px]"
-                disabled={!hasQuestions || isLoading}
-                onClick={() => setOpenConfirm(true)}
+                className="md:w-[174px] text-error"
+                onClick={() => setOpenDelete(true)}
+                variant="ghost"
               >
-                {isLoading ? "Saving..." : isEditMode ? "Update" : "Save"}
+                <Trash />
+                Delete Form
               </Button>
             </div>
           </form>
@@ -182,11 +150,10 @@ export const SettingsFormTemplateAdd = React.memo(
           isLoading={isSubmitting}
           isEditMode={isEditMode}
         />
-        <FormAddModal
-          formOptions={formOptions}
-          open={openAdd}
-          onOpenChange={setOpenAdd}
-          onSave={handleSave}
+        <FormDeleteModal
+          onDelete={() => handleDelete()}
+          isOpen={openDelete}
+          setIsOpen={(e) => setOpenDelete(e)}
         />
       </div>
     );

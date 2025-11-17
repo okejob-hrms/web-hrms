@@ -58,5 +58,5 @@ export interface IMutateFieldRequest {
 export interface IMutateFormRequest {
   name: string;
   type: number; // 1: Exit Interview, 2: Self Assessment, 3: Supervisor Assesment
-  description: string;
+  description?: string;
 }

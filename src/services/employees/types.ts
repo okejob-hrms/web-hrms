@@ -90,9 +90,7 @@ export interface IMutateEmployeeRequests {
   branch_id: number;
   primary_direct_report_id?: number | null;
   additional_direct_report_id?: number | null;
-  team_members?: {
-    team_id: number;
-  }[];
+  team_id?: number;
   start_date: string;
   end_date?: string;
   status: string;
@@ -241,16 +239,17 @@ export interface IEmployeeDetailsResponse {
       updated_at: string;
     };
   };
-  team_members: {
+  team_member: {
     id: number;
     employee_profile_id: number;
     team_id: number;
+    name: string;
     role_in_team: string | null;
     joined_at: string;
     left_at: string | null;
     created_at: string;
     updated_at: string;
-  }[];
+  };
   reporting_relationships: {
     id: number;
     employee_profile_id: number;
@@ -268,14 +267,14 @@ export interface IEmployeeDetailsResponse {
   contact_refferences: IContactReferenceResponse[];
   employee_documents: IDocument[];
   branch: {
-    id: number,
-    name: string,
-    latitude: string,
-    longitude: string,
-    address: string,
-    created_at: string,
-    updated_at: string
-  }
+    id: number;
+    name: string;
+    latitude: string;
+    longitude: string;
+    address: string;
+    created_at: string;
+    updated_at: string;
+  };
 }
 
 export interface IEmployeeOrganizationStructure {

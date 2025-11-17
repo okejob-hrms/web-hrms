@@ -62,7 +62,7 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
         }),
         country_code: String(values.country_code),
         branch_id: Number(values.branch_id),
-        team_members: [{ team_id: Number(values.team_members) }],
+        team_id: Number(values.team_member),
         date_of_birth: dayjs(values.date_of_birth).format("YYYY-MM-DD"),
         start_date: dayjs(values.start_date).format("YYYY-MM-DD"),
         end_date: dayjs(values.end_date).format("YYYY-MM-DD"),

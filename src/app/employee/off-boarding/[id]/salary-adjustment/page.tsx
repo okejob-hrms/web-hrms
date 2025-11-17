@@ -2,7 +2,7 @@
 import * as React from "react";
 import { EmployeeDetailsSection } from "@/components/pages/offboarding-details/sections/employee-details";
 import AppSkeleton from "@/components/partials/app-skeleton";
-import { getEmployeeDetail } from "@/services/employees";
+import { getEmployeeDetailByUserId } from "@/services/employees";
 import { useQuery } from "@tanstack/react-query";
 import { SalaryAdjustmentForm } from "@/components/pages/offboarding-details/sections/salary-adjustment-form";
 import { getDetailOffboarding } from "@/services/employees/offboardings";
@@ -32,7 +32,7 @@ export default function OffboardingSalaryAdjustmentPage({
     isError: isErrorEmployeeDetails,
   } = useQuery({
     queryKey: ["employee-detail", offboardingDetails!.user_id],
-    queryFn: () => getEmployeeDetail(offboardingDetails!.user_id),
+    queryFn: () => getEmployeeDetailByUserId(offboardingDetails!.user_id),
     enabled: !!offboardingDetails!.user_id,
   });
 

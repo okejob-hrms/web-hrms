@@ -3,7 +3,6 @@ import { Separator } from "@/components/ui/separator";
 import dayjs from "dayjs";
 import localizedFormat from "dayjs/plugin/localizedFormat";
 import { IEmployeeDetailsResponse } from "@/services/employees/types";
-import { getEmployeeDetail } from "@/services/employees";
 import { IOffboardingDetailResponse } from "@/services/employees/offboardings/types";
 
 dayjs.extend(localizedFormat);

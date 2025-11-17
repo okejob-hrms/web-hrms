@@ -455,14 +455,7 @@ export const PersonalInformationDetail = React.memo(
           </div>
           <div className="flex flex-col">
             <p className="text-sm text-text-disabled">Team</p>
-            <p>
-              {data.team_members && data.team_members.length > 0
-                ? data.team_members
-                    .map((item) => item?.team_id)
-                    .filter(Boolean)
-                    .join(", ") || "-"
-                : "-"}
-            </p>
+            <p>{data.team_member && data.team_member.name}</p>
           </div>
           <div className="flex flex-col">
             <p className="text-sm text-text-disabled">Employee Start Date</p>
