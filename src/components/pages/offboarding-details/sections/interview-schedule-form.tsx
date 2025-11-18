@@ -14,7 +14,6 @@ import {
 import { Form } from "@/components/ui/form";
 import { InputForm } from "@/components/ui/input";
 import { MultiSelectForm } from "@/components/ui/multi-select";
-import { TextAreaForm } from "@/components/ui/textarea";
 import { useDebounce } from "@/hooks/use-debounce";
 import { ApiErrorResponse } from "@/lib/types";
 import { getEmployees } from "@/services/employees";
@@ -30,8 +29,12 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import dayjs from "dayjs";
 import { Calendar, Clock } from "lucide-react";
 import * as React from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { toast } from "sonner";
+import dynamic from "next/dynamic";
+import "react-quill-new/dist/quill.snow.css";
+
+const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
 interface InterviewScheduleFormProps {
   offboarding_id: number;
@@ -92,6 +95,29 @@ interface ModalFormProps {
   setOpen: any;
 }
 
+const quillModules = {
+  toolbar: [
+    [{ header: [1, 2, 3, false] }],
+    ["bold", "italic", "underline", "strike"],
+    [{ list: "ordered" }, { list: "bullet" }],
+    [{ indent: "-1" }, { indent: "+1" }],
+    ["link"],
+    ["clean"],
+  ],
+};
+
+const quillFormats = [
+  "header",
+  "bold",
+  "italic",
+  "underline",
+  "strike",
+  "list",
+  "bullet",
+  "indent",
+  "link",
+];
+
 export const ModalForm = React.memo(function ModalForm({
   offboarding_id,
   existingData,
@@ -100,17 +126,6 @@ export const ModalForm = React.memo(function ModalForm({
   setOpen,
 }: ModalFormProps) {
   const isEditMode = !!existingData;
-
-  const defaultValues: IInterviewScheduleRequest = {
-    date: existingData?.date || "",
-    start_time: existingData?.start_time || "",
-    end_time: existingData?.end_time || "",
-    participants:
-      existingData?.participants.map((participant) => ({
-        user_id: participant.user_id,
-      })) || [],
-    notes: existingData?.notes || "",
-  };
 
   const getDefaultValues = () => {
     if (existingData) {
@@ -146,7 +161,7 @@ export const ModalForm = React.memo(function ModalForm({
       const values = getDefaultValues();
       form.reset(values);
     }
-  }, [existingData, open, form]);
+  }, [existingData, open]);
 
   const queryClient = useQueryClient();
   const [searchApprover, setSearchApprover] = React.useState("");
@@ -296,7 +311,26 @@ export const ModalForm = React.memo(function ModalForm({
                   onSearchChange={setSearchApprover}
                 />
               </div>
-              <TextAreaForm name="notes" label="Notes" className="col-span-2" />
+              <div className="flex flex-col gap-2 col-span-2">
+                <label className="text-sm text-text-secondary">Notes</label>
+                <Controller
+                  name="notes"
+                  control={form.control}
+                  render={({ field }) => (
+                    <div className="quill-wrapper">
+                      <ReactQuill
+                        theme="snow"
+                        value={field.value}
+                        onChange={field.onChange}
+                        modules={quillModules}
+                        formats={quillFormats}
+                        placeholder="Write your notes here..."
+                        className="bg-white rounded-md border border-input"
+                      />
+                    </div>
+                  )}
+                />
+              </div>
             </div>
             <DialogFooter>
               <DialogClose asChild>
