@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { usePathname } from "next/navigation";
 import * as React from "react";
 
-export const useSelfAssessmentDetails = () => {
+export const useSelfAssessmentEmployeeDetails = () => {
   const pathname = usePathname();
 
   const id = React.useMemo(() => {

@@ -140,7 +140,10 @@ export const getHideSidebar = (path: string) => {
   const salaryAdjustmentPattern =
     /^\/employee\/off-boarding\/\d+\/salary-adjustment$/;
   const leaveRequestEditPattern = /^\/attendance\/leave-request\/edit\/\d+$/;
-  const selfAssessmentDetailsPattern = /^\/performance\/self-assessment\/\d+$/;
+  const selfAssessmentEmployeeDetailsPattern =
+    /^\/performance\/self-assessment\/[^/]+/;
+  const selfAssessmentPeriodDetailsPattern =
+    /^\/performance\/self-assessment\/[^/]+\/\d+$/;
   const competenciesDetailsPattern = /^\/settings\/competencies\/\d+$/;
   const formTemplateDetailsPattern = /^\/settings\/form-template\/\d+$/;
 
@@ -160,7 +163,11 @@ export const getHideSidebar = (path: string) => {
     return true;
   }
 
-  if (selfAssessmentDetailsPattern.test(path)) {
+  if (selfAssessmentEmployeeDetailsPattern.test(path)) {
+    return true;
+  }
+
+  if (selfAssessmentPeriodDetailsPattern.test(path)) {
     return true;
   }
 

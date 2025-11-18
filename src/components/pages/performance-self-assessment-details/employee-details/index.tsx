@@ -1,11 +1,11 @@
 import * as React from "react";
 import { EmployeeDetailsSection } from "./sections/employee-details";
-import { useSelfAssessmentDetails } from "./hook";
+import { useSelfAssessmentEmployeeDetails } from "./hook";
 import AppSkeleton from "@/components/partials/app-skeleton";
 
-export const SelfAssessmentDetails = () => {
+export const SelfAssessmentEmployeeDetails = () => {
   const { employeeDetails, isLoadingEmployeeDetails, isErrorEmployeeDetails } =
-    useSelfAssessmentDetails();
+    useSelfAssessmentEmployeeDetails();
 
   if (isLoadingEmployeeDetails) {
     return <AppSkeleton />;
