@@ -101,6 +101,10 @@ export const menus: Record<string, MenuItem[]> = {
   ],
   performance: [
     { name: "Self Assessment", value: "performance/self-assessment" },
+    {
+      name: "Supervisor Assessment",
+      value: "performance/supervisor-assessment",
+    },
   ],
 };
 
