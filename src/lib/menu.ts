@@ -148,6 +148,8 @@ export const getHideSidebar = (path: string) => {
     /^\/performance\/self-assessment\/[^/]+/;
   const selfAssessmentPeriodDetailsPattern =
     /^\/performance\/self-assessment\/[^/]+\/\d+$/;
+  const supervisorAssessmentDetailPattern =
+    /^\/performance\/supervisor-assessment\/\d+$/;
   const competenciesDetailsPattern = /^\/settings\/competencies\/\d+$/;
   const formTemplateDetailsPattern = /^\/settings\/form-template\/\d+$/;
 
@@ -180,6 +182,10 @@ export const getHideSidebar = (path: string) => {
   }
 
   if (formTemplateDetailsPattern.test(path)) {
+    return true;
+  }
+
+  if (supervisorAssessmentDetailPattern.test(path)) {
     return true;
   }
 
