@@ -23,7 +23,6 @@ import {
   ReactFlowProvider,
   type Node,
   type Edge,
-  type ReactFlowInstance,
 } from "@xyflow/react";
 import dagre from "dagre";
 import "@xyflow/react/dist/style.css";
@@ -43,7 +42,6 @@ import { EmployeeListSidebar } from "./employee-list-sidebar";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
-import DownloadButton from "./download-button";
 
 const nodeWidth = 220;
 const nodeHeight = 140;
@@ -92,7 +90,6 @@ const nodeTypes = {
 export default function OrganizationChartEdit() {
   const queryClient = useQueryClient();
   const router = useRouter();
-  const [editMode, setEditMode] = useState(true);
   const [chartEmployees, setChartEmployees] =
     useState<EmployeeNode[]>(initialChartData);
   const [nodes, setNodes, onNodesChange] = useNodesState<Node<NodeCardData>>(
@@ -117,7 +114,7 @@ export default function OrganizationChartEdit() {
     isError,
   } = useQuery({
     queryKey: ["organizationChart", selectedEmployeeId],
-    queryFn: () => getOrgChart(selectedEmployeeId),
+    queryFn: () => getOrgChart(selectedEmployeeId ? `${selectedEmployeeId}` : ''),
     select: (apiResponse) => flattenOrgData(apiResponse.data),
   });
 
@@ -167,7 +164,7 @@ export default function OrganizationChartEdit() {
       onAddChild,
       onEdit,
       onDelete,
-      isEditMode: editMode,
+      isEditMode: true,
     }));
 
     const { nodes: transformedNodes, edges: transformedEdges } =
@@ -179,7 +176,7 @@ export default function OrganizationChartEdit() {
 
     setNodes(layoutedNodes as Node<NodeCardData>[]);
     setEdges(layoutedEdges);
-  }, [chartEmployees, editMode]);
+  }, [chartEmployees]);
 
   const handleModalSave = (formValues: AssignEmployeeFormValues) => {
     assignManager(formValues);
@@ -241,18 +238,6 @@ export default function OrganizationChartEdit() {
           </Button>
           <h2 className="font-semibold text-xl">Organization Structure</h2>
         </div>
-        <div className="flex items-center gap-2">
-          {editMode === false && <DownloadButton />}
-          <Button onClick={() => setEditMode(!editMode)} className="whitespace-nowrap">
-            <Image
-              src="/icons/edit.svg"
-              width={18}
-              height={18}
-              alt="edit icon"
-            />{" "}
-            {editMode === true ? "Done" : "Edit Structure"}
-          </Button>
-        </div>
       </div>
       <div className="flex flex-row" style={{ height: "100vh" }}>
         <EmployeeListSidebar
@@ -294,7 +279,7 @@ export default function OrganizationChartEdit() {
               onNodesChange={onNodesChange}
               onEdgesChange={onEdgesChange}
               nodeTypes={nodeTypes}
-              // onInit={setReactFlowInstance}
+              fitView
               style={{
                 backgroundColor: "#EDEDED",
               }}
