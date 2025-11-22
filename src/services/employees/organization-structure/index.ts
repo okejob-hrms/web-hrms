@@ -8,7 +8,7 @@ import { api } from "@/lib/api";
 import { AssignEmployeeFormValues, EditEmployeeFormValues } from "@/components/pages/organization-structure/types";
 
 export const getOrgChart = async (
-  employeeId?: number | null
+  employeeId?: string | null
 ): Promise<ApiResponse<IEmployeeOrganizationStructure[]>> => {
   const queryParams = new URLSearchParams();
 

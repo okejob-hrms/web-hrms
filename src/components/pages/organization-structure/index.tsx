@@ -3,7 +3,7 @@
 "use client";
 
 import Image from "next/image";
-import React, { useEffect } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import {
   ReactFlow,
@@ -26,17 +26,40 @@ import { useQuery } from "@tanstack/react-query";
 import { EmployeeNode, NodeCardData } from "./types";
 import DownloadButton from "./sections/download-button";
 
-const dagreGraph = new dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
+// --- NEW IMPORTS FOR FILTERING ---
+import { getEmployees } from "@/services/employees";
+import { useDebounce } from "@/hooks/use-debounce";
+import { Check, ChevronsUpDown, X } from "lucide-react";
+import { cn } from "@/lib/utils";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+
+// Dagre fixed sizes
 const nodeWidth = 220;
 const nodeHeight = 140;
 
+// --- FIXED: recreate dagre graph per layout call ---
 const getLayoutedElements = (
   nodes: Node[],
   edges: Edge[],
   direction: "TB" | "LR" = "TB"
 ) => {
-  const isHorizontal = direction === "LR";
+  const dagreGraph = new dagre.graphlib.Graph();
+  dagreGraph.setDefaultEdgeLabel(() => ({}));
   dagreGraph.setGraph({ rankdir: direction });
+
+  const isHorizontal = direction === "LR";
 
   nodes.forEach((node: Node) => {
     dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
@@ -48,71 +71,100 @@ const getLayoutedElements = (
 
   dagre.layout(dagreGraph);
 
-  const newNodes = nodes.map((node) => {
-    const nodeWithPosition = dagreGraph.node(node.id);
+  const layoutedNodes = nodes.map((node) => {
+    const layout = dagreGraph.node(node.id);
     return {
       ...node,
+      position: {
+        x: layout.x - nodeWidth / 2,
+        y: layout.y - nodeHeight / 2,
+      },
       targetPosition: isHorizontal ? "left" : "top",
       sourcePosition: isHorizontal ? "right" : "bottom",
-      position: {
-        x: nodeWithPosition.x - nodeWidth / 2,
-        y: nodeWithPosition.y - nodeHeight / 2,
-      },
     };
   });
 
-  return { nodes: newNodes, edges };
+  return { nodes: layoutedNodes, edges };
 };
 
-const nodeTypes = {
-  custom: CustomNode,
-};
+// --- NODE TYPES ---
+const nodeTypes = { custom: CustomNode };
 
 export default function OrganizationChart() {
   const router = useRouter();
 
-  // ✅ React Query directly here
+  // --- 1. FILTER STATE ---
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(
+    null
+  );
+  const [selectedLabel, setSelectedLabel] = useState("");
+
+  const debouncedSearch = useDebounce(search, 300);
+
+  // --- 2. SEARCH QUERY ---
+  const { data: employeeResults, isLoading: isSearching } = useQuery({
+    queryKey: ["employees", "search", debouncedSearch],
+    queryFn: () =>
+      getEmployees(
+        debouncedSearch
+          ? { search: debouncedSearch, per_page: 20 }
+          : { per_page: 20 }
+      ),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const employeeOptions = useMemo(() => {
+    return (
+      employeeResults?.data?.data?.map((item) => ({
+        label: item.name,
+        value: item.id.toString(),
+      })) || []
+    );
+  }, [employeeResults?.data]);
+
+  // --- 3. CHART QUERY ---
   const {
     data: chartEmployees = [],
     isLoading,
     isError,
   } = useQuery<EmployeeNode[], Error>({
-    queryKey: ["orgChart"],
+    queryKey: ["orgChart", selectedEmployeeId],
     queryFn: async () => {
-      const response = await getOrgChart();
+      const response = await getOrgChart(selectedEmployeeId || "");
       return flattenOrgData(response.data);
     },
-    staleTime: 1000 * 60 * 5, // cache for 5 minutes
+    staleTime: 1000 * 60 * 5,
   });
 
-  const [nodes, setNodes, onNodesChange] = useNodesState<Node<NodeCardData>>(
-    []
-  );
+  const [nodes, setNodes, onNodesChange] =
+    useNodesState<Node<NodeCardData>>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
 
-  useEffect(() => {
-    if (!chartEmployees || chartEmployees.length === 0) {
-      setNodes([]);
-      setEdges([]);
-      return;
-    }
+  // --- 4. TRANSFORMATION + LAYOUT (Memoized for stability) ---
+  const layoutResult = useMemo(() => {
+    if (!chartEmployees || chartEmployees.length === 0) return null;
 
     const dataForNodes: NodeCardData[] = chartEmployees.map((emp) => ({
       employee: emp,
       isEditMode: false,
     }));
 
-    const { nodes: transformedNodes, edges: transformedEdges } =
-      transformDataForFlow(dataForNodes);
-
-    const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
-      transformedNodes,
-      transformedEdges
-    );
-
-    setNodes(layoutedNodes as Node<NodeCardData>[]);
-    setEdges(layoutedEdges);
+    const transformed = transformDataForFlow(dataForNodes);
+    return getLayoutedElements(transformed.nodes, transformed.edges);
   }, [chartEmployees]);
+
+  useEffect(() => {
+    if (!layoutResult) {
+      setNodes([]);
+      setEdges([]);
+      return;
+    }
+
+    setNodes(layoutResult.nodes as Node<NodeCardData>[]);
+    setEdges(layoutResult.edges);
+  }, [layoutResult]);
 
   const handleEditClick = () => {
     router.push("structure/edit");
@@ -122,35 +174,107 @@ export default function OrganizationChart() {
     <ReactFlowProvider>
       <div className="font-sans min-h-screen">
         <div className="flex justify-between w-full items-center mb-3">
+          
           <div className="flex flex-col sm:flex-row justify-between w-full items-start sm:items-center gap-4 sm:gap-0">
-            <div className="flex gap-2 items-center flex-wrap">
+
+            {/* LEFT SECTION */}
+            <div className="flex gap-4 items-center flex-wrap">
               <h2 className="font-semibold text-xl">Organization Structure</h2>
+
+              {/* FILTER */}
+              <Popover open={open} onOpenChange={setOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={open}
+                    className="w-[250px] justify-between bg-white"
+                  >
+                    {selectedLabel || "Filter by employee"}
+
+                    {selectedEmployeeId ? (
+                      <div
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedEmployeeId(null);
+                          setSelectedLabel("");
+                          setSearch("");
+                        }}
+                        className="ml-2 rounded-full hover:bg-gray-200 p-1"
+                      >
+                        <X className="h-3 w-3 opacity-50" />
+                      </div>
+                    ) : (
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    )}
+                  </Button>
+                </PopoverTrigger>
+
+                <PopoverContent className="w-[250px] p-0" align="start">
+                  <Command shouldFilter={false}>
+                    <CommandInput
+                      placeholder="Search employee name..."
+                      value={search}
+                      onValueChange={setSearch}
+                    />
+
+                    <CommandList>
+                      {isSearching ? (
+                        <div className="py-6 text-center text-sm text-muted-foreground">
+                          Loading...
+                        </div>
+                      ) : (
+                        <>
+                          <CommandEmpty>No employee found.</CommandEmpty>
+                          <CommandGroup>
+                            {employeeOptions.map((item) => (
+                              <CommandItem
+                                key={item.value}
+                                value={item.value}
+                                onSelect={() => {
+                                  setSelectedEmployeeId(item.value);
+                                  setSelectedLabel(item.label);
+                                  setOpen(false);
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    selectedEmployeeId === item.value
+                                      ? "opacity-100"
+                                      : "opacity-0"
+                                  )}
+                                />
+                                {item.label}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </>
+                      )}
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
+
+            {/* RIGHT ACTIONS */}
             <div className="flex flex-row gap-2">
-              {/* <div className="flex flex-row text-[10px] align-middle gap-[5px] items-center">
-                <Image
-                  src="/icons/update.svg"
-                  width={10}
-                  height={10}
-                  alt="update icon"
-                />
-                <span>Last Update</span>
-                <span className="text-primary">Jul 20, 2025</span>
-                <span className="text-primary">16:00</span>
-              </div> */}
-              <DownloadButton/>
+              <DownloadButton />
+
               <Button onClick={handleEditClick} className="whitespace-nowrap">
                 <Image
                   src="/icons/edit.svg"
                   width={18}
                   height={18}
                   alt="edit icon"
-                />{" "}
+                />
                 Edit Structure
               </Button>
             </div>
           </div>
-        </div>{" "}
+        </div>
+
+        {/* CHART AREA */}
         <div style={{ width: "100%", height: "80vh" }}>
           {isError && <div>Failed to load organization chart</div>}
 
