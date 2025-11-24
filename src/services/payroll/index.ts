@@ -1,5 +1,5 @@
 import { api } from "@/lib/api";
-import { AdditionalRequest, AllowanceRequest, OvertimeRequest, PayrunViewResponse, PayslipResponse, PenaltyRequest, RequestPayrollGroup, ResponsePayrollDetail, ResponsePayrollList, WorkingHourRequest } from "./types";
+import { AdditionalRequest, AllowanceRequest, OvertimeRequest, PayrunLog, PayrunViewResponse, PayslipResponse, PenaltyRequest, RequestPayrollGroup, ResponsePayrollDetail, ResponsePayrollList, TotalSpendResponse, WorkingHourRequest } from "./types";
 import { PaginationState } from "@tanstack/react-table";
 
 export const getPayroll = async (
@@ -239,4 +239,29 @@ export const putViewPayrun = async (
       json: payload,
     })
     .json<PayrunViewResponse>();
+};
+
+export const getPayrollDetailSpend = async (id: string): Promise<TotalSpendResponse> => {
+  const response = await api.get(`payruns/${id}/spend`);
+  return response.json<TotalSpendResponse>();
+};
+
+export const getPayrollViewLog = async (
+  id: string,
+  pagination?: PaginationState,
+): Promise<PayrunLog> => {
+  const searchParams: Record<string, string> = {};
+
+  if (pagination) {
+    const page = pagination.pageIndex + 1;
+    const per_page = pagination.pageSize;
+    searchParams.page = page.toString();
+    searchParams.per_page = per_page.toString();
+  }
+  const response = await api.get<PayrunLog>(
+    `payruns/${id}/logs`,
+    { searchParams }
+  );
+
+  return response.json();
 };

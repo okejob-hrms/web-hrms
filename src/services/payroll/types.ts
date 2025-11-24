@@ -284,3 +284,54 @@ export interface Pagination {
     to: number;
     total: number;
 }
+
+export interface TotalSpendResponse {
+  status: string;
+  message: string;
+  data: TotalSpendData;
+}
+
+export interface TotalSpendData {
+  payrun_id: number;
+  period_label: string;
+  allowance: SpendItem;
+  overtime: SpendItem;
+  additional_earning: SpendItem;
+  penalties: SpendItem;
+  deduction: SpendItem;
+  spend: SpendItem;
+  gross_pay: SpendItem;
+  net_pay: SpendItem;
+  deductions_by_name: SpendItem[];
+}
+
+export interface SpendItem {
+  label: string;
+  total: number;
+}
+
+export interface PayrunLog {
+  data: PayrunLogList[];
+  message: string;
+  pagination: Pagination;
+  status: string;
+}
+
+export interface PayrunLogList {
+  actor?: Actor;
+  created_at?: string;
+  entity?: string;
+  event?: string;
+  id?: number;
+  message?: string;
+}
+
+export interface Actor {
+  avatar_url: null;
+  email: string;
+  employee_code: string;
+  employee_id: number;
+  id: number;
+  name: string;
+  phone: null;
+}

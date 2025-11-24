@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { AdditionalItem, AdditionalRequest, AllowanceItem, AllowanceRequest, OvertimePayrun, OvertimeRequest, Payslip, PenaltyPayrun, PenaltyRequest, RequestPayrollGroup, WorkHourPayrun, WorkingHourRequest } from "@/services/payroll/types";
 import { Filters } from "./types";
-import { getPayrollDetail, getPayrollEmployee, postFinalPayrun, putAdditionalPayrun, putAllowancePayrun, putOvertimePayrun, putPenaltyPayrun, putWorkingHourPayrun } from "@/services/payroll";
+import { getPayrollDetail, getPayrollDetailSpend, getPayrollEmployee, getPayrollViewLog, postFinalPayrun, putAdditionalPayrun, putAllowancePayrun, putOvertimePayrun, putPenaltyPayrun, putWorkingHourPayrun } from "@/services/payroll";
 import { PaginatedResponse } from "@/lib/types";
 import { AllowanceTypeResponse } from "@/services/salary/types";
 import { getAllowanceType } from "@/services/salary";
@@ -51,6 +51,11 @@ export function usePayrollDetail() {
     penalties_amount: 0,
   });
 
+  const [paginationAudit, setPaginationAudit] = React.useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 10,
+  });
+
 
   const queryClient = useQueryClient();
 
@@ -64,6 +69,21 @@ export function usePayrollDetail() {
     placeholderData: keepPreviousData,
     refetchOnMount: "always",
     refetchOnWindowFocus: true,
+    enabled: !!id,
+  });
+
+  // get spend
+  const {
+    data: detailDataSpend,
+    refetch: detailDataSpendRefetch,
+    isLoading: loadingdetailDataSpend,
+  } = useQuery({
+    queryKey: ["detailPayrollSpend", id],
+    queryFn: () => getPayrollDetailSpend(id),
+    placeholderData: keepPreviousData,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
+    enabled: !!id,
   });
 
   // get list
@@ -78,6 +98,20 @@ export function usePayrollDetail() {
     placeholderData: keepPreviousData,
     refetchOnMount: "always",
     refetchOnWindowFocus: true,
+    enabled: !!id,
+  });
+
+  const {
+    data: auditTrail,
+    isLoading: auditTrailLoading,
+    refetch: auditTrailRefetch,
+  } = useQuery({
+    queryKey: ["auditTrail", id, paginationAudit],
+    queryFn: () => getPayrollViewLog(id, paginationAudit),
+    placeholderData: keepPreviousData,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
+    enabled: !!id,
   });
 
   //getAllowance
@@ -86,6 +120,7 @@ export function usePayrollDetail() {
       queryKey: ['getAllowance'],
       queryFn: getAllowanceType,
       staleTime: 1000 * 60 * 5,
+      enabled: !!id,
     });
 
   const dataPagination: PaginatedResponse<Payslip> = {
@@ -124,7 +159,10 @@ export function usePayrollDetail() {
   }
 
   const handleNext = () => {
-    setCurrentStep(2);
+    detailDataSpendRefetch();
+    if(!loadingdetailDataSpend){
+      setCurrentStep(2);
+    }
   }
 
   const handleBack = () => {
@@ -154,6 +192,7 @@ export function usePayrollDetail() {
       queryClient.invalidateQueries({ queryKey: ["payslip"] });
       setOpenAllowance(false);
       detailDataRefetch();
+      auditTrailRefetch();
     },
 
     onError: (err) => {
@@ -183,6 +222,7 @@ export function usePayrollDetail() {
       queryClient.invalidateQueries({ queryKey: ["payslip"] });
       setOpenWorkingHour(false);
       detailDataRefetch();
+      auditTrailRefetch();
     },
 
     onError: (err) => {
@@ -211,6 +251,7 @@ export function usePayrollDetail() {
       queryClient.invalidateQueries({ queryKey: ["payslip"] });
       setOpenOvertime(false);
       detailDataRefetch();
+      auditTrailRefetch();
     },
 
     onError: (err) => {
@@ -239,6 +280,7 @@ export function usePayrollDetail() {
       queryClient.invalidateQueries({ queryKey: ["payslip"] });
       setOpenAdditional(false);
       detailDataRefetch();
+      auditTrailRefetch();
     },
 
     onError: (err) => {
@@ -267,6 +309,7 @@ export function usePayrollDetail() {
       queryClient.invalidateQueries({ queryKey: ["payslip"] });
       setOpenPenalty(false);
       detailDataRefetch();
+      auditTrailRefetch();
     },
 
     onError: (err) => {
@@ -342,5 +385,16 @@ export function usePayrollDetail() {
     penaltys,
     setPenaltys,
     handleSavePenalty,
+
+    //detailDataSpend
+    detailDataSpend,
+    loadingdetailDataSpend,
+
+
+    //audit trail
+    paginationAudit,
+    setPaginationAudit,
+    auditTrail,
+    auditTrailLoading,
   };
 }
