@@ -8,48 +8,22 @@ import {
 import { Button } from "@/components/ui/button";
 import { InputForm } from "@/components/ui/input";
 import { TextAreaForm } from "@/components/ui/textarea";
-import { useForm } from "react-hook-form";
 import { Form } from "@/components/ui/form";
-
-interface CompetencyFormData {
-  code: string;
-  name: string;
-  description: string;
-}
+import { usePerformanceCompetenciesList } from "../hook";
 
 interface CompetencyModalFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (data: CompetencyFormData) => void;
 }
 
 export const CompetencyModalForm: React.FC<CompetencyModalFormProps> = ({
   open,
   onOpenChange,
-  onSave,
 }) => {
-  const [formData, setFormData] = React.useState<CompetencyFormData>({
-    code: "",
-    name: "",
-    description: "",
-  });
-
-  const form = useForm();
-
-  const handleInputChange = (
-    field: keyof CompetencyFormData,
-    value: string,
-  ): void => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleSave = (): void => {
-    onSave(formData);
-    handleClose();
-  };
+  const { form, handleSave, isSubmitting } = usePerformanceCompetenciesList();
 
   const handleClose = (): void => {
-    setFormData({ code: "", name: "", description: "" });
+    form.reset();
     onOpenChange(false);
   };
 
@@ -63,7 +37,7 @@ export const CompetencyModalForm: React.FC<CompetencyModalFormProps> = ({
         </DialogHeader>
 
         <Form {...form}>
-          <form className="px-6 pb-6 space-y-5">
+          <form onSubmit={handleSave} className="px-6 pb-6 space-y-5">
             <div className="space-y-2">
               <InputForm name="code" label="Competency Code" required />
             </div>
@@ -81,16 +55,17 @@ export const CompetencyModalForm: React.FC<CompetencyModalFormProps> = ({
                 type="button"
                 variant="outline"
                 onClick={handleClose}
+                disabled={isSubmitting}
                 className="px-6 border-[#0e7490] text-[#0e7490] hover:bg-[#0e7490]/5"
               >
                 Cancel
               </Button>
               <Button
-                type="button"
-                onClick={handleSave}
+                type="submit"
+                disabled={isSubmitting}
                 className="px-8 bg-[#0e7490] hover:bg-[#0c6380] text-white"
               >
-                Save
+                {isSubmitting ? "Saving..." : "Save"}
               </Button>
             </div>
           </form>
