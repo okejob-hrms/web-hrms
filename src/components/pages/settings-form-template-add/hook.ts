@@ -7,11 +7,14 @@ import {
   postAddField,
   getFormById,
   postUpdateForm,
+  getFieldsByGroup,
 } from "@/services/form";
 import {
   IFormTemplate,
   IFormField,
   IMutateFormRequest,
+  IMutateFieldRequest,
+  IFormGroup,
 } from "@/services/form/types";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import z from "zod";
@@ -28,22 +31,40 @@ interface FormFieldData {
   options?: string[];
 }
 
+interface FormGroupData {
+  name: string;
+  metadata: {
+    score_weight: number;
+    score_weight_type: string;
+  };
+  fields: FormFieldData[];
+}
+
 interface FormTemplateFormData {
   name: string;
   type: string;
-  questions: FormFieldData[];
+  groups: FormGroupData[];
 }
 
 const formSchema = z.object({
   name: z.string().min(2, "Form Name must be at least 2 characters"),
   type: z.string().min(1, "Form Usage is required"),
-  questions: z.array(
+  groups: z.array(
     z.object({
-      label: z.string().min(1, "Label is required"),
-      type: z.string().min(1, "Type is required"),
-      is_required: z.boolean(),
-      order: z.number(),
-      options: z.array(z.string()).optional(),
+      name: z.string().min(1, "Group name is required"),
+      metadata: z.object({
+        score_weight: z.number(),
+        score_weight_type: z.string(),
+      }),
+      fields: z.array(
+        z.object({
+          label: z.string().min(1, "Label is required"),
+          type: z.string().min(1, "Type is required"),
+          is_required: z.boolean(),
+          order: z.number(),
+          options: z.array(z.string()).optional(),
+        }),
+      ),
     }),
   ),
 }) satisfies z.ZodType<FormTemplateFormData>;
@@ -73,7 +94,7 @@ export function useFormTemplateAdd({
     defaultValues: {
       name: "",
       type: "",
-      questions: [],
+      groups: [],
       ...initialData,
     },
   });
@@ -87,6 +108,15 @@ export function useFormTemplateAdd({
     queryFn: getAllForm,
   });
 
+  const {
+    data: formGroupsData,
+    isLoading: isFormGroupsLoading,
+    error: formGroupsError,
+  } = useQuery<PaginatedResponse<IFormGroup>>({
+    queryKey: ["form-group"],
+    queryFn: getFieldsByGroup,
+  });
+
   const { data: editFormData, isLoading: isEditFormLoading } = useQuery({
     queryKey: ["form-details", editFormId],
     queryFn: () => getFormById(editFormId!),
@@ -94,6 +124,10 @@ export function useFormTemplateAdd({
     refetchOnMount: "always",
     staleTime: 0,
   });
+
+  React.useEffect(() => {
+    console.log("form groups data", formGroupsData);
+  }, [formGroupsData]);
 
   React.useEffect(() => {
     if (editFormData?.data && editFormId) {
@@ -105,7 +139,7 @@ export function useFormTemplateAdd({
         return;
       }
 
-      const questions: FormFieldData[] = formData.fields.map(
+      const questions: FormFieldData[] = formData.groups[0]?.fields?.map(
         (field, index) => ({
           label: field.label || "",
           type: field.type || "",
@@ -119,14 +153,14 @@ export function useFormTemplateAdd({
       console.log("Preparing to reset form with:", {
         name: formData.name,
         type: typeValue,
-        questionsCount: questions.length,
+        groupsCount: formData.groups?.length,
       });
 
       requestAnimationFrame(() => {
         form.reset({
           name: formData.name || "",
           type: typeValue,
-          questions: questions,
+          groups: formData.groups || [],
         });
       });
     }
@@ -234,13 +268,8 @@ export function useFormTemplateAdd({
   });
 
   const addFieldMutation = useMutation({
-    mutationFn: ({
-      form_id,
-      fields,
-    }: {
-      form_id: number;
-      fields: IFormField[];
-    }) => postAddField(form_id, { form_id, fields }),
+    mutationFn: ({ form_id, groups }: IMutateFieldRequest) =>
+      postAddField(form_id, { form_id, groups }),
   });
 
   const formOptions = React.useMemo(() => {
@@ -258,6 +287,7 @@ export function useFormTemplateAdd({
     try {
       let result;
       if (editFormId) {
+        console.log("values ", values);
         const payload = {
           name: values.name,
           type: Number(values.type),
@@ -268,28 +298,31 @@ export function useFormTemplateAdd({
           payload,
         });
 
-        if (updateResponse.data && values.questions.length > 0) {
+        if (updateResponse.data && values.groups.length > 0) {
           const formId = updateResponse.data.id;
-          const fields: IFormField[] = values.questions.map(
-            (question, index) => ({
-              label: question.label,
-              type: question.type,
-              is_required: question.is_required,
+
+          // Map all groups to the expected format
+          const groups = values.groups.map((group) => ({
+            name: group.name,
+            metadata: group.metadata,
+            fields: group.fields.map((field, index) => ({
+              label: field.label,
+              type: field.type,
+              is_required: field.is_required,
               order: index,
-              options: question.options,
-            }),
-          );
+              options: field.options,
+            })),
+          }));
 
           await addFieldMutation.mutateAsync({
             form_id: formId,
-            fields: fields,
+            groups: groups,
           });
         }
 
         result = {
           success: true,
           formId: editFormId,
-          data: updateResponse.data,
         };
       } else {
         const formResponse = await createFormMutation.mutateAsync({
@@ -298,21 +331,25 @@ export function useFormTemplateAdd({
           description: `Form template: ${values.name}`,
         });
 
-        if (formResponse.data && values.questions.length > 0) {
+        if (formResponse.data && values.groups.length > 0) {
           const formId = formResponse.data.id;
-          const fields: IFormField[] = values.questions.map(
-            (question, index) => ({
-              label: question.label,
-              type: question.type,
-              is_required: question.is_required,
+
+          // Map all groups to the expected format
+          const groups = values.groups.map((group) => ({
+            name: group.name,
+            metadata: group.metadata,
+            fields: group.fields.map((field, index) => ({
+              label: field.label,
+              type: field.type,
+              is_required: field.is_required,
               order: index,
-              options: question.options,
-            }),
-          );
+              options: field.options,
+            })),
+          }));
 
           await addFieldMutation.mutateAsync({
             form_id: formId,
-            fields: fields,
+            groups: groups,
           });
         }
 

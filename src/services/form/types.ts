@@ -9,6 +9,16 @@ export interface IFormTemplate {
   type: number;
   deleted_at: string | null;
   type_label: string;
+  groups: IFormGroup[];
+}
+
+export interface IFormGroup {
+  id: string;
+  name: string;
+  metadata: {
+    score_weight: number;
+    score_weight_type: string;
+  };
   fields: {
     id: number;
     form_id: number;
@@ -27,6 +37,7 @@ export interface IFormTemplate {
 
 export interface IFormTemplateParams {
   form_id?: number;
+  group_id?: number;
   label: string;
   type: string;
   options: string[];
@@ -52,7 +63,15 @@ export interface IFormField {
 
 export interface IMutateFieldRequest {
   form_id: number;
-  fields: IFormField[];
+  groups: {
+    id?: string;
+    name?: string;
+    metadata?: {
+      score_weight: number;
+      score_weight_type: string;
+    };
+    fields?: IFormField[];
+  }[];
 }
 
 export interface IMutateFormRequest {
