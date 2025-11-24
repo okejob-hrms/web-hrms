@@ -24,7 +24,7 @@ const columns: ColumnDef<any>[] = [
     header: "Code",
   },
   {
-    accessorKey: "competencies",
+    accessorKey: "name",
     header: "Competencies",
   },
   {
@@ -96,8 +96,12 @@ const columns: ColumnDef<any>[] = [
 export const SettingsPerformanceCompetencies = React.memo(
   function SettingsPerformanceCompetencies() {
     const isMobile = useIsMobile();
-    const { handleAddNew, isOpenModalForm, setIsOpenModalForm, handleSave } =
-      usePerformanceCompetenciesList();
+    const {
+      handleAddNew,
+      isOpenModalForm,
+      setIsOpenModalForm,
+      performanceCompetencies,
+    } = usePerformanceCompetenciesList();
 
     return (
       <div className="font-sans min-h-screen bg-gray-50">
@@ -114,13 +118,16 @@ export const SettingsPerformanceCompetencies = React.memo(
                 + New Performance Competency
               </Button>
             </div>
-            <DataTable columns={columns} data={[]} customSize={!isMobile} />
+            <DataTable
+              columns={columns}
+              data={performanceCompetencies?.data || []}
+              customSize={!isMobile}
+            />
           </div>
         </div>
         <CompetencyModalForm
           open={isOpenModalForm}
           onOpenChange={setIsOpenModalForm}
-          onSave={handleSave}
         />
       </div>
     );
