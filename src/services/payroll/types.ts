@@ -231,3 +231,56 @@ export interface PenaltyRequest {
   payslip_id: number;
   penalties_amount: number;
 }
+
+export interface PayrunViewResponse {
+    data: PayrunViewResponseList[];
+    message: string;
+    pagination: Pagination;
+    status: string;
+}
+
+export interface PayrunViewResponseList {
+    created_at: string;
+    employee: EmployeePayrunViewResponse;
+    id: number;
+    payrun: PayrunPayrunViewResponse;
+    print_access_granted_at: string;
+    print_access_requested_at: string;
+    print_access_status: number;
+    print_access_status_label: string;
+    view_access_granted_at: string;
+    view_access_requested_at: string;
+    view_access_status: number;
+    view_access_status_label: string;
+    updated_at: string;
+}
+
+export interface EmployeePayrunViewResponse {
+    avatar_url: null;
+    email: string;
+    employee_code: string;
+    employee_id: number;
+    id: number;
+    name: string;
+    phone: null;
+}
+
+export interface PayrunPayrunViewResponse {
+    id: number;
+    period_label: string;
+    period_month: number;
+    period_year: number;
+}
+
+export interface Pagination {
+    current_page: number;
+    first: string;
+    from: number;
+    last: string;
+    last_page: number;
+    next: string | null;
+    per_page: number;
+    prev: string | null;
+    to: number;
+    total: number;
+}
