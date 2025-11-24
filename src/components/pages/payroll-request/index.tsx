@@ -13,31 +13,33 @@ import {
 } from '@/components/ui/dropdown-menu';
 import {
   Clock4Icon,
-  Edit3,
   Ellipsis,
   Eye,
+  Loader2,
   Printer,
   Search,
   XCircle,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import {
-  getStatusGeneratingPayroll,
-  getStatusPayroll,
-  getStatusPayrollReq,
-} from '@/lib/helpers';
+import { getStatusPayrollReq } from '@/lib/helpers';
 import { InputForm } from '@/components/ui/input';
 import { Form } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
 import { DatePicker } from '@/components/ui/date-picker';
 import dayjs from 'dayjs';
-import { cn, formatCurrency, stringAvatar } from '@/lib/utils';
-import { ResponsePayrollItem } from '@/services/payroll/types';
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { getPayroll } from '@/services/payroll';
+import { cn, stringAvatar } from '@/lib/utils';
+import { PayrunViewResponseList } from '@/services/payroll/types';
+import { keepPreviousData, useMutation, useQuery } from '@tanstack/react-query';
+import {
+  getPayrollPrint,
+  getPayrollView,
+  putPrintPayrun,
+  putViewPayrun,
+} from '@/services/payroll';
 import { PaginatedResponse } from '@/lib/types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { toast } from 'sonner';
 
 export interface Filters {
   search?: string;
@@ -54,30 +56,56 @@ export const PayrollRequest = () => {
     pageSize: 10,
   });
 
-  const { data: payrollData } = useQuery({
-    queryKey: ['payroll', pagination, filters.search, filters.date],
-    queryFn: () => getPayroll(pagination, filters),
+  const [activeTab, setActiveTab] = React.useState('print-list');
+  const [loading, setLoading] = React.useState(false);
+
+  const { data: payrollDataView, refetch: payrollViewRefetch } = useQuery({
+    queryKey: ['payrollView', pagination, filters.search, filters.date],
+    queryFn: () => getPayrollView(pagination, filters),
     placeholderData: keepPreviousData,
     refetchOnMount: 'always',
     refetchOnWindowFocus: true,
   });
 
-  const dataPagination: PaginatedResponse<ResponsePayrollItem> = {
-    current_page: payrollData?.pagination.current_page ?? 1,
-    current_page_url: `${payrollData?.pagination.first ?? ''}`,
-    first_page_url: payrollData?.pagination.first ?? '',
-    from: payrollData?.pagination.from ?? 0,
-    last_page: payrollData?.pagination.last_page ?? 1,
-    next_page_url: payrollData?.pagination.next ?? null,
+  const dataPaginationView: PaginatedResponse<PayrunViewResponseList> = {
+    current_page: payrollDataView?.pagination.current_page ?? 1,
+    current_page_url: `${payrollDataView?.pagination.first ?? ''}`,
+    first_page_url: payrollDataView?.pagination.first ?? '',
+    from: payrollDataView?.pagination.from ?? 0,
+    last_page: payrollDataView?.pagination.last_page ?? 1,
+    next_page_url: payrollDataView?.pagination.next ?? null,
     path: 'api/v1/payruns',
-    per_page: payrollData?.pagination.per_page ?? 10,
-    prev_page_url: payrollData?.pagination.prev ?? null,
-    to: payrollData?.pagination.to ?? 0,
-    total: payrollData?.pagination.total ?? 0,
-    data: payrollData?.data ?? [],
+    per_page: payrollDataView?.pagination.per_page ?? 10,
+    prev_page_url: payrollDataView?.pagination.prev ?? null,
+    to: payrollDataView?.pagination.to ?? 0,
+    total: payrollDataView?.pagination.total ?? 0,
+    data: payrollDataView?.data ?? [],
   };
 
-  const columns: ColumnDef<ResponsePayrollItem>[] = [
+  const { data: payrollDataPrint } = useQuery({
+    queryKey: ['payrollPrint', pagination, filters.search, filters.date],
+    queryFn: () => getPayrollPrint(pagination, filters),
+    placeholderData: keepPreviousData,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
+  });
+
+  const dataPaginationPrint: PaginatedResponse<PayrunViewResponseList> = {
+    current_page: payrollDataPrint?.pagination.current_page ?? 1,
+    current_page_url: `${payrollDataPrint?.pagination.first ?? ''}`,
+    first_page_url: payrollDataPrint?.pagination.first ?? '',
+    from: payrollDataPrint?.pagination.from ?? 0,
+    last_page: payrollDataPrint?.pagination.last_page ?? 1,
+    next_page_url: payrollDataPrint?.pagination.next ?? null,
+    path: 'api/v1/payruns',
+    per_page: payrollDataPrint?.pagination.per_page ?? 10,
+    prev_page_url: payrollDataPrint?.pagination.prev ?? null,
+    to: payrollDataPrint?.pagination.to ?? 0,
+    total: payrollDataPrint?.pagination.total ?? 0,
+    data: payrollDataPrint?.data ?? [],
+  };
+
+  const columns: ColumnDef<PayrunViewResponseList>[] = [
     {
       accessorKey: 'period_label',
       header: 'Request By',
@@ -85,14 +113,14 @@ export const PayrollRequest = () => {
       cell: ({ row }) => (
         <div className="flex gap-4 items-center min-w-[250px]">
           <Avatar className="h-10 w-10">
-            <AvatarImage src={`${row.original.created_by.name}`} />
+            <AvatarImage src={`${row.original.employee.name}`} />
             <AvatarFallback className="text-primary-hover bg-primary-background text-base font-medium">
-              {stringAvatar(row.original.created_by.name ?? '')}
+              {stringAvatar(row.original.employee.name ?? '')}
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-col">
             <span className="font-semibold text-foreground text-sm">
-              {row.original.created_by.name}
+              {row.original.employee.name}
             </span>
             <span className="text-text-secondary">#{row.original.id}</span>
           </div>
@@ -100,33 +128,41 @@ export const PayrollRequest = () => {
       ),
     },
     {
-      accessorKey: 'created_at',
-      header: 'Print Payrun Request',
+      accessorKey: 'payrun.period_label',
+      header: 'Payrun Request',
       size: 200,
       cell: ({ row }) => (
-        <span className="text-gray-400">
-          {dayjs(row.original.created_at).format('MMMM D, YYYY')}
+        <span className="text-gray-600">
+          {dayjs(row.original.payrun.period_label).format('MMMM D, YYYY')}
         </span>
       ),
     },
     {
-      accessorKey: 'send_payslip',
+      accessorKey: 'payrun.period_year',
       header: 'Request On',
       size: 200,
-      cell: ({ row }) =>
-        row.original.send_payslip_at
-          ? dayjs(row.original.send_payslip_at).format('MMMM D, YYYY')
-          : '-',
+      cell: ({ row }) => (
+        <span className="text-gray-400">
+          {activeTab === 'print-list'
+            ? dayjs(row.original.print_access_requested_at).format(
+                'MMMM D, YYYY',
+              )
+            : dayjs(row.original.view_access_requested_at).format(
+                'MMMM D, YYYY',
+              )}
+        </span>
+      ),
     },
     {
-      accessorKey: 'payslip_status',
+      accessorKey: 'print_access_status_label',
       header: 'Request Status',
       size: 160,
       cell: ({ row }) => {
-        const status = 'Pending';
+        const status =
+          activeTab === 'print-list'
+            ? row.original.print_access_status_label
+            : row.original.view_access_status_label;
         const { variant, className, label } = getStatusPayrollReq(status);
-        if (!row.original.status_label) return '-';
-
         return (
           <Badge variant={variant} className={className}>
             {label}
@@ -138,142 +174,46 @@ export const PayrollRequest = () => {
       accessorKey: 'updated_at',
       header: 'Last Updated',
       size: 200,
-      cell: ({ row }) =>
-        dayjs(row.original.updated_at).format('MMMM D, YYYY') || '-',
-    },
-    {
-      accessorKey: 'menu',
-      header: '',
-      cell: ({ row }) => {
-        return (
-          <div className="flex gap-3 items-center">
-            <DropdownMenu>
-              <DropdownMenuTrigger>
-                <Ellipsis className="text-grayscale-30" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem>
-                  <Button
-                    onClick={() => console.log(row)}
-                    className="flex gap-2 justify-between items-center"
-                  >
-                    <Edit3 />
-                    Change Status
-                  </Button>
-                </DropdownMenuItem>
-
-                <DropdownMenuItem>
-                  <Button
-                    onClick={() => console.log(row)}
-                    className="flex gap-2 justify-between items-center"
-                  >
-                    <Printer />
-                    Print Payslip
-                  </Button>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        );
-      },
-    },
-  ];
-
-  const columnsView: ColumnDef<ResponsePayrollItem>[] = [
-    {
-      accessorKey: 'period_label',
-      header: 'Request By',
-      size: 200,
-      cell: ({ row }) => (
-        <div className="flex gap-4 items-center min-w-[250px]">
-          <Avatar className="h-10 w-10">
-            <AvatarImage src={`${row.original.created_by.name}`} />
-            <AvatarFallback className="text-primary-hover bg-primary-background text-base font-medium">
-              {stringAvatar(row.original.created_by.name ?? '')}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex flex-col">
-            <span className="font-semibold text-foreground text-sm">
-              {row.original.created_by.name}
-            </span>
-            <span className="text-text-secondary">#{row.original.id}</span>
-          </div>
-        </div>
-      ),
-    },
-    {
-      accessorKey: 'created_at',
-      header: 'View Payrun Request',
-      size: 200,
       cell: ({ row }) => (
         <span className="text-gray-400">
-          {dayjs(row.original.created_at).format('MMMM D, YYYY')}
+          {dayjs(row.original.updated_at).format('MMMM D, YYYY') || '-'}
         </span>
       ),
     },
     {
-      accessorKey: 'send_payslip',
-      header: 'Request On',
-      size: 200,
-      cell: ({ row }) =>
-        row.original.send_payslip_at
-          ? dayjs(row.original.send_payslip_at).format('MMMM D, YYYY')
-          : '-',
-    },
-    {
-      accessorKey: 'send_payslip',
-      header: 'Expired On',
-      size: 200,
-      cell: ({ row }) =>
-        row.original.send_payslip_at
-          ? dayjs(row.original.send_payslip_at).format('MMMM D, YYYY')
-          : '-',
-    },
-    {
-      accessorKey: 'payslip_status',
-      header: 'Request Status',
-      size: 160,
-      cell: ({ row }) => {
-        const status = 'Pending';
-        const { variant, className, label } = getStatusPayrollReq(status);
-        if (!row.original.status_label) return '-';
-
-        return (
-          <Badge variant={variant} className={className}>
-            {label}
-          </Badge>
-        );
-      },
-    },
-    {
-      accessorKey: 'updated_at',
-      header: 'Last Updated',
-      size: 200,
-      cell: ({ row }) =>
-        dayjs(row.original.updated_at).format('MMMM D, YYYY') || '-',
-    },
-    {
       accessorKey: 'menu',
       header: '',
       cell: ({ row }) => {
         return (
           <div className="flex gap-3 items-center">
-            <DropdownMenu>
-              <DropdownMenuTrigger>
-                <Ellipsis className="text-grayscale-30" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem>
-                  <Button
-                    onClick={() => console.log(row)}
-                    className="flex gap-2 justify-between items-center"
-                  >
-                    <Edit3 />
-                    Change Status
-                  </Button>
-                </DropdownMenuItem>
+            {loading ? (
+              <Loader2 className="animate-spin" />
+            ) : (
+              <DropdownMenu>
+                <DropdownMenuTrigger>
+                  <Ellipsis className="text-grayscale-30" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem>
+                    <button
+                      onClick={() => handleApprove(row.original.id)}
+                      className="flex gap-2"
+                    >
+                      <Clock4Icon />
+                      Approve Request
+                    </button>
+                  </DropdownMenuItem>
 
-                <DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <button
+                      onClick={() => handleReject(row.original.id)}
+                      className="flex gap-2"
+                    >
+                      <XCircle />
+                      Reject Request
+                    </button>
+                  </DropdownMenuItem>
+                  {/* <DropdownMenuItem>
                   <Button
                     onClick={() => console.log(row)}
                     className="flex gap-2 justify-between items-center"
@@ -281,21 +221,99 @@ export const PayrollRequest = () => {
                     <Printer />
                     Print Payslip
                   </Button>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                </DropdownMenuItem> */}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
         );
       },
     },
   ];
+
+  const mutationPutPrint = useMutation({
+    mutationFn: ({
+      id,
+      payload,
+    }: {
+      id: number;
+      payload: { status: number };
+    }) => putPrintPayrun(id, payload),
+
+    onMutate: () => setLoading(true),
+
+    onSuccess: () => {
+      toast.success('Print request successfully updated');
+      payrollViewRefetch();
+    },
+
+    onError: (err) => {
+      toast.error(`Failed to save: ${err.message}`);
+    },
+
+    onSettled: () => setLoading(false),
+  });
+
+  const mutationPutView = useMutation({
+    mutationFn: ({
+      id,
+      payload,
+    }: {
+      id: number;
+      payload: { status: number };
+    }) => putViewPayrun(id, payload),
+
+    onMutate: () => setLoading(true),
+
+    onSuccess: () => {
+      toast.success('View request successfully updated');
+      payrollViewRefetch();
+    },
+
+    onError: (err) => {
+      toast.error(`Failed to save: ${err.message}`);
+    },
+
+    onSettled: () => setLoading(false),
+  });
+
+  const handleApprove = (idx: number) => {
+    if (activeTab === 'print-list') {
+      mutationPutPrint.mutate({ id: idx, payload: { status: 1 } });
+    } else {
+      mutationPutView.mutate({ id: idx, payload: { status: 1 } });
+    }
+  };
+
+  const handleReject = (idx: number) => {
+    if (activeTab === 'print-list') {
+      mutationPutPrint.mutate({ id: idx, payload: { status: 2 } });
+    } else {
+      mutationPutView.mutate({ id: idx, payload: { status: 2 } });
+    }
+  };
 
   const form = useForm<Filters>({
     defaultValues: {
       search: '',
       date: '',
     },
+    // TODO RESET WHILE CHANGE TAB
   });
+
+  React.useEffect(() => {
+    form.reset({
+      search: '',
+      date: '',
+    });
+
+    setFilters({
+      search: '',
+      date: '',
+    });
+
+    setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+  }, [activeTab]);
 
   const PrintList = () => {
     return (
@@ -341,8 +359,8 @@ export const PayrollRequest = () => {
 
           <DataTable
             columns={columns}
-            data={payrollData?.data}
-            pagination={dataPagination}
+            data={payrollDataPrint?.data}
+            pagination={dataPaginationPrint}
             paginationState={pagination}
             setPaginationState={setPagination}
           />
@@ -394,9 +412,9 @@ export const PayrollRequest = () => {
           </div>
 
           <DataTable
-            columns={columnsView}
-            data={payrollData?.data}
-            pagination={dataPagination}
+            columns={columns}
+            data={payrollDataView?.data}
+            pagination={dataPaginationView}
             paginationState={pagination}
             setPaginationState={setPagination}
           />
@@ -432,6 +450,9 @@ export const PayrollRequest = () => {
                 'px-2.5 sm:px-3 text-secondary-hover',
                 'data-[state=active]:bg-secondary data-[state=active]:text-white',
               )}
+              onClick={() => {
+                setActiveTab(tab.value);
+              }}
             >
               <code className="flex items-center gap-1 text-[13px] [&>svg]:h-4 [&>svg]:w-4">
                 {tab.icon} {tab.name}

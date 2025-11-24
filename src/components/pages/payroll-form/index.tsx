@@ -42,22 +42,7 @@ const COLORS = [
   '#A13C39', // Jaminan Kematian
 ];
 
-const dataPayroll = [
-  { name: 'Salary', value: 1288642850 },
-  { name: 'Employee Benefit', value: 234298700 },
-  { name: 'Overtime', value: 117149350 },
-  { name: 'Additional Earnings', value: 93719480 },
-  { name: 'Tax', value: 234298700 },
-  { name: 'BPJS Kesehatan', value: 93719480 },
-  { name: 'Jaminan Hari Tua', value: 117149350 },
-  { name: 'Jaminan Pensiun', value: 70289610 },
-  { name: 'Jaminan Kecelakaan Kerja', value: 46859740 },
-  { name: 'Jaminan Kematian', value: 46859740 },
-];
-
 const currency = (value: number) => 'Rp ' + value.toLocaleString('id-ID');
-
-const total = dataPayroll.reduce((sum, d) => sum + d.value, 0);
 
 export default function PayrollForm({ id }: PayrollFormFormProps) {
   const {
@@ -103,43 +88,42 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
     penaltys,
     setPenaltys,
     handleSavePenalty,
+    detailDataSpend,
+    loadingdetailDataSpend,
+    paginationAudit,
+    setPaginationAudit,
+    auditTrail,
+    auditTrailLoading,
   } = usePayrollDetail();
 
   React.useEffect(() => {
-    if (id) {
+    if (id !== undefined && id !== null) {
       getDetail(id);
     }
   }, [id]);
+
   const router = useRouter();
   const pathname = usePathname();
   const isDetail = !pathname.includes('/edit');
   const [openHistory, setOpenHistory] = React.useState(false);
 
-  const historyData = [
+  const dataPayroll = [
+    { name: 'Salary', value: detailDataSpend?.data.net_pay.total },
+    { name: 'Allowance', value: detailDataSpend?.data.allowance.total },
+    { name: 'Overtime', value: detailDataSpend?.data.overtime.total },
     {
-      time: 'November 1, 5:42 AM',
-      author: 'Demi Wilkinson',
-      details: ['Payruns cycle created'],
+      name: 'Additional Earnings',
+      value: detailDataSpend?.data.additional_earning.total,
     },
-    {
-      time: 'November 1, 5:43 AM',
-      author: 'Demi Wilkinson',
-      details: [
-        'Olivia Rhye working hours updated : 22d 160h → 22d 200h',
-        'Olivia Rhye allowance updated : 1.000.000 → 1.500.000',
-      ],
-    },
-    {
-      time: 'November 1, 5:44 AM',
-      author: 'Demi Wilkinson',
-      details: [
-        'Olivia Rhye overtime updated : 2.000.000 → 4.000.000',
-        'Olivia Rhye reimbursement added : 1.000.000',
-      ],
-    },
+    { name: 'Deductions', value: detailDataSpend?.data.deduction.total },
+    { name: 'Penalties', value: detailDataSpend?.data.penalties.total },
+
+    { name: 'Spend', value: detailDataSpend?.data.spend.total },
   ];
 
-  const columns: ColumnDef<Payslip>[] = [
+  const total = detailDataSpend?.data.gross_pay.total;
+
+  const baseColumns: ColumnDef<Payslip>[] = [
     {
       accessorKey: 'name',
       header: 'Name',
@@ -279,7 +263,6 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
         </div>
       ),
     },
-
     {
       accessorKey: 'additional',
       header: 'Additional Earnings',
@@ -354,6 +337,18 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
         </div>
       ),
     },
+  ];
+
+  const detailColumns: ColumnDef<Payslip>[] = (
+    detailDataSpend?.data.deductions_by_name ?? []
+  ).map((item, index) => ({
+    id: `deduction_${index}`, // selalu unik
+    accessorKey: item.label.toLowerCase().replace(/[^a-z0-9]/g, '_'),
+    header: item.label,
+    cell: () => <div className="text-gray-500">{item.total ?? '-'}</div>,
+  }));
+
+  const payColumns: ColumnDef<Payslip>[] = [
     {
       accessorKey: 'gross_pay',
       header: 'Gross Pay',
@@ -388,6 +383,12 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
     },
   ];
 
+  const columns: ColumnDef<Payslip>[] = [
+    ...baseColumns,
+    ...(isDetail ? detailColumns : []),
+    ...payColumns,
+  ];
+
   return (
     <div
       className={
@@ -404,23 +405,27 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
           <div className="col-span-2">
             {isDetail && (
               <div className="flex justify-end gap-2">
-                <Button
-                  onClick={() => router.push(`/payroll/list/${id}/edit`)}
-                  type="button"
-                  variant="outline"
-                  className="min-w-[100px] bg-white text-primary border-1 border font-medium py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <Edit3 />
-                  Edit Payruns
-                </Button>
-                <Button
-                  onClick={() => handleNext()}
-                  type="button"
-                  className="min-w-[100px] bg-primary hover:bg-[#14506e] text-white font-medium py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <Send />
-                  Send Payruns
-                </Button>
+                {employeeList?.data.payrun.status !== 2 && (
+                  <Button
+                    onClick={() => router.push(`/payroll/list/${id}/edit`)}
+                    type="button"
+                    variant="outline"
+                    className="min-w-[100px] bg-white text-primary border-1 border font-medium py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Edit3 />
+                    Edit Payruns
+                  </Button>
+                )}
+                {employeeList?.data.payrun.can_be_sent && (
+                  <Button
+                    onClick={() => handleNext()}
+                    type="button"
+                    className="min-w-[100px] bg-primary hover:bg-[#14506e] text-white font-medium py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Send />
+                    Send Payruns
+                  </Button>
+                )}
                 <Button
                   onClick={() => setOpenHistory(true)}
                   type="button"
@@ -525,59 +530,63 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
                 <div className="flex gap-2">
                   <h2 className="font-semibold text-xl">Total Company Spend</h2>
                 </div>
-                <div className="flex flex-col items-center justify-center">
-                  <div className="relative">
-                    <PieChart width={300} height={300} className="absolute">
-                      <Pie
-                        data={dataPayroll}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={80}
-                        outerRadius={100}
-                        paddingAngle={3}
-                        dataKey="value"
-                      >
-                        {dataPayroll.map((entry, index) => (
-                          <Cell
-                            key={`cell-${index}`}
-                            fill={COLORS[index % COLORS.length]}
+                {!loadingdetailDataSpend && (
+                  <div className="flex flex-col items-center justify-center">
+                    <div className="relative">
+                      <PieChart width={300} height={300} className="absolute">
+                        <Pie
+                          data={dataPayroll}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={80}
+                          outerRadius={100}
+                          paddingAngle={3}
+                          dataKey="value"
+                        >
+                          {dataPayroll.map((entry, index) => (
+                            <Cell
+                              key={`cell-${index}`}
+                              fill={COLORS[index % COLORS.length]}
+                            />
+                          ))}
+                        </Pie>
+                        <Tooltip
+                          formatter={(value: number, name: string) => [
+                            currency(value),
+                            name,
+                          ]}
+                        />
+                      </PieChart>
+                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
+                        <p className="text-sm font-semibold">
+                          {currency(total || 0)}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Total Amount
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-3">
+                      {dataPayroll.map((d, i) => (
+                        <div key={i} className="flex items-center space-x-2">
+                          <div
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: COLORS[i] }}
                           />
-                        ))}
-                      </Pie>
-                      <Tooltip
-                        formatter={(value: number, name: string) => [
-                          currency(value),
-                          name,
-                        ]}
-                      />
-                    </PieChart>
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
-                      <p className="text-sm font-semibold">{currency(total)}</p>
-                      <p className="text-xs text-muted-foreground">
-                        Total Amount
-                      </p>
+                          <div>
+                            <p className="text-sm font-semibold">
+                              {currency(d.value || 0)}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {d.name}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
-
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-3">
-                    {dataPayroll.map((d, i) => (
-                      <div key={i} className="flex items-center space-x-2">
-                        <div
-                          className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: COLORS[i] }}
-                        />
-                        <div>
-                          <p className="text-sm font-semibold">
-                            {currency(d.value)}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {d.name}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                )}
               </div>
             )}
 
@@ -721,7 +730,10 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
             <PayrunsHistorySheet
               open={openHistory}
               onOpenChange={setOpenHistory}
-              history={historyData}
+              history={auditTrail?.data || []}
+              page={paginationAudit}
+              setPage={setPaginationAudit}
+              loading={auditTrailLoading}
             />
           </div>
         </div>

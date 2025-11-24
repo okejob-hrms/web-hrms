@@ -1,5 +1,5 @@
 import { api } from "@/lib/api";
-import { AdditionalRequest, AllowanceRequest, OvertimeRequest, PayslipResponse, PenaltyRequest, RequestPayrollGroup, ResponsePayrollDetail, ResponsePayrollList, WorkingHourRequest } from "./types";
+import { AdditionalRequest, AllowanceRequest, OvertimeRequest, PayrunLog, PayrunViewResponse, PayslipResponse, PenaltyRequest, RequestPayrollGroup, ResponsePayrollDetail, ResponsePayrollList, TotalSpendResponse, WorkingHourRequest } from "./types";
 import { PaginationState } from "@tanstack/react-table";
 
 export const getPayroll = async (
@@ -151,4 +151,117 @@ export const postRegenerate = async (
       json: {},
     })
     .json<ResponsePayrollList>();
+};
+
+export const getPayrollPrint = async (
+  pagination?: PaginationState,
+  filters?: { search?: string; period_year?: string; period_month?: string }
+): Promise<PayrunViewResponse> => {
+  const searchParams: Record<string, string> = {};
+
+  if (pagination) {
+    const page = pagination.pageIndex + 1;
+    const per_page = pagination.pageSize;
+    searchParams.page = page.toString();
+    searchParams.per_page = per_page.toString();
+  }
+
+  if (filters?.search) {
+    searchParams.search = filters.search;
+  }
+
+  if (filters?.period_year) {
+    searchParams.period_year = filters.period_year;
+  }
+
+  if (filters?.period_month) {
+    searchParams.period_month = filters.period_month;
+  }
+
+  const response = await api.get<PayrunViewResponse>(
+    "payslip-print",
+    { searchParams }
+  );
+
+  return response.json();
+};
+
+export const getPayrollView = async (
+  pagination?: PaginationState,
+  filters?: { search?: string; period_year?: string; period_month?: string }
+): Promise<PayrunViewResponse> => {
+  const searchParams: Record<string, string> = {};
+
+  if (pagination) {
+    const page = pagination.pageIndex + 1;
+    const per_page = pagination.pageSize;
+    searchParams.page = page.toString();
+    searchParams.per_page = per_page.toString();
+  }
+
+  if (filters?.search) {
+    searchParams.search = filters.search;
+  }
+
+  if (filters?.period_year) {
+    searchParams.period_year = filters.period_year;
+  }
+
+  if (filters?.period_month) {
+    searchParams.period_month = filters.period_month;
+  }
+
+  const response = await api.get<PayrunViewResponse>(
+    "payslip-view",
+    { searchParams }
+  );
+
+  return response.json();
+};
+
+export const putPrintPayrun = async (
+  id: number,
+  payload: {status: number},
+): Promise<PayrunViewResponse> => {
+  return api
+    .put(`payslip-print/${id}/status`, {
+      json: payload,
+    })
+    .json<PayrunViewResponse>();
+};
+
+export const putViewPayrun = async (
+  id: number,
+  payload: {status: number},
+): Promise<PayrunViewResponse> => {
+  return api
+    .put(`payslip-view/${id}/status`, {
+      json: payload,
+    })
+    .json<PayrunViewResponse>();
+};
+
+export const getPayrollDetailSpend = async (id: string): Promise<TotalSpendResponse> => {
+  const response = await api.get(`payruns/${id}/spend`);
+  return response.json<TotalSpendResponse>();
+};
+
+export const getPayrollViewLog = async (
+  id: string,
+  pagination?: PaginationState,
+): Promise<PayrunLog> => {
+  const searchParams: Record<string, string> = {};
+
+  if (pagination) {
+    const page = pagination.pageIndex + 1;
+    const per_page = pagination.pageSize;
+    searchParams.page = page.toString();
+    searchParams.per_page = per_page.toString();
+  }
+  const response = await api.get<PayrunLog>(
+    `payruns/${id}/logs`,
+    { searchParams }
+  );
+
+  return response.json();
 };
