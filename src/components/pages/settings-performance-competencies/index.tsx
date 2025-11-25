@@ -17,91 +17,99 @@ import { Ellipsis } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { CompetencyModalForm } from "./sections/modal-form";
-
-const columns: ColumnDef<any>[] = [
-  {
-    accessorKey: "code",
-    header: "Code",
-  },
-  {
-    accessorKey: "name",
-    header: "Competencies",
-  },
-  {
-    accessorKey: "description",
-    header: "Description",
-  },
-  {
-    accessorKey: "menu",
-    header: "",
-    cell: ({ row }) => {
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger>
-            <Ellipsis className="text-grayscale-30" />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuItem>
-              <Link
-                href={`/settings/performance-competencies/${row.original.id}`}
-                className="flex gap-2 justify-between items-center"
-              >
-                <Image
-                  src="/icons/eyeVisibleGrey.svg"
-                  height={16}
-                  width={16}
-                  alt="icon-eye"
-                />
-                Competency Details
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Link
-                href={`/settings/performance-competencies/edit/${row.original.id}`}
-                className="flex gap-2 justify-between items-center"
-              >
-                <Image
-                  src="/icons/editGrey.svg"
-                  height={16}
-                  width={16}
-                  alt="icon-edit"
-                />
-                Edit Competency
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <button
-                className="flex gap-2"
-                // onClick={() => {
-                //   setSelectedId(String(row.original.id));
-                //   setOpenDelete(true);
-                // }}
-              >
-                <Image
-                  src="/icons/delete.svg"
-                  height={16}
-                  width={16}
-                  alt="icon-edit"
-                />
-                Delete Competency
-              </button>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
-    },
-  },
-];
+import DeleteDialog from "./sections/delete-modal";
 
 export const SettingsPerformanceCompetencies = React.memo(
   function SettingsPerformanceCompetencies() {
     const isMobile = useIsMobile();
     const {
       handleAddNew,
+      handleEditClick,
       isOpenModalForm,
       setIsOpenModalForm,
       performanceCompetencies,
+      form,
+      handleSave,
+      isSubmitting,
+      isEditing,
+      isOpenDeleteModal,
+      setIsOpenDeleteModal,
+      handleDeleteClick,
+      handleDeleteConfirm,
+      isDeleting,
     } = usePerformanceCompetenciesList();
+
+    const columns: ColumnDef<any>[] = [
+      {
+        accessorKey: "code",
+        header: "Code",
+      },
+      {
+        accessorKey: "name",
+        header: "Competencies",
+      },
+      {
+        accessorKey: "description",
+        header: "Description",
+      },
+      {
+        accessorKey: "menu",
+        header: "",
+        cell: ({ row }) => {
+          return (
+            <DropdownMenu>
+              <DropdownMenuTrigger>
+                <Ellipsis className="text-grayscale-30" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem>
+                  <Link
+                    href={`/settings/competencies/${row.original.id}`}
+                    className="flex gap-2 justify-between items-center"
+                  >
+                    <Image
+                      src="/icons/eyeVisibleGrey.svg"
+                      height={16}
+                      width={16}
+                      alt="icon-eye"
+                    />
+                    Competency Details
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <button
+                    className="flex gap-2 justify-between items-center"
+                    onClick={() => handleEditClick(row.original.id)}
+                  >
+                    <Image
+                      src="/icons/editGrey.svg"
+                      height={16}
+                      width={16}
+                      alt="icon-edit"
+                    />
+                    Edit Competency
+                  </button>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <button
+                    className="flex gap-2"
+                    onClick={() => handleDeleteClick(row.original.id)}
+                  >
+                    <Image
+                      src="/icons/delete.svg"
+                      height={16}
+                      width={16}
+                      alt="icon-edit"
+                    />
+                    Delete Competency
+                  </button>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          );
+        },
+      },
+    ];
 
     return (
       <div className="font-sans min-h-screen bg-gray-50">
@@ -120,7 +128,7 @@ export const SettingsPerformanceCompetencies = React.memo(
             </div>
             <DataTable
               columns={columns}
-              data={performanceCompetencies?.data || []}
+              data={performanceCompetencies?.data.data || []}
               customSize={!isMobile}
             />
           </div>
@@ -128,6 +136,16 @@ export const SettingsPerformanceCompetencies = React.memo(
         <CompetencyModalForm
           open={isOpenModalForm}
           onOpenChange={setIsOpenModalForm}
+          form={form}
+          handleSave={handleSave}
+          isSubmitting={isSubmitting}
+          isEditing={isEditing}
+        />
+        <DeleteDialog
+          open={isOpenDeleteModal}
+          onOpenChange={setIsOpenDeleteModal}
+          onDelete={handleDeleteConfirm}
+          isLoading={isDeleting}
         />
       </div>
     );

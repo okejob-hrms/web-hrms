@@ -8,12 +8,12 @@ import {
 } from "./hook";
 
 export const getPerformanceCompetencies = async (): Promise<
-  PaginatedResponse<IPerformanceCompetencyResponse>
+  ApiResponse<PaginatedResponse<IPerformanceCompetencyResponse>>
 > => {
   try {
     return api
       .get(`setting/performance-competencies`)
-      .json<PaginatedResponse<IPerformanceCompetencyResponse>>();
+      .json<ApiResponse<PaginatedResponse<IPerformanceCompetencyResponse>>>();
   } catch (error: any) {
     if (error.name === "HTTPError") {
       const errorResponse = await error.response.json();
