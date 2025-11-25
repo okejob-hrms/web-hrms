@@ -243,9 +243,12 @@ export function useFormTemplateDetails({
       groups: {
         id?: string;
         name?: string;
-        metadata?: string;
+        metadata?: {
+          score_weight: number;
+          score_weight_type: string;
+        };
         fields?: IFormField[];
-      };
+      }[];
     }) => postAddField(form_id, { form_id, groups }),
   });
 
@@ -288,12 +291,12 @@ export function useFormTemplateDetails({
 
           await addFieldMutation.mutateAsync({
             form_id: formId,
-            groups: {
+            groups: [{
               id: undefined,
               name: "Default Group",
               metadata: undefined,
               fields: fields,
-            },
+            }],
           });
         }
 
@@ -323,12 +326,12 @@ export function useFormTemplateDetails({
 
           await addFieldMutation.mutateAsync({
             form_id: formId,
-            groups: {
+            groups: [{
               id: undefined,
               name: "Default Group",
               metadata: undefined,
               fields: fields,
-            },
+            }],
           });
         }
 
