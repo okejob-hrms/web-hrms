@@ -52,16 +52,43 @@ export const SettingsFormTemplateAdd = React.memo(
       name: "groups",
     });
 
+    const {
+      fields: fieldArray,
+      append: appendField,
+      remove: removeField,
+    } = useFieldArray({
+      control: form.control,
+      name: "groups.0.fields",
+    });
+
     const addGroup = React.useCallback(() => {
       appendGroup({
-        name: "",
+        name: "Default Group",
         metadata: {
           score_weight: 0,
           score_weight_type: "percent",
         },
-        fields: [],
+        fields: [
+          {
+            label: "",
+            type: "",
+            is_required: false,
+            order: 0,
+            options: [],
+          },
+        ],
       });
     }, [appendGroup]);
+
+    const addField = React.useCallback(() => {
+      appendField({
+        label: "",
+        type: "",
+        is_required: false,
+        order: fieldArray.length,
+        options: [],
+      });
+    }, [appendField, fieldArray.length]);
 
     const handleConfirmSubmit = React.useCallback(async () => {
       const isValid = await form.trigger();
@@ -118,14 +145,22 @@ export const SettingsFormTemplateAdd = React.memo(
                 </div>
               ) : (
                 <div className="col-span-2 flex flex-col gap-4 items-center">
-                  {groupFields.map((field, index) => (
-                    <GroupForm key={field.id} index={index} />
+                  {fieldArray.map((field, index) => (
+                    <FormTemplate
+                      key={field.id}
+                      index={index}
+                      onRemove={() => removeField(index)}
+                      canRemove={fieldArray.length > 1}
+                      onTypeChange={(type) => {
+                        // form.setValue(`groups.${index}.type`, type);
+                      }}
+                    />
                   ))}
                   <Button
                     variant="ghost"
                     type="button"
                     className="text-primary"
-                    onClick={addGroup}
+                    onClick={addField}
                   >
                     <Plus /> Add Question
                   </Button>

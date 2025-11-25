@@ -15,37 +15,37 @@ export const CheckboxField = React.memo(function CheckboxField({
   questionIndex,
 }: CheckboxFieldProps) {
   const { setValue, watch } = useFormContext();
-  const questions = watch("questions");
+  const questions = watch("groups[0].fields");
   const currentQuestion = questions[questionIndex];
 
   const options = currentQuestion?.options || [];
 
   const handleAddOption = () => {
     const newOptions = [...options, ""];
-    setValue(`questions.${questionIndex}.options`, newOptions);
+    setValue(`groups[0].fields.${questionIndex}.options`, newOptions);
   };
 
   const handleRemoveOption = (index: number) => {
     if (options.length > 1) {
       const newOptions = options.filter((_: any, i: number) => i !== index);
-      setValue(`questions.${questionIndex}.options`, newOptions);
+      setValue(`groups[0].fields.${questionIndex}.options`, newOptions);
     }
   };
 
   const handleOptionChange = (index: number, value: string) => {
     const newOptions = [...options];
     newOptions[index] = value;
-    setValue(`questions.${questionIndex}.options`, newOptions);
+    setValue(`groups[0].fields.${questionIndex}.options`, newOptions);
   };
 
   const handleAddOther = () => {
     const newOptions = [...options, "Other"];
-    setValue(`questions.${questionIndex}.options`, newOptions);
+    setValue(`groups[0].fields.${questionIndex}.options`, newOptions);
   };
 
   const handleRemoveOther = () => {
     const newOptions = options.filter((option: string) => option !== "Other");
-    setValue(`questions.${questionIndex}.options`, newOptions);
+    setValue(`groups[0].fields.${questionIndex}.options`, newOptions);
   };
 
   const hasOther = options.includes("Other");
