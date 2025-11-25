@@ -6,6 +6,7 @@ import {
   IFormTemplateParams,
   IMutateFormRequest,
   IMutateFieldRequest,
+  IFormGroup,
 } from "./types";
 
 export const getAllForm = async (): Promise<
@@ -36,6 +37,27 @@ export const getFields = async (
       `form/field`,
       { json: params },
     );
+    return response.json();
+  } catch (error: any) {
+    if (error.name === "HTTPError") {
+      const errorResponse = await error.response.json();
+      const enhancedError = new Error(error.message);
+      (enhancedError as any).response = {
+        json: () => Promise.resolve(errorResponse),
+        status: error.response.status,
+      };
+      throw enhancedError;
+    }
+    throw error;
+  }
+};
+
+export const getFieldsByGroup = async (): Promise<
+  PaginatedResponse<IFormGroup>
+> => {
+  try {
+    const response =
+      await api.get<PaginatedResponse<IFormGroup>>(`form/field/group`);
     return response.json();
   } catch (error: any) {
     if (error.name === "HTTPError") {

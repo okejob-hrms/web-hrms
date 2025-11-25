@@ -63,7 +63,7 @@ export default function FormTemplateList() {
       size: 300,
     },
     {
-      accessorKey: "type",
+      accessorKey: "type_label",
       header: "Form Usage",
       size: 300,
     },

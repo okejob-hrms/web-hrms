@@ -23,6 +23,7 @@ import { getDetailOffboarding } from "@/services/employees/offboardings";
 
 import { ApiErrorResponse } from "@/lib/types";
 import AppSkeleton from "@/components/partials/app-skeleton";
+import { IFormGroup } from "@/services/form/types";
 
 interface ExitInterviewFormProps {
   offboarding_id: number;
@@ -216,7 +217,7 @@ export const ExitInterviewForm = React.memo(function ExitInterviewForm({
   };
 
   const shouldShowAlert = !answer && details?.user?.name;
-  const formFields = forms?.data?.fields || [];
+  const formGroups = forms?.data?.groups || [];
 
   if (isLoadingDetails || isLoadingForms || isLoadingAnswer) {
     return (
@@ -237,14 +238,18 @@ export const ExitInterviewForm = React.memo(function ExitInterviewForm({
           onSubmit={form.handleSubmit(onSubmit)}
           className="flex flex-col gap-4"
         >
-          <div className="rounded-sm border border-grayscale-20 p-4 gap-4 flex flex-col">
-            {formFields.map((field: FormField) => (
-              <FormFieldRenderer
-                key={`${field.id}-${field.label}`}
-                field={field}
-              />
-            ))}
-          </div>
+          {formGroups.length > 0 && (
+            <div className="rounded-sm border border-grayscale-20 p-4 gap-4 flex flex-col">
+              {formGroups.map((group: IFormGroup) =>
+                group.fields.map((field: FormField) => (
+                  <FormFieldRenderer
+                    key={`${field.id}-${field.label}`}
+                    field={field}
+                  />
+                )),
+              )}
+            </div>
+          )}
 
           <div className="flex gap-4">
             <CompleteOffboardingModal offboardingId={offboarding_id} />

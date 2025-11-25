@@ -9,6 +9,16 @@ export interface IFormTemplate {
   type: number;
   deleted_at: string | null;
   type_label: string;
+  groups: IFormGroup[];
+}
+
+export interface IFormGroup {
+  id: string;
+  name: string;
+  metadata: {
+    score_weight: number;
+    score_weight_type: string;
+  };
   fields: {
     id: number;
     form_id: number;
@@ -27,6 +37,7 @@ export interface IFormTemplate {
 
 export interface IFormTemplateParams {
   form_id?: number;
+  group_id?: number;
   label: string;
   type: string;
   options: string[];
@@ -36,7 +47,7 @@ export interface IFormTemplateParams {
 
 export interface IFormField {
   label: string;
-  type: "text" | "textarea" | "checkbox" | "range" | string;
+  type?: "text" | "textarea" | "checkbox" | "range" | string;
   is_required: boolean;
   order: number;
   options?:
@@ -47,12 +58,27 @@ export interface IFormField {
       };
   metadata?: {
     is_note?: boolean;
+    competency_id?: number;
+    dimension?: string;
+    level_id?: number;
+    level_value?: number;
+    score_weight?: number;
+    score_weight_type?: string;
+    type?: string;
   };
 }
 
 export interface IMutateFieldRequest {
   form_id: number;
-  fields: IFormField[];
+  groups: {
+    id?: string;
+    name?: string;
+    metadata?: {
+      score_weight: number;
+      score_weight_type: string;
+    };
+    fields?: IFormField[];
+  }[];
 }
 
 export interface IMutateFormRequest {
