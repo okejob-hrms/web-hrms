@@ -103,8 +103,35 @@ export const SettingsFormTemplateAdd = React.memo(
               <span>{formData?.type_label || "-"}</span>
             </div>
             <hr className="col-span-2" />
-
-            {!hasGroups ? (
+            {formData?.type !== 3 ? (
+              !hasGroups ? (
+                <div className="col-span-2 p-4 rounded-sm bg-primary-background border border-primary-border flex flex-col items-center justify-center gap-2">
+                  <p className="text-primary font-bold text-lg">
+                    Nothing here yet
+                  </p>
+                  <p className="text-text-secondary text-base font-normal">
+                    Start building your first form now
+                  </p>
+                  <Button type="button" onClick={addGroup}>
+                    <Plus /> Add Question
+                  </Button>
+                </div>
+              ) : (
+                <div className="col-span-2 flex flex-col gap-4 items-center">
+                  {groupFields.map((field, index) => (
+                    <GroupForm key={field.id} index={index} />
+                  ))}
+                  <Button
+                    variant="ghost"
+                    type="button"
+                    className="text-primary"
+                    onClick={addGroup}
+                  >
+                    <Plus /> Add Question
+                  </Button>
+                </div>
+              )
+            ) : !hasGroups ? (
               <div className="col-span-2 p-4 rounded-sm bg-primary-background border border-primary-border flex flex-col items-center justify-center gap-2">
                 <p className="text-primary font-bold text-lg">
                   Nothing here yet

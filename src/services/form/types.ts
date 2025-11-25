@@ -47,7 +47,7 @@ export interface IFormTemplateParams {
 
 export interface IFormField {
   label: string;
-  type: "text" | "textarea" | "checkbox" | "range" | string;
+  type?: "text" | "textarea" | "checkbox" | "range" | string;
   is_required: boolean;
   order: number;
   options?:
@@ -58,6 +58,13 @@ export interface IFormField {
       };
   metadata?: {
     is_note?: boolean;
+    competency_id?: number;
+    dimension?: string;
+    level_id?: number;
+    level_value?: number;
+    score_weight?: number;
+    score_weight_type?: string;
+    type?: string;
   };
 }
 

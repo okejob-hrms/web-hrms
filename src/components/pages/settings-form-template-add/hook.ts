@@ -25,10 +25,20 @@ import { useRouter } from "next/navigation";
 
 interface FormFieldData {
   label: string;
-  type: string;
+  type?: string;
   is_required: boolean;
   order: number;
-  options?: string[];
+  options?: string[] | { min: number; max: number };
+  metadata?: {
+    is_note?: boolean;
+    competency_id?: number;
+    dimension?: string;
+    level_id?: number;
+    level_value?: number;
+    score_weight?: number;
+    score_weight_type?: string;
+    type?: string;
+  };
 }
 
 interface FormGroupData {
@@ -126,10 +136,6 @@ export function useFormTemplateAdd({
   });
 
   React.useEffect(() => {
-    console.log("form groups data", formGroupsData);
-  }, [formGroupsData]);
-
-  React.useEffect(() => {
     if (editFormData?.data && editFormId) {
       const formData = editFormData.data;
       const typeValue = formData.type?.toString() || "";
@@ -139,46 +145,47 @@ export function useFormTemplateAdd({
         return;
       }
 
-      const questions: FormFieldData[] = formData.groups[0]?.fields?.map(
-        (field, index) => ({
-          label: field.label || "",
-          type: field.type || "",
-          is_required: field.is_required || false,
-          order: field.order ?? index,
-          options: Array.isArray(field.options) ? field.options : [],
-          description: field.description || "",
-        }),
-      );
+      // Map groups with all fields and metadata
+      const mappedGroups =
+        formData.groups?.map((group) => ({
+          name: group.name || "",
+          metadata: {
+            score_weight: Number(group.metadata?.score_weight) || 0,
+            score_weight_type: group.metadata?.score_weight_type || "percent",
+          },
+          fields:
+            group.fields?.map((field, index) => ({
+              label: field.label || "",
+              type: field.type || "",
+              is_required: field.is_required || false,
+              order: field.order ?? index,
+              options: field.options || { min: 1, max: 8 },
+              metadata: {
+                competency_id: field.metadata?.competency_id,
+                dimension: field.metadata?.dimension,
+                level_id: field.metadata?.level_id,
+                level_value: field.metadata?.level_value,
+                score_weight: Number(field.metadata?.score_weight) || 0,
+                score_weight_type:
+                  field.metadata?.score_weight_type || "percent",
+                type: field.metadata?.type,
+              },
+            })) || [],
+        })) || [];
 
       console.log("Preparing to reset form with:", {
         name: formData.name,
         type: typeValue,
-        groupsCount: formData.groups?.length,
+        groupsCount: mappedGroups.length,
+        groups: mappedGroups,
       });
 
       requestAnimationFrame(() => {
         form.reset({
           name: formData.name || "",
           type: typeValue,
-          groups: formData.groups || [],
+          groups: mappedGroups,
         });
-      });
-    }
-  }, [editFormData, editFormId, form]);
-
-  React.useEffect(() => {
-    if (editFormData?.data && editFormId) {
-      const formData = editFormData.data;
-      const typeValue = formData.type?.toString() || "";
-
-      if (!typeValue) {
-        console.error("No type value found in form data!");
-        return;
-      }
-
-      form.reset({
-        name: formData.name || "",
-        type: typeValue,
       });
     }
   }, [editFormData, editFormId, form]);
@@ -311,6 +318,7 @@ export function useFormTemplateAdd({
               is_required: field.is_required,
               order: index,
               options: field.options,
+              metadata: field.metadata,
             })),
           }));
 
@@ -344,6 +352,7 @@ export function useFormTemplateAdd({
               is_required: field.is_required,
               order: index,
               options: field.options,
+              metadata: field.metadata,
             })),
           }));
 
