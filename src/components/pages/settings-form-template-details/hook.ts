@@ -291,12 +291,14 @@ export function useFormTemplateDetails({
 
           await addFieldMutation.mutateAsync({
             form_id: formId,
-            groups: [{
-              id: undefined,
-              name: "Default Group",
-              metadata: undefined,
-              fields: fields,
-            }],
+            groups: [
+              {
+                id: undefined,
+                name: "Default Group",
+                metadata: undefined,
+                fields: fields,
+              },
+            ],
           });
         }
 
@@ -326,12 +328,14 @@ export function useFormTemplateDetails({
 
           await addFieldMutation.mutateAsync({
             form_id: formId,
-            groups: [{
-              id: undefined,
-              name: "Default Group",
-              metadata: undefined,
-              fields: fields,
-            }],
+            groups: [
+              {
+                id: undefined,
+                name: "Default Group",
+                metadata: undefined,
+                fields: fields,
+              },
+            ],
           });
         }
 

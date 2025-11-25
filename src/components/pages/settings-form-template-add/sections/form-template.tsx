@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import * as React from "react";
 import { CheckboxField } from "./checkbox-field";
 import { RangeField } from "./range-field";
+import { RadioField } from "./radio-field";
 import { useFormContext } from "react-hook-form";
 import Image from "next/image";
 
@@ -68,7 +69,7 @@ export const FormTemplate = React.memo(function FormTemplate({
       />
       {selectedType === "checkbox" && <CheckboxField questionIndex={index} />}
       {selectedType === "range" && <RangeField />}
-      {/* {selectedType === "radio" && <RadioField />} */}
+      {selectedType === "radio" && <RadioField questionIndex={index} />}
     </div>
   );
 });
