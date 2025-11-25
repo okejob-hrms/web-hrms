@@ -6,52 +6,31 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input, InputForm } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea, TextAreaForm } from "@/components/ui/textarea";
-import { useForm } from "react-hook-form";
+import { InputForm } from "@/components/ui/input";
+import { TextAreaForm } from "@/components/ui/textarea";
 import { Form } from "@/components/ui/form";
-
-interface CompetencyFormData {
-  code: string;
-  name: string;
-  description: string;
-}
+import { UseFormReturn } from "react-hook-form";
+import { IMutatePerformanceCompetencyLevel } from "@/services/performance-competency/types";
 
 interface CompetencyModalFormProps {
   open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSave: (data: CompetencyFormData) => void;
+  onOpenChange: () => void;
+  form: UseFormReturn<IMutatePerformanceCompetencyLevel>;
+  handleSave: (e?: React.BaseSyntheticEvent) => Promise<void>;
+  isSubmitting: boolean;
+  isEditing: boolean;
 }
 
 export const CompetencyModalForm: React.FC<CompetencyModalFormProps> = ({
   open,
   onOpenChange,
-  onSave,
+  form,
+  handleSave,
+  isSubmitting,
+  isEditing,
 }) => {
-  const [formData, setFormData] = React.useState<CompetencyFormData>({
-    code: "",
-    name: "",
-    description: "",
-  });
-
-  const form = useForm();
-
-  const handleInputChange = (
-    field: keyof CompetencyFormData,
-    value: string,
-  ): void => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleSave = (): void => {
-    onSave(formData);
-    handleClose();
-  };
-
   const handleClose = (): void => {
-    setFormData({ code: "", name: "", description: "" });
-    onOpenChange(false);
+    onOpenChange();
   };
 
   return (
@@ -59,13 +38,13 @@ export const CompetencyModalForm: React.FC<CompetencyModalFormProps> = ({
       <DialogContent className="sm:max-w-[600px] p-0 bg-white">
         <DialogHeader className="px-6 pt-6 pb-4">
           <DialogTitle className="text-xl font-semibold">
-            Competency Level
+            {isEditing ? "Edit" : "Add"} Competency Level
           </DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
-          <form className="px-6 pb-6 space-y-5">
-            <div className="grid grid-cols-4 gap-4">
+          <form onSubmit={handleSave} className="px-6 pb-6 space-y-5">
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <InputForm name="dimensions" label="Dimensions" required />
               </div>
@@ -76,7 +55,7 @@ export const CompetencyModalForm: React.FC<CompetencyModalFormProps> = ({
             </div>
 
             <div className="space-y-2">
-              <InputForm name="level" label="Level Name" required />
+              <InputForm name="name" label="Level Name" required />
             </div>
 
             <div className="space-y-2">
@@ -88,16 +67,17 @@ export const CompetencyModalForm: React.FC<CompetencyModalFormProps> = ({
                 type="button"
                 variant="outline"
                 onClick={handleClose}
+                disabled={isSubmitting}
                 className="px-6 border-[#0e7490] text-[#0e7490] hover:bg-[#0e7490]/5"
               >
                 Cancel
               </Button>
               <Button
-                type="button"
-                onClick={handleSave}
+                type="submit"
+                disabled={isSubmitting}
                 className="px-8 bg-[#0e7490] hover:bg-[#0c6380] text-white"
               >
-                Save
+                {isSubmitting ? "Saving..." : "Save"}
               </Button>
             </div>
           </form>

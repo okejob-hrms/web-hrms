@@ -10,7 +10,7 @@ import { InputForm } from "@/components/ui/input";
 import { TextAreaForm } from "@/components/ui/textarea";
 import { Form } from "@/components/ui/form";
 import { UseFormReturn } from "react-hook-form";
-import { IMutatePerformanceCompetency } from "@/services/performance-competency/hook";
+import { IMutatePerformanceCompetency } from "@/services/performance-competency/types";
 
 interface CompetencyModalFormProps {
   open: boolean;

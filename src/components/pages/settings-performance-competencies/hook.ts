@@ -7,7 +7,7 @@ import {
   deletePerformanceCompetency,
   updatePerformanceCompetency,
 } from "@/services/performance-competency";
-import { IMutatePerformanceCompetency } from "@/services/performance-competency/hook";
+import { IMutatePerformanceCompetency } from "@/services/performance-competency/types";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 
