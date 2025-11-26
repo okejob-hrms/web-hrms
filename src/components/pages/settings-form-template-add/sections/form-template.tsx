@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import * as React from "react";
 import { CheckboxField } from "./checkbox-field";
 import { RangeField } from "./range-field";
+import { RadioField } from "./radio-field";
 import { useFormContext } from "react-hook-form";
 import Image from "next/image";
 
@@ -23,7 +24,7 @@ export const FormTemplate = React.memo(function FormTemplate({
   onTypeChange,
 }: FormTemplateProps) {
   const form = useFormContext();
-  const selectedType = form.watch(`questions.${index}.type`);
+  const selectedType = form.watch(`groups[0].fields.${index}.type`);
 
   return (
     <div className="rounded-md p-4 gap-4 border border-grayscale-40 grid grid-cols-2 w-full relative">
@@ -43,18 +44,18 @@ export const FormTemplate = React.memo(function FormTemplate({
         </Button>
       )}
       <InputForm
-        name={`questions.${index}.label`}
+        name={`groups[0].fields.${index}.label`}
         required
         label="Question"
         className="col-span-2"
       />
       <InputForm
-        name={`questions.${index}.description`}
+        name={`groups[0].fields.${index}.description`}
         label="Description"
         className="col-span-2"
       />
       <SelectForm
-        name={`questions.${index}.type`}
+        name={`groups[0].fields.${index}.type`}
         label="Answer Type"
         required
         options={[
@@ -62,11 +63,13 @@ export const FormTemplate = React.memo(function FormTemplate({
           { label: "Range", value: "range" },
           { label: "Short Answer", value: "text" },
           { label: "Paragraph", value: "textarea" },
+          { label: "Radio", value: "radio" },
         ]}
         onChange={(e) => onTypeChange(e.target.value)}
       />
       {selectedType === "checkbox" && <CheckboxField questionIndex={index} />}
       {selectedType === "range" && <RangeField />}
+      {selectedType === "radio" && <RadioField questionIndex={index} />}
     </div>
   );
 });

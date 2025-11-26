@@ -1,18 +1,21 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { api } from "@/lib/api";
 import { ApiResponse, PaginatedResponse } from "@/lib/types";
 import {
   IMutatePerformanceCompetency,
+  IMutatePerformanceCompetencyLevel,
   IPerformanceCompetencyDetails,
+  IPerformanceCompetencyLevel,
   IPerformanceCompetencyResponse,
-} from "./hook";
+} from "./types";
 
 export const getPerformanceCompetencies = async (): Promise<
-  PaginatedResponse<IPerformanceCompetencyResponse>
+  ApiResponse<PaginatedResponse<IPerformanceCompetencyResponse>>
 > => {
   try {
     return api
       .get(`setting/performance-competencies`)
-      .json<PaginatedResponse<IPerformanceCompetencyResponse>>();
+      .json<ApiResponse<PaginatedResponse<IPerformanceCompetencyResponse>>>();
   } catch (error: any) {
     if (error.name === "HTTPError") {
       const errorResponse = await error.response.json();
@@ -98,6 +101,116 @@ export const deletePerformanceCompetency = async (
     return api
       .delete(`setting/performance-competencies/${id}`)
       .json<ApiResponse<IPerformanceCompetencyDetails>>();
+  } catch (error: any) {
+    if (error.name === "HTTPError") {
+      const errorResponse = await error.response.json();
+      const enhancedError = new Error(error.message);
+      (enhancedError as any).response = {
+        json: () => Promise.resolve(errorResponse),
+        status: error.response.status,
+      };
+      throw enhancedError;
+    }
+    throw error;
+  }
+};
+
+export const getPerformanceCompetencyLevels = async (): Promise<
+  ApiResponse<PaginatedResponse<IPerformanceCompetencyLevel>>
+> => {
+  try {
+    return api
+      .get(`setting/performance-competency-levels`)
+      .json<ApiResponse<PaginatedResponse<IPerformanceCompetencyLevel>>>();
+  } catch (error: any) {
+    if (error.name === "HTTPError") {
+      const errorResponse = await error.response.json();
+      const enhancedError = new Error(error.message);
+      (enhancedError as any).response = {
+        json: () => Promise.resolve(errorResponse),
+        status: error.response.status,
+      };
+      throw enhancedError;
+    }
+    throw error;
+  }
+};
+
+export const getPerformanceCompetencyLevelDetail = async (
+  id: number,
+): Promise<ApiResponse<IPerformanceCompetencyLevel>> => {
+  try {
+    return api
+      .get(`setting/performance-competency-levels/${id}`)
+      .json<ApiResponse<IPerformanceCompetencyLevel>>();
+  } catch (error: any) {
+    if (error.name === "HTTPError") {
+      const errorResponse = await error.response.json();
+      const enhancedError = new Error(error.message);
+      (enhancedError as any).response = {
+        json: () => Promise.resolve(errorResponse),
+        status: error.response.status,
+      };
+      throw enhancedError;
+    }
+    throw error;
+  }
+};
+
+export const postAddPerformanceCompetencyLevel = async (
+  params: IMutatePerformanceCompetencyLevel,
+): Promise<ApiResponse<IPerformanceCompetencyLevel>> => {
+  try {
+    return api
+      .post(`setting/performance-competency-levels`, {
+        json: params,
+      })
+      .json<ApiResponse<IPerformanceCompetencyLevel>>();
+  } catch (error: any) {
+    if (error.name === "HTTPError") {
+      const errorResponse = await error.response.json();
+      const enhancedError = new Error(error.message);
+      (enhancedError as any).response = {
+        json: () => Promise.resolve(errorResponse),
+        status: error.response.status,
+      };
+      throw enhancedError;
+    }
+    throw error;
+  }
+};
+
+export const updatePerformanceCompetencyLevel = async (
+  id: number,
+  params: IMutatePerformanceCompetencyLevel,
+): Promise<ApiResponse<IPerformanceCompetencyLevel>> => {
+  try {
+    return api
+      .put(`setting/performance-competency-levels/${id}`, {
+        json: params,
+      })
+      .json<ApiResponse<IPerformanceCompetencyLevel>>();
+  } catch (error: any) {
+    if (error.name === "HTTPError") {
+      const errorResponse = await error.response.json();
+      const enhancedError = new Error(error.message);
+      (enhancedError as any).response = {
+        json: () => Promise.resolve(errorResponse),
+        status: error.response.status,
+      };
+      throw enhancedError;
+    }
+    throw error;
+  }
+};
+
+export const deletePerformanceCompetencyLevel = async (
+  id: number,
+): Promise<ApiResponse<IPerformanceCompetencyLevel>> => {
+  try {
+    return api
+      .delete(`setting/performance-competency-levels/${id}`)
+      .json<ApiResponse<IPerformanceCompetencyLevel>>();
   } catch (error: any) {
     if (error.name === "HTTPError") {
       const errorResponse = await error.response.json();

@@ -106,16 +106,15 @@ export function useFormTemplateDetails({
         return;
       }
 
-      const questions: FormFieldData[] = formData.fields.map(
-        (field, index) => ({
+      const questions: FormFieldData[] =
+        formData.groups[0]?.fields?.map((field, index) => ({
           label: field.label || "",
           type: field.type || "",
           is_required: field.is_required || false,
           order: field.order ?? index,
           options: Array.isArray(field.options) ? field.options : [],
           description: field.description || "",
-        }),
-      );
+        })) || [];
 
       console.log("Preparing to reset form with:", {
         name: formData.name,
@@ -238,11 +237,19 @@ export function useFormTemplateDetails({
   const addFieldMutation = useMutation({
     mutationFn: ({
       form_id,
-      fields,
+      groups,
     }: {
       form_id: number;
-      fields: IFormField[];
-    }) => postAddField(form_id, { form_id, fields }),
+      groups: {
+        id?: string;
+        name?: string;
+        metadata?: {
+          score_weight: number;
+          score_weight_type: string;
+        };
+        fields?: IFormField[];
+      }[];
+    }) => postAddField(form_id, { form_id, groups }),
   });
 
   const formOptions = React.useMemo(() => {
@@ -284,7 +291,14 @@ export function useFormTemplateDetails({
 
           await addFieldMutation.mutateAsync({
             form_id: formId,
-            fields: fields,
+            groups: [
+              {
+                id: undefined,
+                name: "Default Group",
+                metadata: undefined,
+                fields: fields,
+              },
+            ],
           });
         }
 
@@ -314,7 +328,14 @@ export function useFormTemplateDetails({
 
           await addFieldMutation.mutateAsync({
             form_id: formId,
-            fields: fields,
+            groups: [
+              {
+                id: undefined,
+                name: "Default Group",
+                metadata: undefined,
+                fields: fields,
+              },
+            ],
           });
         }
 

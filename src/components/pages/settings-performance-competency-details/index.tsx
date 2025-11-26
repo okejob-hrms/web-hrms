@@ -14,104 +14,126 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Edit, Ellipsis } from "lucide-react";
-import Link from "next/link";
 import Image from "next/image";
 import { CompetencyModalForm } from "./sections/modal-form";
 import { Separator } from "@/components/ui/separator";
-
-const columns: ColumnDef<any>[] = [
-  {
-    accessorKey: "dimensions",
-    header: "Dimensions",
-  },
-  {
-    accessorKey: "level",
-    header: "Level",
-  },
-  {
-    accessorKey: "level_name",
-    header: "Level Name",
-  },
-  {
-    accessorKey: "description",
-    header: "Description",
-  },
-  {
-    accessorKey: "menu",
-    header: "",
-    cell: ({ row }) => {
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger>
-            <Ellipsis className="text-grayscale-30" />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuItem>
-              <Link
-                href={`/settings/performance-competencies/edit/${row.original.id}`}
-                className="flex gap-2 justify-between items-center"
-              >
-                <Image
-                  src="/icons/editGrey.svg"
-                  height={16}
-                  width={16}
-                  alt="icon-edit"
-                />
-                Edit Level
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <button
-                className="flex gap-2"
-                // onClick={() => {
-                //   setSelectedId(String(row.original.id));
-                //   setOpenDelete(true);
-                // }}
-              >
-                <Image
-                  src="/icons/delete.svg"
-                  height={16}
-                  width={16}
-                  alt="icon-edit"
-                />
-                Delete Level
-              </button>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
-    },
-  },
-];
+import DeleteDialog from "./sections/delete-modal";
+import Link from "next/link";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const SettingsPerformanceCompetencyDetails = React.memo(
   function SettingsPerformanceCompetencyDetails() {
     const isMobile = useIsMobile();
-    const { handleAddNew, isOpenModalForm, setIsOpenModalForm, handleSave } =
-      usePerformanceCompetencyDetails();
+    const {
+      handleAddNew,
+      handleEditClick,
+      isOpenModalForm,
+      setIsOpenModalForm,
+      handleSave,
+      competencyDetails,
+      competencyLevels,
+      isLoadingDetails,
+      isLoadingLevels,
+      form,
+      isSubmitting,
+      isEditing,
+      isOpenDeleteModal,
+      setIsOpenDeleteModal,
+      handleDeleteClick,
+      handleDeleteConfirm,
+      isDeleting,
+    } = usePerformanceCompetencyDetails();
+
+    const columns: ColumnDef<any>[] = [
+      {
+        accessorKey: "dimensions",
+        header: "Dimensions",
+      },
+      {
+        accessorKey: "level",
+        header: "Level",
+      },
+      {
+        accessorKey: "name",
+        header: "Level Name",
+      },
+      {
+        accessorKey: "description",
+        header: "Description",
+      },
+      {
+        accessorKey: "menu",
+        header: "",
+        cell: ({ row }) => {
+          return (
+            <DropdownMenu>
+              <DropdownMenuTrigger>
+                <Ellipsis className="text-grayscale-30" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem>
+                  <button
+                    className="flex gap-2 justify-between items-center"
+                    onClick={() => handleEditClick(row.original.id)}
+                  >
+                    <Image
+                      src="/icons/editGrey.svg"
+                      height={16}
+                      width={16}
+                      alt="icon-edit"
+                    />
+                    Edit Level
+                  </button>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <button
+                    className="flex gap-2"
+                    onClick={() => handleDeleteClick(row.original.id)}
+                  >
+                    <Image
+                      src="/icons/delete.svg"
+                      height={16}
+                      width={16}
+                      alt="icon-delete"
+                    />
+                    Delete Level
+                  </button>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          );
+        },
+      },
+    ];
+
+    if (isLoadingDetails) {
+      return <Skeleton />;
+    }
 
     return (
       <div className="font-sans md:px-[125px] px-4 space-y-4">
         <div className="flex flex-row gap-2 items-center">
           <h1 className="font-semibold text-lg text-black">Competencies</h1>
-          <Button className="font-semibold text-primary" variant="ghost">
-            <Edit />
-            Edit
-          </Button>
+          <Link href={`/settings/competencies`}>
+            <Button className="font-semibold text-primary" variant="ghost">
+              <Edit />
+              Edit
+            </Button>
+          </Link>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="flex flex-col">
             <p className="text-sm text-text-disabled">Competency Code</p>
-            <p>-</p>
+            <p>{competencyDetails?.code || "-"}</p>
           </div>
           <div className="flex flex-col">
             <p className="text-sm text-text-disabled">Competency Name</p>
-            <p>-</p>
+            <p>{competencyDetails?.name || "-"}</p>
           </div>
           <div className="flex flex-col md:col-start-1 md:col-span-3">
             <p className="text-sm text-text-disabled">Description</p>
-            <p>-</p>
+            <p>{competencyDetails?.description || "-"}</p>
           </div>
         </div>
         <Separator />
@@ -128,13 +150,27 @@ export const SettingsPerformanceCompetencyDetails = React.memo(
                 + Add Level
               </Button>
             </div>
-            <DataTable columns={columns} data={[]} customSize={!isMobile} />
+            <DataTable
+              columns={columns}
+              data={competencyLevels || []}
+              customSize={!isMobile}
+              loading={isLoadingLevels}
+            />
           </div>
         </div>
         <CompetencyModalForm
           open={isOpenModalForm}
           onOpenChange={setIsOpenModalForm}
-          onSave={handleSave}
+          form={form}
+          handleSave={handleSave}
+          isSubmitting={isSubmitting}
+          isEditing={isEditing}
+        />
+        <DeleteDialog
+          open={isOpenDeleteModal}
+          onOpenChange={setIsOpenDeleteModal}
+          onDelete={handleDeleteConfirm}
+          isLoading={isDeleting}
         />
       </div>
     );

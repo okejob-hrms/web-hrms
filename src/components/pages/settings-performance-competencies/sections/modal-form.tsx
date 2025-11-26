@@ -9,22 +9,28 @@ import { Button } from "@/components/ui/button";
 import { InputForm } from "@/components/ui/input";
 import { TextAreaForm } from "@/components/ui/textarea";
 import { Form } from "@/components/ui/form";
-import { usePerformanceCompetenciesList } from "../hook";
+import { UseFormReturn } from "react-hook-form";
+import { IMutatePerformanceCompetency } from "@/services/performance-competency/types";
 
 interface CompetencyModalFormProps {
   open: boolean;
-  onOpenChange: (open: boolean) => void;
+  onOpenChange: () => void;
+  form: UseFormReturn<IMutatePerformanceCompetency>;
+  handleSave: (e?: React.BaseSyntheticEvent) => Promise<void>;
+  isSubmitting: boolean;
+  isEditing: boolean;
 }
 
 export const CompetencyModalForm: React.FC<CompetencyModalFormProps> = ({
   open,
   onOpenChange,
+  form,
+  handleSave,
+  isSubmitting,
+  isEditing,
 }) => {
-  const { form, handleSave, isSubmitting } = usePerformanceCompetenciesList();
-
   const handleClose = (): void => {
-    form.reset();
-    onOpenChange(false);
+    onOpenChange();
   };
 
   return (
@@ -32,7 +38,7 @@ export const CompetencyModalForm: React.FC<CompetencyModalFormProps> = ({
       <DialogContent className="sm:max-w-[600px] p-0 bg-white">
         <DialogHeader className="px-6 pt-6 pb-4">
           <DialogTitle className="text-xl font-semibold">
-            New Performance Competency
+            {isEditing ? "Edit" : "New"} Performance Competency
           </DialogTitle>
         </DialogHeader>
 

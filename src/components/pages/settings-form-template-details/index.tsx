@@ -111,7 +111,7 @@ export const SettingsFormTemplateDetails = React.memo(
               </div>
             ) : (
               <div className="col-span-2 flex flex-col gap-2 items-center w-full">
-                {formData?.fields.map((field: FormField) => (
+                {formData?.groups[0]?.fields?.map((field: FormField) => (
                   <FormFieldRenderer
                     key={`${field.id}-${field.label}`}
                     field={field}

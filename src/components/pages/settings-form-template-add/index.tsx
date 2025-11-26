@@ -4,9 +4,10 @@ import * as React from "react";
 import { FormProvider, useFieldArray } from "react-hook-form";
 import { useFormTemplateAdd } from "./hook";
 import { Button } from "@/components/ui/button";
-import { Edit, Plus } from "lucide-react";
+import { Edit, List, Plus } from "lucide-react";
 import { SelectForm } from "@/components/ui/select-form";
 import { FormTemplate } from "./sections/form-template";
+import { GroupForm } from "./sections/group-form";
 import ConfirmModal from "./sections/confirm-modal";
 import { FormAddModal } from "../settings-form-template-list/sections/add-modal";
 
@@ -42,34 +43,52 @@ export const SettingsFormTemplateAdd = React.memo(
       onCancel,
     });
 
-    const { fields, append, remove } = useFieldArray({
+    const {
+      fields: groupFields,
+      append: appendGroup,
+      remove: removeGroup,
+    } = useFieldArray({
       control: form.control,
-      name: "questions",
+      name: "groups",
     });
 
-    const addQuestion = React.useCallback(() => {
-      append({
+    const {
+      fields: fieldArray,
+      append: appendField,
+      remove: removeField,
+    } = useFieldArray({
+      control: form.control,
+      name: "groups.0.fields",
+    });
+
+    const addGroup = React.useCallback(() => {
+      appendGroup({
+        name: "Default Group",
+        metadata: {
+          score_weight: 0,
+          score_weight_type: "percent",
+        },
+        fields: [
+          {
+            label: "",
+            type: "",
+            is_required: false,
+            order: 0,
+            options: [],
+          },
+        ],
+      });
+    }, [appendGroup]);
+
+    const addField = React.useCallback(() => {
+      appendField({
         label: "",
         type: "",
         is_required: false,
-        order: fields.length,
+        order: fieldArray.length,
         options: [],
       });
-    }, [append, fields.length]);
-
-    const removeQuestion = React.useCallback(
-      (index: number) => {
-        remove(index);
-      },
-      [remove],
-    );
-
-    const updateQuestionType = React.useCallback(
-      (index: number, type: string) => {
-        form.setValue(`questions.${index}.type`, type);
-      },
-      [form],
-    );
+    }, [appendField, fieldArray.length]);
 
     const handleConfirmSubmit = React.useCallback(async () => {
       const isValid = await form.trigger();
@@ -82,14 +101,7 @@ export const SettingsFormTemplateAdd = React.memo(
       await handleSubmit(formData);
     }, [form, handleSubmit]);
 
-    const hasQuestions = fields.length > 0;
-
-    const onTypeChange = (index: number, type: string) => {
-      if (type === "checkbox" && !form.watch(`questions.${index}.options`)) {
-        form.setValue(`questions.${index}.options`, []);
-      }
-      updateQuestionType(index, type);
-    };
+    const hasGroups = groupFields.length > 0;
 
     return (
       <div className="font-sans md:px-[125px] px-4 space-y-4">
@@ -118,8 +130,43 @@ export const SettingsFormTemplateAdd = React.memo(
               <span>{formData?.type_label || "-"}</span>
             </div>
             <hr className="col-span-2" />
-
-            {!hasQuestions ? (
+            {formData?.type !== 3 ? (
+              !hasGroups ? (
+                <div className="col-span-2 p-4 rounded-sm bg-primary-background border border-primary-border flex flex-col items-center justify-center gap-2">
+                  <p className="text-primary font-bold text-lg">
+                    Nothing here yet
+                  </p>
+                  <p className="text-text-secondary text-base font-normal">
+                    Start building your first form now
+                  </p>
+                  <Button type="button" onClick={addGroup}>
+                    <Plus /> Add Question
+                  </Button>
+                </div>
+              ) : (
+                <div className="col-span-2 flex flex-col gap-4 items-center">
+                  {fieldArray.map((field, index) => (
+                    <FormTemplate
+                      key={field.id}
+                      index={index}
+                      onRemove={() => removeField(index)}
+                      canRemove={fieldArray.length > 1}
+                      onTypeChange={(type) => {
+                        // form.setValue(`groups.${index}.type`, type);
+                      }}
+                    />
+                  ))}
+                  <Button
+                    variant="ghost"
+                    type="button"
+                    className="text-primary"
+                    onClick={addField}
+                  >
+                    <Plus /> Add Question
+                  </Button>
+                </div>
+              )
+            ) : !hasGroups ? (
               <div className="col-span-2 p-4 rounded-sm bg-primary-background border border-primary-border flex flex-col items-center justify-center gap-2">
                 <p className="text-primary font-bold text-lg">
                   Nothing here yet
@@ -127,29 +174,22 @@ export const SettingsFormTemplateAdd = React.memo(
                 <p className="text-text-secondary text-base font-normal">
                   Start building your first form now
                 </p>
-                <Button type="button" onClick={addQuestion}>
-                  <Plus /> Add Question
+                <Button type="button" onClick={addGroup}>
+                  <List /> Add Question Group
                 </Button>
               </div>
             ) : (
-              <div className="col-span-2 flex flex-col gap-2 items-center">
-                {fields.map((field, index) => (
-                  <FormTemplate
-                    key={field.id}
-                    index={index}
-                    type={form.watch(`questions.${index}.type`)}
-                    onRemove={() => removeQuestion(index)}
-                    canRemove={true}
-                    onTypeChange={(type) => onTypeChange(index, type)}
-                  />
+              <div className="col-span-2 flex flex-col gap-4 items-center">
+                {groupFields.map((field, index) => (
+                  <GroupForm key={field.id} index={index} />
                 ))}
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   type="button"
                   className="text-primary"
-                  onClick={addQuestion}
+                  onClick={addGroup}
                 >
-                  <Plus /> Add Question
+                  <List /> Add Question Group
                 </Button>
               </div>
             )}
@@ -167,7 +207,7 @@ export const SettingsFormTemplateAdd = React.memo(
               <Button
                 type="button"
                 className="md:w-[174px]"
-                disabled={!hasQuestions || isLoading}
+                disabled={!hasGroups || isLoading}
                 onClick={() => setOpenConfirm(true)}
               >
                 {isLoading ? "Saving..." : isEditMode ? "Update" : "Save"}

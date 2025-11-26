@@ -1,19 +1,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Input } from "@/components/ui/input";
 import { Plus } from "lucide-react";
 import Image from "next/image";
 import * as React from "react";
 import { useFormContext } from "react-hook-form";
 
-interface CheckboxFieldProps {
+interface RadioFieldProps {
   questionIndex: number;
 }
 
-export const CheckboxField = React.memo(function CheckboxField({
+export const RadioField = React.memo(function RadioField({
   questionIndex,
-}: CheckboxFieldProps) {
+}: RadioFieldProps) {
   const { setValue, watch } = useFormContext();
   const questions = watch("groups[0].fields");
   const currentQuestion = questions[questionIndex];
@@ -55,43 +55,45 @@ export const CheckboxField = React.memo(function CheckboxField({
       <p className="text-sm font-normal">
         Answer Option<span className="text-error">*</span>
       </p>
-      {options.map(
-        (
-          option: string | number | readonly string[] | undefined,
-          index: number,
-        ) => {
-          const isOther = option === "Other";
+      <RadioGroup>
+        {options.map(
+          (
+            option: string | number | readonly string[] | undefined,
+            index: number,
+          ) => {
+            const isOther = option === "Other";
 
-          return (
-            <div key={index} className="flex items-center gap-2">
-              <Checkbox />
-              <Input
-                value={option}
-                onChange={(e) =>
-                  !isOther && handleOptionChange(index, e.target.value)
-                }
-                placeholder={isOther ? "Other" : `Option ${index + 1}`}
-                disabled={isOther}
-              />
-              <Button
-                variant="ghost"
-                type="button"
-                onClick={() =>
-                  isOther ? handleRemoveOther() : handleRemoveOption(index)
-                }
-                disabled={options.length === 1 && !isOther}
-              >
-                <Image
-                  width={16}
-                  height={16}
-                  src="/icons/deleteOutlined.svg"
-                  alt="trash"
+            return (
+              <div key={index} className="flex items-center gap-2">
+                <RadioGroupItem value={`option-${index}`} />
+                <Input
+                  value={option}
+                  onChange={(e) =>
+                    !isOther && handleOptionChange(index, e.target.value)
+                  }
+                  placeholder={isOther ? "Other" : `Option ${index + 1}`}
+                  disabled={isOther}
                 />
-              </Button>
-            </div>
-          );
-        },
-      )}
+                <Button
+                  variant="ghost"
+                  type="button"
+                  onClick={() =>
+                    isOther ? handleRemoveOther() : handleRemoveOption(index)
+                  }
+                  disabled={options.length === 1 && !isOther}
+                >
+                  <Image
+                    width={16}
+                    height={16}
+                    src="/icons/deleteOutlined.svg"
+                    alt="trash"
+                  />
+                </Button>
+              </div>
+            );
+          },
+        )}
+      </RadioGroup>
       <div className="flex items-center gap-2">
         <Button
           variant="ghost"
