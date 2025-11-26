@@ -330,8 +330,9 @@ export function usePayrollDetail() {
 
 
   async function handleDownload(payslip: Payslip, payrun: Payrun) {
+
     const PAYSLIP_TEMPLATE = `
-      <div style="background:white;margin:0 auto;padding:32px;border-radius:8px;width:612px;height:792px;font-family:Arial,sans-serif;font-size:14px;line-height:1.4;">
+      <div style="background:white;margin:0 auto;padding:50px;font-family: Arial;">
         
         <div style="display:flex;justify-content:space-between;margin-bottom:24px;">
           <div>
@@ -343,13 +344,13 @@ export function usePayrollDetail() {
 
         <h2 style="color:#2B88C4;font-weight:600;font-size:18px;margin-bottom:12px;">Payroll Details</h2>
 
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;row-gap:8px;margin-bottom:14px;">
-          <div><p style="font-size:10px;margin:0">Payroll Period</p><p style="font-weight:600; margin:0;">${payrun.period_label}</p></div>
-          <div><p style="font-size:10px;margin:0;">Employee Name/ID</p><p style="font-weight:600; margin:0;">${payslip.employee.name}/${payslip.employee.id}</p></div>
-          <div><p style="font-size:10px;margin:0;">Position</p><p style="font-weight:600; margin:0;">${payslip.employee.job_title}</p></div>
-          <div><p style="font-size:10px;margin:0;">Job Level</p><p style="font-weight:600; margin:0;">${payslip.employee.job_level}</p></div>
-          <div><p style="font-size:10px;margin:0;">Department</p><p style="font-weight:600; margin:0;">${payslip.employee.department}</p></div>
-          <div><p style="font-size:10px;margin:0;">Taxpayer ID (NPWP)</p><p style="font-weight:600; margin:0;">${payslip.employee.npwp}</p></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;row-gap:8px;margin-bottom:24px;">
+          <div><p style="font-size:12px;margin-bottom:6px">Payroll Period</p><p style="font-weight:600; margin-bottom:6px;">${payrun.period_label}</p></div>
+          <div><p style="font-size:12px;margin-bottom:6px;">Employee Name/ID</p><p style="font-weight:600; margin-bottom:6px;">${payslip.employee.name}/${payslip.employee.id}</p></div>
+          <div><p style="font-size:12px;margin-bottom:6px;">Position</p><p style="font-weight:600; margin-bottom:6px;">${payslip.employee.job_title}</p></div>
+          <div><p style="font-size:12px;margin-bottom:6px;">Job Level</p><p style="font-weight:600; margin-bottom:6px;">${payslip.employee.job_level}</p></div>
+          <div><p style="font-size:12px;margin-bottom:6px;">Department</p><p style="font-weight:600; margin-bottom:6px;">${payslip.employee.department}</p></div>
+          <div><p style="font-size:12px;margin-bottom:6px;">Taxpayer ID (NPWP)</p><p style="font-weight:600; margin-bottom:6px;">${payslip.employee.npwp}</p></div>
         </div>
 
         <table style="width:100%;font-size:14px;margin-bottom:24px;border-collapse:separate;border-spacing:0;border:1px solid #D1D5DB;border-radius:12px;overflow:hidden;">
@@ -363,18 +364,23 @@ export function usePayrollDetail() {
           <tbody>
             <tr>
               <td style="padding:12px;border-right:1px solid #D1D5DB;vertical-align:top;">
-                <div style="display:flex;justify-content:space-between;"><span>Basic Salary</span><span>Rp${formatCurrency(Number(payslip.employee.salary_nett))}</span></div>
+                <div style="display:flex;justify-content:space-between;margin-bottom: 20px;"><span>Basic Salary</span><span style="padding-left: 20px;">Rp${formatCurrency(Number(payslip.employee.salary_nett))}</span></div>
                 ${payslip.allowance.map((item, i) => {
-                  return `<div key={${i}} style="display:flex;justify-content:space-between;"><span>${item.allowance_name}</span><span>Rp${formatCurrency(Number(item.allowance_value))}</span></div>`
+                  return `<div key={${i}} style="display:flex;justify-content:space-between;margin-bottom: 20px;"><span>${item.allowance_name}</span><span style="padding-left: 20px;">Rp${formatCurrency(Number(item.allowance_value))}</span></div>`
                 })}
-                <div style="display:flex;justify-content:space-between;"><span>Additional Earnings</span><span>Rp${formatCurrency(Number(payslip.total_additional_earnings))}</span></div>
-                <div style="display:flex;justify-content:space-between;"><span>Overtime</span><span>Rp${formatCurrency(Number(payslip.total_overtime))}</span></div>
+                <div style="display:flex;justify-content:space-between;margin-bottom: 20px;"><span>Additional Earnings</span><span style="padding-left: 20px;">Rp${formatCurrency(Number(payslip.total_additional_earnings))}</span></div>
+                <div style="display:flex;justify-content:space-between;margin-bottom: 20px;"><span>Overtime</span><span style="padding-left: 20px;">Rp${formatCurrency(Number(payslip.total_overtime))}</span></div>
               </td>
 
               <td style="padding:12px;vertical-align:top;">
-                ${payslip.deduction.map((item, i) => {
-                  return `<div key={${i}} style="display:flex;justify-content:space-between;"><span>${item.name}</span><span>Rp${formatCurrency(Number(item.amount))}</span></div>`
-                })}
+                ${payslip.deduction
+                  .map((item, i) => {
+                    return `<div key="${i}" style="display:flex;justify-content:space-between;margin-bottom: 20px;">
+                              <span>${item.name}</span>
+                              <span style="padding-left: 20px;">Rp${formatCurrency(Number(item.amount))}</span>
+                            </div>`;
+                  })
+                  .join("")}
               </td>
             </tr>
 
@@ -386,7 +392,7 @@ export function usePayrollDetail() {
           </tbody>
         </table>
 
-        <p style="font-size:12px;color:#EF4444;margin-top:24px;line-height:1.6;">
+        <p style="font-size:12px;color:#EF4444;margin-top:24px;line-height:1.6; font-weight: 600;">
           Notes
         </p>
         <p style="font-size:10px;line-height:1.6;">
@@ -400,16 +406,13 @@ export function usePayrollDetail() {
       </div>
     `;
 
-    const html = PAYSLIP_TEMPLATE;
-
-    const request = await fetch("/api/payslip", {
-      method: "POST",
-      body: JSON.stringify({ html }),
-    });
-
-    const pdf = await request.blob();
-    const url = URL.createObjectURL(pdf);
-
+    const html = PAYSLIP_TEMPLATE; 
+    const request = await fetch("/api/payslip", { 
+      method: "POST", 
+      body: JSON.stringify({ html }), 
+    }); 
+    const pdf = await request.blob(); 
+    const url = URL.createObjectURL(pdf); 
     window.open(url, "_blank");
   }
 

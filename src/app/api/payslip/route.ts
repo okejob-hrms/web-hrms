@@ -32,7 +32,6 @@ export async function POST(req: Request) {
 
     await browser.close();
 
-    // ✅ Cast to ArrayBuffer only (fix TypeScript error)
     const arrayBuffer: ArrayBuffer = pdfBuffer.buffer.slice(
       pdfBuffer.byteOffset,
       pdfBuffer.byteOffset + pdfBuffer.byteLength
