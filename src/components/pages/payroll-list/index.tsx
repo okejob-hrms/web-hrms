@@ -74,15 +74,15 @@ export const PayrollList = () => {
         </span>
       ),
     },
-    {
-      accessorKey: 'send_payslip',
-      header: 'Send Payslip Date',
-      size: 200,
-      cell: ({ row }) =>
-        row.original.send_payslip_at
-          ? dayjs(row.original.send_payslip_at).format('MMMM D, YYYY')
-          : '-',
-    },
+    // {
+    //   accessorKey: 'send_payslip',
+    //   header: 'Send Payslip Date',
+    //   size: 200,
+    //   cell: ({ row }) =>
+    //     row.original.send_payslip_at
+    //       ? dayjs(row.original.send_payslip_at).format('MMMM D, YYYY')
+    //       : '-',
+    // },
     {
       accessorKey: 'payslip_status',
       header: 'Payslip Status',
@@ -157,9 +157,6 @@ export const PayrollList = () => {
                   )}
                 </DropdownMenuContent>
               </DropdownMenu>
-            )}
-            {row.original.can_be_sent && (
-              <Button variant="outline">Send Payslip</Button>
             )}
 
             {row.original.generation_status === 3 && (

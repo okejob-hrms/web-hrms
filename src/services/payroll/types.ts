@@ -119,7 +119,7 @@ export interface Payslip {
   allowance: PayslipAllowance[];
   overtime: [];
   additional_earning: PayslipAdditionalItem[];
-  deduction: [];
+  deduction: DeductionList[];
   currency: string;
   status: number;
   status_label: string;
@@ -139,6 +139,15 @@ export interface Payslip {
   total_deductions: number;
 }
 
+export interface DeductionList {
+  salary_deduction_id: number;
+  name: string;
+  type: string;
+  amount: number;
+  calculation_basis: string;
+  contribution_type: string;
+}
+
 export interface PayslipAdditionalItem {
   id: number;
   name: string;
@@ -152,6 +161,8 @@ export interface PayslipEmployee {
   salary_nett: string;
   job_title: string;
   job_level: string;
+  department: string;
+  npwp:string;
 }
 
 export interface PayslipAllowance {

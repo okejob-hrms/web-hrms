@@ -5,12 +5,13 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tansta
 import { PaginationState } from "@tanstack/react-table";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { AdditionalItem, AdditionalRequest, AllowanceItem, AllowanceRequest, OvertimePayrun, OvertimeRequest, Payslip, PenaltyPayrun, PenaltyRequest, RequestPayrollGroup, WorkHourPayrun, WorkingHourRequest } from "@/services/payroll/types";
+import { AdditionalItem, AdditionalRequest, AllowanceItem, AllowanceRequest, OvertimePayrun, OvertimeRequest, Payrun, Payslip, PenaltyPayrun, PenaltyRequest, RequestPayrollGroup, WorkHourPayrun, WorkingHourRequest } from "@/services/payroll/types";
 import { Filters } from "./types";
 import { getPayrollDetail, getPayrollDetailSpend, getPayrollEmployee, getPayrollViewLog, postFinalPayrun, putAdditionalPayrun, putAllowancePayrun, putOvertimePayrun, putPenaltyPayrun, putWorkingHourPayrun } from "@/services/payroll";
 import { PaginatedResponse } from "@/lib/types";
 import { AllowanceTypeResponse } from "@/services/salary/types";
 import { getAllowanceType } from "@/services/salary";
+import { formatCurrency } from "@/lib/utils";
 
 export function usePayrollDetail() {
   const [pagination, setPagination] = React.useState<PaginationState>({
@@ -328,6 +329,90 @@ export function usePayrollDetail() {
   };
 
 
+  async function handleDownload(payslip: Payslip, payrun: Payrun) {
+    const PAYSLIP_TEMPLATE = `
+      <div style="background:white;margin:0 auto;padding:32px;border-radius:8px;width:612px;height:792px;font-family:Arial,sans-serif;font-size:14px;line-height:1.4;">
+        
+        <div style="display:flex;justify-content:space-between;margin-bottom:24px;">
+          <div>
+          </div>
+          <div style="text-align:right;">
+            <p style="color:#EF4444;font-weight:600;font-size:12px;">*CONFIDENTIAL</p>
+          </div>
+        </div>
+
+        <h2 style="color:#2B88C4;font-weight:600;font-size:18px;margin-bottom:12px;">Payroll Details</h2>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;row-gap:8px;margin-bottom:14px;">
+          <div><p style="font-size:10px;margin:0">Payroll Period</p><p style="font-weight:600; margin:0;">${payrun.period_label}</p></div>
+          <div><p style="font-size:10px;margin:0;">Employee Name/ID</p><p style="font-weight:600; margin:0;">${payslip.employee.name}/${payslip.employee.id}</p></div>
+          <div><p style="font-size:10px;margin:0;">Position</p><p style="font-weight:600; margin:0;">${payslip.employee.job_title}</p></div>
+          <div><p style="font-size:10px;margin:0;">Job Level</p><p style="font-weight:600; margin:0;">${payslip.employee.job_level}</p></div>
+          <div><p style="font-size:10px;margin:0;">Department</p><p style="font-weight:600; margin:0;">${payslip.employee.department}</p></div>
+          <div><p style="font-size:10px;margin:0;">Taxpayer ID (NPWP)</p><p style="font-weight:600; margin:0;">${payslip.employee.npwp}</p></div>
+        </div>
+
+        <table style="width:100%;font-size:14px;margin-bottom:24px;border-collapse:separate;border-spacing:0;border:1px solid #D1D5DB;border-radius:12px;overflow:hidden;">
+          <thead style="background:#F3F4F6;">
+            <tr>
+              <th style="padding:8px 12px;text-align:left;width:50%;border-right:1px solid #D1D5DB;border-top-left-radius: 12px;">Earnings</th>
+              <th style="padding:8px 12px;text-align:left; border-top-right-radius: 12px;">Deductions</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr>
+              <td style="padding:12px;border-right:1px solid #D1D5DB;vertical-align:top;">
+                <div style="display:flex;justify-content:space-between;"><span>Basic Salary</span><span>Rp${formatCurrency(Number(payslip.employee.salary_nett))}</span></div>
+                ${payslip.allowance.map((item, i) => {
+                  return `<div key={${i}} style="display:flex;justify-content:space-between;"><span>${item.allowance_name}</span><span>Rp${formatCurrency(Number(item.allowance_value))}</span></div>`
+                })}
+                <div style="display:flex;justify-content:space-between;"><span>Additional Earnings</span><span>Rp${formatCurrency(Number(payslip.total_additional_earnings))}</span></div>
+                <div style="display:flex;justify-content:space-between;"><span>Overtime</span><span>Rp${formatCurrency(Number(payslip.total_overtime))}</span></div>
+              </td>
+
+              <td style="padding:12px;vertical-align:top;">
+                ${payslip.deduction.map((item, i) => {
+                  return `<div key={${i}} style="display:flex;justify-content:space-between;"><span>${item.name}</span><span>Rp${formatCurrency(Number(item.amount))}</span></div>`
+                })}
+              </td>
+            </tr>
+
+            <tr style="background:#F3F4F6;border-top:1px solid #D1D5DB;">
+              <td colspan="2" style="padding:10px 12px;font-weight:600;text-align:right;border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
+                Take Home Pay &nbsp; Rp${formatCurrency(Number(payslip.net_pay))}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p style="font-size:12px;color:#EF4444;margin-top:24px;line-height:1.6;">
+          Notes
+        </p>
+        <p style="font-size:10px;line-height:1.6;">
+          HARAP DIPERHATIKAN, ISI PERNYATAAN INI ADALAH RAHASIA KECUALI ANDA
+          DIMINTA UNTUK MENGUNGKAPKANNYA UNTUK KEPERLUAN PAJAK, HUKUM, ATAU
+          KEPENTINGAN PEMERINTAH. SETIAP PELANGGARAN ATAS KEWAJIBAN MENJAGA
+          KERAHASIAAN INI AKAN DIKENAKAN SANKSI, YANG MUNGKIN BERUPA TINDAKAN
+          KEDISIPLINAN.
+        </p>
+
+      </div>
+    `;
+
+    const html = PAYSLIP_TEMPLATE;
+
+    const request = await fetch("/api/payslip", {
+      method: "POST",
+      body: JSON.stringify({ html }),
+    });
+
+    const pdf = await request.blob();
+    const url = URL.createObjectURL(pdf);
+
+    window.open(url, "_blank");
+  }
+
   return {
     employeeList,
     dataPagination,
@@ -396,5 +481,8 @@ export function usePayrollDetail() {
     setPaginationAudit,
     auditTrail,
     auditTrailLoading,
+
+    //download
+    handleDownload,
   };
 }

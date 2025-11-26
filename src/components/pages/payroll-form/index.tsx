@@ -5,7 +5,7 @@ import { DataTable } from '@/components/tables/data-table';
 import { ColumnDef } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, Edit3, Send, Clock } from 'lucide-react';
+import { ArrowLeft, Edit3, Send, Clock, Eye } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import dayjs from 'dayjs';
@@ -94,6 +94,7 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
     setPaginationAudit,
     auditTrail,
     auditTrailLoading,
+    handleDownload,
   } = usePayrollDetail();
 
   React.useEffect(() => {
@@ -339,13 +340,33 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
     },
   ];
 
-  const detailColumns: ColumnDef<Payslip>[] = (
-    detailDataSpend?.data.deductions_by_name ?? []
-  ).map((item, index) => ({
-    id: `deduction_${index}`, // selalu unik
-    accessorKey: item.label.toLowerCase().replace(/[^a-z0-9]/g, '_'),
-    header: item.label,
-    cell: () => <div className="text-gray-500">{item.total ?? '-'}</div>,
+  const uniqueDeductions = Array.from(
+    new Map(
+      (employeeList?.data.payslips ?? [])
+        .flatMap((p) => p.deduction)
+        .map((d) => [d.salary_deduction_id, d]),
+    ).values(),
+  );
+
+  const detailColumns: ColumnDef<Payslip>[] = uniqueDeductions.map((ded) => ({
+    id: `deduction-${ded.salary_deduction_id}`,
+    header: ded.name,
+    accessorFn: (row) => {
+      const item = row.deduction.find(
+        (d) => d.salary_deduction_id === ded.salary_deduction_id,
+      );
+      return item?.amount ?? 0;
+    },
+    cell: ({ row }) => {
+      const item = row.original.deduction.find(
+        (d) => d.salary_deduction_id === ded.salary_deduction_id,
+      );
+      return (
+        <div className="min-w-[150px] text-gray-800">
+          Rp {formatCurrency(item?.amount ?? 0)}
+        </div>
+      );
+    },
   }));
 
   const payColumns: ColumnDef<Payslip>[] = [
@@ -368,13 +389,25 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
       header: 'Nett Pay',
       size: 200,
       cell: ({ row }) => (
-        <div className="min-w-[150px]">
-          <span className="text-gray-400">
+        <div className="min-w-[150px] flex items-center justify-between">
+          <div className="text-gray-400">
             Rp{' '}
             <span className="text-gray-800">
               {formatCurrency(Number(row.original.net_pay))}
             </span>
-          </span>
+          </div>
+          {isDetail && employeeList?.data.payrun.status === 2 && (
+            <Button
+              type="button"
+              variant="link"
+              className="text-primary"
+              onClick={() =>
+                handleDownload(row.original, employeeList.data.payrun)
+              }
+            >
+              <Eye />
+            </Button>
+          )}
         </div>
       ),
       meta: {
@@ -385,7 +418,7 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
 
   const columns: ColumnDef<Payslip>[] = [
     ...baseColumns,
-    ...(isDetail ? detailColumns : []),
+    ...detailColumns,
     ...payColumns,
   ];
 
@@ -403,40 +436,28 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
             <h2 className="font-semibold text-xl mb-0">Payruns Detail</h2>
           </div>
           <div className="col-span-2">
-            {isDetail && (
-              <div className="flex justify-end gap-2">
-                {employeeList?.data.payrun.status !== 2 && (
-                  <Button
-                    onClick={() => router.push(`/payroll/list/${id}/edit`)}
-                    type="button"
-                    variant="outline"
-                    className="min-w-[100px] bg-white text-primary border-1 border font-medium py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <Edit3 />
-                    Edit Payruns
-                  </Button>
-                )}
-                {employeeList?.data.payrun.can_be_sent && (
-                  <Button
-                    onClick={() => handleNext()}
-                    type="button"
-                    className="min-w-[100px] bg-primary hover:bg-[#14506e] text-white font-medium py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <Send />
-                    Send Payruns
-                  </Button>
-                )}
+            <div className="flex justify-end gap-2">
+              {isDetail && employeeList?.data.payrun.status !== 2 && (
                 <Button
-                  onClick={() => setOpenHistory(true)}
+                  onClick={() => router.push(`/payroll/list/${id}/edit`)}
                   type="button"
                   variant="outline"
-                  className="min-w-[100px] bg-white border-orange-500 border-1 border font-medium py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed text-orange-500"
+                  className="min-w-[100px] bg-white text-primary border-1 border font-medium py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <Clock />
-                  Payruns History
+                  <Edit3 />
+                  Edit Payruns
                 </Button>
-              </div>
-            )}
+              )}
+              <Button
+                onClick={() => setOpenHistory(true)}
+                type="button"
+                variant="outline"
+                className="min-w-[100px] bg-white border-orange-500 border-1 border font-medium py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed text-orange-500"
+              >
+                <Clock />
+                Payruns History
+              </Button>
+            </div>
           </div>
           <div className="col-span-1">
             <div className="text-sm text-gray-500">Payment Period</div>
