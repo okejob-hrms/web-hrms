@@ -14,21 +14,15 @@ export async function POST(req: Request) {
 
     const page = await browser.newPage();
 
-    // ❌ Disable ALL external resources (biar tidak pending)
     await page.setRequestInterception(true);
     page.on("request", (req) => {
-      // Only allow document itself
-      if (req.resourceType() === "document") {
-        req.continue();
-      } else {
-        req.abort();
-      }
+      if (req.resourceType() === "document") req.continue();
+      else req.abort();
     });
 
-    // Load HTML → FAST mode
     await page.setContent(html, {
       waitUntil: "domcontentloaded",
-      timeout: 0, // disable timeout
+      timeout: 0,
     });
 
     const pdfBuffer = await page.pdf({
@@ -38,7 +32,13 @@ export async function POST(req: Request) {
 
     await browser.close();
 
-    return new Response(pdfBuffer, {
+    // ✅ Cast to ArrayBuffer only (fix TypeScript error)
+    const arrayBuffer: ArrayBuffer = pdfBuffer.buffer.slice(
+      pdfBuffer.byteOffset,
+      pdfBuffer.byteOffset + pdfBuffer.byteLength
+    ) as ArrayBuffer;
+
+    return new Response(arrayBuffer, {
       status: 200,
       headers: {
         "Content-Type": "application/pdf",
@@ -46,6 +46,7 @@ export async function POST(req: Request) {
         "Content-Length": pdfBuffer.length.toString(),
       },
     });
+
   } catch (err) {
     console.error("PDF Error:", err);
     return new Response("Failed to generate PDF", { status: 500 });
