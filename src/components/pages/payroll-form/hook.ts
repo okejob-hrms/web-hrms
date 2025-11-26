@@ -328,9 +328,9 @@ export function usePayrollDetail() {
     mutationPutPenalty.mutate({id: id, payload: data})
   };
 
-
   async function handleDownload(payslip: Payslip, payrun: Payrun) {
-
+    const html2pdf = (await import("html2pdf.js")).default;
+    
     const PAYSLIP_TEMPLATE = `
       <div style="background:white;margin:0 auto;padding:50px;font-family: Arial;">
         
@@ -345,19 +345,24 @@ export function usePayrollDetail() {
         <h2 style="color:#2B88C4;font-weight:600;font-size:18px;margin-bottom:12px;">Payroll Details</h2>
 
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;row-gap:8px;margin-bottom:24px;">
-          <div><p style="font-size:12px;margin-bottom:6px">Payroll Period</p><p style="font-weight:600; margin-bottom:6px;">${payrun.period_label}</p></div>
-          <div><p style="font-size:12px;margin-bottom:6px;">Employee Name/ID</p><p style="font-weight:600; margin-bottom:6px;">${payslip.employee.name}/${payslip.employee.id}</p></div>
-          <div><p style="font-size:12px;margin-bottom:6px;">Position</p><p style="font-weight:600; margin-bottom:6px;">${payslip.employee.job_title}</p></div>
-          <div><p style="font-size:12px;margin-bottom:6px;">Job Level</p><p style="font-weight:600; margin-bottom:6px;">${payslip.employee.job_level}</p></div>
-          <div><p style="font-size:12px;margin-bottom:6px;">Department</p><p style="font-weight:600; margin-bottom:6px;">${payslip.employee.department}</p></div>
-          <div><p style="font-size:12px;margin-bottom:6px;">Taxpayer ID (NPWP)</p><p style="font-weight:600; margin-bottom:6px;">${payslip.employee.npwp}</p></div>
+          <div><p style="font-size:12px;margin-bottom:0px">Payroll Period</p><p style="font-weight:600;font-size: 14px; margin-bottom:0px;">${payrun.period_label}</p></div>
+          <div><p style="font-size:12px;margin-bottom:0px;">Employee Name/ID</p><p style="font-weight:600;font-size: 14px; margin-bottom:0px;">${payslip.employee.name}/${payslip.employee.id}</p></div>
+          <div><p style="font-size:12px;margin-bottom:0px;">Position</p><p style="font-weight:600;font-size: 14px; margin-bottom:0px;">${payslip.employee.job_title}</p></div>
+          <div><p style="font-size:12px;margin-bottom:0px;">Job Level</p><p style="font-weight:600;font-size: 14px; margin-bottom:0px;">${payslip.employee.job_level}</p></div>
+          <div><p style="font-size:12px;margin-bottom:0px;">Department</p><p style="font-weight:600;font-size: 14px; margin-bottom:0px;">${payslip.employee.department}</p></div>
+          <div><p style="font-size:12px;margin-bottom:0px;">Taxpayer ID (NPWP)</p><p style="font-weight:600;font-size: 14px; margin-bottom:0px;">${payslip.employee.npwp}</p></div>
         </div>
 
         <table style="width:100%;font-size:14px;margin-bottom:24px;border-collapse:separate;border-spacing:0;border:1px solid #D1D5DB;border-radius:12px;overflow:hidden;">
           <thead style="background:#F3F4F6;">
             <tr>
-              <th style="padding:8px 12px;text-align:left;width:50%;border-right:1px solid #D1D5DB;border-top-left-radius: 12px;">Earnings</th>
-              <th style="padding:8px 12px;text-align:left; border-top-right-radius: 12px;">Deductions</th>
+              <th style="padding:12px; text-align:left; vertical-align: middle; width:50%; border-right:1px solid #D1D5DB; border-top-left-radius: 12px;">
+                <div style="padding-bottom: 16px">Earnings</div>
+              </th>
+              <th style="padding:12px; text-align:left; vertical-align: middle; border-top-right-radius: 12px;">
+                <div style="padding-bottom: 16px">Deductions</div>
+              </th>
+
             </tr>
           </thead>
 
@@ -385,10 +390,13 @@ export function usePayrollDetail() {
             </tr>
 
             <tr style="background:#F3F4F6;border-top:1px solid #D1D5DB;">
-              <td colspan="2" style="padding:10px 12px;font-weight:600;text-align:right;border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
-                Take Home Pay &nbsp; Rp${formatCurrency(Number(payslip.net_pay))}
+              <td colspan="2" style="padding:10px 12px; font-weight:600; text-align:right; vertical-align: middle; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
+                <div style="padding-bottom: 16px">
+                  Take Home Pay &nbsp; Rp${formatCurrency(Number(payslip.net_pay))}
+                </div>
               </td>
             </tr>
+
           </tbody>
         </table>
 
@@ -406,13 +414,27 @@ export function usePayrollDetail() {
       </div>
     `;
 
-    const html = PAYSLIP_TEMPLATE; 
-    const request = await fetch("/api/payslip", { 
-      method: "POST", 
-      body: JSON.stringify({ html }), 
-    }); 
-    const pdf = await request.blob(); 
-    const url = URL.createObjectURL(pdf); 
+    const container = document.createElement("div");
+    container.innerHTML = PAYSLIP_TEMPLATE;
+
+    document.body.appendChild(container);
+
+    // tunggu dulu 100ms supaya DOM siap
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    const pdfBlob = await html2pdf()
+      .set({
+        margin: 10,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      })
+      .from(container)
+      .outputPdf("blob");
+
+    document.body.removeChild(container);
+
+    const url = URL.createObjectURL(pdfBlob);
     window.open(url, "_blank");
   }
 
