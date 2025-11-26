@@ -7,9 +7,16 @@ import { ArrowDown, ArrowUp, ChevronsUpDown } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 import { LinearProgress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
+import { useSelfAssessmentPeriodDetails } from "./hook";
+import AppSkeleton from "@/components/partials/app-skeleton";
+import { IEmployeeAssessment } from "@/services/employees/self-assessment/types";
+import dayjs from "dayjs";
 
 export const SelfAssessmentPeriodDetails = () => {
-  const columns: ColumnDef<any>[] = [
+  const { assessmentDetails, isLoading, isError } =
+    useSelfAssessmentPeriodDetails();
+
+  const columns: ColumnDef<IEmployeeAssessment>[] = [
     {
       accessorKey: "name",
       header: ({ column }) => {
@@ -38,7 +45,7 @@ export const SelfAssessmentPeriodDetails = () => {
       },
     },
     {
-      accessorKey: "status",
+      accessorKey: "submission_status",
       header: ({ column }) => {
         const isSorted = column.getIsSorted();
         const SortIcon = () =>
@@ -90,6 +97,7 @@ export const SelfAssessmentPeriodDetails = () => {
           </div>
         );
       },
+      cell: ({ row }) => row.original.score,
     },
     {
       accessorKey: "supervisor",
@@ -117,44 +125,65 @@ export const SelfAssessmentPeriodDetails = () => {
           </div>
         );
       },
+      cell: ({ row }) => row.original.supervisor,
     },
     {
-      accessorKey: "assigned_form",
+      accessorKey: "form_name",
       header: "Assigned Form",
+      cell: ({ row }) => row.original.form_name,
     },
     {
-      accessorKey: "submitted",
+      accessorKey: "submitted_at",
       header: "Submitted On",
+      cell: ({ row }) => row.original.submitted_at,
     },
   ];
 
   const isMobile = useIsMobile();
+
+  if (isLoading) {
+    return <AppSkeleton />;
+  }
+
+  if (isError || !assessmentDetails) {
+    return <div>Assessment not found</div>;
+  }
+
+  const { assessment, summary, employees } = assessmentDetails;
+
   return (
     <div className="font-sans md:px-[125px] px-4 space-y-4">
-      <h1 className="font-semibold text-4xl">Self Assessment Q3 2025</h1>
+      <h1 className="font-semibold text-4xl">
+        Self Assessment {assessment.assessment_period} {assessment.year}
+      </h1>
       <h2>Assessment Details</h2>
       <div className="grid grid-cols-2 gap-4">
         <div className="flex flex-col gap-1">
           <span className="text-text-disabled text-sm">Start Date</span>
-          <span className="text-base">-</span>
+          <span className="text-base">{assessment.start_date}</span>
         </div>
         <div className="flex flex-col gap-1">
-          <span className="text-text-disabled text-sm">Start Date</span>
-          <span className="text-base">-</span>
+          <span className="text-text-disabled text-sm">End Date</span>
+          <span className="text-base">{assessment.end_date}</span>
         </div>
       </div>
       <div className="grid grid-cols-3 gap-4">
-        <StatusCard current={80} total={150} statusColor="#18618B" />
+        <StatusCard
+          label="Completed"
+          current={summary.completed}
+          total={summary.total}
+          statusColor="#18618B"
+        />
         <StatusCard
           label="In Progress"
-          current={50}
-          total={150}
+          current={summary.in_progress}
+          total={summary.total}
           statusColor="#80C684"
         />
         <StatusCard
           label="Not Started"
-          current={20}
-          total={150}
+          current={summary.not_started}
+          total={summary.total}
           statusColor="#E57171"
         />
       </div>
@@ -167,11 +196,11 @@ export const SelfAssessmentPeriodDetails = () => {
             <span className="text-text-disabled text-sm">
               Completion Progress
             </span>
-            <LinearProgress value={66} />
+            <LinearProgress value={summary.progress} />
           </div>
           <Input className="" placeholder="Search Employee" />
         </div>
-        <DataTable columns={columns} data={[]} customSize={!isMobile} />
+        <DataTable columns={columns} data={employees} customSize={!isMobile} />
       </div>
     </div>
   );

@@ -5,7 +5,13 @@ import * as React from "react";
 import { DataTable } from "@/components/tables/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { ArrowUp, ArrowDown, ChevronsUpDown, Ellipsis } from "lucide-react";
+import {
+  ArrowUp,
+  ArrowDown,
+  ChevronsUpDown,
+  Ellipsis,
+  Eye,
+} from "lucide-react";
 import { formatDateTime } from "@/lib/helpers";
 import {
   DropdownMenu,
@@ -16,20 +22,15 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import { useSelfAssessment } from "./hook";
-import { IFormTemplate } from "@/services/form/types";
+import { ISelfAssessmentResponse } from "@/services/employees/self-assessment/types";
+import dayjs from "dayjs";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function SelfAssessmentList() {
-  const {
-    forms,
-    handleNew,
-    openDelete,
-    setOpenDelete,
-    handleDelete,
-    setSelectedId,
-  } = useSelfAssessment();
-  const columns: ColumnDef<IFormTemplate>[] = [
+  const { assessments, handleNew, handleView, loading } = useSelfAssessment();
+  const columns: ColumnDef<ISelfAssessmentResponse>[] = [
     {
-      accessorKey: "period",
+      accessorKey: "assessment_period",
       header: ({ column }) => {
         const isSorted = column.getIsSorted();
         const SortIcon = () =>
@@ -54,6 +55,10 @@ export default function SelfAssessmentList() {
           </div>
         );
       },
+    },
+    {
+      accessorKey: "year",
+      header: "Year",
     },
     {
       accessorKey: "status",
@@ -108,6 +113,7 @@ export default function SelfAssessmentList() {
           </div>
         );
       },
+      cell: ({ row }) => dayjs(row.original.start_date).format("MMMM DD, YYYY"),
     },
     {
       accessorKey: "end_date",
@@ -135,22 +141,58 @@ export default function SelfAssessmentList() {
           </div>
         );
       },
+      cell: ({ row }) => dayjs(row.original.end_date).format("MMMM DD, YYYY"),
     },
     {
-      accessorKey: "submitted",
-      header: "Submitted",
+      accessorKey: "created_at",
+      header: ({ column }) => {
+        const isSorted = column.getIsSorted();
+        const SortIcon = () =>
+          isSorted === "asc" ? (
+            <ArrowUp className="w-3 h-3" />
+          ) : isSorted === "desc" ? (
+            <ArrowDown className="w-3 h-3" />
+          ) : (
+            <ChevronsUpDown className="w-3 h-3 opacity-50" />
+          );
+
+        return (
+          <div className="flex flex-row gap-2 items-center">
+            <span>Created At</span>
+            <button
+              type="button"
+              onClick={() => column.toggleSorting(isSorted === "asc")}
+              className="flex items-center gap-1"
+            >
+              <SortIcon />
+            </button>
+          </div>
+        );
+      },
+      cell: ({ row }) => dayjs(row.original.created_at).format("MMMM DD, YYYY"),
     },
     {
-      accessorKey: "progress",
-      header: "Progress",
-    },
-    {
-      accessorKey: "created_by",
-      header: "Created By",
+      accessorKey: "menu",
+      header: "",
+      cell: ({ row }) => (
+        <div className="flex gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => handleView(row.original.id)}
+          >
+            <Eye className="w-4 h-4" />
+          </Button>
+        </div>
+      ),
     },
   ];
 
   const isMobile = useIsMobile();
+
+  if (loading) {
+    return <Skeleton />;
+  }
 
   return (
     <div className="font-sans min-h-screen bg-gray-50">
@@ -164,7 +206,11 @@ export default function SelfAssessmentList() {
               + New Assessment
             </Button>
           </div>
-          <DataTable columns={columns} data={forms} customSize={!isMobile} />
+          <DataTable
+            columns={columns}
+            data={assessments?.data || []}
+            customSize={!isMobile}
+          />
         </div>
       </div>
     </div>
