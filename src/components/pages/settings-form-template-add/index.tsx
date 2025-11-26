@@ -130,7 +130,7 @@ export const SettingsFormTemplateAdd = React.memo(
               <span>{formData?.type_label || "-"}</span>
             </div>
             <hr className="col-span-2" />
-            {formData?.type !== 3 ? (
+            {formData?.type !== 2 ? (
               !hasGroups ? (
                 <div className="col-span-2 p-4 rounded-sm bg-primary-background border border-primary-border flex flex-col items-center justify-center gap-2">
                   <p className="text-primary font-bold text-lg">
