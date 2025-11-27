@@ -120,6 +120,11 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
     { name: 'Penalties', value: detailDataSpend?.data.penalties.total },
 
     { name: 'Spend', value: detailDataSpend?.data.spend.total },
+
+    ...(detailDataSpend?.data.deductions_by_name?.map((item) => ({
+      name: item.label,
+      value: item.total,
+    })) || []),
   ];
 
   const total = detailDataSpend?.data.gross_pay.total;
