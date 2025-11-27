@@ -29,6 +29,8 @@ export const PerformanceSelfAssessmentForm = React.memo(
       handleUpdateSelectedParticipants,
       totalEmployees,
       handleCancel,
+      handleSubmit,
+      isPendingAddAssessment,
     } = usePerformanceSelfAssessmentForm();
 
     return (
@@ -144,17 +146,15 @@ export const PerformanceSelfAssessmentForm = React.memo(
                 variant="outline"
                 className="md:max-w-36 w-[50%]"
                 type="button"
-                // disabled={isPendingAddAssessment}
+                disabled={isPendingAddAssessment}
                 onClick={handleCancel}
               >
                 Cancel
               </Button>
               <Button
                 type="button"
-                // onClick={() => {
-                // 	form.handleSubmit(handleSubmit)();
-                // }}
-                // isLoading={isPendingAddAssessment}
+                onClick={handleSubmit}
+                isLoading={isPendingAddAssessment}
                 className="w-[50%]"
               >
                 Create Assessment
