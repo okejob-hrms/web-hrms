@@ -1,10 +1,23 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { deleteForm, getAllForm } from "@/services/form";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { getSelfAssessments } from "@/services/employees/self-assessment";
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
+import { PaginationState } from "@tanstack/react-table";
 import { toast } from "sonner";
+
+interface Filters {
+  date: string;
+  search: string;
+  status?: number;
+}
 
 export function useSelfAssessment() {
   const router = useRouter();
@@ -12,21 +25,21 @@ export function useSelfAssessment() {
   const [openDelete, setOpenDelete] = React.useState(false);
   const [selectedId, setSelectedId] = React.useState<string>("");
 
-  const { data, isLoading: loading } = useQuery({
-    queryKey: ["self-assessments"],
-    queryFn: getAllForm,
+  const [pagination, setPagination] = React.useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 10,
   });
 
-  const { mutate: removeForm } = useMutation({
-    mutationFn: (id: number) => deleteForm(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["self-assessments"] });
-      toast.success("Success delete self assessment");
-      setOpenDelete(false);
-    },
-    onError: () => {
-      toast.error("Failed delete self assessment");
-    },
+  const [filters, setFilters] = React.useState<Filters>({
+    date: "",
+    search: "",
+    status: undefined,
+  });
+
+  const { data, isLoading, isFetching } = useQuery({
+    queryKey: ["self-assessments", pagination, filters],
+    queryFn: () => getSelfAssessments(pagination, filters),
+    placeholderData: keepPreviousData,
   });
 
   const handleNew = () => {
@@ -37,19 +50,28 @@ export function useSelfAssessment() {
     router.push(`/performance/self-assessment/${id}`);
   };
 
+  const handleView = (id: number) => {
+    router.push(`/performance/self-assessment/${id}`);
+  };
+
   const handleDelete = () => {
     if (!selectedId) return;
-    removeForm(Number(selectedId));
+    toast.info("Delete functionality is not yet implemented");
   };
 
   return {
-    forms: data?.data,
-    loading,
+    assessments: data?.data,
+    loading: isLoading || isFetching,
     handleNew,
     handleEdit,
     openDelete,
     setOpenDelete,
     handleDelete,
     setSelectedId,
+    pagination,
+    setPagination,
+    filters,
+    setFilters,
+    handleView,
   };
 }

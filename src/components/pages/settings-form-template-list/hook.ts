@@ -27,7 +27,7 @@ export function useFormTemplateList() {
     mutationFn: postCreateForm,
     onSuccess: () => {
       toast.success("Create form successfully!");
-      router.push("/settings/form-template/add");
+      // router.push("/settings/form-template");
       queryClient.invalidateQueries({ queryKey: ["forms"] });
     },
     onError: (error: any) => {
@@ -87,6 +87,7 @@ export function useFormTemplateList() {
     removeForm(Number(selectedId));
   };
 
+  /*
   const formOptions = React.useMemo(() => {
     if (data?.data) {
       const mappedData = data.data.map((item) => ({
@@ -98,7 +99,11 @@ export function useFormTemplateList() {
     }
     return [];
   }, [data?.data]);
-
+  */
+ const formOptions = [
+    { label: "Exit Interview Form", value: "1" },
+    { label: "Competency Based Assessment", value: "2" },
+  ];
   const handleSave = (e: IMutateFormRequest) => {
     console.log("submit", e);
     createFormMutation.mutate(e);
