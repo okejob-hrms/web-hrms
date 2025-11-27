@@ -95,6 +95,10 @@ export const menus: Record<string, MenuItem[]> = {
           name: "Performance Competencies",
           value: "settings/competencies",
         },
+        {
+          name: "Assessment Score Treshold",
+          value: "settings/assessment-score",
+        },
       ],
     },
     { name: "Mobile & ESS", value: "settings/mobile-ess" },
