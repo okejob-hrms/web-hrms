@@ -157,8 +157,9 @@ export const getOvertimeConfig = async (): Promise<OvertimeApiModel> => {
 
 export const getShiftToday = async (
   date: string,
+  selectedId: string | number,
 ): Promise<ShiftByDayResponse> => {
-  const response = await api.get(`setting/shift/shift-date?date=${date}`);
+  const response = await api.get(`setting/shift/shift-date?date=${date}&user_id=${selectedId}`);
   return response.json();
 };
 
