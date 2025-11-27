@@ -616,11 +616,11 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
               </div>
             )}
 
-            {(currentStep === 2 || isDetail) && (
+            {/* {(currentStep === 2 || isDetail) && (
               <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6 mt-4">
                 <WorkingHourSummary regularHour={320} overtimeHour={100} />
               </div>
-            )}
+            )} */}
 
             <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6 mt-4">
               <div className="flex md:flex-row flex-col justify-between w-full md:items-center items-start gap-4">
