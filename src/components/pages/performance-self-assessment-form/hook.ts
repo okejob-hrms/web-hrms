@@ -4,11 +4,13 @@
 import { useDebounce } from "@/hooks/use-debounce";
 import { getEmployees } from "@/services/employees";
 import { getAllForm } from "@/services/form";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { PaginationState } from "@tanstack/react-table";
 import { useRouter } from "next/navigation";
 import * as React from "react";
 import { useForm } from "react-hook-form";
+import { createSelfAssessment } from "@/services/employees/self-assessment";
+import { toast } from "sonner";
 
 export interface Filters {
   search?: string;
@@ -113,9 +115,10 @@ export const usePerformanceSelfAssessmentForm = () => {
   }, [assessmentForms]);
 
   const periodOptions = [
-    { label: "Q1", value: "q1" },
-    { label: "Q2", value: "q2" },
-    { label: "Q3", value: "q3" },
+    { label: "Q1", value: "Q1" },
+    { label: "Q2", value: "Q2" },
+    { label: "Q3", value: "Q3" },
+    { label: "Q4", value: "Q4" },
   ];
 
   const yearOptions = [
@@ -146,6 +149,67 @@ export const usePerformanceSelfAssessmentForm = () => {
     setPagination(updater);
   }, []);
 
+  const { mutate: createAssessment, isPending: isPendingAddAssessment } =
+    useMutation({
+      mutationFn: createSelfAssessment,
+      onSuccess: () => {
+        toast.success("Self-assessment created successfully!");
+        router.push("/performance/self-assessment");
+      },
+      onError: (error: any) => {
+        toast.error(error?.message || "Failed to create self-assessment");
+      },
+    });
+
+  const handleSubmit = React.useCallback(() => {
+    const formValues = form.getValues();
+
+    // Validate required fields
+    if (
+      !formValues.period ||
+      !formValues.year ||
+      !formValues.start_date ||
+      !formValues.end_date
+    ) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
+    // Validate that at least one assessment form is selected with participants
+    const hasValidAssessmentForm = assessmentForms.some((item, index) => {
+      const formId = formValues[`assessment_form_${item.id}`];
+      return formId && item.selectedParticipants.length > 0;
+    });
+
+    if (!hasValidAssessmentForm) {
+      toast.error(
+        "Please select at least one assessment form and assign participants",
+      );
+      return;
+    }
+
+    // Transform data to match API format
+    const forms = assessmentForms
+      .filter((item, index) => {
+        const formId = formValues[`assessment_form_${item.id}`];
+        return formId && item.selectedParticipants.length > 0;
+      })
+      .map((item) => ({
+        form_id: parseInt(formValues[`assessment_form_${item.id}`]),
+        users: item.selectedParticipants.map((id) => parseInt(id)),
+      }));
+
+    const payload = {
+      assessment_period: formValues.period,
+      year: formValues.year,
+      start_date: formValues.start_date,
+      end_date: formValues.end_date,
+      forms,
+    };
+
+    createAssessment(payload);
+  }, [form, assessmentForms, createAssessment]);
+
   const handleCancel = () => router.push("/performance/self-assessment");
 
   return {
@@ -170,5 +234,7 @@ export const usePerformanceSelfAssessmentForm = () => {
     currentFormIndex,
     totalSelectedParticipants,
     totalEmployees: employees?.data.total,
+    handleSubmit,
+    isPendingAddAssessment,
   };
 };
