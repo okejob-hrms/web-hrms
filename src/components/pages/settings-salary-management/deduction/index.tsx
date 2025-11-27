@@ -65,12 +65,11 @@ export default function SettingsSalaryDeduction() {
     staleTime: 1000 * 60 * 5,
   });
 
-  const { data: deductionDataType, refetch: deductionDataTypeRefetch } =
-    useQuery({
-      queryKey: ['getDeductionSalaryType'],
-      queryFn: getDeductionSalaryType,
-      staleTime: 1000 * 60 * 5,
-    });
+  const { data: deductionDataType } = useQuery({
+    queryKey: ['getDeductionSalaryType'],
+    queryFn: getDeductionSalaryType,
+    staleTime: 1000 * 60 * 5,
+  });
 
   // =======================
   // Columns
@@ -322,10 +321,11 @@ export default function SettingsSalaryDeduction() {
                     <SelectValue placeholder="Select Deduction Type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="PPH21">PPH21</SelectItem>
-                    <SelectItem value="BPJS">BPJS</SelectItem>
-                    <SelectItem value="JHT">JHT</SelectItem>
-                    <SelectItem value="Pension">Pension</SelectItem>
+                    {deductionDataType?.data.map((item, i) => (
+                      <SelectItem key={i} value={item.name}>
+                        {item.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>

@@ -101,7 +101,7 @@ export const removeBaseSalary = async (
 export const getDeductionSalary = async (): Promise<
   ApiResponse<PaginatedResponse<DeductionSalaryItem>>
 > => {
-  const response = await api.get("setting/salary-deduction");
+  const response = await api.get("setting/salary-deduction?per_page=20");
   return response.json();
 };
 
