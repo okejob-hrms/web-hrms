@@ -1,9 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ApiResponse, PaginatedResponse } from "@/lib/types";
 import {
   ISupervisorAssessmentMutation,
   ISupervisorAssessmentParam,
   ISupervisorAssessmentResponse,
-} from "./hook";
+} from "./types";
 import { api } from "@/lib/api";
 import qs from "qs";
 

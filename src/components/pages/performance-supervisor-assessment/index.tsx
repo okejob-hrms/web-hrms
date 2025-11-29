@@ -24,7 +24,7 @@ import Image from "next/image";
 import { useSupervisorAssessment } from "./hook";
 import { IFormTemplate } from "@/services/form/types";
 import SupervisorAssessmentFormModal from "./sections/add-modal";
-import { ISupervisorAssessmentResponse } from "@/services/performances/supervisor-assessment/hook";
+import { ISupervisorAssessmentResponse } from "@/services/performances/supervisor-assessment/types";
 
 export default function SupervisorAssessmentList() {
   const {
