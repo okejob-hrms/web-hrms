@@ -61,8 +61,8 @@ export function useAttendenceForm() {
   const queryClient = useQueryClient();
 
    const { data: shiftData } = useQuery<ShiftByDayResponse>({
-    queryKey: ['shift', selectedDate],
-    queryFn: () => getShiftToday(selectedDate),
+    queryKey: ['shift', selectedDate, selectedId],
+    queryFn: () => getShiftToday(selectedDate, selectedId),
     staleTime: 1000 * 60 * 5,
   });
 
