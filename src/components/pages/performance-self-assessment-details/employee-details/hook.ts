@@ -1,4 +1,4 @@
-import { getEmployeeDetail } from "@/services/employees";
+import { getDetailEmployeeAssessment } from "@/services/employees/self-assessment";
 import { useQuery } from "@tanstack/react-query";
 import { usePathname } from "next/navigation";
 import * as React from "react";
@@ -18,7 +18,7 @@ export const useSelfAssessmentEmployeeDetails = () => {
     isError: isErrorEmployeeDetails,
   } = useQuery({
     queryKey: ["employee-detail", id],
-    queryFn: () => getEmployeeDetail(id!),
+    queryFn: () => getDetailEmployeeAssessment(id!),
     enabled: !!id,
   });
 

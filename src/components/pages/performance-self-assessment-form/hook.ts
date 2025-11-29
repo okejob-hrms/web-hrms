@@ -102,10 +102,6 @@ export const usePerformanceSelfAssessmentForm = () => {
     }
   };
 
-  React.useEffect(() => {
-    console.log("assessment form", assessmentForms);
-  }, [assessmentForms]);
-
   const totalSelectedParticipants = React.useMemo(() => {
     const uniqueParticipants = new Set<string>();
     assessmentForms.forEach((form) => {

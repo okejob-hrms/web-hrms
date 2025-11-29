@@ -3,7 +3,7 @@ import * as React from "react";
 import StatusCard from "./sections/status-card";
 import { useIsMobile } from "@/hooks/use-mobile";
 import DataTable from "@/components/tables/data-table";
-import { ArrowDown, ArrowUp, ChevronsUpDown } from "lucide-react";
+import { ArrowDown, ArrowUp, ChevronsUpDown, Eye } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 import { LinearProgress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
@@ -11,9 +11,10 @@ import { useSelfAssessmentPeriodDetails } from "./hook";
 import AppSkeleton from "@/components/partials/app-skeleton";
 import { IEmployeeAssessment } from "@/services/employees/self-assessment/types";
 import dayjs from "dayjs";
+import { Button } from "@/components/ui/button";
 
 export const SelfAssessmentPeriodDetails = () => {
-  const { assessmentDetails, isLoading, isError } =
+  const { assessmentDetails, isLoading, isError, handleViewEmployee } =
     useSelfAssessmentPeriodDetails();
 
   const columns: ColumnDef<IEmployeeAssessment>[] = [
@@ -70,6 +71,7 @@ export const SelfAssessmentPeriodDetails = () => {
           </div>
         );
       },
+      cell: ({ row }) => row.original.submission_status,
     },
     {
       accessorKey: "score_avg",
@@ -136,6 +138,24 @@ export const SelfAssessmentPeriodDetails = () => {
       accessorKey: "submitted_at",
       header: "Submitted On",
       cell: ({ row }) => row.original.submitted_at,
+    },
+    {
+      accessorKey: "menu",
+      header: "",
+      cell: ({ row }) => (
+        <div className="flex flex-row gap-2">
+          <Button
+            type="button"
+            variant="ghost"
+            className="flex items-center gap-1"
+            onClick={() => {
+              handleViewEmployee(row.original.id);
+            }}
+          >
+            <Eye className="w-4 h-4 text-primary" />
+          </Button>
+        </div>
+      ),
     },
   ];
 

@@ -82,3 +82,20 @@ export interface ISelfAssessmentDetailResponse {
   summary: IAssessmentSummary;
   employees: IEmployeeAssessment[];
 }
+
+export interface IEmployeeAssessmentInfo {
+  position: string;
+  department: string;
+  job_level: string;
+  submitted_at: string | null;
+  validated_at: string | null;
+  status: string;
+  supervisor: string;
+}
+
+export interface IEmployeeSelfAssessmentResponse {
+  assessment_info: IEmployeeAssessmentInfo;
+  score: any[];
+  self_assessment: any[];
+  self_assessment_validation: any[];
+}

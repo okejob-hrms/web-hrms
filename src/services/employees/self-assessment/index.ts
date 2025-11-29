@@ -4,6 +4,7 @@ import {
   ISelfAssessmentResponse,
   IMutateSelfAssessmentRequest,
   ISelfAssessmentDetailResponse,
+  IEmployeeSelfAssessmentResponse,
 } from "./types";
 import { api } from "@/lib/api";
 import { PaginationState } from "@tanstack/react-table";
@@ -50,6 +51,28 @@ export const getDetailSelfAssessment = async (
     const response = await api.get<ApiResponse<ISelfAssessmentDetailResponse>>(
       `employee/self-assessments/${id}`,
     );
+    return response.json();
+  } catch (error: any) {
+    if (error.name === "HTTPError") {
+      const errorResponse = await error.response.json();
+      const enhancedError = new Error(error.message);
+      (enhancedError as any).response = {
+        json: () => Promise.resolve(errorResponse),
+        status: error.response.status,
+      };
+      throw enhancedError;
+    }
+    throw error;
+  }
+};
+
+export const getDetailEmployeeAssessment = async (
+  id: number,
+): Promise<ApiResponse<IEmployeeSelfAssessmentResponse>> => {
+  try {
+    const response = await api.get<
+      ApiResponse<IEmployeeSelfAssessmentResponse>
+    >(`employee/self-assessments/${id}/employee`);
     return response.json();
   } catch (error: any) {
     if (error.name === "HTTPError") {

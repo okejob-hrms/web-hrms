@@ -24,6 +24,7 @@ import Image from "next/image";
 import { useSupervisorAssessment } from "./hook";
 import { IFormTemplate } from "@/services/form/types";
 import SupervisorAssessmentFormModal from "./sections/add-modal";
+import { ISupervisorAssessmentResponse } from "@/services/performances/supervisor-assessment/hook";
 
 export default function SupervisorAssessmentList() {
   const {
@@ -34,10 +35,13 @@ export default function SupervisorAssessmentList() {
     setOpenDelete,
     handleDelete,
     setSelectedId,
+    data,
+    isLoading,
+    isFetching,
   } = useSupervisorAssessment();
-  const columns: ColumnDef<IFormTemplate>[] = [
+  const columns: ColumnDef<ISupervisorAssessmentResponse>[] = [
     {
-      accessorKey: "name",
+      accessorKey: "user.name",
       header: ({ column }) => {
         const isSorted = column.getIsSorted();
         const SortIcon = () =>
@@ -64,7 +68,7 @@ export default function SupervisorAssessmentList() {
       },
     },
     {
-      accessorKey: "prev_position",
+      accessorKey: "current_position.name",
       header: ({ column }) => {
         const isSorted = column.getIsSorted();
         const SortIcon = () =>
@@ -91,7 +95,7 @@ export default function SupervisorAssessmentList() {
       },
     },
     {
-      accessorKey: "target_position",
+      accessorKey: "target_position.name",
       header: ({ column }) => {
         const isSorted = column.getIsSorted();
         const SortIcon = () =>
@@ -176,7 +180,11 @@ export default function SupervisorAssessmentList() {
               + New Assessment
             </Button>
           </div>
-          <DataTable columns={columns} data={[]} customSize={!isMobile} />
+          <DataTable
+            columns={columns}
+            data={data?.data.data}
+            customSize={!isMobile}
+          />
         </div>
         <SupervisorAssessmentFormModal
           open={openFormModal}
