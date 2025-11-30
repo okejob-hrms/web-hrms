@@ -647,42 +647,23 @@ export const EmployeeinformationSection = React.memo(
 
     const { data: filteredEmployees, isLoading: isLoadingFilteredEmployees } =
       useQuery({
-        queryKey: [
-          "filtered-employees",
-          watchedDepartmentId,
-          watchedJobPositionId,
-          watchedJobLevelId,
-        ],
+        queryKey: ["filtered-employees", watchedJobLevelId],
         queryFn: () =>
           getEmployees({
             per_page: 100,
-            department_ids: watchedDepartmentId
-              ? [watchedDepartmentId]
-              : undefined,
-            job_position_ids: watchedJobPositionId
-              ? [watchedJobPositionId]
-              : undefined,
             job_level_ids: watchedJobLevelId ? [watchedJobLevelId] : undefined,
           }),
         staleTime: 5 * 60 * 1000,
         gcTime: 10 * 60 * 1000,
         refetchOnWindowFocus: false,
-        enabled: !!(
-          watchedDepartmentId ||
-          watchedJobPositionId ||
-          watchedJobLevelId
-        ),
+        enabled: !!watchedJobLevelId,
       });
 
-    const employees =
-      watchedDepartmentId || watchedJobPositionId || watchedJobLevelId
-        ? filteredEmployees
-        : allEmployees;
+    const employees = watchedJobLevelId ? filteredEmployees : allEmployees;
 
-    const isLoadingEmployees =
-      watchedDepartmentId || watchedJobPositionId || watchedJobLevelId
-        ? isLoadingFilteredEmployees
-        : isLoadingAllEmployees;
+    const isLoadingEmployees = watchedJobLevelId
+      ? isLoadingFilteredEmployees
+      : isLoadingAllEmployees;
 
     const employeesOptions = React.useMemo(() => {
       if (employees?.data?.data) {

@@ -11,19 +11,20 @@ import React from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { useSupervisorAssessment } from "../hook";
 import { MultiSelectForm } from "@/components/ui/multi-select";
+import { ISupervisorAssessmentMutation } from "@/services/performances/supervisor-assessment/types";
 
 interface AssessmentFormData {
-  employeeName: string;
-  assignedAssessor: string;
-  targetPosition: string;
-  targetJobLevel: string;
-  assessmentForm: string;
+  user_id: string;
+  assessors: string[];
+  target_position_id: string;
+  target_level_id: string;
+  form_id: string;
 }
 
 interface SupervisorAssessmentFormModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: AssessmentFormData) => void;
+  onSubmit: (data: ISupervisorAssessmentMutation) => void;
 }
 
 const SupervisorAssessmentFormModal: React.FC<
@@ -43,11 +44,21 @@ const SupervisorAssessmentFormModal: React.FC<
     formOptions,
     isLoadingForms,
     formsError,
+    isSubmitting,
   } = useSupervisorAssessment();
   const form = useForm<AssessmentFormData>();
 
   const handleFormSubmit: SubmitHandler<AssessmentFormData> = (data) => {
-    onSubmit(data);
+    // Transform form data to match API requirements
+    const transformedData: ISupervisorAssessmentMutation = {
+      user_id: Number(data.user_id),
+      form_id: Number(data.form_id),
+      target_position_id: Number(data.target_position_id),
+      target_level_id: Number(data.target_level_id),
+      assessors: data.assessors.map((id) => Number(id)),
+    };
+
+    onSubmit(transformedData);
     form.reset();
     onOpenChange(false);
   };
@@ -67,7 +78,7 @@ const SupervisorAssessmentFormModal: React.FC<
         <Form {...form}>
           <form className="space-y-4">
             <SelectEmployeeForm
-              name="name"
+              name="user_id"
               label="Employee Name"
               required
               options={employeesOptions}
@@ -98,7 +109,7 @@ const SupervisorAssessmentFormModal: React.FC<
               disabled={isPositionsLoading || !!positionsError}
             />
             <SelectForm
-              name="target_job_level"
+              name="target_level_id"
               label="Target Job Level"
               options={jobLevelOptions}
               required
@@ -115,14 +126,20 @@ const SupervisorAssessmentFormModal: React.FC<
             />
 
             <div className="flex justify-end gap-3 pt-4">
-              <Button type="button" variant="outline" onClick={handleCancel}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCancel}
+                disabled={isSubmitting}
+              >
                 Cancel
               </Button>
               <Button
                 type="button"
                 onClick={form.handleSubmit(handleFormSubmit)}
+                disabled={isSubmitting}
               >
-                Save
+                {isSubmitting ? "Saving..." : "Save"}
               </Button>
             </div>
           </form>

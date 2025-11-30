@@ -17,7 +17,7 @@ export const SelfAssessmentEmployeeDetails = () => {
 
   return (
     <div className="font-sans md:px-[125px] px-4 space-y-4">
-      <EmployeeDetailsSection employeeDetails={employeeDetails?.data} />
+      {/* <EmployeeDetailsSection employeeDetails={employeeDetails?.data} /> */}
     </div>
   );
 };
