@@ -17,14 +17,6 @@ import { MultiSelectForm } from "@/components/ui/multi-select";
 import { useDebounce } from "@/hooks/use-debounce";
 import { ApiErrorResponse } from "@/lib/types";
 import { getEmployees } from "@/services/employees";
-import {
-  postInterviewSchedule,
-  putInterviewSchedule,
-} from "@/services/employees/offboardings/interview-schedule";
-import {
-  IInterviewScheduleRequest,
-  IInterviewScheduleResponse,
-} from "@/services/employees/offboardings/interview-schedule/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import dayjs from "dayjs";
 import { Calendar, Clock } from "lucide-react";
@@ -33,13 +25,18 @@ import { useForm, Controller } from "react-hook-form";
 import { toast } from "sonner";
 import dynamic from "next/dynamic";
 import "react-quill-new/dist/quill.snow.css";
+import { setSchedule } from "@/services/performances/supervisor-assessment";
+import {
+  IScheduleRequest,
+  IScheduleResponse,
+} from "@/services/performances/supervisor-assessment/types";
 
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
 interface AssessmentScheduleFormProps {
   id: number;
   isEditMode?: boolean;
-  existingData?: IInterviewScheduleResponse;
+  existingData?: IScheduleResponse;
   onCancelEdit?: () => void;
   open: boolean;
   setOpen: any;
@@ -88,7 +85,7 @@ export const AssessmentScheduleForm = React.memo(
 
 interface ModalFormProps {
   id: number;
-  existingData?: IInterviewScheduleResponse;
+  existingData?: IScheduleResponse;
   onCancelEdit?: () => void;
   open: boolean;
   setOpen: any;
@@ -135,9 +132,9 @@ export const ModalForm = React.memo(function ModalForm({
         end_time:
           dayjs(existingData.end_time, "HH:mm:ss").format("HH:mm") || "",
         participants:
-          existingData.participants?.map((participant) => ({
-            user_id: participant.user_id,
-          })) || [],
+          existingData.participants?.map(
+            (participant) => participant.employee_id,
+          ) || [],
         notes: existingData.notes || "",
       };
     }
@@ -151,7 +148,7 @@ export const ModalForm = React.memo(function ModalForm({
     };
   };
 
-  const form = useForm<IInterviewScheduleRequest>({
+  const form = useForm<IScheduleRequest>({
     defaultValues: getDefaultValues(),
   });
 
@@ -175,10 +172,7 @@ export const ModalForm = React.memo(function ModalForm({
   });
 
   const mutation = useMutation({
-    mutationFn: (data: IInterviewScheduleRequest) =>
-      isEditMode
-        ? putInterviewSchedule(id, data)
-        : postInterviewSchedule(id, data),
+    mutationFn: (data: IScheduleRequest) => setSchedule(id, data),
     onSuccess: () => {
       toast.success(
         `Schedule ${isEditMode ? "updated" : "created"} successfully`,
@@ -232,12 +226,13 @@ export const ModalForm = React.memo(function ModalForm({
   const handleSubmit = (values: any) => {
     const submitData = {
       ...values,
+      date: dayjs(values.date).format("YYYY-MM-DD"),
       participants: Array.isArray(values.participants)
         ? values.participants.map((p: any) => {
             if (typeof p === "object" && p !== null) {
-              return { user_id: p.user_id };
+              return Number(p.employee_id);
             }
-            return { user_id: Number(p) };
+            return Number(p);
           })
         : [],
     };
