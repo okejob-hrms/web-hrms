@@ -60,13 +60,7 @@ export function useAttendenceForm() {
   });
   const queryClient = useQueryClient();
 
-  const { data: shiftDataWithoutId } = useQuery<ShiftByDayResponse>({
-    queryKey: ['shift', selectedDate],
-    queryFn: () => getShiftToday(selectedDate),
-    staleTime: 1000 * 60 * 5,
-  });
-
-  const { data: shiftDataWithId } = useQuery<ShiftByDayResponse>({
+  const { data: shiftData } = useQuery<ShiftByDayResponse>({
     queryKey: ['shift', selectedDate, selectedId],
     queryFn: () => getShiftTodayWithId(selectedDate, selectedId),
     staleTime: 1000 * 60 * 5,
@@ -207,7 +201,7 @@ export function useAttendenceForm() {
     form, 
     onSubmit, 
     handleBack,
-    shiftData: shiftDataWithoutId,
+    shiftData,
     setOpenMap,
     openMap,
     handleSetMap,
@@ -220,5 +214,6 @@ export function useAttendenceForm() {
     setIsLoading,
     defaultMap,
     setSelectedDate,
+    setSelectedId
   };
 }

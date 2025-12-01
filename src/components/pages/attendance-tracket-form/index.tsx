@@ -61,6 +61,7 @@ export default function AttendanceTrackerForm({
     isLoading,
     defaultMap,
     setSelectedDate,
+    setSelectedId,
   } = useAttendenceForm();
 
   const handleSubmit = (values: AttendanceFormValues) => {
@@ -72,6 +73,13 @@ export default function AttendanceTrackerForm({
       handleDetailData(id, slug);
     }
   }, [id]);
+
+  const userId = form.watch('user_id');
+  React.useEffect(() => {
+    if (userId) {
+      setSelectedId(userId);
+    }
+  }, [userId]);
 
   return (
     <div className="max-w-4xl mx-auto font-sans min-h-screen flex flex-col space-y-6 p-6 md:p-0">

@@ -66,7 +66,7 @@ export default function SettingsScore() {
   const columns: ColumnDef<ScoreList>[] = [
     {
       accessorKey: 'score',
-      header: 'Score',
+      header: 'Score Label',
     },
     {
       accessorKey: 'score_range',
@@ -221,7 +221,7 @@ export default function SettingsScore() {
           <div className="grid gap-4 py-2">
             <div className="space-y-2">
               <Label>
-                Score<span className="text-red-500">*</span>
+                Score Label<span className="text-red-500">*</span>
               </Label>
               <Input
                 type="text"
