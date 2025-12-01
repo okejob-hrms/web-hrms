@@ -12,6 +12,7 @@ import { Dispatch, SetStateAction, useState } from 'react';
 import { PayrunLogList } from '@/services/payroll/types';
 import { Loader2 } from 'lucide-react';
 import { PaginationState } from '@tanstack/react-table';
+import dayjs from 'dayjs';
 
 interface Props {
   open: boolean;
@@ -55,12 +56,10 @@ export function PayrunsHistorySheet({
               {visibleHistory.map((item, i) => (
                 <div key={i} className="space-y-2">
                   <p className="text-xs text-muted-foreground">
-                    {item.created_at}
+                    {dayjs(item.created_at).format('MMMM D, YYYY HH:mm')}
                   </p>
                   <p className="text-sm font-medium">{item.actor?.name}</p>
-                  <p className="text-sm">
-                    {item.event} - {item.message}
-                  </p>
+                  <p className="text-sm">{item.message}</p>
                   {/* <ul className="list-disc pl-4 space-y-1 text-sm">
                   {item.details.map((d, idx) => (
                     <li key={idx}>{d}</li>
