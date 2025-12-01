@@ -152,7 +152,7 @@ export function useAttendenceForm() {
   const subscription = form.watch((value, { name }) => {
     if (name === 'user_id' && value.user_id) {
       const selectedUser = employeesList?.data?.data.find(
-        (u) => String(u.id) === value.user_id
+        (u) => String(u.user_id) === value.user_id
       );
       if (selectedUser?.branch.latitude && selectedUser?.branch.longitude) {
         setSelectedMap({
