@@ -24,6 +24,7 @@ import AdditionalModal from './section/additional-modal';
 import OvertimeModal from './section/overtime-modal';
 import PenaltyModal from './section/penalty-modal';
 import { PayrunsHistorySheet } from './section/audit-trail';
+import { getStatusPayroll } from '@/lib/helpers';
 
 type PayrollFormFormProps = {
   id?: string;
@@ -427,6 +428,18 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
     ...payColumns,
   ];
 
+  const renderStatus = () => {
+    const status = detailData?.data.status_label;
+    const { variant, className, label } = getStatusPayroll(status);
+    if (!detailData?.data.status_label) return '-';
+
+    return (
+      <Badge variant={variant} className={className}>
+        {label}
+      </Badge>
+    );
+  };
+
   return (
     <div
       className={
@@ -474,17 +487,8 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
           <div className="col-span-2">
             <div className="grid grid-cols-2 gap-3 space-y-2">
               <div className="col-span-1">
-                <div className="text-sm text-gray-500">Send Payslip Date</div>
-                <div className="flex gap-2">
-                  <div className="text-sm font-semibold">
-                    {dayjs(detailData?.data?.send_payslip_at).format(
-                      'MMMM DD, YYYY',
-                    ) ?? '-'}
-                  </div>
-                  <div className="bg-primary/10 border-primary rounded-full px-2 text-xs text-primary flex items-center justify-center gap-2">
-                    Automatically Send at 08:00 AM
-                  </div>
-                </div>
+                <div className="text-sm text-gray-500">Payslip Status</div>
+                <div className="flex gap-2">{renderStatus()}</div>
               </div>
             </div>
           </div>
