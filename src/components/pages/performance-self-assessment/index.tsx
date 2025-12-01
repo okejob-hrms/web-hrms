@@ -12,7 +12,7 @@ import {
   Ellipsis,
   Eye,
 } from "lucide-react";
-import { formatDateTime } from "@/lib/helpers";
+import { formatDateTime, getStatusSelfAssessment } from "@/lib/helpers";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,6 +25,7 @@ import { useSelfAssessment } from "./hook";
 import { ISelfAssessmentResponse } from "@/services/employees/self-assessment/types";
 import dayjs from "dayjs";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 
 export default function SelfAssessmentList() {
   const { assessments, handleNew, handleView, loading } = useSelfAssessment();
@@ -55,10 +56,11 @@ export default function SelfAssessmentList() {
           </div>
         );
       },
-    },
-    {
-      accessorKey: "year",
-      header: "Year",
+      cell: ({ row }) => (
+        <span>
+          {row.original.assessment_period} {row.original.year}
+        </span>
+      ),
     },
     {
       accessorKey: "status",
@@ -84,6 +86,14 @@ export default function SelfAssessmentList() {
               <SortIcon />
             </button>
           </div>
+        );
+      },
+      cell: ({ row }) => {
+        const status = getStatusSelfAssessment(row.original.status);
+        return (
+          <Badge variant={status.variant} className={status.className}>
+            {status.label}
+          </Badge>
         );
       },
     },
@@ -172,6 +182,37 @@ export default function SelfAssessmentList() {
       cell: ({ row }) => dayjs(row.original.created_at).format("MMMM DD, YYYY"),
     },
     {
+      accessorKey: "submitted",
+      header: "Submitted",
+      cell: ({ row }) => {
+        return (
+          <div className="flex">
+            <span className="font-semibold text-black">
+              {row.original.submitted}
+            </span>
+            <span className="text-text-disabled font-normal">
+              /{row.original.total_employees} Employees
+            </span>
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "progress",
+      header: "Progress",
+      cell: ({ row }) => {
+        return <span>{row.original.progress}%</span>;
+      },
+    },
+    {
+      accessorKey: "created_by",
+      header: "Created By",
+      cell: ({ row }) => {
+        return <span>{row.original.creator.name}</span>;
+      },
+    },
+    {
+      maxSize: 70,
       accessorKey: "menu",
       header: "",
       cell: ({ row }) => (

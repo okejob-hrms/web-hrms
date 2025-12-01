@@ -12,6 +12,9 @@ import AppSkeleton from "@/components/partials/app-skeleton";
 import { IEmployeeAssessment } from "@/services/employees/self-assessment/types";
 import dayjs from "dayjs";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { getStatusEmployeeAssessment } from "@/lib/helpers";
+import { cn } from "@/lib/utils";
 
 export const SelfAssessmentPeriodDetails = () => {
   const { assessmentDetails, isLoading, isError, handleViewEmployee } =
@@ -71,7 +74,19 @@ export const SelfAssessmentPeriodDetails = () => {
           </div>
         );
       },
-      cell: ({ row }) => row.original.submission_status,
+      cell: ({ row }) => {
+        const status = getStatusEmployeeAssessment(
+          row.original.submission_status,
+        );
+        return (
+          <Badge variant={status.variant} className={status.className}>
+            <div
+              className={cn(status.circleClassName, "w-2 h-2 rounded-full")}
+            />{" "}
+            {status.label}
+          </Badge>
+        );
+      },
     },
     {
       accessorKey: "score_avg",

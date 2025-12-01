@@ -6,15 +6,18 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Edit } from "lucide-react";
 import * as React from "react";
 import { AssessmentForm } from "./assessment-form";
+import { IAssessmentGroup } from "@/services/employees/self-assessment/types";
 
-const columns: ColumnDef<any>[] = [
+interface SelfAssessmentProps {
+  data?: IAssessmentGroup[];
+}
+
+const columns: ColumnDef<IAssessmentGroup>[] = [
   {
-    accessorKey: "category",
+    accessorKey: "name",
     header: "Category",
     cell: ({ row }) => (
-      <div className="font-normal text-gray-900">
-        {row.original.category || row.original.period}
-      </div>
+      <div className="font-normal text-gray-900">{row.original.name}</div>
     ),
   },
   {
@@ -27,24 +30,24 @@ const columns: ColumnDef<any>[] = [
       </div>
     ),
   },
-  {
-    accessorKey: "status",
-    header: () => <div className="text-center">Status</div>,
-    cell: ({ row }) => {
-      const status = row.original.status || "Baik";
-      return (
-        <div className="flex justify-center">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-green-50 text-green-700">
-            <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
-            {status}
-          </span>
-        </div>
-      );
-    },
-  },
+  // {
+  //   accessorKey: "status",
+  //   header: () => <div className="text-center">Status</div>,
+  //   cell: ({ row }) => {
+  //     const status = row.original.status || "Baik";
+  //     return (
+  //       <div className="flex justify-center">
+  //         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-green-50 text-green-700">
+  //           <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+  //           {status}
+  //         </span>
+  //       </div>
+  //     );
+  //   },
+  // },
 ];
 
-export const SelfAssessment = () => {
+export const SelfAssessment = ({ data }: SelfAssessmentProps) => {
   return (
     <div className="py-4 flex flex-col gap-4">
       <h3 className="font-semibold text-lg text-black">
@@ -52,7 +55,7 @@ export const SelfAssessment = () => {
       </h3>
       <DataTable
         columns={columns}
-        data={[]}
+        data={data || []}
         tableFooter={
           <TableRow className="bg-primary-background py-4 px-6">
             <TableCell className="text-right">Total Score</TableCell>

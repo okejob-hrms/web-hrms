@@ -28,6 +28,11 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { useQuery } from "@tanstack/react-query";
+import {
+  getPerformanceCompetencies,
+  getPerformanceCompetencyLevels,
+} from "@/services/performance-competency";
 
 interface LibraryFormProps {
   groupIndex?: number;
@@ -42,40 +47,25 @@ export const LibraryForm = React.memo(function LibraryForm({
   const [searchTerm, setSearchTerm] = React.useState("");
   const [open, setOpen] = React.useState(false);
 
-  const competencyOptions = [
-    {
-      value: "1",
-      label: "[ACH] Achievement Orientation",
-    },
-    {
-      value: "2",
-      label: "[COM] Communication",
-    },
-    {
-      value: "3",
-      label: "[DEC] Decision Making",
-    },
-    {
-      value: "4",
-      label: "[INI] Initiative",
-    },
-    {
-      value: "5",
-      label: "[ORG] Organization Orientation",
-    },
-    {
-      value: "6",
-      label: "[PRO] Problem Solving",
-    },
-    {
-      value: "7",
-      label: "[REL] Relationship Management",
-    },
-    {
-      value: "8",
-      label: "[STR] Strategic Thinking",
-    },
-  ];
+  const { data: performanceCompetencies, isLoading: isLoadingCompetencies } =
+    useQuery({
+      queryKey: ["performance-competencies"],
+      queryFn: () => getPerformanceCompetencies(),
+    });
+
+  const { data: levels, isLoading: isLoadingLevels } = useQuery({
+    queryKey: ["performance-levels"],
+    queryFn: () => getPerformanceCompetencyLevels(),
+  });
+
+  const competencyOptions = React.useMemo(
+    () =>
+      performanceCompetencies?.data?.data?.map((item) => ({
+        value: item.id.toString(),
+        label: `[${item.code}] ${item.name}`,
+      })) || [],
+    [performanceCompetencies],
+  );
 
   const dimensionOptions = [
     {
@@ -96,33 +86,14 @@ export const LibraryForm = React.memo(function LibraryForm({
     },
   ];
 
-  const levelOptions = [
-    {
-      label: "[-1] No Standards of Excellence",
-      value: "1",
-      level_value: -1,
-    },
-    {
-      label: "[0] Focused on the Task",
-      value: "2",
-      level_value: 0,
-    },
-    {
-      label: "[1] Wants to Do the Job Well",
-      value: "3",
-      level_value: 1,
-    },
-    {
-      label: "[2] Works to Meet Others Standard",
-      value: "4",
-      level_value: 2,
-    },
-    {
-      label: "[3] Creates Own Measure of Excellence",
-      value: "5",
-      level_value: 3,
-    },
-  ];
+  const levelOptions = React.useMemo(
+    () =>
+      levels?.data?.data?.map((item) => ({
+        value: item.id.toString(),
+        label: `[${item.level}] ${item.name}`,
+      })) || [],
+    [levels],
+  );
 
   const fieldPrefix =
     groupIndex !== undefined && fieldIndex !== undefined
@@ -130,11 +101,11 @@ export const LibraryForm = React.memo(function LibraryForm({
       : "";
 
   const filteredCompetencyOptions = React.useMemo(() => {
-    if (!searchTerm) return competencyOptions;
+    if (searchTerm === "") return competencyOptions;
     return competencyOptions.filter((option) =>
       option.label.toLowerCase().includes(searchTerm.toLowerCase()),
     );
-  }, [searchTerm]);
+  }, [searchTerm, competencyOptions]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -229,7 +200,7 @@ export const LibraryForm = React.memo(function LibraryForm({
         className="md:max-w-[116px]"
         type="number"
       />
-      <Button className="md:self-end">Save</Button>
+      {/* <Button className="md:self-end">Save</Button> */}
     </div>
   );
 });

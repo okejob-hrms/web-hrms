@@ -30,6 +30,20 @@ export interface ILevel {
   deleted_at: string | null;
 }
 
+export interface ISchedule {
+  id: number;
+  supervisor_assessment_id: number;
+  date: string;
+  start_time: string;
+  end_time: string;
+  participants: {
+    user_id: number;
+  }[];
+  updated_at: string;
+  created_at: string;
+  notes: string | null;
+}
+
 export interface ISupervisorAssessmentResponse {
   id: number;
   user: IUser;
@@ -39,7 +53,7 @@ export interface ISupervisorAssessmentResponse {
   target_level: ILevel;
   status: number;
   status_label: string;
-  schedule: string | null;
+  schedule: ISchedule | null;
   created_at: string;
   updated_at: string;
 }

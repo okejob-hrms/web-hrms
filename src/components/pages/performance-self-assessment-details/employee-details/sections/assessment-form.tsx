@@ -226,16 +226,6 @@ export const AssessmentForm: React.FC = () => {
           </div>
         </Collapsible>
       ))}
-
-      {/* Submit Button */}
-      <div className="mt-6 flex justify-end">
-        <Button
-          onClick={handleSubmit}
-          className="bg-[#0e6488] hover:bg-[#0c5470] text-white px-8 py-2"
-        >
-          Simpan Penilaian
-        </Button>
-      </div>
     </div>
   );
 };

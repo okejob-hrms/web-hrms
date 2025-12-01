@@ -1,6 +1,11 @@
+import { IAssessmentGroup } from "@/services/employees/self-assessment/types";
 import * as React from "react";
 
-export const AssessmentValidation = () => {
+interface AssessmentValidationProps {
+  data?: IAssessmentGroup[];
+}
+
+export const AssessmentValidation = ({ data }: AssessmentValidationProps) => {
   return (
     <div className="py-4">
       <h3 className="font-semibold text-lg text-black">
