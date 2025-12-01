@@ -10,7 +10,7 @@ import qs from "qs";
 
 export const getAllSupervisorAssessment = async (
   params?: ISupervisorAssessmentParam,
-): Promise<ApiResponse<PaginatedResponse<ISupervisorAssessmentResponse>>> => {
+): Promise<PaginatedResponse<ISupervisorAssessmentResponse>> => {
   try {
     return api
       .get(
@@ -18,7 +18,7 @@ export const getAllSupervisorAssessment = async (
           ? `supervisor-assessments?${qs.stringify(params)}`
           : `supervisor-assessments`,
       )
-      .json<ApiResponse<PaginatedResponse<ISupervisorAssessmentResponse>>>();
+      .json<PaginatedResponse<ISupervisorAssessmentResponse>>();
   } catch (error: any) {
     if (error.name === "HTTPError") {
       const errorResponse = await error.response.json();

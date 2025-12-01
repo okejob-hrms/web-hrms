@@ -1,16 +1,16 @@
 import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
-import { getEmployeeDetailByUserId } from "@/services/employees";
+import { getSupervisorAssessmentDetail } from "@/services/performances/supervisor-assessment";
 
-export const useSupervisorAssessmentDetails = (userId: number) => {
+export const useSupervisorAssessmentDetails = (id: number) => {
   const {
     data: employeeDetails,
     isLoading: isLoadingEmployeeDetails,
     isError: isErrorEmployeeDetails,
   } = useQuery({
-    queryKey: ["employee-detail", userId],
-    queryFn: () => getEmployeeDetailByUserId(userId),
-    enabled: !!userId,
+    queryKey: ["supervisor-assessment-detail", id],
+    queryFn: () => getSupervisorAssessmentDetail(id),
+    enabled: !!id,
   });
 
   return {

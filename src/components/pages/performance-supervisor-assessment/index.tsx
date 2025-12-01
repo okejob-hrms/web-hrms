@@ -5,31 +5,18 @@ import * as React from "react";
 import { DataTable } from "@/components/tables/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { useIsMobile } from "@/hooks/use-mobile";
-import {
-  ArrowUp,
-  ArrowDown,
-  ChevronsUpDown,
-  Ellipsis,
-  Eye,
-} from "lucide-react";
-import { formatDateTime } from "@/lib/helpers";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import Link from "next/link";
-import Image from "next/image";
+import { ArrowUp, ArrowDown, ChevronsUpDown, Eye } from "lucide-react";
 import { useSupervisorAssessment } from "./hook";
-import { IFormTemplate } from "@/services/form/types";
 import SupervisorAssessmentFormModal from "./sections/add-modal";
 import { ISupervisorAssessmentResponse } from "@/services/performances/supervisor-assessment/types";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function SupervisorAssessmentList() {
   const {
     setOpenFormModal,
     openFormModal,
+    handleNew,
+    handleView,
     handleFormSubmit,
     openDelete,
     setOpenDelete,
@@ -38,7 +25,22 @@ export default function SupervisorAssessmentList() {
     data,
     isLoading,
     isFetching,
+    employeesOptions,
+    positionOptions,
+    isPositionsLoading,
+    positionsError,
+    jobLevelOptions,
+    isJobLevelsLoading,
+    jobLevelsError,
+    isLoadingEmployees,
+    searchAssesssor,
+    setSearchAssesssor,
+    formOptions,
+    isLoadingForms,
+    formsError,
+    isSubmitting,
   } = useSupervisorAssessment();
+
   const columns: ColumnDef<ISupervisorAssessmentResponse>[] = [
     {
       accessorKey: "user.name",
@@ -149,21 +151,34 @@ export default function SupervisorAssessmentList() {
       },
     },
     {
-      accessorKey: "interview_date",
+      accessorKey: "schedule",
       header: "Interview Date",
     },
     {
-      accessorKey: "assessment_result",
+      accessorKey: "status_label",
       header: "Assessment Result",
     },
     {
       accessorKey: "menu",
+      size: 70,
       header: "",
-      cell: () => <Eye className="w-4 h-4" />,
+      cell: ({ row }) => (
+        <Button
+          variant="ghost"
+          onClick={() => handleView(row.original.id)}
+          className="whitespace-nowrap"
+        >
+          <Eye className="w-4 h-4" />
+        </Button>
+      ),
     },
   ];
 
   const isMobile = useIsMobile();
+
+  if (isLoading || isFetching) {
+    return <Skeleton />;
+  }
 
   return (
     <div className="font-sans min-h-screen bg-gray-50">
@@ -173,23 +188,36 @@ export default function SupervisorAssessmentList() {
             <div className="flex gap-2 items-center flex-wrap">
               <h2 className="font-semibold text-xl">Supervisor Assessment</h2>
             </div>
-            <Button
-              onClick={() => setOpenFormModal(true)}
-              className="whitespace-nowrap"
-            >
+            <Button onClick={() => handleNew()} className="whitespace-nowrap">
               + New Assessment
             </Button>
           </div>
+
           <DataTable
             columns={columns}
-            data={data?.data.data}
+            data={data?.data}
             customSize={!isMobile}
           />
         </div>
+
         <SupervisorAssessmentFormModal
           open={openFormModal}
           onOpenChange={setOpenFormModal}
           onSubmit={handleFormSubmit}
+          employeesOptions={employeesOptions}
+          positionOptions={positionOptions}
+          isPositionsLoading={isPositionsLoading}
+          positionsError={positionsError}
+          jobLevelOptions={jobLevelOptions}
+          isJobLevelsLoading={isJobLevelsLoading}
+          jobLevelsError={jobLevelsError}
+          isLoadingEmployees={isLoadingEmployees}
+          searchAssesssor={searchAssesssor}
+          setSearchAssesssor={setSearchAssesssor}
+          formOptions={formOptions}
+          isLoadingForms={isLoadingForms}
+          formsError={formsError}
+          isSubmitting={isSubmitting}
         />
       </div>
     </div>

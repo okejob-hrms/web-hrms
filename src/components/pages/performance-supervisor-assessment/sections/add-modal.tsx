@@ -9,7 +9,6 @@ import { Form } from "@/components/ui/form";
 import { SelectEmployeeForm, SelectForm } from "@/components/ui/select-form";
 import React from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
-import { useSupervisorAssessment } from "../hook";
 import { MultiSelectForm } from "@/components/ui/multi-select";
 import { ISupervisorAssessmentMutation } from "@/services/performances/supervisor-assessment/types";
 
@@ -25,31 +24,51 @@ interface SupervisorAssessmentFormModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: ISupervisorAssessmentMutation) => void;
+  employeesOptions: Array<{
+    label: string;
+    value: string;
+    subtitle?: string;
+    image?: string;
+  }>;
+  positionOptions: Array<{ label: string; value: string }>;
+  isPositionsLoading: boolean;
+  positionsError: unknown;
+  jobLevelOptions: Array<{ label: string; value: string }>;
+  isJobLevelsLoading: boolean;
+  jobLevelsError: unknown;
+  isLoadingEmployees: boolean;
+  searchAssesssor: string;
+  setSearchAssesssor: (value: string) => void;
+  formOptions: Array<{ label: string; value: string }>;
+  isLoadingForms: boolean;
+  formsError: unknown;
+  isSubmitting: boolean;
 }
 
 const SupervisorAssessmentFormModal: React.FC<
   SupervisorAssessmentFormModalProps
-> = ({ open, onOpenChange, onSubmit }) => {
-  const {
-    employeesOptions,
-    positionOptions,
-    isPositionsLoading,
-    positionsError,
-    jobLevelOptions,
-    jobLevelsError,
-    isJobLevelsLoading,
-    isLoadingEmployees,
-    searchAssesssor,
-    setSearchAssesssor,
-    formOptions,
-    isLoadingForms,
-    formsError,
-    isSubmitting,
-  } = useSupervisorAssessment();
+> = ({
+  open,
+  onOpenChange,
+  onSubmit,
+  employeesOptions,
+  positionOptions,
+  isPositionsLoading,
+  positionsError,
+  jobLevelOptions,
+  jobLevelsError,
+  isJobLevelsLoading,
+  isLoadingEmployees,
+  searchAssesssor,
+  setSearchAssesssor,
+  formOptions,
+  isLoadingForms,
+  formsError,
+  isSubmitting,
+}) => {
   const form = useForm<AssessmentFormData>();
 
   const handleFormSubmit: SubmitHandler<AssessmentFormData> = (data) => {
-    // Transform form data to match API requirements
     const transformedData: ISupervisorAssessmentMutation = {
       user_id: Number(data.user_id),
       form_id: Number(data.form_id),
@@ -63,13 +82,20 @@ const SupervisorAssessmentFormModal: React.FC<
     onOpenChange(false);
   };
 
-  const handleCancel = (): void => {
+  const handleClose = () => {
     form.reset();
     onOpenChange(false);
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={(isOpen) => {
+        if (!isOpen) {
+          handleClose();
+        }
+      }}
+    >
       <DialogContent className="max-h-[90vh] overflow-y-auto bg-white">
         <DialogHeader>
           <DialogTitle>New Supervisor Assessment</DialogTitle>
@@ -83,6 +109,7 @@ const SupervisorAssessmentFormModal: React.FC<
               required
               options={employeesOptions}
             />
+
             <div className="flex flex-col gap-2">
               <label className="text-sm font-medium text-gray-700">
                 Assigned Assessor
@@ -100,6 +127,7 @@ const SupervisorAssessmentFormModal: React.FC<
                 onSearchChange={setSearchAssesssor}
               />
             </div>
+
             <SelectForm
               name="target_position_id"
               label="Target Position"
@@ -108,6 +136,7 @@ const SupervisorAssessmentFormModal: React.FC<
               className="w-full"
               disabled={isPositionsLoading || !!positionsError}
             />
+
             <SelectForm
               name="target_level_id"
               label="Target Job Level"
@@ -116,6 +145,7 @@ const SupervisorAssessmentFormModal: React.FC<
               className="w-full"
               disabled={isJobLevelsLoading || !!jobLevelsError}
             />
+
             <SelectForm
               name="form_id"
               label="Assessment Form"
@@ -129,7 +159,7 @@ const SupervisorAssessmentFormModal: React.FC<
               <Button
                 type="button"
                 variant="outline"
-                onClick={handleCancel}
+                onClick={handleClose}
                 disabled={isSubmitting}
               >
                 Cancel
