@@ -74,7 +74,7 @@ export default function AttendanceTrackerForm({
   }, [id]);
 
   return (
-    <div className="max-w-4xl mx-auto font-sans min-h-screen flex flex-col space-y-6">
+    <div className="max-w-4xl mx-auto font-sans min-h-screen flex flex-col space-y-6 p-6 md:p-0">
       <TitleContent label={`${id ? 'Edit' : 'Add'} Attendance Record`} />
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">

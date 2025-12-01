@@ -6,7 +6,6 @@ import { ColumnDef } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import { Separator } from '@/components/ui/separator';
-import { Filters } from './types';
 import InfoList from '@/components/ui/info-list';
 import { useAttendance } from './hook';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -46,9 +45,7 @@ import { getStatusAttendance } from '@/lib/helpers';
 import AttendanceApproveModal from './sections/approve-modal';
 import AttendanceRejectModal from './sections/reject-modal';
 import AttendanceDeleteModal from './sections/delete-modal';
-import { InputForm } from '@/components/ui/input';
-import { Form } from '@/components/ui/form';
-import { useForm } from 'react-hook-form';
+import { Input, InputForm } from '@/components/ui/input';
 import { DatePicker } from '@/components/ui/date-picker';
 import dayjs from 'dayjs';
 
@@ -261,13 +258,6 @@ export const AttendanceTrackerList = ({
     },
   ];
 
-  const form = useForm<Filters>({
-    defaultValues: {
-      search: '',
-      date: '',
-    },
-  });
-
   React.useEffect(() => {
     if (relativeUser) {
       setFilters((prev) => ({
@@ -340,38 +330,38 @@ export const AttendanceTrackerList = ({
       )}
       <div className="flex flex-col justify-between gap-6 mt-5">
         {!hidePannel && (
-          <Form {...form}>
-            <form className="flex flex-col md:flex-row md:items-end gap-2 md:h-10">
-              <InputForm
-                name="search"
-                placeholder="Search by Employee Name or Email"
-                icon={<Search className="size-5 text-grayscale-20" />}
-                iconPosition="right"
-                value={filters.search}
-                onChange={(e) => {
-                  setFilters((prev) => ({
-                    ...prev,
-                    search: e.target.value,
-                  }));
-                  setPagination((prev) => ({ ...prev, pageIndex: 0 }));
-                }}
-              />
+          <div className="flex flex-col md:flex-row md:items-end gap-2 md:h-10">
+            <Input
+              name="search"
+              className="w-full md:w-1/4"
+              placeholder="Search by Employee Name or Email"
+              icon={<Search className="size-5 text-grayscale-20" />}
+              iconPosition="right"
+              value={filters.search}
+              onChange={(e) => {
+                setFilters((prev) => ({
+                  ...prev,
+                  search: e.target.value,
+                }));
+                setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+              }}
+            />
 
-              <Separator orientation="vertical" />
+            <Separator orientation="vertical" />
 
-              <DatePicker
-                className="min-w-[180px]"
-                name="date"
-                onChange={(e) => {
-                  setFilters((prev) => ({
-                    ...prev,
-                    date: e ? dayjs(e).format('YYYY-MM-DD') : '',
-                  }));
-                  setPagination((prev) => ({ ...prev, pageIndex: 0 }));
-                }}
-              />
-            </form>
-          </Form>
+            <Input
+              type="date"
+              className="w-full md:w-1/4"
+              name="date"
+              onChange={(e) => {
+                setFilters((prev) => ({
+                  ...prev,
+                  date: e ? dayjs(e.target.value).format('YYYY-MM-DD') : '',
+                }));
+                setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+              }}
+            />
+          </div>
         )}
 
         <Separator />

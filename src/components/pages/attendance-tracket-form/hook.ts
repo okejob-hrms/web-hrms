@@ -6,7 +6,7 @@ import * as z from 'zod';
 import { useRouter } from 'next/navigation';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ShiftByDayResponse } from '@/services/settings/types';
-import { getShiftToday } from '@/services/settings';
+import { getShiftToday, getShiftTodayWithId } from '@/services/settings';
 import { useEffect, useMemo, useState } from 'react';
 import { getEmployees } from '@/services/employees';
 import dayjs from 'dayjs';
@@ -60,9 +60,15 @@ export function useAttendenceForm() {
   });
   const queryClient = useQueryClient();
 
-   const { data: shiftData } = useQuery<ShiftByDayResponse>({
+  const { data: shiftDataWithoutId } = useQuery<ShiftByDayResponse>({
+    queryKey: ['shift', selectedDate],
+    queryFn: () => getShiftToday(selectedDate),
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const { data: shiftDataWithId } = useQuery<ShiftByDayResponse>({
     queryKey: ['shift', selectedDate, selectedId],
-    queryFn: () => getShiftToday(selectedDate, selectedId),
+    queryFn: () => getShiftTodayWithId(selectedDate, selectedId),
     staleTime: 1000 * 60 * 5,
   });
 
@@ -172,7 +178,7 @@ export function useAttendenceForm() {
     let payload: AttendancePayload & { status?: number } = {
       ...values,
       attendance_date: dayjs(values.attendance_date).format("YYYY-MM-DD"),
-      user_id: Number(values.user_id) + 1,
+      user_id: Number(values.user_id),
     };
 
     if (selectedId) {
@@ -201,7 +207,7 @@ export function useAttendenceForm() {
     form, 
     onSubmit, 
     handleBack,
-    shiftData,
+    shiftData: shiftDataWithoutId,
     setOpenMap,
     openMap,
     handleSetMap,
