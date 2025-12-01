@@ -2,12 +2,12 @@ import * as React from "react";
 import { Separator } from "@/components/ui/separator";
 import dayjs from "dayjs";
 import localizedFormat from "dayjs/plugin/localizedFormat";
-import { IEmployeeDetailsResponse } from "@/services/employees/types";
+import { ISupervisorAssessmentResponse } from "@/services/performances/supervisor-assessment/types";
 
 dayjs.extend(localizedFormat);
 
 interface Props {
-  employeeDetails: IEmployeeDetailsResponse;
+  data: ISupervisorAssessmentResponse;
 }
 
 interface DirectReportEmployee {
@@ -33,7 +33,7 @@ const safeGet = (value: string | number): string => {
 };
 
 export const EmployeeDetailsSection = React.memo(
-  function EmployeeDetailsSection({ employeeDetails }: Props) {
+  function EmployeeDetailsSection({ data }: Props) {
     const [primaryDirectReports, setPrimaryDirectReports] = React.useState<
       DirectReportEmployee[]
     >([]);
@@ -49,17 +49,17 @@ export const EmployeeDetailsSection = React.memo(
     //       setError(null);
 
     //       if (
-    //         !employeeDetails?.reporting_relationships ||
-    //         employeeDetails.reporting_relationships.length === 0
+    //         !data?.reporting_relationships ||
+    //         data.reporting_relationships.length === 0
     //       ) {
     //         setIsLoading(false);
     //         return;
     //       }
 
-    //       const primaryRelationships = employeeDetails.reporting_relationships.filter(
+    //       const primaryRelationships = data.reporting_relationships.filter(
     //         (item) => item?.relationship_type === "primary",
     //       );
-    //       const secondaryRelationships = employeeDetails.reporting_relationships.filter(
+    //       const secondaryRelationships = data.reporting_relationships.filter(
     //         (item) => item?.relationship_type === "secondary",
     //       );
 
@@ -151,14 +151,14 @@ export const EmployeeDetailsSection = React.memo(
     //   };
 
     //   if (
-    //     employeeDetails?.reporting_relationships &&
-    //     employeeDetails.reporting_relationships.length > 0
+    //     data?.reporting_relationships &&
+    //     data.reporting_relationships.length > 0
     //   ) {
     //     fetchDirectReports();
     //   }
-    // }, [employeeDetails?.reporting_relationships]);
+    // }, [data?.reporting_relationships]);
 
-    if (!employeeDetails) {
+    if (!data) {
       return (
         <div className="flex flex-col w-full gap-4 p-2">
           <div className="text-center text-gray-500">
@@ -176,27 +176,27 @@ export const EmployeeDetailsSection = React.memo(
           </h2>
           <div className="flex flex-col">
             <p className="text-sm text-text-disabled">Employee Name</p>
-            <p>{safeGet(employeeDetails.user.name)}</p>
+            <p>{safeGet(data.user.name)}</p>
           </div>
           <div className="flex flex-col">
             <p className="text-sm text-text-disabled">Employee ID</p>
-            <p>{safeGet(employeeDetails.user.id)}</p>
+            <p>{safeGet(data.user.id)}</p>
           </div>
           <div className="flex flex-col">
             <p className="text-sm text-text-disabled">Email</p>
-            <p>{safeGet(employeeDetails.user.email)}</p>
+            <p>{safeGet(data.user.email)}</p>
           </div>
           <div className="flex flex-col">
             <p className="text-sm text-text-disabled">Current Position</p>
-            <p>{safeGet(employeeDetails.employment?.job_position?.name)}</p>
+            <p>{safeGet(data.current_position?.name)}</p>
           </div>
           <div className="flex flex-col">
             <p className="text-sm text-text-disabled">Department</p>
-            <p>{safeGet(employeeDetails.employment?.department?.name)}</p>
+            {/* <p>{safeGet(data.department?.name)}</p> */}
           </div>
           <div className="flex flex-col">
             <p className="text-sm text-text-disabled">Current Job Level</p>
-            <p>{safeGet(employeeDetails.employment?.job_level?.name)}</p>
+            <p>{safeGet(data.current_level.name)}</p>
           </div>
           <div className="flex flex-col md:col-span-2">
             <p className="text-sm text-text-disabled">Primary Direct Report</p>
@@ -254,15 +254,15 @@ export const EmployeeDetailsSection = React.memo(
           </div>
           <div className="flex flex-col">
             <p className="text-sm text-text-disabled">Employee Start Date</p>
-            <p>{formatDate(employeeDetails.employment?.start_date)}</p>
+            {/* <p>{formatDate(data.)}</p> */}
           </div>
           <div className="flex flex-col">
             <p className="text-sm text-text-disabled">Target Position</p>
-            <p>{safeGet(employeeDetails.employment?.job_position?.name)}</p>
+            <p>{safeGet(data.target_position?.name)}</p>
           </div>
           <div className="flex flex-col">
             <p className="text-sm text-text-disabled">Target Job Level</p>
-            <p>{safeGet(employeeDetails.employment?.job_level?.name)}</p>
+            <p>{safeGet(data.target_level?.name)}</p>
           </div>
           <div className="flex flex-col md:col-span-3">
             <p className="text-sm text-text-disabled">Assigned Assessor</p>

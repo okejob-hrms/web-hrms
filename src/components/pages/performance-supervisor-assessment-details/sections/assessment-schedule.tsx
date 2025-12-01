@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { getInterviewSchedule } from "@/services/employees/offboardings/interview-schedule";
 import { useQuery } from "@tanstack/react-query";
 import Image from "next/image";
 import * as React from "react";
@@ -10,6 +9,7 @@ import { stringAvatar } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getEmployeeDetailByUserId } from "@/services/employees";
 import { AssessmentScheduleForm } from "./assessment-schedule-form";
+import { getScheduleDetail } from "@/services/performances/supervisor-assessment";
 
 dayjs.extend(customParseFormat);
 
@@ -17,43 +17,60 @@ interface Props {
   id: number;
 }
 
+interface IParticipant {
+  id: number;
+  name: string;
+  email: string;
+  phone: string | null;
+  employee_id: number;
+  employee_code: string;
+  avatar_url: string | null;
+}
+
 const EmployeeProfile = React.memo(function EmployeeProfile({
-  userId,
+  data,
 }: {
-  userId: number;
+  data: IParticipant;
 }) {
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ["employee-detail", userId],
-    queryFn: () => getEmployeeDetailByUserId(userId),
+  const {
+    data: employeeDetail,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["employee-detail", data.employee_id],
+    queryFn: () => getEmployeeDetailByUserId(data.employee_id),
   });
 
   if (isLoading) {
     return <Skeleton className="h-4 w-32" />;
   }
 
-  if (isError || !data?.data?.user?.name) {
-    return <span className="text-gray-400">-</span>;
-  }
+  // if (isError || !employeeDetail?.data?.user?.name) {
+  //   return <span className="text-gray-400">-</span>;
+  // }
 
   return (
     <div className="flex gap-1 items-center min-w-0">
       <Avatar className="h-5 w-5 flex-shrink-0">
         <AvatarImage
           className="size-5"
-          src={`${process.env.NEXT_PUBLIC_FILE_URL}/${data.data.photo_profile}`}
-          alt={data.data.user.name}
+          src={`${process.env.NEXT_PUBLIC_FILE_URL}/${data.avatar_url}`}
+          alt={data.name}
         />
         <AvatarFallback className="text-[10px] font-medium">
-          {stringAvatar(data.data.user.name)}
+          {stringAvatar(data.name)}
         </AvatarFallback>
       </Avatar>
       <div className="flex flex-col sm:flex-row sm:items-center gap-1 min-w-0 flex-1">
         <span className="text-black truncate text-sm sm:text-base">
-          {data.data.user.name}
+          {data.name}
         </span>
-        <span className="text-text-disabled text-xs sm:text-sm truncate">
-          ({data.data.user.id}) {data.data.employment.job_position.name}
-        </span>
+        {employeeDetail && employeeDetail?.data && (
+          <span className="text-text-disabled text-xs sm:text-sm truncate">
+            ({employeeDetail?.data?.id}){" "}
+            {employeeDetail?.data?.employment?.job_position?.name}
+          </span>
+        )}
       </div>
     </div>
   );
@@ -65,7 +82,7 @@ export const AssessmentSchedule = React.memo(function AssessmentSchedule({
   const [openForm, setOpenForm] = React.useState(false);
   const { data } = useQuery({
     queryKey: ["assessment-schedule"],
-    queryFn: () => getInterviewSchedule(id),
+    queryFn: () => getScheduleDetail(id),
   });
 
   const handleEditClick = () => {
@@ -112,8 +129,8 @@ export const AssessmentSchedule = React.memo(function AssessmentSchedule({
               <span className="text-text-disabled text-sm">Participant</span>
               {data.data.participants
                 ? data.data.participants.map((item) => (
-                    <div key={item.user_id} className="block ml-4">
-                      <EmployeeProfile userId={item.user_id} />
+                    <div key={item.employee_id} className="block ml-4">
+                      <EmployeeProfile data={item} />
                     </div>
                   ))
                 : "-"}

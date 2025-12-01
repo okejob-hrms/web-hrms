@@ -20,6 +20,7 @@ import { useDebounce } from "@/hooks/use-debounce";
 export function useSupervisorAssessment() {
   const router = useRouter();
   const queryClient = useQueryClient();
+
   const [openDelete, setOpenDelete] = React.useState(false);
   const [openFormModal, setOpenFormModal] = React.useState(false);
   const [selectedId, setSelectedId] = React.useState<string>("");
@@ -32,21 +33,20 @@ export function useSupervisorAssessment() {
     queryFn: () => getAllSupervisorAssessment(),
   });
 
-  // Fetch employees for select options
   const { data: employees, isLoading: isLoadingEmployees } = useQuery({
     queryKey: ["supervisor-assessment-employees", debouncedAssessor],
     queryFn: () =>
       getEmployees(
         debouncedAssessor
-          ? { search: debouncedAssessor, per_page: 10000 }
-          : { per_page: 10000 },
+          ? { search: debouncedAssessor, per_page: 50 }
+          : { per_page: 50 },
       ),
+    enabled: openFormModal,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
 
-  // Fetch positions
   const {
     data: positions,
     isLoading: isPositionsLoading,
@@ -54,11 +54,11 @@ export function useSupervisorAssessment() {
   } = useQuery({
     queryKey: ["job-position"],
     queryFn: getJobPosition,
+    enabled: openFormModal,
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
 
-  // Fetch job levels
   const {
     data: jobLevels,
     isLoading: isJobLevelsLoading,
@@ -66,11 +66,11 @@ export function useSupervisorAssessment() {
   } = useQuery({
     queryKey: ["job-levels"],
     queryFn: getJobLevels,
+    enabled: openFormModal,
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
 
-  // Fetch forms
   const {
     data: forms,
     isLoading: isLoadingForms,
@@ -78,11 +78,11 @@ export function useSupervisorAssessment() {
   } = useQuery({
     queryKey: ["forms"],
     queryFn: getAllForm,
+    enabled: openFormModal,
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
 
-  // Transform data to options
   const employeesOptions = React.useMemo(() => {
     if (employees?.data?.data) {
       return employees.data.data.map((item) => ({
@@ -125,7 +125,6 @@ export function useSupervisorAssessment() {
     return [];
   }, [forms?.data]);
 
-  // Mutation for creating new assessment
   const createAssessmentMutation = useMutation({
     mutationFn: (params: ISupervisorAssessmentMutation) =>
       postAddSupervisorAssessment(params),
@@ -153,10 +152,10 @@ export function useSupervisorAssessment() {
   });
 
   const handleNew = () => {
-    router.push("/performance/supervisor-assessment/add");
+    setOpenFormModal(true);
   };
 
-  const handleEdit = (id: number | string) => {
+  const handleView = (id: number | string) => {
     router.push(`/performance/supervisor-assessment/${id}`);
   };
 
@@ -171,7 +170,7 @@ export function useSupervisorAssessment() {
 
   return {
     handleNew,
-    handleEdit,
+    handleView,
     openDelete,
     setOpenDelete,
     handleDelete,
@@ -182,7 +181,6 @@ export function useSupervisorAssessment() {
     data,
     isLoading,
     isFetching,
-    // Options for form selects
     employeesOptions,
     positionOptions,
     isPositionsLoading,
@@ -196,7 +194,6 @@ export function useSupervisorAssessment() {
     isLoadingEmployees,
     searchAssesssor,
     setSearchAssesssor,
-    // Mutation states
     isSubmitting: createAssessmentMutation.isPending,
   };
 }

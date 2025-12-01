@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ApiResponse, PaginatedResponse } from "@/lib/types";
 import {
+  IScheduleRequest,
+  IScheduleResponse,
   ISupervisorAssessmentMutation,
   ISupervisorAssessmentParam,
   ISupervisorAssessmentResponse,
@@ -10,7 +12,7 @@ import qs from "qs";
 
 export const getAllSupervisorAssessment = async (
   params?: ISupervisorAssessmentParam,
-): Promise<ApiResponse<PaginatedResponse<ISupervisorAssessmentResponse>>> => {
+): Promise<PaginatedResponse<ISupervisorAssessmentResponse>> => {
   try {
     return api
       .get(
@@ -18,7 +20,7 @@ export const getAllSupervisorAssessment = async (
           ? `supervisor-assessments?${qs.stringify(params)}`
           : `supervisor-assessments`,
       )
-      .json<ApiResponse<PaginatedResponse<ISupervisorAssessmentResponse>>>();
+      .json<PaginatedResponse<ISupervisorAssessmentResponse>>();
   } catch (error: any) {
     if (error.name === "HTTPError") {
       const errorResponse = await error.response.json();
@@ -104,6 +106,49 @@ export const deleteSupervisorAssessment = async (
     return api
       .delete(`supervisor-assessments/${id}`)
       .json<ApiResponse<ISupervisorAssessmentResponse>>();
+  } catch (error: any) {
+    if (error.name === "HTTPError") {
+      const errorResponse = await error.response.json();
+      const enhancedError = new Error(error.message);
+      (enhancedError as any).response = {
+        json: () => Promise.resolve(errorResponse),
+        status: error.response.status,
+      };
+      throw enhancedError;
+    }
+    throw error;
+  }
+};
+
+export const setSchedule = async (
+  id: number,
+  params: IScheduleRequest,
+): Promise<ApiResponse<IScheduleResponse>> => {
+  try {
+    return api
+      .post(`supervisor-assessments/${id}/schedule`, { json: params })
+      .json<ApiResponse<IScheduleResponse>>();
+  } catch (error: any) {
+    if (error.name === "HTTPError") {
+      const errorResponse = await error.response.json();
+      const enhancedError = new Error(error.message);
+      (enhancedError as any).response = {
+        json: () => Promise.resolve(errorResponse),
+        status: error.response.status,
+      };
+      throw enhancedError;
+    }
+    throw error;
+  }
+};
+
+export const getScheduleDetail = async (
+  id: number,
+): Promise<ApiResponse<IScheduleResponse>> => {
+  try {
+    return api
+      .get(`supervisor-assessments/${id}/schedule`)
+      .json<ApiResponse<IScheduleResponse>>();
   } catch (error: any) {
     if (error.name === "HTTPError") {
       const errorResponse = await error.response.json();
