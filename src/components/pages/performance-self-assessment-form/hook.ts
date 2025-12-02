@@ -54,6 +54,7 @@ export const usePerformanceSelfAssessmentForm = () => {
       ...debouncedFilters,
       page: pagination.pageIndex + 1,
       per_page: pagination.pageSize,
+      status: "1",
     }),
     [debouncedFilters, pagination],
   );
@@ -156,6 +157,11 @@ export const usePerformanceSelfAssessmentForm = () => {
     setPagination(updater);
   }, []);
 
+  const handleSearchChange = React.useCallback((search: string) => {
+    setFilters((prev) => ({ ...prev, search }));
+    setPagination({ pageIndex: 0, pageSize: 10 }); // Reset to first page on search
+  }, []);
+
   const { mutate: createAssessment, isPending: isPendingAddAssessment } =
     useMutation({
       mutationFn: createSelfAssessment,
@@ -181,21 +187,9 @@ export const usePerformanceSelfAssessmentForm = () => {
     });
 
   React.useEffect(() => {
-    if (isEditMode && details?.data) {
+    if (isEditMode && details?.data && assessmentForm?.data) {
       const assessment = details.data.assessment;
       const employees = details.data.employees;
-
-      const normalizedPeriod = assessment.assessment_period.toUpperCase();
-      const matchedPeriod = periodOptions.find(
-        (p) => p.value === normalizedPeriod,
-      );
-      form.setValue(
-        "period",
-        matchedPeriod ? matchedPeriod.value : assessment.assessment_period,
-      );
-      form.setValue("year", assessment.year);
-      form.setValue("start_date", assessment.start_date);
-      form.setValue("end_date", assessment.end_date);
 
       const formGroups = employees.reduce((acc: any, employee: any) => {
         const formName = employee.form_name;
@@ -211,14 +205,10 @@ export const usePerformanceSelfAssessmentForm = () => {
 
       const reconstructedForms = Object.entries(formGroups).map(
         ([formName, data]: [string, any], index) => {
-          const matchingForm = assessmentForm?.data?.find(
+          const matchingForm = assessmentForm.data.find(
             (f) => f.name === formName,
           );
           const formId = matchingForm?.id.toString() || "";
-
-          if (formId) {
-            form.setValue(`assessment_form_${index + 1}`, formId);
-          }
 
           return {
             id: `${index + 1}`,
@@ -231,8 +221,31 @@ export const usePerformanceSelfAssessmentForm = () => {
       if (reconstructedForms.length > 0) {
         setAssessmentForms(reconstructedForms);
       }
+      const normalizedPeriod = assessment.assessment_period.toUpperCase();
+      const matchedPeriod = periodOptions.find(
+        (p) => p.value === normalizedPeriod,
+      );
+
+      const formValues: Record<string, any> = {
+        period: matchedPeriod
+          ? matchedPeriod.value
+          : assessment.assessment_period,
+        year: assessment.year,
+        start_date: assessment.start_date,
+        end_date: assessment.end_date,
+      };
+
+      reconstructedForms.forEach((formItem, index) => {
+        if (formItem.formId) {
+          formValues[`assessment_form_${formItem.id}`] = formItem.formId;
+        }
+      });
+
+      setTimeout(() => {
+        form.reset(formValues);
+      }, 0);
     }
-  }, [isEditMode, details, form, assessmentForm]);
+  }, [isEditMode, details, assessmentForm]);
 
   const handleSubmit = React.useCallback(() => {
     const formValues = form.getValues();
@@ -296,6 +309,8 @@ export const usePerformanceSelfAssessmentForm = () => {
     isLoadingEmployees,
     pagination,
     handlePaginationChange,
+    handleSearchChange,
+    filters,
     assessmentForm,
     assessmentForms,
     handleAddAssessmentForm,

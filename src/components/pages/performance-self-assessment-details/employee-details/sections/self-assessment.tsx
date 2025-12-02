@@ -16,32 +16,34 @@ interface SelfAssessmentProps {
   data?: IAssessmentSubmission;
 }
 
-const columns: ColumnDef<IAssessmentGroup>[] = [
-  {
-    accessorKey: "name",
-    header: "Category",
-    cell: ({ row }) => (
-      <div className="font-normal text-gray-900">{row.original.name}</div>
-    ),
-  },
-  {
-    accessorKey: "score",
-    header: () => <div className="text-center">Score</div>,
-    cell: ({ row }) => (
-      <div className="text-center text-gray-900">
-        {row.original.score || "4"}
-        <span className="text-gray-500">/5</span>
-      </div>
-    ),
-  },
-];
-
 export const SelfAssessment = ({ data }: SelfAssessmentProps) => {
   const form = useForm({
     defaultValues: {
       fields: data?.data?.fields || [],
     },
   });
+
+  const columns: ColumnDef<IAssessmentGroup>[] = [
+    {
+      accessorKey: "name",
+      header: "Category",
+      cell: ({ row }) => (
+        <div className="font-normal text-gray-900">{row.original.name}</div>
+      ),
+    },
+    {
+      accessorKey: "score",
+      header: "Score",
+      cell: ({ row }) => (
+        <div className="text-gray-900 w-full">
+          {row.original.score || "0"}
+          <span className="text-gray-500">
+            /{data?.data?.total_score || "0"}
+          </span>
+        </div>
+      ),
+    },
+  ];
 
   return (
     <div className="py-4 flex flex-col gap-4">

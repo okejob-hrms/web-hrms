@@ -100,6 +100,8 @@ export const DatePicker: React.FC<
                         onChangeExtra?.(date);
                       }}
                       captionLayout="dropdown"
+                      fromYear={1900}
+                      toYear={new Date().getFullYear() + 10}
                     />
                   </PopoverContent>
                 </Popover>
@@ -159,6 +161,9 @@ export const BasicDatePicker: React.FC<BasicDatePickerProps> = (props) => {
                 props.onSelect(date);
                 setIsOpen(false);
               }}
+              captionLayout="dropdown"
+              fromYear={1900}
+              toYear={new Date().getFullYear() + 10}
             />
           </PopoverContent>
         </Popover>

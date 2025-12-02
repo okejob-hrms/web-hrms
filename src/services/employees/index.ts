@@ -54,6 +54,7 @@ export const getEmployees = (
     encodeValuesOnly: true,
     arrayFormat: "brackets",
   });
+  console.log(queryString);
   const response = api.get<ApiResponse<PaginatedResponse<IEmployeeResponse>>>(
     `employees${queryString ? `?${queryString}` : ""}`,
   );

@@ -19,6 +19,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import DataTable from "@/components/tables/data-table";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useQuery } from "@tanstack/react-query";
+import { getEmployees } from "@/services/employees";
 
 interface ModalProps {
   isOpen: boolean;
@@ -44,6 +46,8 @@ export const ParticipantListModal = React.memo(function ParticipantListModal({
     employeeList,
     pagination,
     handlePaginationChange,
+    handleSearchChange,
+    filters,
     totalEmployees,
   } = usePerformanceSelfAssessmentForm();
 
@@ -51,12 +55,27 @@ export const ParticipantListModal = React.memo(function ParticipantListModal({
     new Set(),
   );
 
+  const { data: allEmployees, isLoading: isLoadingAllEmployees } = useQuery({
+    queryKey: ["all-employees-ids"],
+    queryFn: () => getEmployees({ page: 1, per_page: 10000, status: "1" }),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    enabled: isOpen,
+  });
+
   React.useEffect(() => {
     if (isOpen && currentFormIndex !== null) {
       const currentForm = assessmentForms[currentFormIndex];
       setSelectedRows(new Set(currentForm.selectedParticipants));
     }
   }, [isOpen, currentFormIndex, assessmentForms]);
+
+  React.useEffect(() => {
+    if (!isOpen) {
+      handleSearchChange("");
+    }
+  }, [isOpen, handleSearchChange]);
 
   const handleRowSelection = (employeeId: string, checked: boolean) => {
     setSelectedRows((prev) => {
@@ -70,9 +89,10 @@ export const ParticipantListModal = React.memo(function ParticipantListModal({
     });
   };
 
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      const allIds = employeeList?.data?.map((emp) => emp.id.toString()) || [];
+  const handleSelectAll = (checked: boolean | "indeterminate") => {
+    if (checked === true) {
+      const allIds =
+        allEmployees?.data?.data?.map((emp) => emp.id.toString()) || [];
       setSelectedRows(new Set(allIds));
     } else {
       setSelectedRows(new Set());
@@ -88,21 +108,32 @@ export const ParticipantListModal = React.memo(function ParticipantListModal({
     onClose(false);
   };
 
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    handleSearchChange(e.target.value);
+  };
+
   const columns: ColumnDef<IEmployeeResponse>[] = [
     {
       accessorKey: "selected",
-      header: ({ table }) => (
-        <Checkbox
-          checked={
-            employeeList?.data &&
-            employeeList?.data?.length > 0 &&
-            employeeList.data.every((emp) =>
-              selectedRows.has(emp.id.toString()),
-            )
-          }
-          onCheckedChange={handleSelectAll}
-        />
-      ),
+      header: ({ table }) => {
+        const totalEmployeeCount = allEmployees?.data?.total || 0;
+        const allEmployeeIds =
+          allEmployees?.data?.data?.map((emp) => emp.id.toString()) || [];
+        const isAllSelected =
+          totalEmployeeCount > 0 &&
+          allEmployeeIds.length > 0 &&
+          allEmployeeIds.every((id) => selectedRows.has(id));
+        const isSomeSelected = selectedRows.size > 0 && !isAllSelected;
+
+        return (
+          <Checkbox
+            checked={
+              isAllSelected ? true : isSomeSelected ? "indeterminate" : false
+            }
+            onCheckedChange={handleSelectAll}
+          />
+        );
+      },
       size: 5,
       cell: ({ row }) => (
         <Checkbox
@@ -213,7 +244,12 @@ export const ParticipantListModal = React.memo(function ParticipantListModal({
                     </span>
                   </div>
                 </div>
-                <Input placeholder="Search" className="max-w-80" />
+                <Input
+                  placeholder="Search"
+                  className="max-w-80"
+                  value={filters?.search || ""}
+                  onChange={handleSearch}
+                />
               </div>
               <DataTable
                 columns={columns}

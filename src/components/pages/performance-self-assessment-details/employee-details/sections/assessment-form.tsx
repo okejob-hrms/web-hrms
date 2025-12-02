@@ -12,6 +12,7 @@ import {
 import { getFormById } from "@/services/form";
 import { IFormGroup } from "@/services/form/types";
 import { FormFieldRenderer } from "./form-field-renderer";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface OpenSections {
   [key: string]: boolean;
@@ -36,7 +37,6 @@ export const AssessmentForm: React.FC<AssessmentFormProps> = ({
   const [groupFields, setGroupFields] = useState<GroupFieldsMap>({});
   const [loading, setLoading] = useState<boolean>(true);
 
-  // Initialize all sections as open
   useEffect(() => {
     if (groups && groups.length > 0) {
       const initialOpenState = groups.reduce(
@@ -50,7 +50,6 @@ export const AssessmentForm: React.FC<AssessmentFormProps> = ({
     }
   }, [groups]);
 
-  // Fetch form data and organize fields by group
   useEffect(() => {
     const fetchFormData = async () => {
       if (!formId || !groups || groups.length === 0) {
@@ -61,12 +60,10 @@ export const AssessmentForm: React.FC<AssessmentFormProps> = ({
       try {
         setLoading(true);
         const response = await getFormById(formId);
-        console.log("getFormById response", response);
 
         if (response.data && response.data.groups) {
           const fieldsMap: GroupFieldsMap = {};
 
-          // Organize fields by group_id
           response.data.groups.forEach((group: IFormGroup) => {
             const groupId = parseInt(group.id);
             if (group.fields && Array.isArray(group.fields)) {
@@ -74,7 +71,6 @@ export const AssessmentForm: React.FC<AssessmentFormProps> = ({
             }
           });
 
-          console.log("fieldsMap organized by groups", fieldsMap);
           setGroupFields(fieldsMap);
         }
       } catch (error) {
@@ -91,7 +87,6 @@ export const AssessmentForm: React.FC<AssessmentFormProps> = ({
     setOpenSections((prev) => ({ ...prev, [section]: !prev[section] }));
   };
 
-  // Get assessment value for a specific field
   const getFieldAssessmentValue = (fieldId: number, groupId: number) => {
     if (!fields) return undefined;
     return fields.find(
@@ -101,7 +96,7 @@ export const AssessmentForm: React.FC<AssessmentFormProps> = ({
 
   if (!groups || groups.length === 0) {
     return (
-      <div className="w-full mx-auto p-6 text-center text-gray-500">
+      <div className="w-full mx-auto p-6 text-center text-primary font-semibold">
         No assessment groups available
       </div>
     );
@@ -109,10 +104,8 @@ export const AssessmentForm: React.FC<AssessmentFormProps> = ({
 
   return (
     <div className="w-full mx-auto">
-      {loading ? (
-        <div className="text-center py-8 text-gray-500">
-          Loading assessment form...
-        </div>
+      {loading || !groups || groups.length === 0 ? (
+        <Skeleton />
       ) : (
         groups.map((group) => {
           const fieldsForGroup = groupFields[group.field_group_id] || [];
@@ -130,10 +123,6 @@ export const AssessmentForm: React.FC<AssessmentFormProps> = ({
                     <h2 className="text-lg font-semibold text-[#0e6488]">
                       {group.name}
                     </h2>
-                    <span className="text-sm text-gray-500">
-                      ({fieldsForGroup.length}{" "}
-                      {fieldsForGroup.length === 1 ? "field" : "fields"})
-                    </span>
                   </div>
                   {openSections[group.field_group_id] ? (
                     <ChevronUp className="w-5 h-5 text-gray-400" />
@@ -145,7 +134,7 @@ export const AssessmentForm: React.FC<AssessmentFormProps> = ({
                 <CollapsibleContent>
                   <div className="p-6 space-y-4">
                     {fieldsForGroup.length === 0 ? (
-                      <div className="text-center py-4 text-gray-500">
+                      <div className="text-center py-4 text-primary font-semibold">
                         No fields available for this group
                       </div>
                     ) : (
