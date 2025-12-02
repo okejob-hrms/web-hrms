@@ -1,16 +1,84 @@
-import { IAssessmentGroup } from "@/services/employees/self-assessment/types";
+import DataTable from "@/components/tables/data-table";
+import { Button } from "@/components/ui/button";
+import { TableCell, TableRow } from "@/components/ui/table";
+import { ColumnDef } from "@tanstack/react-table";
+import { Edit } from "lucide-react";
+import { AssessmentForm } from "./assessment-form";
 import * as React from "react";
+import {
+  IAssessmentGroup,
+  IAssessmentSubmission,
+} from "@/services/employees/self-assessment/types";
+import { FormProvider, useForm } from "react-hook-form";
 
 interface AssessmentValidationProps {
-  data?: IAssessmentGroup[];
+  data?: IAssessmentSubmission;
 }
 
+const columns: ColumnDef<IAssessmentGroup>[] = [
+  {
+    accessorKey: "name",
+    header: "Category",
+    cell: ({ row }) => (
+      <div className="font-normal text-gray-900">{row.original.name}</div>
+    ),
+  },
+  {
+    accessorKey: "score",
+    header: () => <div className="text-center">Score</div>,
+    cell: ({ row }) => (
+      <div className="text-center text-gray-900">
+        {row.original.score || "4"}
+        <span className="text-gray-500">/5</span>
+      </div>
+    ),
+  },
+];
+
 export const AssessmentValidation = ({ data }: AssessmentValidationProps) => {
+  const form = useForm({
+    defaultValues: {
+      fields: data?.data?.fields || [],
+    },
+  });
+
   return (
-    <div className="py-4">
+    <div className="py-4 flex flex-col gap-4">
       <h3 className="font-semibold text-lg text-black">
         Assessment Validation Result
       </h3>
+      <DataTable
+        columns={columns}
+        data={data?.data?.groups || []}
+        tableFooter={
+          <TableRow className="bg-primary-background py-4 px-6">
+            <TableCell className="text-right text-text-secondary font-semibold">
+              Total Score
+            </TableCell>
+            <TableCell className="font-semibold text-primary">
+              {data?.data?.total_score || "0"}
+            </TableCell>
+          </TableRow>
+        }
+      />
+      <div className="flex gap-2 items-center">
+        <h3 className="font-semibold text-lg text-black">
+          Assessment Validation Details
+        </h3>
+        {/* <Button variant="ghost" className="text-primary font-semibold">
+          <Edit /> Edit
+        </Button> */}
+      </div>
+
+      <FormProvider {...form}>
+        <form onSubmit={form.handleSubmit(() => {})}>
+          <AssessmentForm
+            fields={data?.data?.fields}
+            groups={data?.data?.groups}
+            formId={data?.form_id || 0}
+          />
+        </form>
+      </FormProvider>
     </div>
   );
 };

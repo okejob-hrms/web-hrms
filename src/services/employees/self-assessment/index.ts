@@ -110,3 +110,27 @@ export const createSelfAssessment = async (
     throw error;
   }
 };
+
+export const updateSelfAssessment = async (
+  id: number,
+  params: IMutateSelfAssessmentRequest,
+): Promise<ApiResponse<ISelfAssessmentResponse>> => {
+  try {
+    const response = await api.put<ApiResponse<ISelfAssessmentResponse>>(
+      `employee/self-assessments/${id}`,
+      { json: params },
+    );
+    return response.json();
+  } catch (error: any) {
+    if (error.name === "HTTPError") {
+      const errorResponse = await error.response.json();
+      const enhancedError = new Error(error.message);
+      (enhancedError as any).response = {
+        json: () => Promise.resolve(errorResponse),
+        status: error.response.status,
+      };
+      throw enhancedError;
+    }
+    throw error;
+  }
+};

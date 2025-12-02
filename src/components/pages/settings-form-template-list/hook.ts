@@ -100,7 +100,7 @@ export function useFormTemplateList() {
     return [];
   }, [data?.data]);
   */
- const formOptions = [
+  const formOptions = [
     { label: "Exit Interview Form", value: "1" },
     { label: "Competency Based Assessment", value: "2" },
   ];

@@ -3,22 +3,26 @@ import * as React from "react";
 import StatusCard from "./sections/status-card";
 import { useIsMobile } from "@/hooks/use-mobile";
 import DataTable from "@/components/tables/data-table";
-import { ArrowDown, ArrowUp, ChevronsUpDown, Eye } from "lucide-react";
+import { ArrowDown, ArrowUp, ChevronsUpDown, Edit, Eye } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 import { LinearProgress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { useSelfAssessmentPeriodDetails } from "./hook";
 import AppSkeleton from "@/components/partials/app-skeleton";
 import { IEmployeeAssessment } from "@/services/employees/self-assessment/types";
-import dayjs from "dayjs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { getStatusEmployeeAssessment } from "@/lib/helpers";
 import { cn } from "@/lib/utils";
 
 export const SelfAssessmentPeriodDetails = () => {
-  const { assessmentDetails, isLoading, isError, handleViewEmployee } =
-    useSelfAssessmentPeriodDetails();
+  const {
+    assessmentDetails,
+    isLoading,
+    isError,
+    handleViewEmployee,
+    handleEdit,
+  } = useSelfAssessmentPeriodDetails();
 
   const columns: ColumnDef<IEmployeeAssessment>[] = [
     {
@@ -188,9 +192,14 @@ export const SelfAssessmentPeriodDetails = () => {
 
   return (
     <div className="font-sans md:px-[125px] px-4 space-y-4">
-      <h1 className="font-semibold text-4xl">
-        Self Assessment {assessment.assessment_period} {assessment.year}
-      </h1>
+      <div className="flex gap-2 items-center">
+        <h1 className="font-semibold text-4xl">
+          Self Assessment {assessment.assessment_period} {assessment.year}
+        </h1>
+        <Button type="button" variant="ghost" onClick={handleEdit}>
+          <Edit className="w-4 h-4 text-primary" />
+        </Button>
+      </div>
       <h2>Assessment Details</h2>
       <div className="grid grid-cols-2 gap-4">
         <div className="flex flex-col gap-1">

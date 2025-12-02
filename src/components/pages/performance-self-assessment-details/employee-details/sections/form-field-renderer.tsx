@@ -3,7 +3,7 @@ import { CheckboxForm } from "@/components/ui/checkbox-form";
 import { TextAreaForm } from "@/components/ui/textarea";
 import { InputForm } from "@/components/ui/input";
 import RadioCard from "@/components/ui/radio-card";
-import { FormField } from "../type";
+import { FormField } from "@/components/pages/settings-form-template-details/type";
 
 export const FormFieldRenderer = React.memo(function FormFieldRenderer({
   field,

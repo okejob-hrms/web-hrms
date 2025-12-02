@@ -35,16 +35,14 @@ export function Tab({ employeeDetails }: Props) {
     {
       name: "Self Assessment",
       value: "self-assessment",
-      content: (
-        <SelfAssessment data={employeeDetails.self_assessment?.data?.groups} />
-      ),
+      content: <SelfAssessment data={employeeDetails.self_assessment} />,
     },
     {
       name: "Assessment Validation",
       value: "assessment-validation",
       content: (
         <AssessmentValidation
-          data={employeeDetails.self_assessment_validation?.data?.groups}
+          data={employeeDetails.self_assessment_validation}
         />
       ),
     },

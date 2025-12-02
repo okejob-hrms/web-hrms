@@ -52,12 +52,14 @@ export const getFields = async (
   }
 };
 
-export const getFieldsByGroup = async (): Promise<
-  PaginatedResponse<IFormGroup>
-> => {
+export const getFieldsByGroup = async (
+  group_id: number,
+): Promise<PaginatedResponse<IFormGroup>> => {
   try {
-    const response =
-      await api.get<PaginatedResponse<IFormGroup>>(`form/field/group`);
+    const response = await api.get<PaginatedResponse<IFormGroup>>(
+      `form/field/group`,
+      { body: JSON.stringify({ group_id }) },
+    );
     return response.json();
   } catch (error: any) {
     if (error.name === "HTTPError") {

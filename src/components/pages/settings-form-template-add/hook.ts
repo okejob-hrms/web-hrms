@@ -7,7 +7,6 @@ import {
   postAddField,
   getFormById,
   postUpdateForm,
-  getFieldsByGroup,
 } from "@/services/form";
 import {
   IFormTemplate,
@@ -116,15 +115,6 @@ export function useFormTemplateAdd({
   } = useQuery<PaginatedResponse<IFormTemplate>>({
     queryKey: ["form"],
     queryFn: getAllForm,
-  });
-
-  const {
-    data: formGroupsData,
-    isLoading: isFormGroupsLoading,
-    error: formGroupsError,
-  } = useQuery<PaginatedResponse<IFormGroup>>({
-    queryKey: ["form-group"],
-    queryFn: getFieldsByGroup,
   });
 
   const { data: editFormData, isLoading: isEditFormLoading } = useQuery({

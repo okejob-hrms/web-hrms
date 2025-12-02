@@ -6,10 +6,14 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Edit } from "lucide-react";
 import * as React from "react";
 import { AssessmentForm } from "./assessment-form";
-import { IAssessmentGroup } from "@/services/employees/self-assessment/types";
+import {
+  IAssessmentGroup,
+  IAssessmentSubmission,
+} from "@/services/employees/self-assessment/types";
+import { FormProvider, useForm } from "react-hook-form";
 
 interface SelfAssessmentProps {
-  data?: IAssessmentGroup[];
+  data?: IAssessmentSubmission;
 }
 
 const columns: ColumnDef<IAssessmentGroup>[] = [
@@ -30,24 +34,15 @@ const columns: ColumnDef<IAssessmentGroup>[] = [
       </div>
     ),
   },
-  // {
-  //   accessorKey: "status",
-  //   header: () => <div className="text-center">Status</div>,
-  //   cell: ({ row }) => {
-  //     const status = row.original.status || "Baik";
-  //     return (
-  //       <div className="flex justify-center">
-  //         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-green-50 text-green-700">
-  //           <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
-  //           {status}
-  //         </span>
-  //       </div>
-  //     );
-  //   },
-  // },
 ];
 
 export const SelfAssessment = ({ data }: SelfAssessmentProps) => {
+  const form = useForm({
+    defaultValues: {
+      fields: data?.data?.fields || [],
+    },
+  });
+
   return (
     <div className="py-4 flex flex-col gap-4">
       <h3 className="font-semibold text-lg text-black">
@@ -55,12 +50,15 @@ export const SelfAssessment = ({ data }: SelfAssessmentProps) => {
       </h3>
       <DataTable
         columns={columns}
-        data={data || []}
+        data={data?.data?.groups || []}
         tableFooter={
           <TableRow className="bg-primary-background py-4 px-6">
-            <TableCell className="text-right">Total Score</TableCell>
-            <TableCell>-</TableCell>
-            <TableCell>-</TableCell>
+            <TableCell className="text-right text-text-secondary font-semibold">
+              Total Score
+            </TableCell>
+            <TableCell className="font-semibold text-primary">
+              {data?.data?.total_score || "0"}
+            </TableCell>
           </TableRow>
         }
       />
@@ -68,11 +66,17 @@ export const SelfAssessment = ({ data }: SelfAssessmentProps) => {
         <h3 className="font-semibold text-lg text-black">
           Self Assessment Details
         </h3>
-        <Button variant="ghost" className="text-primary font-semibold">
-          <Edit /> Edit
-        </Button>
       </div>
-      <AssessmentForm />
+
+      <FormProvider {...form}>
+        <form onSubmit={form.handleSubmit(() => {})}>
+          <AssessmentForm
+            fields={data?.data?.fields}
+            groups={data?.data?.groups}
+            formId={data?.form_id || 0}
+          />
+        </form>
+      </FormProvider>
     </div>
   );
 };

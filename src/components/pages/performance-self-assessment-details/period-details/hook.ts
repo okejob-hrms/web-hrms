@@ -31,11 +31,16 @@ export const useSelfAssessmentPeriodDetails = () => {
     router.push(`/performance/self-assessment/${id}/${employeeId}`);
   };
 
+  const handleEdit = () => {
+    router.push(`/performance/self-assessment/${id}/edit`);
+  };
+
   return {
     assessmentDetails: assessmentDetails?.data,
     isLoading,
     isError,
     error,
     handleViewEmployee,
+    handleEdit,
   };
 };

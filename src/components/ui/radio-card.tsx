@@ -4,31 +4,38 @@ import * as React from "react";
 
 interface Props {
   disabled?: boolean;
+  min?: number;
+  max?: number;
 }
 
-const options = [
-  {
-    value: "1",
-    label: "1",
-  },
-  {
-    value: "2",
-    label: "2",
-  },
-  {
-    value: "3",
-    label: "3",
-  },
-  {
-    value: "4",
-    label: "4",
-  },
-  {
-    value: "5",
-    label: "5",
-  },
-];
-const RadioCard = ({ disabled }: Props) => {
+// const options = [
+//   {
+//     value: "1",
+//     label: "1",
+//   },
+//   {
+//     value: "2",
+//     label: "2",
+//   },
+//   {
+//     value: "3",
+//     label: "3",
+//   },
+//   {
+//     value: "4",
+//     label: "4",
+//   },
+//   {
+//     value: "5",
+//     label: "5",
+//   },
+// ];
+const RadioCard = ({ disabled, min = 1, max = 5 }: Props) => {
+  const options = Array.from({ length: max - min + 1 }, (_, i) => ({
+    value: (min + i).toString(),
+    label: (min + i).toString(),
+  }));
+
   return (
     <RadioGroupPrimitive.Root
       defaultValue={options[0].value}

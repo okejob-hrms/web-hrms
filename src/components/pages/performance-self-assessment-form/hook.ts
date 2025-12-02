@@ -6,10 +6,14 @@ import { getEmployees } from "@/services/employees";
 import { getAllForm } from "@/services/form";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { PaginationState } from "@tanstack/react-table";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import * as React from "react";
 import { useForm } from "react-hook-form";
-import { createSelfAssessment } from "@/services/employees/self-assessment";
+import {
+  createSelfAssessment,
+  getDetailSelfAssessment,
+  updateSelfAssessment,
+} from "@/services/employees/self-assessment";
 import { toast } from "sonner";
 
 export interface Filters {
@@ -24,6 +28,7 @@ export interface AssessmentFormItem {
 
 export const usePerformanceSelfAssessmentForm = () => {
   const router = useRouter();
+  const params = useParams();
   const form = useForm();
   const [assessmentForms, setAssessmentForms] = React.useState<
     AssessmentFormItem[]
@@ -31,6 +36,9 @@ export const usePerformanceSelfAssessmentForm = () => {
   const [currentFormIndex, setCurrentFormIndex] = React.useState<number | null>(
     null,
   );
+
+  const periodId = params?.period ? Number(params.period) : null;
+  const isEditMode = periodId !== null;
 
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: 0,
@@ -56,6 +64,15 @@ export const usePerformanceSelfAssessmentForm = () => {
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
+  });
+
+  const { data: details, isLoading: isLoadingDetails } = useQuery({
+    queryKey: ["self-assessment-detail", periodId],
+    queryFn: () => getDetailSelfAssessment(periodId!),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    enabled: isEditMode,
   });
 
   const { data: assessmentForm } = useQuery({
@@ -117,12 +134,6 @@ export const usePerformanceSelfAssessmentForm = () => {
     { label: "Q4", value: "Q4" },
   ];
 
-  const yearOptions = [
-    { label: "2025", value: "2025" },
-    { label: "2026", value: "2026" },
-    { label: "2027", value: "2027" },
-  ];
-
   const sendReminderOptions = [
     { label: "1 Week After Start", value: "1_week_after_start" },
     { label: "1 Days Before End", value: "1_days_before_end" },
@@ -157,10 +168,74 @@ export const usePerformanceSelfAssessmentForm = () => {
       },
     });
 
+  const { mutate: updateAssessment, isPending: isPendingUpdateAssessment } =
+    useMutation({
+      mutationFn: (params: any) => updateSelfAssessment(periodId!, params),
+      onSuccess: () => {
+        toast.success("Self-assessment updated successfully!");
+        router.push("/performance/self-assessment");
+      },
+      onError: (error: any) => {
+        toast.error(error?.message || "Failed to update self-assessment");
+      },
+    });
+
+  React.useEffect(() => {
+    if (isEditMode && details?.data) {
+      const assessment = details.data.assessment;
+      const employees = details.data.employees;
+
+      const normalizedPeriod = assessment.assessment_period.toUpperCase();
+      const matchedPeriod = periodOptions.find(
+        (p) => p.value === normalizedPeriod,
+      );
+      form.setValue(
+        "period",
+        matchedPeriod ? matchedPeriod.value : assessment.assessment_period,
+      );
+      form.setValue("year", assessment.year);
+      form.setValue("start_date", assessment.start_date);
+      form.setValue("end_date", assessment.end_date);
+
+      const formGroups = employees.reduce((acc: any, employee: any) => {
+        const formName = employee.form_name;
+        if (!acc[formName]) {
+          acc[formName] = {
+            formId: null,
+            participants: [],
+          };
+        }
+        acc[formName].participants.push(employee.id.toString());
+        return acc;
+      }, {});
+
+      const reconstructedForms = Object.entries(formGroups).map(
+        ([formName, data]: [string, any], index) => {
+          const matchingForm = assessmentForm?.data?.find(
+            (f) => f.name === formName,
+          );
+          const formId = matchingForm?.id.toString() || "";
+
+          if (formId) {
+            form.setValue(`assessment_form_${index + 1}`, formId);
+          }
+
+          return {
+            id: `${index + 1}`,
+            formId,
+            selectedParticipants: data.participants,
+          };
+        },
+      );
+
+      if (reconstructedForms.length > 0) {
+        setAssessmentForms(reconstructedForms);
+      }
+    }
+  }, [isEditMode, details, form, assessmentForm]);
+
   const handleSubmit = React.useCallback(() => {
     const formValues = form.getValues();
-
-    // Validate required fields
     if (
       !formValues.period ||
       !formValues.year ||
@@ -170,8 +245,6 @@ export const usePerformanceSelfAssessmentForm = () => {
       toast.error("Please fill in all required fields");
       return;
     }
-
-    // Validate that at least one assessment form is selected with participants
     const hasValidAssessmentForm = assessmentForms.some((item, index) => {
       const formId = formValues[`assessment_form_${item.id}`];
       return formId && item.selectedParticipants.length > 0;
@@ -184,7 +257,6 @@ export const usePerformanceSelfAssessmentForm = () => {
       return;
     }
 
-    // Transform data to match API format
     const forms = assessmentForms
       .filter((item, index) => {
         const formId = formValues[`assessment_form_${item.id}`];
@@ -203,15 +275,18 @@ export const usePerformanceSelfAssessmentForm = () => {
       forms,
     };
 
-    createAssessment(payload);
-  }, [form, assessmentForms, createAssessment]);
+    if (isEditMode) {
+      updateAssessment(payload);
+    } else {
+      createAssessment(payload);
+    }
+  }, [form, assessmentForms, createAssessment, updateAssessment, isEditMode]);
 
   const handleCancel = () => router.push("/performance/self-assessment");
 
   return {
     form,
     periodOptions,
-    yearOptions,
     sendReminderOptions,
     assessmentFormOptions,
     isParticipantModalOpen,
@@ -231,6 +306,8 @@ export const usePerformanceSelfAssessmentForm = () => {
     totalSelectedParticipants,
     totalEmployees: employees?.data.total,
     handleSubmit,
-    isPendingAddAssessment,
+    isPendingAddAssessment: isPendingAddAssessment || isPendingUpdateAssessment,
+    isEditMode,
+    isLoadingDetails,
   };
 };
