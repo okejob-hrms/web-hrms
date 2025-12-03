@@ -36,15 +36,18 @@ import { ComboboxForm } from "@/components/ui/combobox";
 import { Label } from "@/components/ui/label";
 import { ApiErrorResponse } from "@/lib/types";
 import { getBranches } from "@/services/settings";
+import { IJobLevelForm } from "@/services/job-levels/types";
 
 export const AddNewJobLevelModal: React.FC = () => {
   const [open, setOpen] = React.useState(false);
   const [name, setName] = React.useState("");
-  const [error, setError] = React.useState("");
+  const [level, setLevel] = React.useState("");
+  const [errorName, setErrorName] = React.useState("");
+  const [errorLevel, setErrorLevel] = React.useState("");
   const queryClient = useQueryClient();
 
   const addJobLevel = useMutation({
-    mutationFn: (values: IPositionForm) => postJobLevel(values),
+    mutationFn: (values: IJobLevelForm) => postJobLevel(values),
     onSuccess: () => {
       toast.success("Job level added successfully!");
       queryClient.invalidateQueries({ queryKey: ["job_level_id"] });
@@ -57,17 +60,14 @@ export const AddNewJobLevelModal: React.FC = () => {
             .json()
             .then((errorData: ApiErrorResponse) => {
               toast.error(errorData.message || "Failed to add new job level");
-              setError(errorData.message || "Failed to add new job level");
             })
             .catch(() => {
               toast.error("Failed to add new job level: Server error");
-              setError("Failed to add new job level: Server error");
             });
         } catch (parseError) {
           toast.error(
             "Failed to add new job level: Server error : " + parseError,
           );
-          setError("Failed to add new job level: Server error : " + parseError);
         }
       } else {
         toast.error(
@@ -78,20 +78,28 @@ export const AddNewJobLevelModal: React.FC = () => {
   });
 
   const handleSubmit = () => {
-    setError("");
+    setErrorName("");
+    setErrorLevel("");
 
     if (!name) {
-      setError("Job level is required");
+      setErrorName("Job level is required");
       return;
     }
 
-    addJobLevel.mutate({ name: name, status: "1" });
+    if (!level) {
+      setErrorLevel("Level is required");
+      return;
+    }
+
+    addJobLevel.mutate({ name: name, level: Number(level) });
   };
 
   const handleClose = () => {
     setOpen(false);
     setName("");
-    setError("");
+    setLevel("");
+    setErrorName("");
+    setErrorLevel("");
     addJobLevel.reset();
   };
 
@@ -124,7 +132,23 @@ export const AddNewJobLevelModal: React.FC = () => {
               onChange={(e) => setName(e.target.value)}
               disabled={addJobLevel.isPending}
             />
-            {error && <div className="text-error text-sm">{error}</div>}
+            {errorName && <div className="text-error text-sm">{errorName}</div>}
+            <div className="flex">
+              <Label htmlFor="job-level-level" className="text-sm font-normal">
+                Level
+              </Label>
+              <span className="text-error">*</span>
+            </div>
+            <Input
+              id="job-level-level"
+              placeholder="Level"
+              value={level}
+              onChange={(e) => setLevel(e.target.value)}
+              disabled={addJobLevel.isPending}
+            />
+            {errorLevel && (
+              <div className="text-error text-sm">{errorLevel}</div>
+            )}
           </div>
 
           <DialogFooter>
@@ -651,7 +675,7 @@ export const EmployeeinformationSection = React.memo(
         queryFn: () =>
           getEmployees({
             per_page: 100,
-            job_level_ids: watchedJobLevelId ? [watchedJobLevelId] : undefined,
+            min_job_level_id: watchedJobLevelId ? watchedJobLevelId : undefined,
           }),
         staleTime: 5 * 60 * 1000,
         gcTime: 10 * 60 * 1000,

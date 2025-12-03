@@ -46,6 +46,7 @@ export default function JobLevelModal({
     mode: "onChange", // validate on change so Save button can disable live
     defaultValues: {
       name: "",
+      level: 1,
     },
   });
 
@@ -53,10 +54,12 @@ export default function JobLevelModal({
     if (initialData) {
       form.reset({
         name: initialData.name,
+        level: initialData.level,
       });
     } else {
       form.reset({
         name: "",
+        level: 1,
       });
     }
   }, [initialData, form]);
@@ -65,6 +68,7 @@ export default function JobLevelModal({
     handleSave(data);
     form.reset({
       name: "",
+      level: 1,
     });
   };
 
@@ -92,6 +96,26 @@ export default function JobLevelModal({
                   </FormLabel>
                   <Input placeholder="Enter Job Level" {...field} />
                   <FormMessage /> {/* shows inline error */}
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="level"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Level <span className="text-red-500">*</span>
+                  </FormLabel>
+                  <Input
+                    type="number"
+                    placeholder="Enter Level"
+                    value={field.value}
+                    onChange={(e) => field.onChange(Number(e.target.value))}
+                    onBlur={field.onBlur}
+                    name={field.name}
+                  />
+                  <FormMessage />
                 </FormItem>
               )}
             />

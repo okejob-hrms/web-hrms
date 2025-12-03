@@ -282,17 +282,6 @@ export const SupervisorAssessmentResult: React.FC<
               {mockAssessmentProps.assessmentName}
             </p>
           </div>
-          {onEdit && (
-            <Button
-              onClick={onEdit}
-              variant="ghost"
-              size="sm"
-              className="text-primary"
-            >
-              <Edit className="w-4 h-4 mr-2" />
-              Edit
-            </Button>
-          )}
         </div>
       </div>
 
@@ -301,9 +290,6 @@ export const SupervisorAssessmentResult: React.FC<
         <h3 className="font-semibold text-lg text-black">
           Supervisor Assessment Details
         </h3>
-        <Button variant="ghost" className="text-primary font-semibold">
-          <Edit /> Edit
-        </Button>
       </div>
 
       {categories.map((category) => (
