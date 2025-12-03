@@ -249,7 +249,6 @@ export const SelfAssessmentPeriodDetails = () => {
 
   const { assessment, summary, employees } = assessmentDetails;
 
-
   return (
     <div className="font-sans md:px-[125px] px-4 space-y-4">
       <div className="flex gap-2 items-center">
