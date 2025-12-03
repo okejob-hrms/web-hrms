@@ -19,6 +19,7 @@ interface Params {
   end_date?: string | null;
   page?: number;
   per_page?: number;
+  min_job_level_id?: number;
 }
 
 export const getEmployees = (
