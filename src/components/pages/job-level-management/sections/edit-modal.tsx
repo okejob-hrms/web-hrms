@@ -21,13 +21,12 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { IDepartment } from "@/lib/types";
-import { IJobLevelForm, jobLevelFormScheme } from "@/services/job-levels/types";
+import { IJobLevelForm, JobLevel, jobLevelFormScheme } from "@/services/job-levels/types";
 
 interface JobLevelModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  initialData: IDepartment | null;
+  initialData: JobLevel | null;
   handleSave: (data: IJobLevelForm) => void;
   handleClose: () => void;
   isLoading?: boolean;

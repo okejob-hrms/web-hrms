@@ -219,17 +219,12 @@ export const SelfAssessmentPeriodDetails = () => {
 
   const isMobile = useIsMobile();
 
-  if (isLoading) {
-    return <AppSkeleton />;
-  }
-
-  if (isError || !assessmentDetails) {
-    return <div>Assessment not found</div>;
-  }
-
-  const { assessment, summary, employees } = assessmentDetails;
-
   const filteredEmployees = React.useMemo(() => {
+    const employees = assessmentDetails?.employees;
+    if (!employees) {
+      return [];
+    }
+
     if (!searchQuery.trim()) {
       return employees;
     }
@@ -242,7 +237,18 @@ export const SelfAssessmentPeriodDetails = () => {
         employee.form_name?.toLowerCase().includes(lowerCaseQuery)
       );
     });
-  }, [employees, searchQuery]);
+  }, [assessmentDetails?.employees, searchQuery]);
+
+  if (isLoading) {
+    return <AppSkeleton />;
+  }
+
+  if (isError || !assessmentDetails) {
+    return <div>Assessment not found</div>;
+  }
+
+  const { assessment, summary, employees } = assessmentDetails;
+
 
   return (
     <div className="font-sans md:px-[125px] px-4 space-y-4">
