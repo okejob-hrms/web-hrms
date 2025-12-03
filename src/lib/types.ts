@@ -56,6 +56,7 @@ export interface IEmployee {
 export interface IDepartment {
   id: number;
   name: string;
+  level: number;
   description?: string | null;
   created_at: string;
   updated_at: string;
