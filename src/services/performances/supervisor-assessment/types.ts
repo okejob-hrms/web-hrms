@@ -24,36 +24,61 @@ export interface IPosition {
 export interface ILevel {
   id: number;
   name: string;
-  description: string;
+  description: string | null;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
+  level: number;
+}
+
+export interface IDepartment {
+  id: number;
+  name: string;
 }
 
 export interface ISchedule {
   id: number;
-  supervisor_assessment_id: number;
   date: string;
   start_time: string;
   end_time: string;
-  participants: {
-    user_id: number;
-  }[];
-  updated_at: string;
-  created_at: string;
+  participants: IUser[];
   notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface IAssessor {
+  id: number;
+  supervisor_assessment_id: number;
+  user_id: number;
+  score: number | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+  status: number;
+  status_label: string;
+}
+
+export interface IForm {
+  id: number;
+  name: string;
 }
 
 export interface ISupervisorAssessmentResponse {
   id: number;
   user: IUser;
+  employee_start_date: string;
   current_position: IPosition;
   current_level: ILevel;
+  current_department: IDepartment;
   target_position: IPosition;
   target_level: ILevel;
   status: number;
   status_label: string;
   schedule: ISchedule | null;
+  assessors: IAssessor[];
+  form: IForm;
+  final_submission: string | null;
   created_at: string;
   updated_at: string;
 }

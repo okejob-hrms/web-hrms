@@ -18,11 +18,7 @@ export const SupervisorAssessmentTab = React.memo(
       {
         name: "Performance Assessment",
         value: "performance-assessment",
-        children: (
-          <SupervisorAssessmentResult
-            onEdit={() => console.log("Edit clicked")}
-          />
-        ),
+        children: <SupervisorAssessmentResult id={id} />,
       },
     ];
     return (
