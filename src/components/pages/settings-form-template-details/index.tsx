@@ -111,7 +111,7 @@ export const SettingsFormTemplateDetails = React.memo(
                 <p className="text-text-secondary text-base font-normal">
                   Start building your first form now
                 </p>
-                <Button type="button" onClick={addQuestion}>
+                <Button type="button" onClick={handleEdit}>
                   <Plus /> Add Question
                 </Button>
               </div>
