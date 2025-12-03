@@ -92,7 +92,7 @@ export const ParticipantListModal = React.memo(function ParticipantListModal({
   const handleSelectAll = (checked: boolean | "indeterminate") => {
     if (checked === true) {
       const allIds =
-        allEmployees?.data?.data?.map((emp) => emp.id.toString()) || [];
+        allEmployees?.data?.data?.map((emp) => emp.user_id.toString()) || [];
       setSelectedRows(new Set(allIds));
     } else {
       setSelectedRows(new Set());
@@ -118,11 +118,11 @@ export const ParticipantListModal = React.memo(function ParticipantListModal({
       header: ({ table }) => {
         const totalEmployeeCount = allEmployees?.data?.total || 0;
         const allEmployeeIds =
-          allEmployees?.data?.data?.map((emp) => emp.id.toString()) || [];
+          allEmployees?.data?.data?.map((emp) => emp.user_id.toString()) || [];
         const isAllSelected =
           totalEmployeeCount > 0 &&
           allEmployeeIds.length > 0 &&
-          allEmployeeIds.every((id) => selectedRows.has(id));
+          allEmployeeIds.every((user_id) => selectedRows.has(user_id));
         const isSomeSelected = selectedRows.size > 0 && !isAllSelected;
 
         return (
@@ -137,9 +137,12 @@ export const ParticipantListModal = React.memo(function ParticipantListModal({
       size: 5,
       cell: ({ row }) => (
         <Checkbox
-          checked={selectedRows.has(row.original.id.toString())}
+          checked={selectedRows.has(row.original.user_id.toString())}
           onCheckedChange={(checked) =>
-            handleRowSelection(row.original.id.toString(), checked as boolean)
+            handleRowSelection(
+              row.original.user_id.toString(),
+              checked as boolean,
+            )
           }
         />
       ),

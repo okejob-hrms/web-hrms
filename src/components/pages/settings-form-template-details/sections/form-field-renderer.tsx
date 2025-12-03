@@ -46,6 +46,7 @@ export const FormFieldRenderer = React.memo(function FormFieldRenderer({
                 disabled
                 max={field.options.max}
                 min={field.options.min}
+                value={undefined}
               />
             )}
           </div>

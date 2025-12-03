@@ -169,7 +169,7 @@ export const SupervisorAssessmentResult: React.FC<
         </h3>
       </div>
 
-      {groups ? (
+      {groups && groups.length > 0 ? (
         groups.map((group) => <CategoryDetails key={group.id} group={group} />)
       ) : (
         <p className="text-center font-semibold text-primary">

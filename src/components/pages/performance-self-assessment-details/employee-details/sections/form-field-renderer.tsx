@@ -4,12 +4,34 @@ import { TextAreaForm } from "@/components/ui/textarea";
 import { InputForm } from "@/components/ui/input";
 import RadioCard from "@/components/ui/radio-card";
 import { FormField } from "@/components/pages/settings-form-template-details/type";
+import { IAssessmentField } from "@/services/employees/self-assessment/types";
+import { useFormContext } from "react-hook-form";
 
 export const FormFieldRenderer = React.memo(function FormFieldRenderer({
   field,
+  value,
 }: {
   field: FormField;
+  value?: IAssessmentField;
 }) {
+  const { setValue } = useFormContext();
+
+  React.useEffect(() => {
+    if (value) {
+      if (field.type === "checkbox") {
+        const selectedValues = value.value ? value.value.split(",").map(v => v.trim()) : [];
+        
+        if (Array.isArray(field.options)) {
+          field.options.forEach((option: string) => {
+            setValue(option, selectedValues.includes(option));
+          });
+        }
+      } else {
+        setValue(field.form_id.toString(), value.value || "");
+      }
+    }
+  }, [value, field, setValue]);
+
   const renderField = () => {
     switch (field.type) {
       case "checkbox":
@@ -46,6 +68,7 @@ export const FormFieldRenderer = React.memo(function FormFieldRenderer({
                 disabled
                 max={field.options.max}
                 min={field.options.min}
+                value={value?.value}
               />
             )}
           </div>
@@ -57,6 +80,7 @@ export const FormFieldRenderer = React.memo(function FormFieldRenderer({
             name={field.form_id.toString()}
             className="mt-2"
             disabled
+            value={value?.value}
           />
         );
     }

@@ -6,6 +6,7 @@ interface Props {
   disabled?: boolean;
   min?: number;
   max?: number;
+  value?: string;
 }
 
 // const options = [
@@ -30,7 +31,7 @@ interface Props {
 //     label: "5",
 //   },
 // ];
-const RadioCard = ({ disabled, min = 1, max = 5 }: Props) => {
+const RadioCard = ({ disabled, min = 1, max = 5, value }: Props) => {
   const options = Array.from({ length: max - min + 1 }, (_, i) => ({
     value: (min + i).toString(),
     label: (min + i).toString(),
@@ -38,8 +39,8 @@ const RadioCard = ({ disabled, min = 1, max = 5 }: Props) => {
 
   return (
     <RadioGroupPrimitive.Root
-      defaultValue={options[0].value}
       className="w-full grid grid-cols-5 gap-3"
+      value={value}
     >
       {options.map((option) => (
         <RadioGroupPrimitive.Item

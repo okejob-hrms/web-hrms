@@ -8,6 +8,7 @@ import { FormFieldRenderer } from "./sections/form-field-renderer";
 import { FormField } from "./type";
 import { useFormTemplateDetails } from "./hook";
 import FormDeleteModal from "../settings-form-template-list/sections/delete-modal";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface SettingsFormTemplateDetailsProps {
   editFormId?: number;
@@ -25,6 +26,7 @@ export const SettingsFormTemplateDetails = React.memo(
       handleSubmit,
       form,
       isLoading,
+      isFormsLoading,
       isEditMode,
       openConfirm,
       setOpenConfirm,
@@ -55,12 +57,12 @@ export const SettingsFormTemplateDetails = React.memo(
       });
     }, [append, fields.length]);
 
-    const updateQuestionType = React.useCallback(
-      (index: number, type: string) => {
-        form.setValue(`questions.${index}.type`, type);
-      },
-      [form],
-    );
+    // const updateQuestionType = React.useCallback(
+    //   (index: number, type: string) => {
+    //     form.setValue(`questions.${index}.type`, type);
+    //   },
+    //   [form],
+    // );
 
     const handleConfirmSubmit = React.useCallback(async () => {
       const isValid = await form.trigger();
@@ -75,12 +77,16 @@ export const SettingsFormTemplateDetails = React.memo(
 
     const hasQuestions = fields.length > 0;
 
-    const onTypeChange = (index: number, type: string) => {
-      if (type === "checkbox" && !form.watch(`questions.${index}.options`)) {
-        form.setValue(`questions.${index}.options`, []);
-      }
-      updateQuestionType(index, type);
-    };
+    // const onTypeChange = (index: number, type: string) => {
+    //   if (type === "checkbox" && !form.watch(`questions.${index}.options`)) {
+    //     form.setValue(`questions.${index}.options`, []);
+    //   }
+    //   updateQuestionType(index, type);
+    // };
+
+    if (isFormsLoading) {
+      return <Skeleton />;
+    }
 
     return (
       <div className="font-sans md:px-[125px] px-4 space-y-4">
@@ -97,7 +103,7 @@ export const SettingsFormTemplateDetails = React.memo(
             </div>
             <hr className="col-span-2" />
 
-            {!hasQuestions ? (
+            {!hasQuestions && formData?.groups?.length === 0 ? (
               <div className="col-span-2 p-4 rounded-sm bg-primary-background border border-primary-border flex flex-col items-center justify-center gap-2">
                 <p className="text-primary font-bold text-lg">
                   Nothing here yet
@@ -110,12 +116,22 @@ export const SettingsFormTemplateDetails = React.memo(
                 </Button>
               </div>
             ) : (
-              <div className="col-span-2 flex flex-col gap-2 items-center w-full">
-                {formData?.groups[0]?.fields?.map((field: FormField) => (
-                  <FormFieldRenderer
-                    key={`${field.id}-${field.label}`}
-                    field={field}
-                  />
+              <div className="col-span-2 flex flex-col gap-4 items-center w-full">
+                {formData?.groups.map((group) => (
+                  <div
+                    className="w-full flex flex-col gap-2"
+                    key={`${group.id}-${group.name}`}
+                  >
+                    <p className="text-black font-semibold">{group.name}</p>
+                    <div className="flex flex-col gap-2">
+                      {group.fields.map((field) => (
+                        <FormFieldRenderer
+                          key={`${field.id}-${field.label}`}
+                          field={field}
+                        />
+                      ))}
+                    </div>
+                  </div>
                 ))}
               </div>
             )}

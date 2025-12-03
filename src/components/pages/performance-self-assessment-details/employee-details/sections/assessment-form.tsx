@@ -153,6 +153,7 @@ export const AssessmentForm: React.FC<AssessmentFormProps> = ({
                                 ...field,
                                 form_id: field.form_id,
                               }}
+                              value={assessmentValue}
                             />
                           );
                         })
