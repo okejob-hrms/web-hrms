@@ -19,6 +19,7 @@ interface Params {
   end_date?: string | null;
   page?: number;
   per_page?: number;
+  min_job_level_id?: number;
 }
 
 export const getEmployees = (
@@ -54,6 +55,7 @@ export const getEmployees = (
     encodeValuesOnly: true,
     arrayFormat: "brackets",
   });
+  console.log(queryString);
   const response = api.get<ApiResponse<PaginatedResponse<IEmployeeResponse>>>(
     `employees${queryString ? `?${queryString}` : ""}`,
   );

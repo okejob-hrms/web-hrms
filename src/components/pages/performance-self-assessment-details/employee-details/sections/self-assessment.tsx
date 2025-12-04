@@ -6,45 +6,45 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Edit } from "lucide-react";
 import * as React from "react";
 import { AssessmentForm } from "./assessment-form";
+import {
+  IAssessmentGroup,
+  IAssessmentSubmission,
+} from "@/services/employees/self-assessment/types";
+import { FormProvider, useForm } from "react-hook-form";
 
-const columns: ColumnDef<any>[] = [
-  {
-    accessorKey: "category",
-    header: "Category",
-    cell: ({ row }) => (
-      <div className="font-normal text-gray-900">
-        {row.original.category || row.original.period}
-      </div>
-    ),
-  },
-  {
-    accessorKey: "score",
-    header: () => <div className="text-center">Score</div>,
-    cell: ({ row }) => (
-      <div className="text-center text-gray-900">
-        {row.original.score || "4"}
-        <span className="text-gray-500">/5</span>
-      </div>
-    ),
-  },
-  {
-    accessorKey: "status",
-    header: () => <div className="text-center">Status</div>,
-    cell: ({ row }) => {
-      const status = row.original.status || "Baik";
-      return (
-        <div className="flex justify-center">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-green-50 text-green-700">
-            <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
-            {status}
+interface SelfAssessmentProps {
+  data?: IAssessmentSubmission;
+}
+
+export const SelfAssessment = ({ data }: SelfAssessmentProps) => {
+  const form = useForm({
+    defaultValues: {
+      fields: data?.data?.fields || [],
+    },
+  });
+
+  const columns: ColumnDef<IAssessmentGroup>[] = [
+    {
+      accessorKey: "name",
+      header: "Category",
+      cell: ({ row }) => (
+        <div className="font-normal text-gray-900">{row.original.name}</div>
+      ),
+    },
+    {
+      accessorKey: "score",
+      header: "Score",
+      cell: ({ row }) => (
+        <div className="text-gray-900 w-full">
+          {row.original.score || "0"}
+          <span className="text-gray-500">
+            /{data?.data?.total_score || "0"}
           </span>
         </div>
-      );
+      ),
     },
-  },
-];
+  ];
 
-export const SelfAssessment = () => {
   return (
     <div className="py-4 flex flex-col gap-4">
       <h3 className="font-semibold text-lg text-black">
@@ -52,12 +52,15 @@ export const SelfAssessment = () => {
       </h3>
       <DataTable
         columns={columns}
-        data={[]}
+        data={data?.data?.groups || []}
         tableFooter={
           <TableRow className="bg-primary-background py-4 px-6">
-            <TableCell className="text-right">Total Score</TableCell>
-            <TableCell>-</TableCell>
-            <TableCell>-</TableCell>
+            <TableCell className="text-right text-text-secondary font-semibold">
+              Total Score
+            </TableCell>
+            <TableCell className="font-semibold text-primary">
+              {data?.data?.total_score || "0"}
+            </TableCell>
           </TableRow>
         }
       />
@@ -65,11 +68,17 @@ export const SelfAssessment = () => {
         <h3 className="font-semibold text-lg text-black">
           Self Assessment Details
         </h3>
-        <Button variant="ghost" className="text-primary font-semibold">
-          <Edit /> Edit
-        </Button>
       </div>
-      <AssessmentForm />
+
+      <FormProvider {...form}>
+        <form onSubmit={form.handleSubmit(() => {})}>
+          <AssessmentForm
+            fields={data?.data?.fields}
+            groups={data?.data?.groups}
+            formId={data?.form_id || 0}
+          />
+        </form>
+      </FormProvider>
     </div>
   );
 };

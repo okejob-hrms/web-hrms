@@ -196,6 +196,7 @@ type BadgeVariant = "default" | "secondary" | "destructive" | "outline";
 interface StatusConfig {
   variant: BadgeVariant;
   className?: string;
+  circleClassName?: string;
   label: string;
 }
 
@@ -392,4 +393,55 @@ export function formatDateRange(startDate: string, endDate: string): string {
 
   // Different years → "Dec 30, 2025 - Jan 2, 2026"
   return `${start.format("MMM D, YYYY")} - ${end.format("MMM D, YYYY")}`;
+}
+
+export function getStatusEmployeeAssessment(status: string): StatusConfig {
+  let variant: BadgeVariant = "default";
+  let className = "";
+  let circleClassName = "";
+
+  switch (status) {
+    case "Not Started":
+      variant = "secondary";
+      className = "bg-error-focused text-error-hover";
+      circleClassName = "bg-error-hover";
+      break;
+    case "In Progress":
+      variant = "secondary";
+      className = "bg-success-focused text-success-hover";
+      circleClassName = "bg-success-hover";
+      break;
+    case "Completed":
+      variant = "secondary";
+      className = "bg-primary-focused text-primary-hover";
+      circleClassName = "bg-primary-hover";
+      break;
+  }
+
+  return { variant, className, circleClassName, label: status };
+}
+
+export function getStatusSelfAssessment(status: number): StatusConfig {
+  let variant: BadgeVariant = "default";
+  let className = "";
+  let label = "";
+
+  switch (status) {
+    case 1:
+      variant = "secondary";
+      className = "bg-success-focused text-success-hover";
+      label = "Active";
+      break;
+    case 2:
+      variant = "secondary";
+      className = "bg-primary-focused text-primary-hover";
+      label = "Completed";
+      break;
+    case 3:
+      variant = "destructive";
+      label = "Expired";
+      break;
+  }
+
+  return { variant, className, label };
 }

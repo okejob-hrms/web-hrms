@@ -1,241 +1,170 @@
-import React, { useState } from "react";
-import { ChevronDown, ChevronUp, Info } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import React, { useState, useEffect } from "react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-
-type SectionKey = "technical" | "workBehavior";
-
-type Rating = 1 | 2 | 3 | 4 | 5;
+import {
+  IAssessmentField,
+  IAssessmentGroup,
+} from "@/services/employees/self-assessment/types";
+import { getFormById } from "@/services/form";
+import { IFormGroup } from "@/services/form/types";
+import { FormFieldRenderer } from "./form-field-renderer";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface OpenSections {
   [key: string]: boolean;
 }
 
-interface Ratings {
-  [itemId: string]: Rating;
+interface AssessmentFormProps {
+  formId: number;
+  fields?: IAssessmentField[];
+  groups?: IAssessmentGroup[];
 }
 
-interface AssessmentItemProps {
-  id: string;
-  title: string;
-  description: string;
-  defaultRating?: Rating;
-  currentRating?: Rating;
-  onRatingChange: (itemId: string, rating: Rating) => void;
+interface GroupFieldsMap {
+  [groupId: number]: IFormGroup["fields"];
 }
 
-interface RatingButtonsProps {
-  itemId: string;
-  currentRating?: Rating;
-  onRatingChange: (itemId: string, rating: Rating) => void;
-}
-
-interface SectionData {
-  key: SectionKey;
-  title: string;
-  items: AssessmentItemData[];
-}
-
-interface AssessmentItemData {
-  id: string;
-  title: string;
-  description: string;
-  defaultRating?: Rating;
-}
-
-const RatingButtons: React.FC<RatingButtonsProps> = ({
-  itemId,
-  currentRating,
-  onRatingChange,
+export const AssessmentForm: React.FC<AssessmentFormProps> = ({
+  formId,
+  fields,
+  groups,
 }) => {
-  const ratings: Rating[] = [1, 2, 3, 4, 5];
+  const [openSections, setOpenSections] = useState<OpenSections>({});
+  const [groupFields, setGroupFields] = useState<GroupFieldsMap>({});
+  const [loading, setLoading] = useState<boolean>(true);
 
-  return (
-    <div className="flex gap-2">
-      {ratings.map((rating) => (
-        <button
-          key={rating}
-          onClick={() => onRatingChange(itemId, rating)}
-          className={`flex-1 py-2 px-4 rounded-md border transition-colors ${
-            currentRating === rating
-              ? "bg-[#0e6488] text-white border-[#0e6488]"
-              : "bg-white text-gray-400 border-gray-200 hover:border-gray-300"
-          }`}
-          type="button"
-        >
-          {rating}
-        </button>
-      ))}
-    </div>
-  );
-};
+  useEffect(() => {
+    if (groups && groups.length > 0) {
+      const initialOpenState = groups.reduce(
+        (acc, group) => ({
+          ...acc,
+          [group.field_group_id]: true,
+        }),
+        {},
+      );
+      setOpenSections(initialOpenState);
+    }
+  }, [groups]);
 
-const AssessmentItem: React.FC<AssessmentItemProps> = ({
-  id,
-  title,
-  description,
-  defaultRating,
-  currentRating,
-  onRatingChange,
-}) => {
-  return (
-    <div className="border border-gray-200 rounded-lg p-6 bg-white">
-      <h3 className="text-base font-semibold text-gray-900 mb-1">{title}</h3>
-      <p className="text-sm text-gray-600 mb-3">{description}</p>
-      <div className="flex items-center gap-2 mb-4">
-        <Info className="w-4 h-4 text-[#0e6488]" />
-        <button
-          className="text-sm text-[#0e6488] font-medium hover:underline"
-          type="button"
-        >
-          Deskripsi Penilaian
-        </button>
-      </div>
-      <RatingButtons
-        itemId={id}
-        currentRating={currentRating || defaultRating}
-        onRatingChange={onRatingChange}
-      />
-    </div>
-  );
-};
+  useEffect(() => {
+    const fetchFormData = async () => {
+      if (!formId || !groups || groups.length === 0) {
+        setLoading(false);
+        return;
+      }
 
-export const AssessmentForm: React.FC = () => {
-  const [openSections, setOpenSections] = useState<OpenSections>({
-    technical: true,
-    workBehavior: true,
-  });
+      try {
+        setLoading(true);
+        const response = await getFormById(formId);
 
-  const [ratings, setRatings] = useState<Ratings>({});
+        if (response.data && response.data.groups) {
+          const fieldsMap: GroupFieldsMap = {};
 
-  const toggleSection = (section: SectionKey): void => {
+          response.data.groups.forEach((group: IFormGroup) => {
+            const groupId = parseInt(group.id);
+            if (group.fields && Array.isArray(group.fields)) {
+              fieldsMap[groupId] = group.fields;
+            }
+          });
+
+          setGroupFields(fieldsMap);
+        }
+      } catch (error) {
+        console.error("Error fetching form data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFormData();
+  }, [formId, groups]);
+
+  const toggleSection = (section: string | number): void => {
     setOpenSections((prev) => ({ ...prev, [section]: !prev[section] }));
   };
 
-  const handleRating = (itemId: string, rating: Rating): void => {
-    setRatings((prev) => ({ ...prev, [itemId]: rating }));
+  const getFieldAssessmentValue = (fieldId: number, groupId: number) => {
+    if (!fields) return undefined;
+    return fields.find(
+      (f) => f.field_id === fieldId && f.field_group_id === groupId,
+    );
   };
 
-  const handleSubmit = (): void => {
-    console.log("Submitted ratings:", ratings);
-  };
-
-  const sections: SectionData[] = [
-    {
-      key: "technical",
-      title: "Penilaian Kompetensi Teknis",
-      items: [
-        {
-          id: "tech1",
-          title: "Menjalankan mesin pemotong kain",
-          description: "Mampu mengoperasikan dan mengatur mesin pemotong",
-          defaultRating: 4,
-        },
-        {
-          id: "tech2",
-          title: "Memahami SOP produksi",
-          description: "Mengetahui dan mematuhi SOP dalam proses pembuatan tas",
-          defaultRating: 5,
-        },
-        {
-          id: "tech3",
-          title: "Quality Control dasar",
-          description: "Bisa mendeteksi cacat kain atau jahitan dasar",
-          defaultRating: 3,
-        },
-        {
-          id: "tech4",
-          title: "Perawatan alat kerja",
-          description: "Membersihkan dan merawat alat produksi secara berkala",
-          defaultRating: 4,
-        },
-      ],
-    },
-    {
-      key: "workBehavior",
-      title: "Sikap Kerja dan Perilaku Kerja",
-      items: [
-        {
-          id: "behav1",
-          title: "Disiplin waktu",
-          description: "Datang tepat waktu dan mematuhi jam kerja",
-          defaultRating: 5,
-        },
-        {
-          id: "behav2",
-          title: "Kerja sama tim",
-          description: "Kooperatif dan membantu rekan kerja",
-          defaultRating: 4,
-        },
-        {
-          id: "behav3",
-          title: "Tanggung jawab pekerjaan",
-          description: "Menyelesaikan tugas tanpa pengawasan berlebihan",
-          defaultRating: 4,
-        },
-        {
-          id: "behav4",
-          title: "Kepedulian terhadap kebersihan area",
-          description: "Menjaga area kerja tetap bersih dan rapi",
-          defaultRating: 3,
-        },
-      ],
-    },
-  ];
+  if (!groups || groups.length === 0) {
+    return (
+      <div className="w-full mx-auto p-6 text-center text-primary font-semibold">
+        No assessment groups available
+      </div>
+    );
+  }
 
   return (
     <div className="w-full mx-auto">
-      {sections.map((section) => (
-        <Collapsible
-          key={section.key}
-          open={openSections[section.key]}
-          onOpenChange={() => toggleSection(section.key)}
-          className="mb-6"
-        >
-          <div className="bg-white border border-gray-200 rounded-lg">
-            <CollapsibleTrigger className="w-full flex items-center justify-between p-4 hover:bg-gray-50">
-              <h2 className="text-lg font-semibold text-[#0e6488]">
-                {section.title}
-              </h2>
-              {openSections[section.key] ? (
-                <ChevronUp className="w-5 h-5 text-gray-400" />
-              ) : (
-                <ChevronDown className="w-5 h-5 text-gray-400" />
-              )}
-            </CollapsibleTrigger>
+      {loading || !groups || groups.length === 0 ? (
+        <Skeleton />
+      ) : (
+        groups.map((group) => {
+          const fieldsForGroup = groupFields[group.field_group_id] || [];
 
-            <CollapsibleContent>
-              <div className="p-6 space-y-4">
-                {section.items.map((item) => (
-                  <AssessmentItem
-                    key={item.id}
-                    id={item.id}
-                    title={item.title}
-                    description={item.description}
-                    defaultRating={item.defaultRating}
-                    currentRating={ratings[item.id]}
-                    onRatingChange={handleRating}
-                  />
-                ))}
+          return (
+            <Collapsible
+              key={group.field_group_id}
+              open={openSections[group.field_group_id]}
+              onOpenChange={() => toggleSection(group.field_group_id)}
+              className="mb-6"
+            >
+              <div className="bg-white border border-gray-200 rounded-lg">
+                <CollapsibleTrigger className="w-full flex items-center justify-between p-4 hover:bg-gray-50">
+                  <div className="flex items-center gap-3">
+                    <h2 className="text-lg font-semibold text-[#0e6488]">
+                      {group.name}
+                    </h2>
+                  </div>
+                  {openSections[group.field_group_id] ? (
+                    <ChevronUp className="w-5 h-5 text-gray-400" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 text-gray-400" />
+                  )}
+                </CollapsibleTrigger>
+
+                <CollapsibleContent>
+                  <div className="p-6 space-y-4">
+                    {fieldsForGroup.length === 0 ? (
+                      <div className="text-center py-4 text-primary font-semibold">
+                        No fields available for this group
+                      </div>
+                    ) : (
+                      fieldsForGroup
+                        .sort((a, b) => a.order - b.order)
+                        .map((field) => {
+                          const assessmentValue = getFieldAssessmentValue(
+                            field.id,
+                            group.field_group_id,
+                          );
+
+                          return (
+                            <FormFieldRenderer
+                              key={field.id}
+                              field={{
+                                ...field,
+                                form_id: field.form_id,
+                              }}
+                              value={assessmentValue}
+                            />
+                          );
+                        })
+                    )}
+                  </div>
+                </CollapsibleContent>
               </div>
-            </CollapsibleContent>
-          </div>
-        </Collapsible>
-      ))}
-
-      {/* Submit Button */}
-      <div className="mt-6 flex justify-end">
-        <Button
-          onClick={handleSubmit}
-          className="bg-[#0e6488] hover:bg-[#0c5470] text-white px-8 py-2"
-        >
-          Simpan Penilaian
-        </Button>
-      </div>
+            </Collapsible>
+          );
+        })
+      )}
     </div>
   );
 };

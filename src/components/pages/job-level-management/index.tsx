@@ -40,6 +40,11 @@ export default function JobLevelList() {
       size: 300,
     },
     {
+      accessorKey: "level",
+      header: "Level",
+      size: 300,
+    },
+    {
       accessorKey: "lastUpdate",
       header: ({}) => {
         // const isSorted = column.getIsSorted();

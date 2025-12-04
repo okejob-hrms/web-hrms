@@ -7,7 +7,6 @@ import {
   postAddField,
   getFormById,
   postUpdateForm,
-  getFieldsByGroup,
 } from "@/services/form";
 import {
   IFormTemplate,
@@ -116,15 +115,6 @@ export function useFormTemplateAdd({
   } = useQuery<PaginatedResponse<IFormTemplate>>({
     queryKey: ["form"],
     queryFn: getAllForm,
-  });
-
-  const {
-    data: formGroupsData,
-    isLoading: isFormGroupsLoading,
-    error: formGroupsError,
-  } = useQuery<PaginatedResponse<IFormGroup>>({
-    queryKey: ["form-group"],
-    queryFn: getFieldsByGroup,
   });
 
   const { data: editFormData, isLoading: isEditFormLoading } = useQuery({
@@ -277,6 +267,40 @@ export function useFormTemplateAdd({
   const addFieldMutation = useMutation({
     mutationFn: ({ form_id, groups }: IMutateFieldRequest) =>
       postAddField(form_id, { form_id, groups }),
+    onSuccess: () => {
+      toast.success("Add field successfully!");
+      queryClient.invalidateQueries({ queryKey: ["form"] });
+      queryClient.invalidateQueries({ queryKey: ["forms"] });
+      queryClient.invalidateQueries({ queryKey: ["form-details", editFormId] });
+    },
+    onError: (error: any) => {
+      if (error?.response) {
+        try {
+          error.response
+            .json()
+            .then((errorData: ApiErrorResponse) => {
+              if (errorData.errors) {
+                Object.entries(errorData.errors).forEach(
+                  ([fieldName, messages]) => {
+                    form.setError(fieldName as any, {
+                      type: "server",
+                      message: messages[0],
+                    });
+                  },
+                );
+              }
+              toast.error(errorData.message || "Failed to add field");
+            })
+            .catch(() => {
+              toast.error("Failed to add field: Server error");
+            });
+        } catch (parseError) {
+          toast.error("Failed to add field: Server error");
+        }
+      } else {
+        toast.error(`Failed to add field: ${error.message || "Unknown error"}`);
+      }
+    },
   });
 
   const formOptions = React.useMemo(() => {

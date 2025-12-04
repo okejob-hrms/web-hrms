@@ -34,7 +34,7 @@ interface FormField {
   label: string;
   type: string;
   form_id: number;
-  options?: string[];
+  options?: string[] | { min: number; max: number };
   children?: React.ReactNode;
 }
 
@@ -109,7 +109,7 @@ const AlertProcess = React.memo(function AlertProcess({
   );
 });
 
-const FormFieldRenderer = React.memo(function FormFieldRenderer({
+export const FormFieldRenderer = React.memo(function FormFieldRenderer({
   field,
 }: {
   field: FormField;
@@ -119,14 +119,15 @@ const FormFieldRenderer = React.memo(function FormFieldRenderer({
       case "checkbox":
         return (
           <div className="mt-2">
-            {field.options?.map((option) => (
-              <CheckboxForm
-                key={option}
-                name={option}
-                label={option}
-                disabled
-              />
-            ))}
+            {Array.isArray(field.options) &&
+              field.options.map((option: string) => (
+                <CheckboxForm
+                  key={option}
+                  name={option}
+                  label={option}
+                  disabled
+                />
+              ))}
           </div>
         );
 
@@ -142,6 +143,26 @@ const FormFieldRenderer = React.memo(function FormFieldRenderer({
         );
 
       case "range":
+        if (
+          field.options &&
+          typeof field.options === "object" &&
+          !Array.isArray(field.options) &&
+          "min" in field.options &&
+          "max" in field.options
+        ) {
+          const options = field.options;
+          const rangeOptions = Array.from(
+            { length: options.max - options.min + 1 },
+            (_, i) => options.min + i,
+          );
+          return (
+            <div className="flex gap-2">
+              {rangeOptions.map((value) => (
+                <RadioCard key={value} disabled />
+              ))}
+            </div>
+          );
+        }
         return (
           <div className="flex gap-2">
             <RadioCard disabled />
@@ -160,7 +181,7 @@ const FormFieldRenderer = React.memo(function FormFieldRenderer({
   };
 
   return (
-    <div className="rounded-sm border border-grayscale-20 p-4 gap-4">
+    <div className="rounded-sm border border-grayscale-20 p-4 gap-4 w-full">
       <span className="font-medium">{field.label}</span>
       {renderField()}
     </div>

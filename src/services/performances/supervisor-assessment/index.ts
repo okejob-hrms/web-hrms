@@ -162,3 +162,25 @@ export const getScheduleDetail = async (
     throw error;
   }
 };
+
+export const updateAssessmentStatus = async (
+  id: number,
+  status: number,
+): Promise<ApiResponse<IScheduleResponse>> => {
+  try {
+    return api
+      .post(`supervisor-assessments/${id}/status`, { json: { status } })
+      .json<ApiResponse<IScheduleResponse>>();
+  } catch (error: any) {
+    if (error.name === "HTTPError") {
+      const errorResponse = await error.response.json();
+      const enhancedError = new Error(error.message);
+      (enhancedError as any).response = {
+        json: () => Promise.resolve(errorResponse),
+        status: error.response.status,
+      };
+      throw enhancedError;
+    }
+    throw error;
+  }
+};

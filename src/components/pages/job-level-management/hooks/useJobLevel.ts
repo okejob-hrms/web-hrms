@@ -25,7 +25,7 @@ export function useJobLevels() {
   const [isEditModalOpen, setEditModalOpen] = useState(false);
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedJobLevel, setSelectedJobLevel] = useState<JobLevel | null>(
-    null
+    null,
   );
 
   const [pagination, setPagination] = useState<PaginationState>({
@@ -132,7 +132,7 @@ export function useJobLevels() {
       editJobLevel({ id: selectedJobLevel.id, payload: data });
     } else {
       // It's a create
-      addJobLevel({ name: data.name });
+      addJobLevel({ name: data.name, level: data.level });
     }
   };
 

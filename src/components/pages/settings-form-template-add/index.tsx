@@ -109,15 +109,17 @@ export const SettingsFormTemplateAdd = React.memo(
           <h1 className="font-semibold text-lg text-black">
             {isEditMode ? "Edit Form Template" : "Form Details"}
           </h1>
-          <Button
-            type="button"
-            onClick={() => setOpenAdd(true)}
-            variant="ghost"
-            size="sm"
-            className="text-primary"
-          >
-            <Edit /> Edit
-          </Button>
+          {!isEditMode && (
+            <Button
+              type="button"
+              onClick={() => setOpenAdd(true)}
+              variant="ghost"
+              size="sm"
+              className="text-primary"
+            >
+              <Edit /> Edit
+            </Button>
+          )}
         </div>
         <FormProvider {...form}>
           <form className="grid grid-cols-2 gap-4">

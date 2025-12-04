@@ -1,3 +1,5 @@
+import { IFormGroup } from "@/services/form/types";
+
 export interface ScoreItem {
   id: string;
   title: string;
@@ -6,13 +8,6 @@ export interface ScoreItem {
   score: number;
   maxScore: number;
   subTotal: number;
-}
-
-export interface CategorySection {
-  id: string;
-  name: string;
-  items: ScoreItem[];
-  notes?: Notes;
 }
 
 export interface Notes {
@@ -28,7 +23,7 @@ export interface AssessmentSummary {
 }
 
 export interface SupervisorAssessmentResultProps {
-  onEdit?: () => void;
+  id: number;
 }
 
 export interface ISummaryRow {
@@ -41,5 +36,5 @@ export interface ISummaryRow {
 }
 
 export interface AssessmentSummaryTableProps {
-  data: ISummaryRow[];
+  data: IFormGroup[];
 }

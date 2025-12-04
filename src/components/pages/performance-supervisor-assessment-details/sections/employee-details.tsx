@@ -3,6 +3,7 @@ import { Separator } from "@/components/ui/separator";
 import dayjs from "dayjs";
 import localizedFormat from "dayjs/plugin/localizedFormat";
 import { ISupervisorAssessmentResponse } from "@/services/performances/supervisor-assessment/types";
+import { getEmployeeDetailByUserId } from "@/services/employees";
 
 dayjs.extend(localizedFormat);
 
@@ -15,6 +16,12 @@ interface DirectReportEmployee {
   name: string;
   position: string;
   department: string;
+}
+
+interface AssessorEmployee {
+  id: number;
+  name: string;
+  position: string;
 }
 
 const formatDate = (date: string | null | undefined): string => {
@@ -39,8 +46,13 @@ export const EmployeeDetailsSection = React.memo(
     >([]);
     const [additionalDirectReports, setAdditionalDirectReports] =
       React.useState<DirectReportEmployee[]>([]);
+    const [assessors, setAssessors] = React.useState<AssessorEmployee[]>([]);
     const [isLoading, setIsLoading] = React.useState(false);
+    const [isLoadingAssessors, setIsLoadingAssessors] = React.useState(false);
     const [error, setError] = React.useState<string | null>(null);
+    const [assessorError, setAssessorError] = React.useState<string | null>(
+      null,
+    );
 
     // React.useEffect(() => {
     //   const fetchDirectReports = async () => {
@@ -158,6 +170,60 @@ export const EmployeeDetailsSection = React.memo(
     //   }
     // }, [data?.reporting_relationships]);
 
+    React.useEffect(() => {
+      const fetchAssessors = async () => {
+        try {
+          setIsLoadingAssessors(true);
+          setAssessorError(null);
+
+          if (!data?.assessors || data.assessors.length === 0) {
+            setIsLoadingAssessors(false);
+            return;
+          }
+
+          const assessorPromises = data.assessors.map(async (assessor) => {
+            try {
+              if (!assessor?.user_id) return null;
+
+              const employeeResponse = await getEmployeeDetailByUserId(
+                assessor.user_id,
+              );
+
+              const employee = employeeResponse?.data;
+              if (!employee) return null;
+
+              return {
+                id: assessor.id,
+                name: employee.user?.name || "Unknown",
+                position:
+                  employee.employment?.job_position?.name || "Unknown Position",
+              };
+            } catch (error) {
+              console.error(
+                `Failed to fetch assessor ${assessor.user_id}:`,
+                error,
+              );
+              return null;
+            }
+          });
+
+          const results = await Promise.all(assessorPromises);
+          setAssessors(
+            results.filter((item): item is AssessorEmployee => item !== null),
+          );
+        } catch (error) {
+          console.error("Error fetching assessors:", error);
+          setAssessorError("Failed to load assessors");
+        } finally {
+          setIsLoadingAssessors(false);
+        }
+      };
+
+      if (data?.assessors && data.assessors.length > 0) {
+        fetchAssessors();
+      }
+    }, [data?.assessors]);
+
     if (!data) {
       return (
         <div className="flex flex-col w-full gap-4 p-2">
@@ -192,7 +258,7 @@ export const EmployeeDetailsSection = React.memo(
           </div>
           <div className="flex flex-col">
             <p className="text-sm text-text-disabled">Department</p>
-            {/* <p>{safeGet(data.department?.name)}</p> */}
+            <p>{safeGet(data.current_department.name)}</p>
           </div>
           <div className="flex flex-col">
             <p className="text-sm text-text-disabled">Current Job Level</p>
@@ -254,7 +320,7 @@ export const EmployeeDetailsSection = React.memo(
           </div>
           <div className="flex flex-col">
             <p className="text-sm text-text-disabled">Employee Start Date</p>
-            {/* <p>{formatDate(data.)}</p> */}
+            <p>{formatDate(data.employee_start_date)}</p>
           </div>
           <div className="flex flex-col">
             <p className="text-sm text-text-disabled">Target Position</p>
@@ -267,20 +333,20 @@ export const EmployeeDetailsSection = React.memo(
           <div className="flex flex-col md:col-span-3">
             <p className="text-sm text-text-disabled">Assigned Assessor</p>
             <div>
-              {isLoading ? (
+              {isLoadingAssessors ? (
                 <p className="text-sm text-gray-500">Loading...</p>
-              ) : error ? (
+              ) : assessorError ? (
                 <p className="text-sm text-red-500">Failed to load</p>
-              ) : primaryDirectReports.length > 0 ? (
+              ) : assessors.length > 0 ? (
                 <div className="space-y-1">
-                  {primaryDirectReports.map((employee) => (
-                    <div key={employee.id} className="text-sm">
+                  {assessors.map((assessor) => (
+                    <div key={assessor.id} className="text-sm">
                       <span className="font-normal text-base text-foreground">
-                        {employee.name}
+                        {assessor.name}
                       </span>
                       <span className="text-text-disabled text-base">
                         {" "}
-                        ({employee.position})
+                        ({assessor.position})
                       </span>
                     </div>
                   ))}

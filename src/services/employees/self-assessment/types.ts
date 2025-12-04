@@ -10,6 +10,9 @@ export interface IUser {
   is_first_login: boolean;
   first_login_at: string | null;
   deleted_at: string | null;
+  fcm_token: string | null;
+  profile_id: number | null;
+  profile: any | null;
   avatar_url?: string | null;
 }
 
@@ -26,15 +29,19 @@ export interface IApprover {
 
 export interface ISelfAssessmentResponse {
   id: number;
-  user_id: number;
   assessment_period: string;
   year: string;
+  status: number;
   start_date: string;
   end_date: string;
-  status: number;
+  reminder: number;
+  submitted: number;
+  total_employees: number;
+  created_by: number;
   created_at: string;
   updated_at: string;
-  approvers: IApprover[];
+  progress: number;
+  creator: IUser;
 }
 
 export interface IFormAssignment {
@@ -85,6 +92,9 @@ export interface ISelfAssessmentDetailResponse {
 }
 
 export interface IEmployeeAssessmentInfo {
+  employee_id: number;
+  name: string;
+  photo_profile: string;
   position: string;
   department: string;
   job_level: string;
@@ -94,9 +104,40 @@ export interface IEmployeeAssessmentInfo {
   supervisor: string;
 }
 
+export interface IAssessmentField {
+  score: number;
+  value: string;
+  field_id: number;
+  field_group_id: number;
+  additional_data: any | null;
+}
+
+export interface IAssessmentGroup {
+  name: string;
+  score: number;
+  field_group_id: number;
+}
+
+export interface IAssessmentData {
+  fields: IAssessmentField[];
+  groups: IAssessmentGroup[];
+  total_score: number;
+}
+
+export interface IAssessmentSubmission {
+  id: number;
+  form_id: number;
+  submitted_by: number;
+  formable_type: string;
+  formable_id: number;
+  data: IAssessmentData;
+  created_at: string;
+  updated_at: string;
+  validated_for: number | null;
+}
+
 export interface IEmployeeSelfAssessmentResponse {
   assessment_info: IEmployeeAssessmentInfo;
-  score: any[];
-  self_assessment: any[];
-  self_assessment_validation: any[];
+  self_assessment: IAssessmentSubmission;
+  self_assessment_validation: IAssessmentSubmission;
 }

@@ -31,17 +31,21 @@ export const PerformanceSelfAssessmentForm = React.memo(
       handleCancel,
       handleSubmit,
       isPendingAddAssessment,
+      isEditMode,
+      isLoadingDetails,
     } = usePerformanceSelfAssessmentForm();
 
     return (
       <div className="font-sans md:px-[125px] px-4 space-y-4">
-        <h2 className="font-semibold text-lg text-black">Assessment Details</h2>
+        <h2 className="font-semibold text-lg text-black">
+          {isEditMode ? "Edit Assessment Details" : "Assessment Details"}
+        </h2>
         <Form {...form}>
           <form
             className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end"
             onSubmit={(e) => {
               e.preventDefault();
-              // form.handleSubmit(handleSubmit)();
+              form.handleSubmit(handleSubmit)();
             }}
           >
             <SelectForm
@@ -49,19 +53,31 @@ export const PerformanceSelfAssessmentForm = React.memo(
               options={periodOptions}
               required
               label="Assessment Period"
+              disabled={isLoadingDetails}
             />
-            <InputForm label="Year" name="year" required />
+            <InputForm
+              label="Year"
+              name="year"
+              required
+              disabled={isLoadingDetails}
+            />
             <DatePicker
               name="start_date"
               label="Start Date"
               className="md:col-start-1"
+              disabled={isLoadingDetails}
             />
-            <DatePicker name="end_date" label="End Date" />
+            <DatePicker
+              name="end_date"
+              label="End Date"
+              disabled={isLoadingDetails}
+            />
             <SelectForm
               name="reminder"
               options={sendReminderOptions}
               required
               label="Send Reminder"
+              disabled={isLoadingDetails}
             />
             <div className="md:col-span-3 flex gap-2 items-center mt-2">
               <h2 className="font-semibold text-lg text-black">Participants</h2>
@@ -156,8 +172,9 @@ export const PerformanceSelfAssessmentForm = React.memo(
                 onClick={handleSubmit}
                 isLoading={isPendingAddAssessment}
                 className="w-[50%]"
+                disabled={isLoadingDetails}
               >
-                Create Assessment
+                {isEditMode ? "Update Assessment" : "Create Assessment"}
               </Button>
             </div>
           </form>

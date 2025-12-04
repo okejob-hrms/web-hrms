@@ -3,19 +3,42 @@ import * as React from "react";
 import StatusCard from "./sections/status-card";
 import { useIsMobile } from "@/hooks/use-mobile";
 import DataTable from "@/components/tables/data-table";
-import { ArrowDown, ArrowUp, ChevronsUpDown, Eye } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  ChevronsUpDown,
+  Edit,
+  Ellipsis,
+  Eye,
+  Trash,
+} from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 import { LinearProgress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { useSelfAssessmentPeriodDetails } from "./hook";
 import AppSkeleton from "@/components/partials/app-skeleton";
 import { IEmployeeAssessment } from "@/services/employees/self-assessment/types";
-import dayjs from "dayjs";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { getStatusEmployeeAssessment } from "@/lib/helpers";
+import { cn } from "@/lib/utils";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export const SelfAssessmentPeriodDetails = () => {
-  const { assessmentDetails, isLoading, isError, handleViewEmployee } =
-    useSelfAssessmentPeriodDetails();
+  const {
+    assessmentDetails,
+    isLoading,
+    isError,
+    handleViewEmployee,
+    handleEdit,
+  } = useSelfAssessmentPeriodDetails();
+
+  const [searchQuery, setSearchQuery] = React.useState("");
 
   const columns: ColumnDef<IEmployeeAssessment>[] = [
     {
@@ -71,7 +94,19 @@ export const SelfAssessmentPeriodDetails = () => {
           </div>
         );
       },
-      cell: ({ row }) => row.original.submission_status,
+      cell: ({ row }) => {
+        const status = getStatusEmployeeAssessment(
+          row.original.submission_status,
+        );
+        return (
+          <Badge variant={status.variant} className={status.className}>
+            <div
+              className={cn(status.circleClassName, "w-2 h-2 rounded-full")}
+            />{" "}
+            {status.label}
+          </Badge>
+        );
+      },
     },
     {
       accessorKey: "score_avg",
@@ -143,23 +178,66 @@ export const SelfAssessmentPeriodDetails = () => {
       accessorKey: "menu",
       header: "",
       cell: ({ row }) => (
-        <div className="flex flex-row gap-2">
-          <Button
-            type="button"
-            variant="ghost"
-            className="flex items-center gap-1"
-            onClick={() => {
-              handleViewEmployee(row.original.id);
-            }}
-          >
-            <Eye className="w-4 h-4 text-primary" />
-          </Button>
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              className="flex items-center gap-1"
+            >
+              <Ellipsis className="text-grayscale-30" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem asChild>
+              <button
+                type="button"
+                className="flex gap-2 w-full text-left text-primary"
+                onClick={() => {
+                  handleViewEmployee(row.original.id);
+                }}
+              >
+                <Eye className="w-4 h-4 text-primary" /> Details
+              </button>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <button
+                type="button"
+                className="flex gap-2 w-full text-left text-error"
+                onClick={() => {
+                  // handleDelete(row.original.id);
+                }}
+              >
+                <Trash className="w-4 h-4 text-error" /> Delete
+              </button>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       ),
     },
   ];
 
   const isMobile = useIsMobile();
+
+  const filteredEmployees = React.useMemo(() => {
+    const employees = assessmentDetails?.employees;
+    if (!employees) {
+      return [];
+    }
+
+    if (!searchQuery.trim()) {
+      return employees;
+    }
+
+    const lowerCaseQuery = searchQuery.toLowerCase();
+    return employees.filter((employee) => {
+      return (
+        employee.name?.toLowerCase().includes(lowerCaseQuery) ||
+        employee.supervisor?.toLowerCase().includes(lowerCaseQuery) ||
+        employee.form_name?.toLowerCase().includes(lowerCaseQuery)
+      );
+    });
+  }, [assessmentDetails?.employees, searchQuery]);
 
   if (isLoading) {
     return <AppSkeleton />;
@@ -173,9 +251,14 @@ export const SelfAssessmentPeriodDetails = () => {
 
   return (
     <div className="font-sans md:px-[125px] px-4 space-y-4">
-      <h1 className="font-semibold text-4xl">
-        Self Assessment {assessment.assessment_period} {assessment.year}
-      </h1>
+      <div className="flex gap-2 items-center">
+        <h1 className="font-semibold text-4xl">
+          Self Assessment {assessment.assessment_period} {assessment.year}
+        </h1>
+        <Button type="button" variant="ghost" onClick={handleEdit}>
+          <Edit className="w-4 h-4 text-primary" />
+        </Button>
+      </div>
       <h2>Assessment Details</h2>
       <div className="grid grid-cols-2 gap-4">
         <div className="flex flex-col gap-1">
@@ -218,9 +301,18 @@ export const SelfAssessmentPeriodDetails = () => {
             </span>
             <LinearProgress value={summary.progress} />
           </div>
-          <Input className="" placeholder="Search Employee" />
+          <Input
+            className=""
+            placeholder="Search Employee"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
         </div>
-        <DataTable columns={columns} data={employees} customSize={!isMobile} />
+        <DataTable
+          columns={columns}
+          data={filteredEmployees}
+          customSize={!isMobile}
+        />
       </div>
     </div>
   );

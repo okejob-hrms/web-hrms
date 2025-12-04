@@ -1,8 +1,17 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react";
-import { useQuery } from "@tanstack/react-query";
-import { getSupervisorAssessmentDetail } from "@/services/performances/supervisor-assessment";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import {
+  getSupervisorAssessmentDetail,
+  updateAssessmentStatus,
+  updateSupervisorAssessment,
+} from "@/services/performances/supervisor-assessment";
+import { getFormById } from "@/services/form";
+import { toast } from "sonner";
+import { ApiErrorResponse } from "@/lib/types";
 
 export const useSupervisorAssessmentDetails = (id: number) => {
+  const [openCancelModal, setOpenCancelModal] = React.useState(false);
   const {
     data: employeeDetails,
     isLoading: isLoadingEmployeeDetails,
@@ -13,9 +22,67 @@ export const useSupervisorAssessmentDetails = (id: number) => {
     enabled: !!id,
   });
 
+  const {
+    data: forms,
+    isLoading: isLoadingForms,
+    isError: isErrorForms,
+  } = useQuery({
+    queryKey: ["form", employeeDetails?.data.form.id],
+    queryFn: () => {
+      if (!employeeDetails?.data.form.id) {
+        throw new Error("Form ID not available");
+      }
+      return getFormById(employeeDetails?.data.form.id);
+    },
+    enabled: !!employeeDetails?.data.form.id,
+  });
+
+  const groups = forms?.data?.groups;
+
+  const mutateCancelAssessment = useMutation({
+    mutationFn: (status: number) => updateAssessmentStatus(id, status),
+    onSuccess: () => {
+      setOpenCancelModal(false);
+    },
+    onError: (error: any) => {
+      if (error?.response) {
+        try {
+          error.response
+            .json()
+            .then((errorData: ApiErrorResponse) => {
+              toast.error(
+                errorData.message || "Failed to submit assessment process.",
+              );
+            })
+            .catch(() => {
+              toast.error("Failed to submit assessment process: Server error");
+            });
+        } catch (parseError) {
+          toast.error("Failed to submit assessment process: Server error");
+        }
+      } else {
+        toast.error(
+          `Failed to submit assessment process: ${error.message || "Unknown error"}`,
+        );
+      }
+    },
+  });
+
+  const onCancelAssessment = () => {
+    mutateCancelAssessment.mutate(3);
+    setOpenCancelModal(false);
+  };
+
   return {
     employeeDetails,
     isLoadingEmployeeDetails,
     isErrorEmployeeDetails,
+    forms,
+    isLoadingForms,
+    isErrorForms,
+    groups,
+    openCancelModal,
+    setOpenCancelModal,
+    onCancelAssessment,
   };
 };

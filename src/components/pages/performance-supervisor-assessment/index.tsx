@@ -10,6 +10,7 @@ import { useSupervisorAssessment } from "./hook";
 import SupervisorAssessmentFormModal from "./sections/add-modal";
 import { ISupervisorAssessmentResponse } from "@/services/performances/supervisor-assessment/types";
 import { Skeleton } from "@/components/ui/skeleton";
+import dayjs from "dayjs";
 
 export default function SupervisorAssessmentList() {
   const {
@@ -153,6 +154,9 @@ export default function SupervisorAssessmentList() {
     {
       accessorKey: "schedule",
       header: "Interview Date",
+      cell: ({ row }) => (
+        <span>{dayjs(row.original.schedule?.date).format("MMMM D, YYYY")}</span>
+      ),
     },
     {
       accessorKey: "status_label",
