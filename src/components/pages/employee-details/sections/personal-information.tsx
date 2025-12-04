@@ -1,18 +1,22 @@
-import * as React from "react";
-import { Separator } from "@/components/ui/separator";
-import dayjs from "dayjs";
-import localizedFormat from "dayjs/plugin/localizedFormat";
-import { rupiahFormatter } from "@/lib/helpers";
-import { FamilyInformationSection } from "../../employee-management-form/sections/family-information-section";
-import { FormalEducationSection } from "../../employee-management-form/sections/formal-education-section";
-import { NonFormalEducationSection } from "../../employee-management-form/sections/non-formal-education-section";
-import { WorkExperienceSection } from "../../employee-management-form/sections/work-experience-section";
-import { ContactOfReferenceSection } from "../../employee-management-form/sections/contact-reference-section";
-import { IEmployeeDetailsResponse } from "@/services/employees/types";
-import { getEmployeeDetail } from "@/services/employees";
-import Image from "next/image";
-import { Button } from "@/components/ui/button";
-import { Upload } from "lucide-react";
+import * as React from 'react';
+import { Separator } from '@/components/ui/separator';
+import dayjs from 'dayjs';
+import localizedFormat from 'dayjs/plugin/localizedFormat';
+import { rupiahFormatter } from '@/lib/helpers';
+import { FamilyInformationSection } from '../../employee-management-form/sections/family-information-section';
+import { FormalEducationSection } from '../../employee-management-form/sections/formal-education-section';
+import { NonFormalEducationSection } from '../../employee-management-form/sections/non-formal-education-section';
+import { WorkExperienceSection } from '../../employee-management-form/sections/work-experience-section';
+import { ContactOfReferenceSection } from '../../employee-management-form/sections/contact-reference-section';
+import { IEmployeeDetailsResponse } from '@/services/employees/types';
+import { getEmployeeDetail } from '@/services/employees';
+import Image from 'next/image';
+import { Button } from '@/components/ui/button';
+import { Edit3, Plus, Trash, Upload, X } from 'lucide-react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { getFace, postFace, removeFace } from '@/services/face-recognitions';
+import { FaceRequest, FaceResponse } from '@/services/face-recognitions/types';
+import { toast } from 'sonner';
 
 dayjs.extend(localizedFormat);
 
@@ -28,27 +32,27 @@ interface DirectReportEmployee {
 }
 
 const formatDate = (date: string | null | undefined): string => {
-  if (!date) return "-";
+  if (!date) return '-';
   try {
-    const formatted = dayjs(date).format("LL");
-    return formatted === "Invalid date" ? "-" : formatted;
+    const formatted = dayjs(date).format('LL');
+    return formatted === 'Invalid date' ? '-' : formatted;
   } catch {
-    return "-";
+    return '-';
   }
 };
 
 const formatCurrency = (amount: string | number | null | undefined): string => {
-  if (!amount || amount === 0) return "-";
+  if (!amount || amount === 0) return '-';
   try {
     return rupiahFormatter(Number(amount));
   } catch {
-    return "-";
+    return '-';
   }
 };
 
 const safeGet = (value: string | number): string => {
-  if (value === null || value === undefined || value === "") return "-";
-  return String(value).trim() || "-";
+  if (value === null || value === undefined || value === '') return '-';
+  return String(value).trim() || '-';
 };
 
 interface SocialMediaItemProps {
@@ -61,7 +65,7 @@ const SocialMediaItem: React.FC<SocialMediaItemProps> = ({ type, url }) => {
     const normalizedType = type.toLowerCase().trim();
 
     switch (normalizedType) {
-      case "instagram":
+      case 'instagram':
         return (
           <Image
             src="/icons/instagram.svg"
@@ -70,12 +74,12 @@ const SocialMediaItem: React.FC<SocialMediaItemProps> = ({ type, url }) => {
             alt="instagram"
           />
         );
-      case "twitter":
-      case "x":
+      case 'twitter':
+      case 'x':
         return (
           <Image src="/icons/x.svg" width={16} height={16} alt="instagram" />
         );
-      case "linkedin":
+      case 'linkedin':
         return (
           <Image
             src="/icons/linkedin.svg"
@@ -84,7 +88,7 @@ const SocialMediaItem: React.FC<SocialMediaItemProps> = ({ type, url }) => {
             alt="instagram"
           />
         );
-      case "facebook":
+      case 'facebook':
         return (
           <Image
             src="/icons/facebook.svg"
@@ -93,7 +97,7 @@ const SocialMediaItem: React.FC<SocialMediaItemProps> = ({ type, url }) => {
             alt="instagram"
           />
         );
-      case "youtube":
+      case 'youtube':
         return (
           <Image
             src="/icons/youtube.svg"
@@ -102,7 +106,7 @@ const SocialMediaItem: React.FC<SocialMediaItemProps> = ({ type, url }) => {
             alt="instagram"
           />
         );
-      case "github":
+      case 'github':
         return (
           <Image
             src="/icons/github.svg"
@@ -111,9 +115,9 @@ const SocialMediaItem: React.FC<SocialMediaItemProps> = ({ type, url }) => {
             alt="instagram"
           />
         );
-      case "website":
-      case "web":
-      case "blog":
+      case 'website':
+      case 'web':
+      case 'blog':
         return (
           <Image src="/icons/web.svg" width={16} height={16} alt="instagram" />
         );
@@ -141,6 +145,9 @@ export const PersonalInformationDetail = React.memo(
       React.useState<DirectReportEmployee[]>([]);
     const [isLoading, setIsLoading] = React.useState(false);
     const [error, setError] = React.useState<string | null>(null);
+    const [showFormFace, setShowFormFace] = React.useState(false);
+    const [loadingFace, setLoadingFace] = React.useState(false);
+    const queryClient = useQueryClient();
 
     React.useEffect(() => {
       const fetchDirectReports = async () => {
@@ -157,10 +164,10 @@ export const PersonalInformationDetail = React.memo(
           }
 
           const primaryRelationships = data.reporting_relationships.filter(
-            (item) => item?.relationship_type === "primary",
+            (item) => item?.relationship_type === 'primary',
           );
           const secondaryRelationships = data.reporting_relationships.filter(
-            (item) => item?.relationship_type === "secondary",
+            (item) => item?.relationship_type === 'secondary',
           );
 
           const primaryReportsPromises = primaryRelationships.map(
@@ -177,13 +184,13 @@ export const PersonalInformationDetail = React.memo(
 
                 return {
                   id: employee.id || 0,
-                  name: employee.user?.name || "Unknown",
+                  name: employee.user?.name || 'Unknown',
                   position:
                     employee.employment?.job_position?.name ||
-                    "Unknown Position",
+                    'Unknown Position',
                   department:
                     employee.employment?.department?.name ||
-                    "Unknown Department",
+                    'Unknown Department',
                 };
               } catch (error) {
                 console.error(
@@ -209,13 +216,13 @@ export const PersonalInformationDetail = React.memo(
 
                 return {
                   id: employee.id || 0,
-                  name: employee.user?.name || "Unknown",
+                  name: employee.user?.name || 'Unknown',
                   position:
                     employee.employment?.job_position?.name ||
-                    "Unknown Position",
+                    'Unknown Position',
                   department:
                     employee.employment?.department?.name ||
-                    "Unknown Department",
+                    'Unknown Department',
                 };
               } catch (error) {
                 console.error(
@@ -243,8 +250,8 @@ export const PersonalInformationDetail = React.memo(
             ),
           );
         } catch (error) {
-          console.error("Error fetching direct reports:", error);
-          setError("Failed to load direct reports");
+          console.error('Error fetching direct reports:', error);
+          setError('Failed to load direct reports');
         } finally {
           setIsLoading(false);
         }
@@ -257,6 +264,47 @@ export const PersonalInformationDetail = React.memo(
         fetchDirectReports();
       }
     }, [data?.reporting_relationships]);
+
+    const { data: faces, refetch: faceRefetch } = useQuery<FaceResponse>({
+      queryKey: ['getFaces', data?.user_id],
+      queryFn: () => getFace(data?.user_id),
+      staleTime: 1000 * 60 * 5,
+    });
+
+    const deleteMutation = useMutation<FaceResponse, Error, number>({
+      mutationFn: (id) => removeFace(id),
+      onMutate: () => setLoadingFace(true),
+      onSuccess: () => {
+        toast.success('Face deleted successfully');
+        queryClient.invalidateQueries({ queryKey: ['getFaces'] });
+        faceRefetch();
+      },
+      onError: (err) => {
+        toast.error(`Failed to delete: ${err.message}`);
+      },
+      onSettled: () => setLoadingFace(false),
+    });
+
+    const saveMutation = useMutation<
+      FaceResponse,
+      Error,
+      { data: FaceRequest }
+    >({
+      mutationFn: ({ data }) => {
+        return postFace(data);
+      },
+      onMutate: () => setLoadingFace(true),
+      onSuccess: () => {
+        toast.success('Score successfully save');
+        queryClient.invalidateQueries({ queryKey: ['getFaces'] });
+        faceRefetch();
+      },
+      onError: (err) => {
+        console.log(err);
+        toast.error(`Failed to save a face recognition`);
+      },
+      onSettled: () => setLoadingFace(false),
+    });
 
     if (!data) {
       return (
@@ -276,8 +324,77 @@ export const PersonalInformationDetail = React.memo(
           </h2>
           <div className="flex flex-col md:col-span-3 gap-2">
             <p className="text-sm text-text-disabled">Face Recognition</p>
-            <Button variant="outline" className="w-52">
-              <Upload /> Upload Face Recognition
+            <div className="grid grid-cols-2 md:grid-cols-8 gap-2">
+              {faces?.data.faces.map((item, i) => {
+                return (
+                  <div
+                    className="col-span-1 p-4 border rounded-lg flex items-center justify-center flex-col relative"
+                    key={i}
+                  >
+                    <Image
+                      src={item.image_url}
+                      height={100}
+                      width={100}
+                      alt="face"
+                    />
+                    {showFormFace && (
+                      <button
+                        type="button"
+                        className="absolute top-0 right-0 bg-red-400 rounded-lg flex items-center justify-center p-2 cursor-pointer"
+                        onClick={() => deleteMutation.mutate(Number(item.id))}
+                      >
+                        <X size={18} color="#fff" />
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+
+              {showFormFace && (
+                <div className="col-span-1 p-4 border rounded-lg flex items-center justify-center flex-col relative">
+                  <button
+                    type="button"
+                    className="w-full h-full flex flex-col items-center justify-center p-2 cursor-pointer"
+                    onClick={() =>
+                      document.getElementById('front-file')?.click()
+                    }
+                    disabled={loadingFace}
+                  >
+                    <Plus size={38} className="mb-3" />
+                    <div className="text-center text-gray-400 text-sm">
+                      Add new face
+                    </div>
+                  </button>
+
+                  <input
+                    type="file"
+                    accept="image/*"
+                    id="front-file"
+                    className="hidden"
+                    onChange={(e) => {
+                      const selectedFile = e.target.files?.[0];
+                      setLoadingFace(true);
+                      if (selectedFile) {
+                        const payload = {
+                          file: selectedFile,
+                          user_id: data.user_id,
+                        };
+
+                        saveMutation.mutate({ data: payload });
+                      }
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+
+            <Button
+              variant="outline"
+              className="w-52"
+              onClick={() => setShowFormFace(!showFormFace)}
+              isLoading={loadingFace}
+            >
+              <Upload /> {showFormFace ? 'Submit' : 'Edit'} Face Recognition
             </Button>
             {/* <CardItem /> */}
           </div>
@@ -414,7 +531,7 @@ export const PersonalInformationDetail = React.memo(
                         {employee.name}
                       </span>
                       <span className="text-text-disabled text-base">
-                        {" "}
+                        {' '}
                         ({employee.position})
                       </span>
                     </div>
@@ -442,7 +559,7 @@ export const PersonalInformationDetail = React.memo(
                         {employee.name}
                       </span>
                       <span className="text-text-disabled text-base">
-                        {" "}
+                        {' '}
                         ({employee.position})
                       </span>
                     </div>
