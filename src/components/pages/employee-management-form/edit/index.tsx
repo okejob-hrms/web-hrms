@@ -192,7 +192,7 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
         job_level_id:
           employeeDetails.employment?.job_level_id?.toString() || "",
         status: employeeDetails.employment?.status?.toString() || "",
-        team_member: employeeDetails.team_member.team_id.toString() || "",
+        team_member: employeeDetails.team_member?.team_id?.toString() || "",
         // base_salary: Number(employeeDetails.employment?.base_salary) || 0,
         salary_nett: Number(employeeDetails.employment?.salary_nett) || 0,
         allowances: (employeeDetails.employment?.allowances || [])?.map(
