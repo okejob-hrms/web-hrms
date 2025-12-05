@@ -64,6 +64,31 @@ export interface IForm {
   name: string;
 }
 
+export interface IFinalSubmission {
+  id: number;
+  form_id: number;
+  submitted_by: number;
+  formable_type: string;
+  formable_id: number;
+  data: {
+    type: "merging_answers" | string;
+    fields: Array<{
+      value: number | string | boolean | null;
+      field_id: number;
+      additional_data: unknown | null;
+      form_submission_id: number;
+    }>;
+    sources: Array<{
+      form_submission_id: number;
+    }>;
+    merged_at: string; // ISO datetime
+    merged_by: string; // e.g. "system"
+  };
+  created_at: string; // ISO datetime
+  updated_at: string; // ISO datetime
+  validated_for: unknown | null;
+}
+
 export interface ISupervisorAssessmentResponse {
   id: number;
   user: IUser;
@@ -78,7 +103,7 @@ export interface ISupervisorAssessmentResponse {
   schedule: ISchedule | null;
   assessors: IAssessor[];
   form: IForm;
-  final_submission: string | null;
+  final_submission: IFinalSubmission | null;
   created_at: string;
   updated_at: string;
 }

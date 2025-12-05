@@ -46,13 +46,12 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
 
   const onSubmit = (values: z.infer<typeof employeeManagementFormScheme>) => {
     try {
-      const { additional_direct_report_id, ...restValues } = values;
       const filteredSocialMedia = values.social_media_accounts?.filter(
         (account) => account?.type.trim() !== "" && account?.url.trim() !== "",
       );
 
       const params: IMutateEmployeeRequests = {
-        ...restValues,
+        ...values,
         role_id: Number(values.role_id),
         department_id: Number(values.department_id),
         job_level_id: Number(values.job_level_id),
@@ -78,9 +77,6 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
         ),
         families: values.families?.filter((item) => item.id),
         educations: values.educations?.filter((item) => item.id),
-        ...(values.primary_direct_report_id !== 0 && {
-          primary_direct_report_id: Number(values.primary_direct_report_id),
-        }),
         ...(values.primary_direct_report_id !== 0
           ? {
               primary_direct_report_id: Number(values.primary_direct_report_id),
@@ -93,12 +89,13 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
               ),
             }
           : { additional_direct_report_id: null }),
-        ...(values.attachments &&
-          values.attachments.filter((item) => {
-            if (item.type !== undefined && item.path !== undefined) {
-              return { type: item.type, path: item.path };
-            }
-          })),
+        ...(values.attachments && {
+          attachments: values.attachments
+            .filter(
+              (item) => item.type !== undefined && item.path !== undefined,
+            )
+            .map((item) => ({ type: item.type, path: item.path })),
+        }),
       };
       console.log(params);
       mutate(params);
