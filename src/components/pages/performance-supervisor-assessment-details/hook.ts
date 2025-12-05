@@ -9,9 +9,12 @@ import {
 import { getFormById } from "@/services/form";
 import { toast } from "sonner";
 import { ApiErrorResponse } from "@/lib/types";
+import { useRouter } from "next/navigation";
 
 export const useSupervisorAssessmentDetails = (id: number) => {
   const [openCancelModal, setOpenCancelModal] = React.useState(false);
+  const [openCompleteModal, setOpenCompleteModal] = React.useState(false);
+  const router = useRouter();
   const {
     data: employeeDetails,
     isLoading: isLoadingEmployeeDetails,
@@ -73,6 +76,42 @@ export const useSupervisorAssessmentDetails = (id: number) => {
     setOpenCancelModal(false);
   };
 
+  const mutateCompleteAssessment = useMutation({
+    mutationFn: (status: number) => updateAssessmentStatus(id, status),
+    onSuccess: () => {
+      toast.success("Assessment process completed successfully");
+      setOpenCompleteModal(false);
+      router.push("/performance/supervisor-assessment");
+    },
+    onError: (error: any) => {
+      if (error?.response) {
+        try {
+          error.response
+            .json()
+            .then((errorData: ApiErrorResponse) => {
+              toast.error(
+                errorData.message || "Failed to submit assessment process.",
+              );
+            })
+            .catch(() => {
+              toast.error("Failed to submit assessment process: Server error");
+            });
+        } catch (parseError) {
+          toast.error("Failed to submit assessment process: Server error");
+        }
+      } else {
+        toast.error(
+          `Failed to submit assessment process: ${error.message || "Unknown error"}`,
+        );
+      }
+    },
+  });
+
+  const onCompleteAssessment = (status: number) => {
+    mutateCompleteAssessment.mutate(status);
+    setOpenCompleteModal(false);
+  };
+
   return {
     employeeDetails,
     isLoadingEmployeeDetails,
@@ -84,5 +123,8 @@ export const useSupervisorAssessmentDetails = (id: number) => {
     openCancelModal,
     setOpenCancelModal,
     onCancelAssessment,
+    openCompleteModal,
+    setOpenCompleteModal,
+    onCompleteAssessment,
   };
 };

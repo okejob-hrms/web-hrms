@@ -5,6 +5,7 @@ import { useSupervisorAssessmentDetails } from "./hook";
 import AppSkeleton from "@/components/partials/app-skeleton";
 import { Button } from "@/components/ui/button";
 import { CancelModal } from "./sections/cancel-modal";
+import { CompleteModal } from "./sections/complete-modal";
 
 interface Props {
   id: number;
@@ -19,6 +20,9 @@ export const SupervisorAssessmentDetails = React.memo(
       openCancelModal,
       setOpenCancelModal,
       onCancelAssessment,
+      openCompleteModal,
+      setOpenCompleteModal,
+      onCompleteAssessment,
     } = useSupervisorAssessmentDetails(id);
 
     if (isLoadingEmployeeDetails) {
@@ -34,7 +38,11 @@ export const SupervisorAssessmentDetails = React.memo(
         <EmployeeDetailsSection data={employeeDetails?.data} />
         <SupervisorAssessmentTab id={id} />
         <div className="flex items-center gap-2">
-          <Button variant="outline" className="text-primary">
+          <Button
+            variant="outline"
+            className="text-primary"
+            onClick={() => setOpenCompleteModal(true)}
+          >
             Complete Assessment Proses
           </Button>
           <Button
@@ -50,6 +58,12 @@ export const SupervisorAssessmentDetails = React.memo(
           open={openCancelModal}
           onOpenChange={setOpenCancelModal}
           onSubmit={onCancelAssessment}
+        />
+        <CompleteModal
+          id={id}
+          open={openCompleteModal}
+          onOpenChange={setOpenCompleteModal}
+          onSubmit={onCompleteAssessment}
         />
       </div>
     );

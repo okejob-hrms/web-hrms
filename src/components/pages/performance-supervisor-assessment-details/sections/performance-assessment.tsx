@@ -155,7 +155,21 @@ export const SupervisorAssessmentResult: React.FC<
           </div>
         </div>
       </div>
-
+      {employeeDetails?.data.status_label === "Not Promoted" && (
+        <div className="border border-primary-border rounded-xl p-4 bg-primary-background">
+          <div>
+            <span className="text-primary font-semibold text-lg">
+              Assessment Result :{" "}
+            </span>
+            <span className="text-error font-semibold text-lg">Failed</span>
+          </div>
+          <p className="text-base text-text-secondary">
+            The employee has been decided not to be promoted. They will remain
+            in their current position, and no updates will be made to their
+            employment information.
+          </p>
+        </div>
+      )}
       {groups ? (
         <AssessmentSummaryTable data={groups} />
       ) : (
