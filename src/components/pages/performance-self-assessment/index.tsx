@@ -5,22 +5,8 @@ import * as React from "react";
 import { DataTable } from "@/components/tables/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { useIsMobile } from "@/hooks/use-mobile";
-import {
-  ArrowUp,
-  ArrowDown,
-  ChevronsUpDown,
-  Ellipsis,
-  Eye,
-} from "lucide-react";
-import { formatDateTime, getStatusSelfAssessment } from "@/lib/helpers";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import Link from "next/link";
-import Image from "next/image";
+import { ArrowUp, ArrowDown, ChevronsUpDown, Eye } from "lucide-react";
+import { getStatusSelfAssessment } from "@/lib/helpers";
 import { useSelfAssessment } from "./hook";
 import { ISelfAssessmentResponse } from "@/services/employees/self-assessment/types";
 import dayjs from "dayjs";

@@ -1,4 +1,5 @@
 import { IFormGroup } from "@/services/form/types";
+import { ISupervisorAssessmentFinalScore } from "@/services/performances/supervisor-assessment/types";
 
 export interface ScoreItem {
   id: string;
@@ -36,5 +37,5 @@ export interface ISummaryRow {
 }
 
 export interface AssessmentSummaryTableProps {
-  data: IFormGroup[];
+  data: ISupervisorAssessmentFinalScore;
 }

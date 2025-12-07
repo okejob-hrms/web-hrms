@@ -25,12 +25,24 @@ export function useSupervisorAssessment() {
   const [openFormModal, setOpenFormModal] = React.useState(false);
   const [selectedId, setSelectedId] = React.useState<string>("");
   const [searchAssesssor, setSearchAssesssor] = React.useState("");
+  const [pagination, setPagination] = React.useState({
+    pageIndex: 0,
+    pageSize: 10,
+  });
 
   const debouncedAssessor = useDebounce(searchAssesssor, 300);
 
   const { data, isLoading, isFetching } = useQuery({
-    queryKey: ["supervisor-assessments"],
-    queryFn: () => getAllSupervisorAssessment(),
+    queryKey: [
+      "supervisor-assessments",
+      pagination.pageIndex,
+      pagination.pageSize,
+    ],
+    queryFn: () =>
+      getAllSupervisorAssessment({
+        page: (pagination.pageIndex + 1).toString(),
+        per_page: pagination.pageSize.toString(),
+      }),
   });
 
   const { data: employees, isLoading: isLoadingEmployees } = useQuery({
@@ -195,5 +207,7 @@ export function useSupervisorAssessment() {
     searchAssesssor,
     setSearchAssesssor,
     isSubmitting: createAssessmentMutation.isPending,
+    pagination,
+    setPagination,
   };
 }

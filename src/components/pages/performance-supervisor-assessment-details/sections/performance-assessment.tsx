@@ -15,12 +15,14 @@ import { IFormGroup } from "@/services/form/types";
 import { FormFieldRenderer } from "./form-field-renderer";
 import { Form } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
+import { ISupervisorAssessmentFinalScore } from "@/services/performances/supervisor-assessment/types";
 
 const CategoryDetails: React.FC<{
   group: IFormGroup;
   id: number;
   employeeDetails: any;
-}> = ({ group, id, employeeDetails }) => {
+  finalScore: ISupervisorAssessmentFinalScore;
+}> = ({ group, id, employeeDetails, finalScore }) => {
   const [isOpen, setIsOpen] = React.useState(true);
 
   const getFieldValue = (fieldId: number) => {
@@ -116,7 +118,8 @@ const CategoryDetails: React.FC<{
 export const SupervisorAssessmentResult: React.FC<
   SupervisorAssessmentResultProps
 > = ({ id }) => {
-  const { employeeDetails, groups } = useSupervisorAssessmentDetails(id);
+  const { employeeDetails, groups, finalScore } =
+    useSupervisorAssessmentDetails(id);
   const formId = employeeDetails?.data.form.id;
 
   const form = useForm({
@@ -153,8 +156,8 @@ export const SupervisorAssessmentResult: React.FC<
           </p>
         </div>
       )}
-      {groups ? (
-        <AssessmentSummaryTable data={groups} />
+      {finalScore ? (
+        <AssessmentSummaryTable data={finalScore} />
       ) : (
         <p className="text-center font-semibold text-primary">
           No supervisor assessment result data available
@@ -166,7 +169,7 @@ export const SupervisorAssessmentResult: React.FC<
         </h3>
       </div>
 
-      {groups && formId && groups.length > 0 ? (
+      {groups && formId && finalScore && groups.length > 0 ? (
         <Form {...form}>
           <form>
             {groups.map((group) => (
@@ -175,6 +178,7 @@ export const SupervisorAssessmentResult: React.FC<
                 group={group}
                 id={id}
                 employeeDetails={employeeDetails}
+                finalScore={finalScore}
               />
             ))}
           </form>
