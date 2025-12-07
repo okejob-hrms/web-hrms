@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react";
 import { CheckboxForm } from "@/components/ui/checkbox-form";
 import { TextAreaForm } from "@/components/ui/textarea";
