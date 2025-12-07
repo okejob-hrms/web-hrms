@@ -303,7 +303,7 @@ export const useKPIs = () => {
 
   return {
     data: kpiData?.data,
-    pagination: kpiData?.pagination,
+    pagination: kpiData,
     isLoading,
     handleNew,
     handleEdit,

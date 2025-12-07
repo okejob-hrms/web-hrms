@@ -34,7 +34,7 @@ interface DataTableProps<TData, TValue = unknown> {
   tableHeadClassName?: string;
   tableCellClassName?: string;
   customSize?: boolean;
-  pagination?: PaginatedResponse<TData> | ApiPagination;
+  pagination?: PaginatedResponse<TData>;
   rowSelection?: RowSelectionState;
   onRowSelectionChange?: OnChangeFn<RowSelectionState>;
   paginationState?: PaginationState;

@@ -33,7 +33,7 @@ export interface PaginatedResponse<T> {
   last_page?: number;
   next?: string | null;
   prev?: string | null;
-  pagination: ApiPagination;
+  pagination?: ApiPagination;
 }
 
 export interface ApiResponse<T> {
