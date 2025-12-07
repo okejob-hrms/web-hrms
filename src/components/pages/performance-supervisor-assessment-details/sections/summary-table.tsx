@@ -11,10 +11,21 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { AssessmentSummaryTableProps } from "../types";
+import { useQuery } from "@tanstack/react-query";
+import { getScore } from "@/services/score";
 
 export const AssessmentSummaryTable: React.FC<AssessmentSummaryTableProps> = ({
   data,
 }) => {
+  const { data: scoreData } = useQuery({
+    queryKey: ["score-threshold", data.work_value],
+    queryFn: () => getScore(undefined, data.work_value),
+    enabled: !!data.work_value,
+  });
+
+  const scoreThreshold =
+    scoreData?.data?.[0]?.score || data.score_threshold || "-";
+
   return (
     <div className="w-full border border-grayscale-20 rounded-lg overflow-hidden">
       <Table>
@@ -39,7 +50,6 @@ export const AssessmentSummaryTable: React.FC<AssessmentSummaryTableProps> = ({
                 {row.metadata?.score_weight_type === "percent" && "%"})
               </TableCell>
               <TableCell className={`text-right py-4`}>
-                {/* {row.metadata?.score_weight || 0}{row.metadata?.score_weight_type === "percent" && "%"} */}
                 {row.score_label}
               </TableCell>
             </TableRow>
@@ -75,7 +85,7 @@ export const AssessmentSummaryTable: React.FC<AssessmentSummaryTableProps> = ({
             <TableCell className="text-right">Tingkat Kinerja</TableCell>
             <TableCell className="text-right">
               <span className="text-primary font-semibold">
-                {data.score_threshold}
+                {scoreThreshold}
               </span>
             </TableCell>
           </TableRow>
