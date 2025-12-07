@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -302,7 +303,7 @@ export const useKPIs = () => {
 
   return {
     data: kpiData?.data,
-    pagination: kpiData?.pagination,
+    pagination: kpiData,
     isLoading,
     handleNew,
     handleEdit,

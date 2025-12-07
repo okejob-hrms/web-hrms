@@ -203,7 +203,7 @@ export default function SupervisorAssessmentList() {
             columns={columns}
             data={data?.data}
             customSize={!isMobile}
-            pagination={data?.pagination}
+            pagination={data}
             paginationState={pagination}
             setPaginationState={setPagination}
           />
