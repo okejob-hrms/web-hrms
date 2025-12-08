@@ -9,6 +9,7 @@ import * as React from "react";
 import { getStatusSelfAssessment } from "@/lib/helpers";
 import { Badge } from "@/components/ui/badge";
 import { OKRTab } from "./sections/tab";
+import { CircularProgress } from "@/components/ui/progress";
 
 export const PerformanceOKRDetails = () => {
   const status = getStatusSelfAssessment(1);
@@ -74,7 +75,7 @@ export const PerformanceOKRDetails = () => {
           <span className="text-text-disabled text-sm">End Date</span>
           <span className="text-base">-</span>
         </div>
-        <div className="border border-grayscale-10 rounded-xs p-4 flex gap-2">
+        <div className="border border-grayscale-10 rounded-xs px-4 py-2 flex justify-between items-center col-span-2 md:col-span-1">
           <div className="flex flex-col gap-1">
             <span className="font-semibold text-base text-black">
               Overall Achievement
@@ -83,15 +84,48 @@ export const PerformanceOKRDetails = () => {
               Average progres from overall achievement
             </span>
           </div>
+          <CircularProgress
+            value={50}
+            size={120}
+            strokeWidth={10}
+            showLabel
+            labelClassName="text-xl font-bold"
+            renderLabel={(progress) => `${progress}%`}
+          />
         </div>
-        <div className="border border-grayscale-10 rounded-xs p-4 flex gap-2">
-          <div className="flex flex-col gap-1">
-            <span className="font-semibold text-base text-black">
-              Overall Achievement
-            </span>
-            <span className="text-text-secondary text-xs">
-              Average progres from overall achievement
-            </span>
+        <div className="border border-grayscale-10 rounded-xs p-4 grid grid-cols-3 gap-4 col-span-2 md:col-span-1 items-center">
+          <div className="flex gap-2 items-center">
+            <div className="w-2 h-2 bg-primary-border rounded-xs"></div>
+            <div className="flex flex-col">
+              <span className="text-xl font-semibold text-text-secondary">
+                142
+              </span>
+              <span className="text-text-disabled text-sm">
+                Total Key Result
+              </span>
+            </div>
+          </div>
+          <div className="flex gap-2 items-center">
+            <div className="w-2 h-2 bg-warning rounded-xs"></div>
+            <div className="flex flex-col">
+              <span className="text-xl font-semibold text-text-secondary">
+                142
+              </span>
+              <span className="text-text-disabled text-sm">
+                Open Key Result
+              </span>
+            </div>
+          </div>
+          <div className="flex gap-2 items-center">
+            <div className="w-2 h-2 bg-success rounded-xs"></div>
+            <div className="flex flex-col">
+              <span className="text-xl font-semibold text-text-secondary">
+                142
+              </span>
+              <span className="text-text-disabled text-sm">
+                Completed Key Result
+              </span>
+            </div>
           </div>
         </div>
       </div>
