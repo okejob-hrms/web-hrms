@@ -23,6 +23,7 @@ export const useKPIs = () => {
   const [openForm, setOpenForm] = React.useState(false);
   const [openDetail, setOpenDetail] = React.useState(false);
   const [openDelete, setOpenDelete] = React.useState(false);
+  const [deleteKpiId, setDeleteKpiId] = React.useState<number | null>(null);
   const [searchTerm, setSearchTerm] = React.useState("");
   const [editKpiId, setEditKpiId] = React.useState<number | null>(null);
   const [detailKpiId, setDetailKpiId] = React.useState<number | null>(null);
@@ -68,6 +69,8 @@ export const useKPIs = () => {
     onSuccess: () => {
       toast.success("Delete KPI successfully!");
       queryClient.invalidateQueries({ queryKey: ["kpis"] });
+      setOpenDelete(false);
+      setDeleteKpiId(null);
     },
     onError: (error: any) => {
       if (error?.response) {
@@ -190,7 +193,19 @@ export const useKPIs = () => {
   };
 
   const handleDelete = (id: number) => {
-    deleteMutation.mutate(id);
+    setDeleteKpiId(id);
+    setOpenDelete(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (deleteKpiId) {
+      deleteMutation.mutate(deleteKpiId);
+    }
+  };
+
+  const handleCloseDelete = () => {
+    setOpenDelete(false);
+    setDeleteKpiId(null);
   };
 
   const handleDetail = (kpi: IKPI) => {
@@ -346,5 +361,9 @@ export const useKPIs = () => {
     handleCloseDetail,
     kpiDetailData: kpiDetailData?.data,
     isLoadingDetailData,
+    openDelete,
+    handleCloseDelete,
+    handleConfirmDelete,
+    deleteKpiId,
   };
 };

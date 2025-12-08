@@ -25,6 +25,7 @@ import {
 import FormModal from "./sections/form-modal";
 import { Input } from "@/components/ui/input";
 import { DetailModal } from "./sections/detail-modal";
+import { DeleteModal } from "./sections/delete-modal";
 
 export default function PerformanceKPI() {
   const {
@@ -57,6 +58,10 @@ export default function PerformanceKPI() {
     openDetail,
     handleCloseDetail,
     kpiDetailData,
+    openDelete,
+    handleCloseDelete,
+    handleConfirmDelete,
+    deleteKpiId,
   } = useKPIs();
 
   const isMobile = useIsMobile();
@@ -249,6 +254,12 @@ export default function PerformanceKPI() {
         open={openDetail}
         onOpenChange={handleCloseDetail}
         data={kpiDetailData}
+      />
+      <DeleteModal
+        open={openDelete}
+        onOpenChange={handleCloseDelete}
+        onSave={handleConfirmDelete}
+        id={deleteKpiId || 0}
       />
     </div>
   );

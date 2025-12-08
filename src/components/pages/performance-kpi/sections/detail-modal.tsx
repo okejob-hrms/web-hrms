@@ -52,7 +52,7 @@ export const DetailModal: React.FC<IDetailModalProps> = ({
                   <span className="text-text-disabled text-sm">
                     Description
                   </span>
-                  <span className="text-foreground">{data?.description}</span>
+                  <span className="text-foreground">{data?.description || "-"}</span>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="flex flex-col gap-2">
@@ -81,25 +81,29 @@ export const DetailModal: React.FC<IDetailModalProps> = ({
                   <span className="text-text-disabled text-sm">
                     Job Position
                   </span>
-                  {data.job_positions.map((position) => (
-                    <div
-                      key={position.id}
-                      className="bg-primary-focused rounded-full py-1 px-1.5"
-                    >
-                      <span className="text-primary">{position.name}</span>
-                    </div>
-                  ))}
+                  <div className="flex flex-wrap gap-2">
+										{data.job_positions.map((position) => (
+											<div
+												key={position.id}
+												className="bg-primary-focused rounded-full py-1 px-1.5 w-fit"
+											>
+												<span className="text-primary text-sm">{position.name}</span>
+											</div>
+										))}
+									</div>
                 </div>
                 <div className="flex flex-col gap-2">
                   <span className="text-text-disabled text-sm">Job Level</span>
-                  {data.job_levels.map((level) => (
-                    <div
-                      key={level.id}
-                      className="bg-primary-focused rounded-full py-1 px-1.5"
-                    >
-                      <span className="text-primary">{level.name}</span>
-                    </div>
-                  ))}
+                  <div className="flex flex-wrap gap-2">
+										{data.job_levels.map((level) => (
+											<div
+												key={level.id}
+												className="bg-primary-focused rounded-full py-1 px-1.5 w-fit"
+											>
+												<span className="text-primary text-sm">{level.name}</span>
+											</div>
+										))}
+									</div>
                 </div>
               </div>
             </div>
