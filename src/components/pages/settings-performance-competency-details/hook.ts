@@ -40,7 +40,6 @@ export const usePerformanceCompetencyDetails = () => {
     enabled: !!competencyId,
   });
 
-  // Fetch competency levels
   const { data: competencyLevels, isLoading: isLoadingLevels } = useQuery({
     queryKey: ["performance-competency-levels"],
     queryFn: () => getPerformanceCompetencyLevels(),
@@ -61,7 +60,8 @@ export const usePerformanceCompetencyDetails = () => {
         description: "",
       });
       queryClient.invalidateQueries({
-        queryKey: ["performance-competency-levels"],
+        queryKey: ["performance-competency-detail"],
+        // queryKey: ["performance-competency-levels", "performance-competency-detail"],
       });
       toast.success("Level added successfully");
     },
@@ -90,7 +90,7 @@ export const usePerformanceCompetencyDetails = () => {
         description: "",
       });
       queryClient.invalidateQueries({
-        queryKey: ["performance-competency-levels"],
+        queryKey: ["performance-competency-detail"],
       });
       toast.success("Level updated successfully");
     },
@@ -106,7 +106,7 @@ export const usePerformanceCompetencyDetails = () => {
       setIsOpenDeleteModal(false);
       setSelectedId(null);
       queryClient.invalidateQueries({
-        queryKey: ["performance-competency-levels"],
+        queryKey: ["performance-competency-detail"],
       });
       toast.success("Level deleted successfully");
     },
@@ -192,7 +192,8 @@ export const usePerformanceCompetencyDetails = () => {
     isOpenModalForm,
     setIsOpenModalForm: handleModalClose,
     competencyDetails: competencyDetails?.data,
-    competencyLevels: filteredLevels,
+    // competencyLevels: filteredLevels,
+    competencyLevels: competencyDetails?.data.levels,
     isLoadingDetails,
     isLoadingLevels,
     form,

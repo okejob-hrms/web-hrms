@@ -24,10 +24,18 @@ export const usePerformanceCompetenciesList = () => {
   const [isOpenDeleteModal, setIsOpenDeleteModal] = React.useState(false);
   const [selectedId, setSelectedId] = React.useState<number | null>(null);
   const [editingId, setEditingId] = React.useState<number | null>(null);
+  const [pagination, setPagination] = React.useState({
+    pageIndex: 0,
+    pageSize: 10,
+  });
 
   const { data: performanceCompetencies } = useQuery({
-    queryKey: ["performance-competencies"],
-    queryFn: () => getPerformanceCompetencies(),
+    queryKey: ["performance-competencies", pagination],
+    queryFn: () =>
+      getPerformanceCompetencies({
+        page: (pagination.pageIndex + 1).toString(),
+        per_page: pagination.pageSize.toString(),
+      }),
   });
 
   const mutateAddPerformanceCompetency = useMutation({
@@ -141,5 +149,7 @@ export const usePerformanceCompetenciesList = () => {
     handleDeleteConfirm,
     isDeleting: mutateDeletePerformanceCompetency.isPending,
     isEditing: editingId !== null,
+    paginationState: pagination,
+    setPagination,
   };
 };

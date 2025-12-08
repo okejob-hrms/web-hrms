@@ -37,6 +37,8 @@ export const SettingsPerformanceCompetencies = React.memo(
       handleDeleteClick,
       handleDeleteConfirm,
       isDeleting,
+      paginationState,
+      setPagination,
     } = usePerformanceCompetenciesList();
 
     const columns: ColumnDef<any>[] = [
@@ -130,6 +132,9 @@ export const SettingsPerformanceCompetencies = React.memo(
               columns={columns}
               data={performanceCompetencies?.data.data || []}
               customSize={!isMobile}
+              pagination={performanceCompetencies?.data}
+              paginationState={paginationState}
+              setPaginationState={setPagination}
             />
           </div>
         </div>

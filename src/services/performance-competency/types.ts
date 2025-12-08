@@ -9,6 +9,11 @@ export interface IPerformanceCompetencyResponse {
   levels: any[];
 }
 
+export interface IPaginatedParam {
+  per_page: string;
+  page: string;
+}
+
 export interface ICompetency {
   id: number;
   code: string;

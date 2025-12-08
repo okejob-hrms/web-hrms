@@ -64,6 +64,7 @@ export const SettingsPerformanceCompetencyDetails = React.memo(
       {
         accessorKey: "menu",
         header: "",
+        size: 50,
         cell: ({ row }) => {
           return (
             <DropdownMenu>

@@ -7,14 +7,20 @@ import {
   IPerformanceCompetencyDetails,
   IPerformanceCompetencyLevel,
   IPerformanceCompetencyResponse,
+  IPaginatedParam,
 } from "./types";
+import qs from "qs";
 
-export const getPerformanceCompetencies = async (): Promise<
-  ApiResponse<PaginatedResponse<IPerformanceCompetencyResponse>>
-> => {
+export const getPerformanceCompetencies = async (
+  params?: IPaginatedParam,
+): Promise<ApiResponse<PaginatedResponse<IPerformanceCompetencyResponse>>> => {
   try {
     return api
-      .get(`setting/performance-competencies`)
+      .get(
+        params
+          ? `setting/performance-competencies?${qs.stringify(params)}`
+          : "setting/performance-competencies",
+      )
       .json<ApiResponse<PaginatedResponse<IPerformanceCompetencyResponse>>>();
   } catch (error: any) {
     if (error.name === "HTTPError") {
