@@ -109,23 +109,31 @@ export const menus: Record<string, MenuItem[]> = {
       name: "Supervisor Assessment",
       value: "performance/supervisor-assessment",
     },
+    // {
+    //   name: "Objective & Key Results (OKR)",
+    //   value: "performance/team-okr",
+    //   subItem: [
+    //     {
+    //       name: "Department/Team OKR",
+    //       value: "performance/team-okr",
+    //     },
+    //     {
+    //       name: "Individual OKR",
+    //       value: "performance/individual-okr",
+    //     },
+    //     {
+    //       name: "Key Performance Indicators (KPIs)",
+    //       value: "performance/kpi",
+    //     },
+    //   ],
+    // },
     {
       name: "Objective & Key Results (OKR)",
-      value: "performance/team-okr",
-      subItem: [
-        {
-          name: "Department/Team OKR",
-          value: "performance/team-okr",
-        },
-        {
-          name: "Individual OKR",
-          value: "performance/individual-okr",
-        },
-        {
-          name: "Key Performance Indicators (KPIs)",
-          value: "performance/kpi",
-        },
-      ],
+      value: "performance/okr",
+    },
+    {
+      name: "Key Performance Indicators (KPIs)",
+      value: "performance/kpi",
     },
   ],
 };
@@ -174,6 +182,7 @@ export const getHideSidebar = (path: string) => {
     /^\/performance\/supervisor-assessment\/\d+$/;
   const competenciesDetailsPattern = /^\/settings\/competencies\/\d+$/;
   const formTemplateDetailsPattern = /^\/settings\/form-template\/\d+$/;
+  const performanceOKRDetailsPattern = /^\/performance\/okr\/\d+$/;
 
   if (employeeDetailPattern.test(path)) {
     return true;
@@ -213,6 +222,10 @@ export const getHideSidebar = (path: string) => {
 
   const matchedHidePath = hidePath.find((p) => path.startsWith(p));
   if (matchedHidePath) {
+    return true;
+  }
+
+  if (performanceOKRDetailsPattern.test(path)) {
     return true;
   }
 
