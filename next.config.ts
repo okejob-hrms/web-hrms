@@ -13,8 +13,17 @@ const nextConfig: NextConfig = {
         hostname: "face.okejobhub.fun",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "via.placeholder.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "bucket.okejobhub.fun",
+        pathname: "/**",
+      },
     ],
-    domains: ["via.placeholder.com", "bucket.okejobhub.fun"],
   },
 };
 
