@@ -21,8 +21,11 @@ export const useKPIs = () => {
   const queryClient = useQueryClient();
   const form = useFormContext();
   const [openForm, setOpenForm] = React.useState(false);
+  const [openDetail, setOpenDetail] = React.useState(false);
+  const [openDelete, setOpenDelete] = React.useState(false);
   const [searchTerm, setSearchTerm] = React.useState("");
   const [editKpiId, setEditKpiId] = React.useState<number | null>(null);
+  const [detailKpiId, setDetailKpiId] = React.useState<number | null>(null);
   const [pagination, setPagination] = React.useState({
     pageIndex: 0,
     pageSize: 10,
@@ -38,11 +41,16 @@ export const useKPIs = () => {
       }),
   });
 
-  // Fetch KPI details when editing
   const { data: kpiDetails, isLoading: isLoadingDetails } = useQuery({
     queryKey: ["kpi-details", editKpiId],
     queryFn: () => getKPIDetails(editKpiId!),
     enabled: !!editKpiId && openForm,
+  });
+
+  const { data: kpiDetailData, isLoading: isLoadingDetailData } = useQuery({
+    queryKey: ["kpi-detail-view", detailKpiId],
+    queryFn: () => getKPIDetails(detailKpiId!),
+    enabled: !!detailKpiId && openDetail,
   });
 
   const { data: jobPositions, isLoading: jobPositionsLoading } = useQuery({
@@ -186,7 +194,8 @@ export const useKPIs = () => {
   };
 
   const handleDetail = (kpi: IKPI) => {
-    router.push(`/performance/kpi/${kpi.id}`);
+    setDetailKpiId(kpi.id);
+    setOpenDetail(true);
   };
 
   const handleSave = (params: IMutateKPIRequest) => {
@@ -200,6 +209,11 @@ export const useKPIs = () => {
   const handleCloseForm = () => {
     setOpenForm(false);
     setEditKpiId(null);
+  };
+
+  const handleCloseDetail = () => {
+    setOpenDetail(false);
+    setDetailKpiId(null);
   };
 
   const jobPositionOptions = React.useMemo(() => {
@@ -317,7 +331,6 @@ export const useKPIs = () => {
     aggregationOptions,
     directionOptions,
     openForm,
-    setOpenForm,
     getFrequencyLabel,
     getDirectionLabel,
     formatTarget,
@@ -329,5 +342,9 @@ export const useKPIs = () => {
     isLoadingDetails,
     editKpiId,
     handleCloseForm,
+    openDetail,
+    handleCloseDetail,
+    kpiDetailData: kpiDetailData?.data,
+    isLoadingDetailData,
   };
 };

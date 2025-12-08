@@ -8,6 +8,7 @@ import {
 import { Form } from "@/components/ui/form";
 import { InputForm } from "@/components/ui/input";
 import { SelectForm } from "@/components/ui/select-form";
+import { MultiSelectForm } from "@/components/ui/multi-select";
 import {
   IKPIDetails,
   IMutateKPIRequest,
@@ -51,7 +52,6 @@ export default function FormModal({
 }: FormAddModalProps) {
   const form = useForm();
 
-  // Prefill form when kpiDetails is loaded
   React.useEffect(() => {
     if (editMode && kpiDetails && open) {
       form.reset({
@@ -59,8 +59,8 @@ export default function FormModal({
         description: kpiDetails.description || "",
         frequency: kpiDetails.frequency?.toString() || "",
         format: kpiDetails.format?.toString() || "",
-        job_position_id: kpiDetails.job_position_id?.toString() || "",
-        job_level_id: kpiDetails.job_level_id?.toString() || "",
+        job_position_ids: kpiDetails.job_position_ids || [],
+        job_level_ids: kpiDetails.job_level_ids || [],
         target: kpiDetails.target?.toString() || "",
         direction: kpiDetails.direction?.toString() || "",
         aggregation: kpiDetails.aggregation?.toString() || "",
@@ -71,8 +71,8 @@ export default function FormModal({
         description: "",
         frequency: "",
         format: "",
-        job_position_id: "",
-        job_level_id: "",
+        job_position_ids: [],
+        job_level_ids: [],
         target: "",
         direction: "",
         aggregation: "",
@@ -87,8 +87,8 @@ export default function FormModal({
       description: formData.description,
       frequency: Number(formData.frequency),
       format: Number(formData.format),
-      job_position_id: Number(formData.job_position_id),
-      job_level_id: Number(formData.job_level_id),
+      job_position_ids: formData.job_position_ids,
+      job_level_ids: formData.job_level_ids,
       target: Number(formData.target),
       direction: Number(formData.direction),
       aggregation: Number(formData.aggregation),
@@ -146,20 +146,32 @@ export default function FormModal({
                 options={formatOptions}
               />
             </div>
-            <SelectForm
-              name="job_position_id"
-              label="Job Position"
-              required
-              className="w-full"
-              options={jobPositionOptions}
-            />
-            <SelectForm
-              name="job_level_id"
-              label="Job Level"
-              required
-              className="w-full"
-              options={jobLevelOptions}
-            />
+            <div className="flex flex-col gap-2">
+              <label className="text-sm text-text-secondary">
+                Job Position<span className="text-error">*</span>
+              </label>
+              <MultiSelectForm
+                options={jobPositionOptions}
+                name="job_position_ids"
+                maxCount={3}
+                searchPlaceholder="Search Job Position"
+                hideSelectAll
+                valueTransformer={(value) => Number(value)}
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className="text-sm text-text-secondary">
+                Job Level<span className="text-error">*</span>
+              </label>
+              <MultiSelectForm
+                options={jobLevelOptions}
+                name="job_level_ids"
+                maxCount={3}
+                searchPlaceholder="Search Job Level"
+                hideSelectAll
+                valueTransformer={(value) => Number(value)}
+              />
+            </div>
             <p className="font-semibold">KPI Target</p>
             <InputForm
               name="target"

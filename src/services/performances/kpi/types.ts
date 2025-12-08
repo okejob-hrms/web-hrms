@@ -6,8 +6,8 @@ export interface IKPI {
   description: string | null;
   frequency: number;
   format: number;
-  job_position_id: number;
-  job_level_id: number;
+  job_position_ids: number[];
+  job_level_ids: number[];
   target: number;
   direction: number;
   aggregation: number;
@@ -27,8 +27,8 @@ export interface IMutateKPIRequest {
   direction: number;
   format: number;
   frequency: number;
-  job_level_id: number;
-  job_position_id: number;
+  job_level_ids: number[];
+  job_position_ids: number[];
   name: string;
   target: number;
 }
@@ -41,10 +41,10 @@ export interface IKPIDetails {
   format: number;
   frequency: number;
   id: number;
-  job_level: JobLevel;
-  job_level_id: number;
-  job_position: JobPosition;
-  job_position_id: number;
+  job_levels: JobLevel[];
+  job_level_ids: number[] | null;
+  job_positions: JobPosition[];
+  job_position_ids: number[] | null;
   name: string;
   target: number;
   tenant_id: number;

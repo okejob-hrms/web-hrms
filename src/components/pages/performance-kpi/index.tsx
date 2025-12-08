@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import FormModal from "./sections/form-modal";
 import { Input } from "@/components/ui/input";
+import { DetailModal } from "./sections/detail-modal";
 
 export default function PerformanceKPI() {
   const {
@@ -35,7 +36,6 @@ export default function PerformanceKPI() {
     handleEdit,
     handleSave,
     openForm,
-    setOpenForm,
     jobPositionOptions,
     jobLevelOptions,
     frequencyOptions,
@@ -54,6 +54,9 @@ export default function PerformanceKPI() {
     editKpiId,
     isLoadingDetails,
     handleCloseForm,
+    openDetail,
+    handleCloseDetail,
+    kpiDetailData,
   } = useKPIs();
 
   const isMobile = useIsMobile();
@@ -241,6 +244,11 @@ export default function PerformanceKPI() {
         kpiDetails={kpiDetails}
         editMode={!!editKpiId}
         isLoadingDetails={isLoadingDetails}
+      />
+      <DetailModal
+        open={openDetail}
+        onOpenChange={handleCloseDetail}
+        data={kpiDetailData}
       />
     </div>
   );
