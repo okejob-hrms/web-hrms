@@ -1,12 +1,10 @@
 import { api } from "@/lib/api";
-import {
-    ScoreRequest,
-  ScoreResponse,
-} from "./types";
+import { ScoreRequest, ScoreResponse } from "./types";
 import { PaginationState } from "@tanstack/react-table";
 
 export const getScore = async (
   pagination?: PaginationState,
+  work_value?: number,
 ): Promise<ScoreResponse> => {
   const searchParams: Record<string, string> = {};
 
@@ -16,10 +14,14 @@ export const getScore = async (
     searchParams.page = page.toString();
     searchParams.per_page = per_page.toString();
   }
-  const response = await api.get<ScoreResponse>(
-    `setting/score-thresholds`,
-    { searchParams }
-  );
+
+  if (work_value !== undefined) {
+    searchParams.work_value = work_value.toString();
+  }
+
+  const response = await api.get<ScoreResponse>(`setting/score-thresholds`, {
+    searchParams,
+  });
 
   return response.json();
 };
@@ -45,9 +47,7 @@ export const putScore = async (
     .json<ScoreResponse>();
 };
 
-export const removeScore = async (
-  id: number,
-): Promise<ScoreResponse> => {
+export const removeScore = async (id: number): Promise<ScoreResponse> => {
   return api
     .delete(`setting/score-thresholds/${id}`, {
       json: {},

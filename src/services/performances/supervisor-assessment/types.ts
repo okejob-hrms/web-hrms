@@ -77,16 +77,45 @@ export interface IFinalSubmission {
       field_id: number;
       additional_data: unknown | null;
       form_submission_id: number;
+      score: number;
+      score_label: string | null;
+      field_group_id: number;
+      subtotal_score: number;
+      subtotal_score_label: string | null;
+      performance_competency_level: number;
     }>;
     sources: Array<{
       form_submission_id: number;
     }>;
+    final_score: ISupervisorAssessmentFinalScore | null;
     merged_at: string; // ISO datetime
     merged_by: string; // e.g. "system"
   };
   created_at: string; // ISO datetime
   updated_at: string; // ISO datetime
   validated_for: unknown | null;
+}
+
+export interface FinalScoreMetadata {
+  score_weight: number;
+  score_weight_type: string; // e.g. "percent"
+}
+
+export interface FinalScoreGroup {
+  name: string;
+  score: number;
+  metadata: FinalScoreMetadata;
+  score_label: string;
+  field_group_id: number;
+}
+
+export interface ISupervisorAssessmentFinalScore {
+  groups: FinalScoreGroup[];
+  work_value: number;
+  total_score: number;
+  score_threshold: number | null;
+  work_value_label: string;
+  total_score_label: string;
 }
 
 export interface ISupervisorAssessmentResponse {
@@ -104,11 +133,11 @@ export interface ISupervisorAssessmentResponse {
   assessors: IAssessor[];
   form: IForm;
   final_submission: IFinalSubmission | null;
+  // final_score: ISupervisorAssessmentFinalScore | null;
   created_at: string;
   updated_at: string;
 }
 export interface ISupervisorAssessmentParam {
-  status: string;
   per_page: string;
   page: string;
 }

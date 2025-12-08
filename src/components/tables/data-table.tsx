@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { GeneralPagination } from "../ui/pagination";
-import { PaginatedResponse } from "@/lib/types";
+import { ApiPagination, PaginatedResponse } from "@/lib/types";
 import { Skeleton } from "../ui/skeleton";
 
 interface DataTableProps<TData, TValue = unknown> {

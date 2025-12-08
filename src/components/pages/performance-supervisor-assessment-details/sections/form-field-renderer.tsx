@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react";
 import { CheckboxForm } from "@/components/ui/checkbox-form";
 import { TextAreaForm } from "@/components/ui/textarea";
@@ -22,9 +23,10 @@ export const FormFieldRenderer = React.memo(function FormFieldRenderer({
     console.warn("FormFieldRenderer: no form context available", error);
     setValue = undefined;
   }
-
   React.useEffect(() => {
     if (value && setValue) {
+      const fieldName = value.field_id?.toString() || field.id.toString();
+
       if (field.type === "checkbox") {
         const selectedValues = value.value
           ? value.value.split(",").map((v) => v.trim())
@@ -36,7 +38,7 @@ export const FormFieldRenderer = React.memo(function FormFieldRenderer({
           });
         }
       } else {
-        setValue(field.form_id.toString(), value.value || "");
+        setValue(fieldName, value.value || "");
       }
     }
   }, [value, field, setValue]);
@@ -62,7 +64,7 @@ export const FormFieldRenderer = React.memo(function FormFieldRenderer({
         return (
           <TextAreaForm
             data-state="disabled"
-            name={field.form_id.toString()}
+            name={value?.field_id.toString() || field.id.toString()}
             label={field.label}
             disabled
             inputClassName="bg-grayscale-20 text-text-disabled"
@@ -86,7 +88,7 @@ export const FormFieldRenderer = React.memo(function FormFieldRenderer({
       default:
         return (
           <InputForm
-            name={field.form_id.toString()}
+            name={value?.field_id.toString() || field.id.toString()}
             className="mt-2"
             disabled
             value={value?.value}

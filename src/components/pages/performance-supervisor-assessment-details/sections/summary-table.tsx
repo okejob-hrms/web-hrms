@@ -11,10 +11,21 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { AssessmentSummaryTableProps } from "../types";
+import { useQuery } from "@tanstack/react-query";
+import { getScore } from "@/services/score";
 
 export const AssessmentSummaryTable: React.FC<AssessmentSummaryTableProps> = ({
   data,
 }) => {
+  const { data: scoreData } = useQuery({
+    queryKey: ["score-threshold", data.work_value],
+    queryFn: () => getScore(undefined, data.work_value),
+    enabled: !!data.work_value,
+  });
+
+  const scoreThreshold =
+    scoreData?.data?.[0]?.score || data.score_threshold || "-";
+
   return (
     <div className="w-full border border-grayscale-20 rounded-lg overflow-hidden">
       <Table>
@@ -29,9 +40,9 @@ export const AssessmentSummaryTable: React.FC<AssessmentSummaryTableProps> = ({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {data.map((row) => (
+          {data.groups.map((row) => (
             <TableRow
-              key={row.id}
+              key={row.field_group_id}
               className={`border-t border-grayscale-20 py-6`}
             >
               <TableCell className="text-text-secondary text-sm">
@@ -39,18 +50,21 @@ export const AssessmentSummaryTable: React.FC<AssessmentSummaryTableProps> = ({
                 {row.metadata?.score_weight_type === "percent" && "%"})
               </TableCell>
               <TableCell className={`text-right py-4`}>
-                {/* {row.metadata?.score_weight || 0}{row.metadata?.score_weight_type === "percent" && "%"} */}
-                0.0
+                {row.score_label}
               </TableCell>
             </TableRow>
           ))}
         </TableBody>
         <TableFooter>
           <TableRow className="bg-gray-50">
-            <TableCell className="text-right">Total Score</TableCell>
             <TableCell className="text-right">
-              <span className="text-primary font-semibold">0</span>
-              <span className="text-text-secondary font-normal">/0.0</span>
+              {data.total_score_label}
+            </TableCell>
+            <TableCell className="text-right">
+              <span className="text-primary font-semibold">
+                {data.total_score_label || 0}
+              </span>
+              {/* <span className="text-text-secondary font-normal">/0.0</span> */}
             </TableCell>
           </TableRow>
           <TableRow className="bg-warning-background">
@@ -62,13 +76,17 @@ export const AssessmentSummaryTable: React.FC<AssessmentSummaryTableProps> = ({
           <TableRow className="bg-primary-background">
             <TableCell className="text-right">Nilai Kinerja</TableCell>
             <TableCell className="text-right">
-              <span className="text-primary font-semibold">0.0</span>
+              <span className="text-primary font-semibold">
+                {data.work_value_label || 0}
+              </span>
             </TableCell>
           </TableRow>
           <TableRow className="bg-primary-background">
             <TableCell className="text-right">Tingkat Kinerja</TableCell>
             <TableCell className="text-right">
-              <span className="text-primary font-semibold">-</span>
+              <span className="text-primary font-semibold">
+                {scoreThreshold}
+              </span>
             </TableCell>
           </TableRow>
         </TableFooter>

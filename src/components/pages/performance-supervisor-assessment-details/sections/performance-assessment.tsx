@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import * as React from "react";
@@ -15,34 +16,15 @@ import { IFormGroup } from "@/services/form/types";
 import { FormFieldRenderer } from "./form-field-renderer";
 import { Form } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
+import { IFinalSubmission } from "@/services/performances/supervisor-assessment/types";
 
 const CategoryDetails: React.FC<{
   group: IFormGroup;
   id: number;
   employeeDetails: any;
-}> = ({ group, id, employeeDetails }) => {
+  finalSubmission: IFinalSubmission;
+}> = ({ group, finalSubmission, employeeDetails }) => {
   const [isOpen, setIsOpen] = React.useState(true);
-
-  const getFieldValue = (fieldId: number) => {
-    if (!employeeDetails?.data?.final_submission?.data?.fields) {
-      return undefined;
-    }
-
-    const fieldData = employeeDetails.data.final_submission.data.fields.find(
-      (f: any) => f.field_id === fieldId,
-    );
-
-    return fieldData
-      ? {
-          value: fieldData.value,
-          field_id: fieldData.field_id,
-          additional_data: fieldData.additional_data,
-          score: 0,
-          field_group_id: 0,
-        }
-      : undefined;
-  };
-
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen} className="space-y-4">
       <CollapsibleTrigger asChild className="border-b border-primary-border">
@@ -75,27 +57,24 @@ const CategoryDetails: React.FC<{
                   <div className="text-right">
                     <p className="text-xs text-gray-500">Score</p>
                     <p className="text-sm font-semibold text-primary">
-                      {item.metadata?.score?.toFixed(2) || 0}
-                      <span className="text-text-disabled">
-                        /{item.metadata?.maxScore || 0}
-                      </span>
+                      {finalSubmission?.data?.fields?.find(
+                        (f: any) => f.field_id === item.id,
+                      )?.score_label || 0}
                     </p>
                   </div>
                   <Separator orientation="vertical" className="h-full" />
                   <div className="text-right">
                     <p className="text-xs text-gray-500">Sub Total</p>
                     <p className="text-sm font-semibold text-primary">
-                      {item.metadata?.subTotal?.toFixed(2) || 0}
-                      <span className="text-text-disabled">
-                        /{item.metadata?.maxScore || 0}
-                      </span>
+                      {finalSubmission?.data?.fields?.find(
+                        (f: any) => f.field_id === item.id,
+                      )?.subtotal_score_label || 0}
                     </p>
                   </div>
                 </div>
               </div>
             );
           } else {
-            const fieldValue = getFieldValue(item.id);
             return (
               <FormFieldRenderer
                 key={item.id}
@@ -103,7 +82,9 @@ const CategoryDetails: React.FC<{
                   ...item,
                   form_id: item.form_id,
                 }}
-                value={fieldValue}
+                value={employeeDetails.data.final_submission.data.fields.find(
+                  (f: any) => f.field_id === item.id,
+                )}
               />
             );
           }
@@ -116,7 +97,8 @@ const CategoryDetails: React.FC<{
 export const SupervisorAssessmentResult: React.FC<
   SupervisorAssessmentResultProps
 > = ({ id }) => {
-  const { employeeDetails, groups } = useSupervisorAssessmentDetails(id);
+  const { employeeDetails, groups, finalScore, finalSubmission } =
+    useSupervisorAssessmentDetails(id);
   const formId = employeeDetails?.data.form.id;
 
   const form = useForm({
@@ -153,8 +135,8 @@ export const SupervisorAssessmentResult: React.FC<
           </p>
         </div>
       )}
-      {groups ? (
-        <AssessmentSummaryTable data={groups} />
+      {finalScore ? (
+        <AssessmentSummaryTable data={finalScore} />
       ) : (
         <p className="text-center font-semibold text-primary">
           No supervisor assessment result data available
@@ -166,7 +148,7 @@ export const SupervisorAssessmentResult: React.FC<
         </h3>
       </div>
 
-      {groups && formId && groups.length > 0 ? (
+      {groups && formId && finalSubmission && groups.length > 0 ? (
         <Form {...form}>
           <form>
             {groups.map((group) => (
@@ -175,6 +157,7 @@ export const SupervisorAssessmentResult: React.FC<
                 group={group}
                 id={id}
                 employeeDetails={employeeDetails}
+                finalSubmission={finalSubmission}
               />
             ))}
           </form>

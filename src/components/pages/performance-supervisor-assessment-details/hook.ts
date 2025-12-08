@@ -41,6 +41,8 @@ export const useSupervisorAssessmentDetails = (id: number) => {
   });
 
   const groups = forms?.data?.groups;
+  const finalScore = employeeDetails?.data?.final_submission?.data.final_score;
+  const finalSubmission = employeeDetails?.data?.final_submission;
 
   const mutateCancelAssessment = useMutation({
     mutationFn: (status: number) => updateAssessmentStatus(id, status),
@@ -120,6 +122,8 @@ export const useSupervisorAssessmentDetails = (id: number) => {
     isLoadingForms,
     isErrorForms,
     groups,
+    finalScore,
+    finalSubmission,
     openCancelModal,
     setOpenCancelModal,
     onCancelAssessment,

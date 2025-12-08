@@ -40,6 +40,8 @@ export default function SupervisorAssessmentList() {
     isLoadingForms,
     formsError,
     isSubmitting,
+    pagination,
+    setPagination,
   } = useSupervisorAssessment();
 
   const columns: ColumnDef<ISupervisorAssessmentResponse>[] = [
@@ -201,6 +203,9 @@ export default function SupervisorAssessmentList() {
             columns={columns}
             data={data?.data}
             customSize={!isMobile}
+            pagination={data}
+            paginationState={pagination}
+            setPaginationState={setPagination}
           />
         </div>
 

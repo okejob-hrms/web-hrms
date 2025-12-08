@@ -109,6 +109,24 @@ export const menus: Record<string, MenuItem[]> = {
       name: "Supervisor Assessment",
       value: "performance/supervisor-assessment",
     },
+    {
+      name: "Objective & Key Results (OKR)",
+      value: "performance/team-okr",
+      subItem: [
+        {
+          name: "Department/Team OKR",
+          value: "performance/team-okr",
+        },
+        {
+          name: "Individual OKR",
+          value: "performance/individual-okr",
+        },
+        {
+          name: "Key Performance Indicators (KPIs)",
+          value: "performance/kpi",
+        },
+      ],
+    },
   ],
 };
 

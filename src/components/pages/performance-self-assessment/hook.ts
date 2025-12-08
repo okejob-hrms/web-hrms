@@ -12,6 +12,7 @@ import {
 } from "@tanstack/react-query";
 import { PaginationState } from "@tanstack/react-table";
 import { toast } from "sonner";
+import { IKPI } from "@/services/performances/kpi/types";
 
 interface Filters {
   date: string;
@@ -57,6 +58,10 @@ export function useSelfAssessment() {
   const handleDelete = () => {
     if (!selectedId) return;
     toast.info("Delete functionality is not yet implemented");
+  };
+
+  const onSelectKPI = (kpi: IKPI) => {
+    router.push(`/performance/kpi/${kpi.id}`);
   };
 
   return {
