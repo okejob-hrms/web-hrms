@@ -19,13 +19,13 @@ export const FormFieldRenderer = React.memo(function FormFieldRenderer({
   React.useEffect(() => {
     if (value) {
       if (field.type === "checkbox") {
-        const selectedValues = value.value
-          ? value.value.split(",").map((v) => v.trim())
-          : [];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const selectedValues = (value.value as any) || [];
 
         if (Array.isArray(field.options)) {
           field.options.forEach((option: string) => {
-            setValue(option, selectedValues.includes(option));
+            const isSelected = selectedValues.includes(option);
+            setValue(option, isSelected);
           });
         }
       } else {

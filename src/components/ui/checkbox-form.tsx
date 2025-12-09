@@ -31,7 +31,6 @@ export function CheckboxForm<T extends FieldValues>({
   children,
 }: CheckboxFormProps<T>) {
   const { control } = useFormContext();
-
   return (
     <FormField
       control={control}
@@ -71,11 +70,6 @@ export function CheckboxForm<T extends FieldValues>({
                   onCheckedChange={handleCheckboxChange}
                   disabled={disabled}
                   required={required}
-                  className={
-                    disabled
-                      ? "bg-grayscale-10 border border-grayscale-20 data-[state=checked]:border-grayscale-20 data-[state=checked]:bg-grayscale-10 data-[state=checked]:text-grayscale-40"
-                      : "bg-transparent"
-                  }
                 />
               </FormControl>
               <div className="space-y-1 leading-none">
