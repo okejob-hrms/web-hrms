@@ -44,6 +44,15 @@ export const useSupervisorAssessmentDetails = (id: number) => {
   const finalScore = employeeDetails?.data?.final_submission?.data.final_score;
   const finalSubmission = employeeDetails?.data?.final_submission;
 
+  console.log("finalScore from hook:", finalScore);
+  console.log("employeeDetails structure:", {
+    has_final_submission: !!employeeDetails?.data?.final_submission,
+    has_data: !!employeeDetails?.data?.final_submission?.data,
+    data_keys: employeeDetails?.data?.final_submission?.data
+      ? Object.keys(employeeDetails.data.final_submission.data)
+      : [],
+  });
+
   const mutateCancelAssessment = useMutation({
     mutationFn: (status: number) => updateAssessmentStatus(id, status),
     onSuccess: () => {

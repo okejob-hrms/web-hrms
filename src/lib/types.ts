@@ -102,8 +102,7 @@ export interface IDocument {
 }
 
 //============== Component Props ============== //
-export interface InputProps
-  extends React.InputHTMLAttributes<HTMLInputElement> {
+export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   icon?: React.ReactNode;
   iconPosition?: "left" | "right";
 }
@@ -127,6 +126,8 @@ export interface OptionFormProps extends InputFormProps {
   }[];
   modalChildren?: React.ReactNode;
   type?: "string" | "number";
+  searchValue?: string;
+  onSearchChange?: (value: string) => void;
 }
 
 export type BasicDatePickerProps = DayPickerProps & {
@@ -152,8 +153,7 @@ export type DatePickerProps = DayPickerProps & {
   onChange?: (value?: Date) => void;
 };
 
-export interface TextareaFormProps
-  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+export interface TextareaFormProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   name: string;
   label?: string;
   description?: string;

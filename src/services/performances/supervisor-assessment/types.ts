@@ -113,7 +113,12 @@ export interface ISupervisorAssessmentFinalScore {
   groups: FinalScoreGroup[];
   work_value: number;
   total_score: number;
-  score_threshold: number | null;
+  score_threshold: {
+    id: number;
+    min_value: number;
+    max_value: number;
+    score: string;
+  } | null;
   work_value_label: string;
   total_score_label: string;
 }

@@ -13,8 +13,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-interface CommandInputProps
-  extends React.ComponentProps<typeof CommandPrimitive.Input> {
+interface CommandInputProps extends React.ComponentProps<
+  typeof CommandPrimitive.Input
+> {
   className?: string;
   wrapperClassName?: string;
 }

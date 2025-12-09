@@ -113,10 +113,8 @@ interface MultiSelectGroup {
  * Props for MultiSelect component
  */
 interface MultiSelectProps
-  extends Omit<
-      React.ButtonHTMLAttributes<HTMLButtonElement>,
-      "animationConfig"
-    >,
+  extends
+    Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "animationConfig">,
     VariantProps<typeof multiSelectVariants> {
   /**
    * An array of option objects or groups to be displayed in the multi-select component.
@@ -313,10 +311,8 @@ export interface MultiSelectRef {
 }
 
 interface FormMultiSelectProps
-  extends Omit<
-      React.ButtonHTMLAttributes<HTMLButtonElement>,
-      "animationConfig"
-    >,
+  extends
+    Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "animationConfig">,
     VariantProps<typeof multiSelectVariants> {
   /**
    * The name of the form field. This should match the key in your form schema.
@@ -717,6 +713,10 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
       return "";
     };
 
+    const [selectedOptionsCache, setSelectedOptionsCache] = React.useState<
+      Map<string, MultiSelectOption>
+    >(new Map());
+
     const getAllOptions = React.useCallback((): MultiSelectOption[] => {
       if (options.length === 0) return [];
       let allOptions: MultiSelectOption[];
@@ -757,20 +757,46 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
       return deduplicateOptions ? uniqueOptions : allOptions;
     }, [options, deduplicateOptions, isGroupedOptions]);
 
+    React.useEffect(() => {
+      const allOptions = getAllOptions();
+      let changed = false;
+      const newCache = new Map(selectedOptionsCache);
+
+      allOptions.forEach((option) => {
+        if (selectedValues.includes(option.value)) {
+          if (!newCache.has(option.value)) {
+            newCache.set(option.value, option);
+            changed = true;
+          }
+        }
+      });
+
+      if (changed) {
+        setSelectedOptionsCache(newCache);
+      }
+    }, [getAllOptions, selectedValues, selectedOptionsCache]);
+
     const getOptionByValue = React.useCallback(
       (value: string): MultiSelectOption | undefined => {
         const option = getAllOptions().find((option) => option.value === value);
-        if (!option && process.env.NODE_ENV === "development") {
+        if (option) return option;
+
+        const cachedOption = selectedOptionsCache.get(value);
+        if (cachedOption) return cachedOption;
+
+        if (process.env.NODE_ENV === "development") {
           console.warn(
-            `MultiSelect: Option with value "${value}" not found in options list`,
+            `MultiSelect: Option with value "${value}" not found in options list or cache`,
           );
         }
-        return option;
+        return undefined;
       },
-      [getAllOptions],
+      [getAllOptions, selectedOptionsCache],
     );
 
     const filteredOptions = React.useMemo(() => {
+      if (onSearchChange) return options;
+
       if (!searchable || !searchValue) return options;
       if (options.length === 0) return [];
       if (isGroupedOptions(options)) {
@@ -792,7 +818,7 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
           option.label.toLowerCase().includes(searchValue.toLowerCase()) ||
           option.value.toLowerCase().includes(searchValue.toLowerCase()),
       );
-    }, [options, searchValue, searchable, isGroupedOptions]);
+    }, [options, searchValue, searchable, isGroupedOptions, onSearchChange]);
 
     const handleInputKeyDown = (
       event: React.KeyboardEvent<HTMLInputElement>,
@@ -1229,7 +1255,7 @@ export const MultiSelect = React.forwardRef<MultiSelectRef, MultiSelectProps>(
             align="start"
             onEscapeKeyDown={() => setIsPopoverOpen(false)}
           >
-            <Command>
+            <Command shouldFilter={!onSearchChange}>
               <div className="bg-grayscale-10 w-full py-2">
                 {searchable && (
                   <CommandInput

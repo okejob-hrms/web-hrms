@@ -30,6 +30,12 @@ interface SupervisorAssessmentFormModalProps {
     subtitle?: string;
     image?: string;
   }>;
+  assessorsOptions: Array<{
+    label: string;
+    value: string;
+    subtitle?: string;
+    image?: string;
+  }>;
   positionOptions: Array<{ label: string; value: string }>;
   isPositionsLoading: boolean;
   positionsError: unknown;
@@ -39,6 +45,8 @@ interface SupervisorAssessmentFormModalProps {
   isLoadingEmployees: boolean;
   searchAssesssor: string;
   setSearchAssesssor: (value: string) => void;
+  searchEmployee: string;
+  setSearchEmployee: (value: string) => void;
   formOptions: Array<{ label: string; value: string }>;
   isLoadingForms: boolean;
   formsError: unknown;
@@ -61,10 +69,13 @@ const SupervisorAssessmentFormModal: React.FC<
   isLoadingEmployees,
   searchAssesssor,
   setSearchAssesssor,
+  searchEmployee,
+  setSearchEmployee,
   formOptions,
   isLoadingForms,
   formsError,
   isSubmitting,
+  assessorsOptions,
 }) => {
   const form = useForm<AssessmentFormData>();
 
@@ -108,6 +119,8 @@ const SupervisorAssessmentFormModal: React.FC<
               label="Employee Name"
               required
               options={employeesOptions}
+              searchValue={searchEmployee}
+              onSearchChange={setSearchEmployee}
             />
 
             <div className="flex flex-col gap-2">
@@ -116,10 +129,10 @@ const SupervisorAssessmentFormModal: React.FC<
                 <span className="text-red-500 ml-1">*</span>
               </label>
               <MultiSelectForm
-                options={employeesOptions}
+                options={assessorsOptions}
                 name="assessors"
                 maxCount={3}
-                searchPlaceholder="Search Employee"
+                searchPlaceholder="Search Assessor"
                 hideSelectAll
                 disabled={isLoadingEmployees}
                 valueTransformer={(value: string) => Number(value)}

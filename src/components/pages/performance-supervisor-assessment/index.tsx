@@ -36,12 +36,15 @@ export default function SupervisorAssessmentList() {
     isLoadingEmployees,
     searchAssesssor,
     setSearchAssesssor,
+    searchEmployee,
+    setSearchEmployee,
     formOptions,
     isLoadingForms,
     formsError,
     isSubmitting,
     pagination,
     setPagination,
+    assessorsOptions,
   } = useSupervisorAssessment();
 
   const columns: ColumnDef<ISupervisorAssessmentResponse>[] = [
@@ -223,10 +226,13 @@ export default function SupervisorAssessmentList() {
           isLoadingEmployees={isLoadingEmployees}
           searchAssesssor={searchAssesssor}
           setSearchAssesssor={setSearchAssesssor}
+          searchEmployee={searchEmployee}
+          setSearchEmployee={setSearchEmployee}
           formOptions={formOptions}
           isLoadingForms={isLoadingForms}
           formsError={formsError}
           isSubmitting={isSubmitting}
+          assessorsOptions={assessorsOptions}
         />
       </div>
     </div>

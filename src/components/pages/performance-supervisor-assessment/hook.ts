@@ -3,7 +3,12 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   deleteSupervisorAssessment,
@@ -25,12 +30,14 @@ export function useSupervisorAssessment() {
   const [openFormModal, setOpenFormModal] = React.useState(false);
   const [selectedId, setSelectedId] = React.useState<string>("");
   const [searchAssesssor, setSearchAssesssor] = React.useState("");
+  const [searchEmployee, setSearchEmployee] = React.useState("");
   const [pagination, setPagination] = React.useState({
     pageIndex: 0,
     pageSize: 10,
   });
 
   const debouncedAssessor = useDebounce(searchAssesssor, 300);
+  const debouncedEmployee = useDebounce(searchEmployee, 300);
 
   const { data, isLoading, isFetching } = useQuery({
     queryKey: [
@@ -46,7 +53,22 @@ export function useSupervisorAssessment() {
   });
 
   const { data: employees, isLoading: isLoadingEmployees } = useQuery({
-    queryKey: ["supervisor-assessment-employees", debouncedAssessor],
+    queryKey: ["supervisor-assessment-employees", debouncedEmployee],
+    queryFn: () =>
+      getEmployees(
+        debouncedEmployee
+          ? { search: debouncedEmployee, per_page: 50 }
+          : { per_page: 50 },
+      ),
+    enabled: openFormModal,
+    placeholderData: keepPreviousData,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
+  const { data: assessors, isLoading: isLoadingAssessors } = useQuery({
+    queryKey: ["supervisor-assessment-assessors", debouncedAssessor],
     queryFn: () =>
       getEmployees(
         debouncedAssessor
@@ -54,6 +76,7 @@ export function useSupervisorAssessment() {
           : { per_page: 50 },
       ),
     enabled: openFormModal,
+    // placeholderData: keepPreviousData,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
@@ -107,6 +130,17 @@ export function useSupervisorAssessment() {
     return [];
   }, [employees?.data]);
 
+  const assessorsOptions = React.useMemo(() => {
+    if (assessors?.data?.data) {
+      return assessors.data.data.map((item) => ({
+        label: item.name,
+        value: item.user_id.toString(),
+        subtitle: item.job_position,
+        image: item.photo_profile,
+      }));
+    }
+    return [];
+  }, [assessors?.data]);
   const positionOptions = React.useMemo(() => {
     if (positions?.data) {
       return positions.data.map((item) => ({
@@ -209,5 +243,9 @@ export function useSupervisorAssessment() {
     isSubmitting: createAssessmentMutation.isPending,
     pagination,
     setPagination,
+    searchEmployee,
+    setSearchEmployee,
+    assessorsOptions,
+    isLoadingAssessors,
   };
 }

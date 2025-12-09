@@ -11,20 +11,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { AssessmentSummaryTableProps } from "../types";
-import { useQuery } from "@tanstack/react-query";
-import { getScore } from "@/services/score";
 
 export const AssessmentSummaryTable: React.FC<AssessmentSummaryTableProps> = ({
   data,
 }) => {
-  const { data: scoreData } = useQuery({
-    queryKey: ["score-threshold", data.work_value],
-    queryFn: () => getScore(undefined, data.work_value),
-    enabled: !!data.work_value,
-  });
-
-  const scoreThreshold =
-    scoreData?.data?.[0]?.score || data.score_threshold || "-";
+  const scoreThreshold = data.score_threshold?.score || "-";
 
   return (
     <div className="w-full border border-grayscale-20 rounded-lg overflow-hidden">
@@ -64,7 +55,6 @@ export const AssessmentSummaryTable: React.FC<AssessmentSummaryTableProps> = ({
               <span className="text-primary font-semibold">
                 {data.total_score_label || 0}
               </span>
-              {/* <span className="text-text-secondary font-normal">/0.0</span> */}
             </TableCell>
           </TableRow>
           <TableRow className="bg-warning-background">

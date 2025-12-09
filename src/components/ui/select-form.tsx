@@ -304,12 +304,18 @@ const SelectEmployeeForm: React.FC<OptionFormProps> = ({
   className,
   modalChildren,
   type,
+  searchValue: externalSearchValue,
+  onSearchChange: externalOnSearchChange,
 }) => {
   const { control } = useFormContext();
-  const [searchValue, setSearchValue] = React.useState("");
+  const [internalSearchValue, setInternalSearchValue] = React.useState("");
   const [open, setOpen] = React.useState(false);
+  const [cachedSelectedItem, setCachedSelectedItem] = React.useState<any>(null);
+  const searchValue = externalSearchValue ?? internalSearchValue;
+  const setSearchValue = externalOnSearchChange ?? setInternalSearchValue;
 
   const filteredOptions = React.useMemo(() => {
+    if (externalOnSearchChange) return options;
     if (!searchValue) return options;
     return options.filter(
       (option) =>
@@ -317,7 +323,7 @@ const SelectEmployeeForm: React.FC<OptionFormProps> = ({
         (option.subtitle &&
           option.subtitle.toLowerCase().includes(searchValue.toLowerCase())),
     );
-  }, [options, searchValue]);
+  }, [options, searchValue, externalOnSearchChange]);
 
   return (
     <FormField
@@ -329,9 +335,11 @@ const SelectEmployeeForm: React.FC<OptionFormProps> = ({
             ? field.value.toString()
             : "";
 
-        const selectedItem = options.find(
-          (option) => option.value.toString() === value,
-        );
+        const selectedItem =
+          options.find((option) => option.value.toString() === value) ||
+          (cachedSelectedItem?.value.toString() === value
+            ? cachedSelectedItem
+            : undefined);
 
         return (
           <FormItem className={formItemClassName}>
@@ -402,14 +410,26 @@ const SelectEmployeeForm: React.FC<OptionFormProps> = ({
                             key={item.value}
                             value={item.value.toString()}
                             onSelect={(currentValue) => {
-                              const newValue =
-                                currentValue === value ? "" : currentValue;
-                              if (type === "number") {
-                                field.onChange(
-                                  newValue ? Number(newValue) : "",
-                                );
-                              } else {
-                                field.onChange(newValue);
+                              const selectedOption = filteredOptions.find(
+                                (option) =>
+                                  option.value.toString().toLowerCase() ===
+                                  currentValue.toLowerCase(),
+                              );
+
+                              if (selectedOption) {
+                                setCachedSelectedItem(selectedOption);
+                                const actualValue =
+                                  selectedOption.value.toString();
+                                const newValue =
+                                  actualValue === value ? "" : actualValue;
+
+                                if (type === "number") {
+                                  field.onChange(
+                                    newValue ? Number(newValue) : "",
+                                  );
+                                } else {
+                                  field.onChange(newValue);
+                                }
                               }
                               setOpen(false);
                               setSearchValue("");
