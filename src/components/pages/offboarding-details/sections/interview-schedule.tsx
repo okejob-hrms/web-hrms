@@ -120,9 +120,11 @@ export const InterviewSchedule = React.memo(function InterviewSchedule({
             </div>
             <div className="flex flex-col gap-1 col-start-1 col-end-3">
               <span className="text-text-disabled text-sm">Notes</span>
-              <span className="text-black text-base">
-                {data.data.notes ?? "-"}
-              </span>
+              {data.data.notes ? (
+                <div dangerouslySetInnerHTML={{ __html: data.data.notes }} />
+              ) : (
+                "-"
+              )}
             </div>
           </div>
         </div>

@@ -182,7 +182,7 @@ export const ModalForm = React.memo(function ModalForm({
       if (onCancelEdit) {
         onCancelEdit();
       }
-      queryClient.invalidateQueries({ queryKey: ["interview-schedule"] });
+      queryClient.invalidateQueries({ queryKey: ["assessment-schedule"] });
     },
     onError: (error: any) => {
       if (error?.response) {
