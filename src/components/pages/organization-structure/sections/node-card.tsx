@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { type EmployeeNode } from "../types";
 import { Edit, Plus, Trash2, Ellipsis } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 type NodeCardData = {
   employee: EmployeeNode;
@@ -16,12 +17,39 @@ type NodeCardData = {
 export const NodeCard = ({ data }: { data: NodeCardData }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   const { employee, isEditMode, onAddChild, onEdit, onDelete } = data;
-  const { employeeId, name, job_position, image } = employee;
+  const { employeeId, name, job_position, image, phone_number, email } = employee;
 
   const fallbackSrc = "/icons/user02.svg";
   const [imgSrc, setImgSrc] = useState(image || fallbackSrc);
+
+
+  const handleProfileClick = () => {
+    if (employeeId) {
+      router.push(`/employee/employee-management/${employeeId}`);
+    } else {
+      console.warn("Cannot navigate: employeeId is missing.");
+    }
+  };
+
+  const handlePhoneClick = () => {
+    if (phone_number) {
+      window.location.href = `tel:${phone_number}`;
+    } else {
+      alert(`${name} does not have a phone number listed.`);
+    }
+  };
+
+  const handleEmailClick = () => {
+    if (email) {
+      window.location.href = `mailto:${email}`;
+    } else {
+      alert(`${name} does not have an email address listed.`);
+    }
+  };
+
 
   useEffect(() => {
     setImgSrc(image || fallbackSrc);
@@ -117,7 +145,7 @@ export const NodeCard = ({ data }: { data: NodeCardData }) => {
           </div>
 
           <div className="flex justify-center items-center gap-2 mt-1">
-            <button className="flex items-center gap-2 hover:none px-2 py-1 transition">
+            <button onClick={handlePhoneClick} className="flex cursor-pointer items-center gap-2 hover:none px-2 py-1 transition">
               <Image
                 src="/icons/phone.svg"
                 alt="Phone"
@@ -126,11 +154,11 @@ export const NodeCard = ({ data }: { data: NodeCardData }) => {
               />
               <span className="text-primary text-xs">Phone</span>
             </button>
-            <button className="flex items-center gap-2 border-l border-gray-300 pl-2 hover:none px-2 py-1 transition">
+            <button onClick={handleEmailClick} className="flex cursor-pointer items-center gap-2 border-l border-gray-300 pl-2 hover:none px-2 py-1 transition">
               <Image src="/icons/mail.svg" alt="Mail" width={14} height={14} />
               <span className="text-primary text-xs">Mail</span>
             </button>
-            <button className="flex items-center gap-2 border-l border-gray-300 pl-2 hover:none px-2 py-1 transition">
+            <button onClick={handleProfileClick} className="flex cursor-pointer items-center gap-2 border-l border-gray-300 pl-2 hover:none px-2 py-1 transition">
               <Image
                 src="/icons/work.svg"
                 alt="Profile"
