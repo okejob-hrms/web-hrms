@@ -1,59 +1,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
-
-// Mock data for OKR cycles
-const mockOKRData = [
-  {
-    id: 1,
-    period: "Q4 2025",
-    start_date: "2025-10-01",
-    end_date: "2025-12-31",
-    total: 12,
-    achievement: "85%",
-    status: "In Progress",
-    updated_at: "2025-12-01",
-  },
-  {
-    id: 2,
-    period: "Q3 2025",
-    start_date: "2025-07-01",
-    end_date: "2025-09-30",
-    total: 10,
-    achievement: "92%",
-    status: "Completed",
-    updated_at: "2025-10-05",
-  },
-  {
-    id: 3,
-    period: "Q2 2025",
-    start_date: "2025-04-01",
-    end_date: "2025-06-30",
-    total: 8,
-    achievement: "78%",
-    status: "Completed",
-    updated_at: "2025-07-10",
-  },
-  {
-    id: 4,
-    period: "Q1 2025",
-    start_date: "2025-01-01",
-    end_date: "2025-03-31",
-    total: 15,
-    achievement: "88%",
-    status: "Completed",
-    updated_at: "2025-04-15",
-  },
-  {
-    id: 5,
-    period: "Q4 2024",
-    start_date: "2024-10-01",
-    end_date: "2024-12-31",
-    total: 11,
-    achievement: "95%",
-    status: "Completed",
-    updated_at: "2025-01-10",
-  },
-];
+import { useQuery } from "@tanstack/react-query";
+import { getOKRCycles } from "@/services/okr";
 
 export default function useOKR() {
   const router = useRouter();
@@ -62,6 +10,15 @@ export default function useOKR() {
     pageIndex: 0,
     pageSize: 10,
   });
+  const { data } = useQuery({
+    queryKey: ["okr-cycles", pagination],
+    queryFn: () => getOKRCycles(),
+    enabled: true,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    staleTime: 5 * 60 * 1000,
+  });
 
   const handleNew = () => {
     setOpenForm(true);
@@ -69,16 +26,6 @@ export default function useOKR() {
 
   const handleDetail = (id: number) => {
     router.push(`/performance/okr/${id}`);
-  };
-
-  const paginationData = {
-    data: mockOKRData,
-    meta: {
-      current_page: pagination.pageIndex + 1,
-      last_page: 1,
-      per_page: pagination.pageSize,
-      total: mockOKRData.length,
-    },
   };
 
   const periodOptions = [
@@ -95,8 +42,8 @@ export default function useOKR() {
   const handleSave = () => {};
 
   return {
-    data: mockOKRData,
-    pagination: paginationData,
+    data: data?.data,
+    pagination: data?.pagination,
     paginationState: pagination,
     setPagination,
     openForm,

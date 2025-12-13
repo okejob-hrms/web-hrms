@@ -56,8 +56,8 @@ export const ParticipantListModal = React.memo(function ParticipantListModal({
   );
 
   const { data: allEmployees, isLoading: isLoadingAllEmployees } = useQuery({
-    queryKey: ["all-employees-ids"],
-    queryFn: () => getEmployees({ page: 1, per_page: 10000, status: "1" }),
+    queryKey: ["participants"],
+    queryFn: () => getEmployees({ page: 1, per_page: 10 }),
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
@@ -124,7 +124,7 @@ export const ParticipantListModal = React.memo(function ParticipantListModal({
           allEmployeeIds.length > 0 &&
           allEmployeeIds.every((user_id) => selectedRows.has(user_id));
         const isSomeSelected = selectedRows.size > 0 && !isAllSelected;
-
+        console.log("selectedRows", selectedRows);
         return (
           <Checkbox
             checked={
@@ -135,17 +135,20 @@ export const ParticipantListModal = React.memo(function ParticipantListModal({
         );
       },
       size: 5,
-      cell: ({ row }) => (
-        <Checkbox
-          checked={selectedRows.has(row.original.user_id.toString())}
-          onCheckedChange={(checked) =>
-            handleRowSelection(
-              row.original.user_id.toString(),
-              checked as boolean,
-            )
-          }
-        />
-      ),
+      cell: ({ row }) => {
+        console.log("row", selectedRows.has(row.original.user_id.toString()));
+        return (
+          <Checkbox
+            checked={selectedRows.has(row.original.user_id.toString())}
+            onCheckedChange={(checked) =>
+              handleRowSelection(
+                row.original.user_id.toString(),
+                checked as boolean,
+              )
+            }
+          />
+        );
+      },
     },
     {
       accessorKey: "name",

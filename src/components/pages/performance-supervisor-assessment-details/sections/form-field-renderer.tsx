@@ -29,7 +29,7 @@ export const FormFieldRenderer = React.memo(function FormFieldRenderer({
 
       if (field.type === "checkbox") {
         const selectedValues = value.value
-          ? value.value.split(",").map((v) => v.trim())
+          ? value.value?.split(",").map((v) => v.trim())
           : [];
 
         if (Array.isArray(field.options)) {

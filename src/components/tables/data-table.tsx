@@ -22,7 +22,7 @@ import {
   TableFooter,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import { GeneralPagination } from "../ui/pagination";
+import { GeneralPagination, ApiGeneralPagination } from "../ui/pagination";
 import { ApiPagination, PaginatedResponse } from "@/lib/types";
 import { Skeleton } from "../ui/skeleton";
 
@@ -35,6 +35,7 @@ interface DataTableProps<TData, TValue = unknown> {
   tableCellClassName?: string;
   customSize?: boolean;
   pagination?: PaginatedResponse<TData>;
+  apiPagination?: ApiPagination;
   rowSelection?: RowSelectionState;
   onRowSelectionChange?: OnChangeFn<RowSelectionState>;
   paginationState?: PaginationState;
@@ -55,6 +56,7 @@ export function DataTable<TData, TValue>({
   tableCellClassName,
   customSize = false,
   pagination,
+  apiPagination,
   rowSelection,
   onRowSelectionChange,
   paginationState,
@@ -243,6 +245,10 @@ export function DataTable<TData, TValue>({
 
       {pagination && (
         <GeneralPagination table={table} pagination={pagination} />
+      )}
+
+      {apiPagination && (
+        <ApiGeneralPagination table={table} pagination={apiPagination} />
       )}
     </div>
   );

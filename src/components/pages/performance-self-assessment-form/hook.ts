@@ -15,6 +15,7 @@ import {
   updateSelfAssessment,
 } from "@/services/employees/self-assessment";
 import { toast } from "sonner";
+import { ApiErrorResponse } from "@/lib/types";
 
 export interface Filters {
   search?: string;
@@ -170,7 +171,26 @@ export const usePerformanceSelfAssessmentForm = () => {
         router.push("/performance/self-assessment");
       },
       onError: (error: any) => {
-        toast.error(error?.message || "Failed to create self-assessment");
+        if (error?.response) {
+          try {
+            error.response
+              .json()
+              .then((errorData: ApiErrorResponse) => {
+                toast.error(
+                  errorData.message || "Failed to create self-assessment",
+                );
+              })
+              .catch(() => {
+                toast.error("Failed to create self-assessment: Server error");
+              });
+          } catch (parseError) {
+            toast.error("Failed to create self-assessment: Server error");
+          }
+        } else {
+          toast.error(
+            `Failed to create self-assessment: ${error.message || "Unknown error"}`,
+          );
+        }
       },
     });
 
@@ -182,7 +202,26 @@ export const usePerformanceSelfAssessmentForm = () => {
         router.push("/performance/self-assessment");
       },
       onError: (error: any) => {
-        toast.error(error?.message || "Failed to update self-assessment");
+        if (error?.response) {
+          try {
+            error.response
+              .json()
+              .then((errorData: ApiErrorResponse) => {
+                toast.error(
+                  errorData.message || "Failed to update self-assessment",
+                );
+              })
+              .catch(() => {
+                toast.error("Failed to updated self-assessment: Server error");
+              });
+          } catch (parseError) {
+            toast.error("Failed to updated self-assessment: Server error");
+          }
+        } else {
+          toast.error(
+            `Failed to updated self-assessment: ${error.message || "Unknown error"}`,
+          );
+        }
       },
     });
 
@@ -247,53 +286,57 @@ export const usePerformanceSelfAssessmentForm = () => {
     }
   }, [isEditMode, details, assessmentForm]);
 
-  const handleSubmit = React.useCallback(() => {
-    const formValues = form.getValues();
-    if (
-      !formValues.period ||
-      !formValues.year ||
-      !formValues.start_date ||
-      !formValues.end_date
-    ) {
-      toast.error("Please fill in all required fields");
-      return;
-    }
-    const hasValidAssessmentForm = assessmentForms.some((item, index) => {
-      const formId = formValues[`assessment_form_${item.id}`];
-      return formId && item.selectedParticipants.length > 0;
-    });
-
-    if (!hasValidAssessmentForm) {
-      toast.error(
-        "Please select at least one assessment form and assign participants",
-      );
-      return;
-    }
-
-    const forms = assessmentForms
-      .filter((item, index) => {
+  const handleSubmit = React.useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault();
+      const formValues = form.getValues();
+      if (
+        !formValues.period ||
+        !formValues.year ||
+        !formValues.start_date ||
+        !formValues.end_date
+      ) {
+        toast.error("Please fill in all required fields");
+        return;
+      }
+      const hasValidAssessmentForm = assessmentForms.some((item, index) => {
         const formId = formValues[`assessment_form_${item.id}`];
         return formId && item.selectedParticipants.length > 0;
-      })
-      .map((item) => ({
-        form_id: parseInt(formValues[`assessment_form_${item.id}`]),
-        users: item.selectedParticipants.map((id) => parseInt(id)),
-      }));
+      });
 
-    const payload = {
-      assessment_period: formValues.period,
-      year: formValues.year,
-      start_date: formValues.start_date,
-      end_date: formValues.end_date,
-      forms,
-    };
+      if (!hasValidAssessmentForm) {
+        toast.error(
+          "Please select at least one assessment form and assign participants",
+        );
+        return;
+      }
 
-    if (isEditMode) {
-      updateAssessment(payload);
-    } else {
-      createAssessment(payload);
-    }
-  }, [form, assessmentForms, createAssessment, updateAssessment, isEditMode]);
+      const forms = assessmentForms
+        .filter((item, index) => {
+          const formId = formValues[`assessment_form_${item.id}`];
+          return formId && item.selectedParticipants.length > 0;
+        })
+        .map((item) => ({
+          form_id: parseInt(formValues[`assessment_form_${item.id}`]),
+          users: item.selectedParticipants.map((id) => parseInt(id)),
+        }));
+
+      const payload = {
+        assessment_period: formValues.period,
+        year: formValues.year,
+        start_date: formValues.start_date,
+        end_date: formValues.end_date,
+        forms,
+      };
+
+      if (isEditMode) {
+        updateAssessment(payload);
+      } else {
+        createAssessment(payload);
+      }
+    },
+    [form, assessmentForms, createAssessment, updateAssessment, isEditMode],
+  );
 
   const handleCancel = () => router.push("/performance/self-assessment");
 

@@ -25,6 +25,7 @@ import useOKR from "./hook";
 import FormModal from "./sections/form-modal";
 import { getStatusOvertime } from "@/lib/helpers";
 import { Badge } from "@/components/ui/badge";
+import { IOKRResponse } from "@/services/okr/types";
 
 export default function PerformanceOKR() {
   const {
@@ -43,7 +44,7 @@ export default function PerformanceOKR() {
 
   const isMobile = useIsMobile();
 
-  const columns: ColumnDef<any>[] = [
+  const columns: ColumnDef<IOKRResponse>[] = [
     {
       accessorKey: "period",
       header: ({ column }) => {
@@ -70,7 +71,11 @@ export default function PerformanceOKR() {
           </div>
         );
       },
-      cell: ({ row }) => <span>{row.original.period}</span>,
+      cell: ({ row }) => (
+        <span>
+          {row.original.period} {row.original.period_year}
+        </span>
+      ),
     },
     {
       accessorKey: "start_date",
@@ -136,14 +141,14 @@ export default function PerformanceOKR() {
       accessorKey: "total",
       header: "Total OKR",
       cell: ({ row }) => {
-        return <span>{row.original.total}</span>;
+        return <span>-</span>;
       },
     },
     {
       accessorKey: "achievement",
       header: "Overall Achievement",
       cell: ({ row }) => {
-        return <span>{row.original.achievement}</span>;
+        return <span>-</span>;
       },
     },
     {
@@ -296,7 +301,7 @@ export default function PerformanceOKR() {
             columns={columns}
             data={data || []}
             customSize={!isMobile}
-            // pagination={pagination}
+            apiPagination={pagination}
             paginationState={paginationState}
             setPaginationState={setPagination}
           />

@@ -230,7 +230,7 @@ export default function PerformanceKPI() {
             columns={columns}
             data={data || []}
             customSize={!isMobile}
-            pagination={pagination}
+            apiPagination={pagination}
             paginationState={paginationState}
             setPaginationState={setPagination}
           />

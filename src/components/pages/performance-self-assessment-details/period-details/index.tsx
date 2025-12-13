@@ -28,6 +28,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import FormDeleteModal from "../../settings-form-template-list/sections/delete-modal";
+import { DeleteModal } from "./sections/delete-modal";
 
 export const SelfAssessmentPeriodDetails = () => {
   const {
@@ -35,7 +37,13 @@ export const SelfAssessmentPeriodDetails = () => {
     isLoading,
     isError,
     handleViewEmployee,
+    handleDelete,
     handleEdit,
+    isDeleteModalOpen,
+    setIsDeleteModalOpen,
+    handleDeleteModalOpen,
+    selectedEmployeeId,
+    setSelectedEmployeeId,
   } = useSelfAssessmentPeriodDetails();
 
   const [searchQuery, setSearchQuery] = React.useState("");
@@ -200,17 +208,20 @@ export const SelfAssessmentPeriodDetails = () => {
                 <Eye className="w-4 h-4 text-primary" /> Details
               </button>
             </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <button
-                type="button"
-                className="flex gap-2 w-full text-left text-error"
-                onClick={() => {
-                  // handleDelete(row.original.id);
-                }}
-              >
-                <Trash className="w-4 h-4 text-error" /> Delete
-              </button>
-            </DropdownMenuItem>
+            {row.original.submission_status !== "Validated" &&
+              row.original.submission_status !== "Completed" && (
+                <DropdownMenuItem asChild>
+                  <button
+                    type="button"
+                    className="flex gap-2 w-full text-left text-error"
+                    onClick={() => {
+                      handleDeleteModalOpen(row.original.id);
+                    }}
+                  >
+                    <Trash className="w-4 h-4 text-error" /> Delete
+                  </button>
+                </DropdownMenuItem>
+              )}
           </DropdownMenuContent>
         </DropdownMenu>
       ),
@@ -312,6 +323,12 @@ export const SelfAssessmentPeriodDetails = () => {
           columns={columns}
           data={filteredEmployees}
           customSize={!isMobile}
+        />
+        <DeleteModal
+          open={isDeleteModalOpen}
+          onOpenChange={setIsDeleteModalOpen}
+          onSave={handleDelete}
+          id={selectedEmployeeId}
         />
       </div>
     </div>

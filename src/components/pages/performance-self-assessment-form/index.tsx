@@ -43,10 +43,10 @@ export const PerformanceSelfAssessmentForm = React.memo(
         <Form {...form}>
           <form
             className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end"
-            onSubmit={(e) => {
-              e.preventDefault();
-              form.handleSubmit(handleSubmit)();
-            }}
+            // onSubmit={(e) => {
+            //   e.preventDefault();
+            //   form.handleSubmit(handleSubmit)();
+            // }}
           >
             <SelectForm
               name="period"

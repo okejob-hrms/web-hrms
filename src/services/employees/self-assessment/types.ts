@@ -64,6 +64,7 @@ export interface IAssessmentInfo {
   start_date: string;
   end_date: string;
   creator: string;
+  form_id: number;
 }
 
 export interface IAssessmentSummary {

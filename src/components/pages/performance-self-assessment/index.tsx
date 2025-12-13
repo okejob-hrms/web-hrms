@@ -14,7 +14,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 
 export default function SelfAssessmentList() {
-  const { assessments, handleNew, handleView, loading } = useSelfAssessment();
+  const {
+    assessments,
+    handleNew,
+    handleView,
+    loading,
+    pagination,
+    setPagination,
+  } = useSelfAssessment();
   const columns: ColumnDef<ISelfAssessmentResponse>[] = [
     {
       accessorKey: "assessment_period",
@@ -237,6 +244,9 @@ export default function SelfAssessmentList() {
             columns={columns}
             data={assessments?.data || []}
             customSize={!isMobile}
+            pagination={assessments}
+            paginationState={pagination}
+            setPaginationState={setPagination}
           />
         </div>
       </div>

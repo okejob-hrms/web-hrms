@@ -411,6 +411,11 @@ export function getStatusEmployeeAssessment(status: string): StatusConfig {
       className = "bg-success-focused text-success-hover";
       circleClassName = "bg-success-hover";
       break;
+    case "Validated":
+      variant = "secondary";
+      className = "bg-primary text-white";
+      circleClassName = "bg-white";
+      break;
     case "Completed":
       variant = "secondary";
       className = "bg-primary-focused text-primary-hover";

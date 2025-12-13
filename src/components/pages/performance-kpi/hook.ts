@@ -9,7 +9,6 @@ import {
   updateKPI,
 } from "@/services/performances/kpi";
 import { IKPI, IMutateKPIRequest } from "@/services/performances/kpi/types";
-import { useRouter } from "next/navigation";
 import { getJobPosition } from "@/services/job-position";
 import { getJobLevels } from "@/services/job-levels";
 import { toast } from "sonner";
@@ -17,7 +16,6 @@ import { ApiErrorResponse } from "@/lib/types";
 import { useFormContext } from "react-hook-form";
 
 export const useKPIs = () => {
-  const router = useRouter();
   const queryClient = useQueryClient();
   const form = useFormContext();
   const [openForm, setOpenForm] = React.useState(false);
@@ -332,7 +330,7 @@ export const useKPIs = () => {
 
   return {
     data: kpiData?.data,
-    pagination: kpiData,
+    pagination: kpiData?.pagination,
     isLoading,
     handleNew,
     handleEdit,
