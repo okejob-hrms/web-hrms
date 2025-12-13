@@ -23,3 +23,10 @@ export interface IOKRCycle {
   per_page: number;
   status: string;
 }
+
+export interface IOKRCycleRequest {
+  end_date: string;
+  period: string;
+  period_year: string;
+  start_date: string;
+}

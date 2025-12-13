@@ -8,14 +8,9 @@ import {
 import { Form } from "@/components/ui/form";
 import { InputForm } from "@/components/ui/input";
 import { SelectForm } from "@/components/ui/select-form";
-import { MultiSelectForm } from "@/components/ui/multi-select";
-import {
-  IKPIDetails,
-  IMutateKPIRequest,
-} from "@/services/performances/kpi/types";
-import * as React from "react";
 import { useForm } from "react-hook-form";
 import { DatePicker } from "@/components/ui/date-picker";
+import { IOKRCycleRequest } from "@/services/okr/types";
 
 interface IOption {
   label: string;
@@ -25,7 +20,7 @@ interface IOption {
 interface FormAddModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (data: IMutateKPIRequest) => void;
+  onSave: (data: IOKRCycleRequest) => void;
   periodOptions: IOption[];
   editMode: boolean;
   isLoadingDetails?: boolean;
@@ -39,7 +34,14 @@ export default function FormModal({
   editMode,
   isLoadingDetails,
 }: FormAddModalProps) {
-  const form = useForm();
+  const form = useForm<IOKRCycleRequest>({
+    defaultValues: {
+      period: "",
+      period_year: "",
+      start_date: "",
+      end_date: "",
+    },
+  });
 
   // React.useEffect(() => {
   //   if (editMode && kpiDetails && open) {
@@ -71,16 +73,11 @@ export default function FormModal({
 
   const handleSave = (): void => {
     const formData = form.getValues();
-    const data: IMutateKPIRequest = {
-      name: formData.name,
-      description: formData.description,
-      frequency: Number(formData.frequency),
-      format: Number(formData.format),
-      job_position_ids: formData.job_position_ids,
-      job_level_ids: formData.job_level_ids,
-      target: Number(formData.target),
-      direction: Number(formData.direction),
-      aggregation: Number(formData.aggregation),
+    const data: IOKRCycleRequest = {
+      period: formData.period,
+      period_year: formData.period_year,
+      start_date: formData.start_date,
+      end_date: formData.end_date,
     };
     onSave(data);
     handleClose();
@@ -114,7 +111,7 @@ export default function FormModal({
               required
               options={periodOptions}
             />
-            <InputForm name="year" label="Year" required />
+            <InputForm name="period_year" label="Year" required />
             <DatePicker name="start_date" label="Start Date" />
             <DatePicker name="end_date" label="End Date" />
             <div className="flex md:flex-row flex-col md:justify-end gap-3 pt-2 md:col-span-2">
