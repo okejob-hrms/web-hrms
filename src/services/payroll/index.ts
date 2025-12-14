@@ -265,3 +265,14 @@ export const getPayrollViewLog = async (
 
   return response.json();
 };
+
+export const postRecalculate = async (
+  id: string,
+  payload: {payslip_id: number}
+): Promise<ResponsePayrollList> => {
+  return api
+    .post(`payruns/${id}/payslips/recalculate`, {
+      json: payload,
+    })
+    .json<ResponsePayrollList>();
+};

@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { AdditionalItem, AdditionalRequest, AllowanceItem, AllowanceRequest, OvertimePayrun, OvertimeRequest, Payrun, Payslip, PenaltyPayrun, PenaltyRequest, RequestPayrollGroup, WorkHourPayrun, WorkingHourRequest } from "@/services/payroll/types";
 import { Filters } from "./types";
-import { getPayrollDetail, getPayrollDetailSpend, getPayrollEmployee, getPayrollViewLog, postFinalPayrun, putAdditionalPayrun, putAllowancePayrun, putOvertimePayrun, putPenaltyPayrun, putWorkingHourPayrun } from "@/services/payroll";
+import { getPayrollDetail, getPayrollDetailSpend, getPayrollEmployee, getPayrollViewLog, postFinalPayrun, postRecalculate, postRegenerate, putAdditionalPayrun, putAllowancePayrun, putOvertimePayrun, putPenaltyPayrun, putWorkingHourPayrun } from "@/services/payroll";
 import { PaginatedResponse } from "@/lib/types";
 import { AllowanceTypeResponse } from "@/services/salary/types";
 import { getAllowanceType } from "@/services/salary";
@@ -20,6 +20,8 @@ export function usePayrollDetail() {
   });
   const [openAdd, setOpenAdd] = React.useState(false);
   const [openConfirm, setOpenConfirm] = React.useState(false);
+  const [openConfirmGenerate, setOpenConfirmGenerate] = React.useState(false);
+  const [openConfirmRecalculate, setOpenConfirmRecalculate] = React.useState(false);
   const [filters, setFilters] = React.useState<Filters>({
     date: '',
     search: '',
@@ -57,6 +59,8 @@ export function usePayrollDetail() {
     pageSize: 10,
   });
 
+  const [selectedRecalculate, setSelectedRecalculate] = React.useState(0);
+
 
   const queryClient = useQueryClient();
 
@@ -90,6 +94,7 @@ export function usePayrollDetail() {
   // get list
   const {
     data: employeeList,
+    refetch: employeeListRefetch,
     isLoading,
     isFetching,
     isRefetching,
@@ -438,6 +443,64 @@ export function usePayrollDetail() {
     window.open(url, "_blank");
   }
 
+  const mutationPostRegenerate = useMutation({
+    mutationFn: (payrunId: string) => postRegenerate(payrunId),
+    onMutate: () => setLoading(true),
+    onSuccess: () => {
+      toast.success("Payrun successfully regenerate");
+      queryClient.invalidateQueries({ queryKey: ["payslip"] });
+      detailDataRefetch();
+      auditTrailRefetch();
+      employeeListRefetch();
+    },
+    onError: (err) => {
+      toast.error(`Failed to save: ${err.message}`);
+    },
+    onSettled: () => setLoading(false),
+  });
+
+  const handleRegenerate = (id: string) => {
+    if (!id) {
+      toast.error("Payroll ID not found");
+      return;
+    }
+    mutationPostRegenerate.mutate(id)
+  }
+
+  const mutationPostRecalculate = useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: {payslip_id: number} }) => postRecalculate(id, payload),
+    onMutate: () => setLoading(true),
+    onSuccess: () => {
+      toast.success("Payrun successfully recalculate");
+      queryClient.invalidateQueries({ queryKey: ["payslip"] });
+      detailDataRefetch();
+      auditTrailRefetch();
+      employeeListRefetch();
+    },
+    onError: (err) => {
+      toast.error(`Failed to save: ${err.message}`);
+    },
+    onSettled: () => setLoading(false),
+  });
+
+  const handleRecalculate = (idx: string) => {
+    if (!idx) {
+      toast.error("Payroll ID not found");
+      return;
+    }
+
+    setOpenConfirmRecalculate(true);
+    setSelectedRecalculate(Number(idx));
+  };
+
+
+  const handleRegenerateCalculate = () => {
+    mutationPostRecalculate.mutate({
+      id: id,
+      payload: {payslip_id: selectedRecalculate},
+    });
+  }
+
   return {
     employeeList,
     dataPagination,
@@ -509,5 +572,14 @@ export function usePayrollDetail() {
 
     //download
     handleDownload,
+    handleRegenerate,
+    openConfirmGenerate,
+    setOpenConfirmGenerate,
+
+    handleRecalculate,
+    openConfirmRecalculate,
+    setOpenConfirmRecalculate,
+    handleRegenerateCalculate,
+
   };
 }

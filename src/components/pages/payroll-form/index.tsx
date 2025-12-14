@@ -5,7 +5,7 @@ import { DataTable } from '@/components/tables/data-table';
 import { ColumnDef } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, Edit3, Send, Clock, Eye } from 'lucide-react';
+import { ArrowLeft, Edit3, Send, Clock, Eye, RefreshCcw } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import dayjs from 'dayjs';
@@ -25,6 +25,7 @@ import OvertimeModal from './section/overtime-modal';
 import PenaltyModal from './section/penalty-modal';
 import { PayrunsHistorySheet } from './section/audit-trail';
 import { getStatusPayroll } from '@/lib/helpers';
+import PayrunGenerateModal from './section/confirm-generate';
 
 type PayrollFormFormProps = {
   id?: string;
@@ -96,6 +97,13 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
     auditTrail,
     auditTrailLoading,
     handleDownload,
+    handleRegenerate,
+    openConfirmGenerate,
+    setOpenConfirmGenerate,
+    handleRecalculate,
+    openConfirmRecalculate,
+    setOpenConfirmRecalculate,
+    handleRegenerateCalculate,
   } = usePayrollDetail();
 
   React.useEffect(() => {
@@ -402,6 +410,19 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
               {formatCurrency(Number(row.original.net_pay))}
             </span>
           </div>
+          {employeeList?.data.payrun.status !== 2 && (
+            <Button
+              onClick={() => {
+                handleRecalculate(String(row.original.id));
+              }}
+              type="button"
+              variant="outline"
+              size="icon"
+              className="bg-white text-primary border-1 border font-medium py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <RefreshCcw />
+            </Button>
+          )}
           {isDetail && employeeList?.data.payrun.status === 2 && (
             <Button
               type="button"
@@ -475,6 +496,17 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
                 <Clock />
                 Payruns History
               </Button>
+              {employeeList?.data.payrun.status !== 2 && (
+                <Button
+                  onClick={() => setOpenConfirmGenerate(true)}
+                  type="button"
+                  variant="outline"
+                  className="min-w-[100px] bg-white text-primary border-1 border font-medium py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <RefreshCcw />
+                  Regenerate Payrun
+                </Button>
+              )}
             </div>
           </div>
           <div className="col-span-1">
@@ -538,6 +570,11 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
                       Please check employee pay rates, including regular,
                       overtime, and special rate. Ensure the salary amount
                       aligns with the employment contract and company policy.
+                      Use Regenerate Payrun only when there are changes to
+                      reference data (attendance, leave, overtime, or salary
+                      details). This action will recalculate all payroll values
+                      and reset any manually edited custom values back to their
+                      default.
                     </div>
                   </div>
                 ) : (
@@ -764,6 +801,18 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
               page={paginationAudit}
               setPage={setPaginationAudit}
               loading={auditTrailLoading}
+            />
+
+            <PayrunGenerateModal
+              onUpdate={() => handleRegenerate(id || '')}
+              isOpen={openConfirmGenerate}
+              setIsOpen={(e) => setOpenConfirmGenerate(e)}
+            />
+
+            <PayrunGenerateModal
+              onUpdate={() => handleRegenerateCalculate()}
+              isOpen={openConfirmRecalculate}
+              setIsOpen={(e) => setOpenConfirmRecalculate(e)}
             />
           </div>
         </div>
