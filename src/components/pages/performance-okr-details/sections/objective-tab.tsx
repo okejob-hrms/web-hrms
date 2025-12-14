@@ -76,7 +76,7 @@ const CardGroup = ({ onNewKpi }: CardGroupProps) => {
   );
 };
 
-export const OKRDetailTab = () => {
+export const ObjectiveTab = () => {
   const {
     searchOKR,
     setSearchOKR,

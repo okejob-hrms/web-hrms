@@ -66,6 +66,7 @@ export default function useOKR() {
     { label: "Q2", value: "Q2" },
     { label: "Q3", value: "Q3" },
     { label: "Q4", value: "Q4" },
+    { label: "Q5", value: "Q5" },
   ];
 
   const handleCloseForm = () => {

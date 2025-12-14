@@ -30,3 +30,9 @@ export interface IOKRCycleRequest {
   period_year: string;
   start_date: string;
 }
+
+export interface IOKRObjectiveRequest {
+  okr_cycle_id: number;
+  title: string;
+  description: string;
+}

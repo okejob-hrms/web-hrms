@@ -1,13 +1,13 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
-import { OKRDetailTab } from "./okr-detail-tab";
+import { ObjectiveTab } from "./objective-tab";
 
 export function OKRTab() {
   const tabs = [
     {
       name: "Objective Key Result",
       value: "1",
-      content: <OKRDetailTab />,
+      content: <ObjectiveTab />,
     },
     {
       name: "Key Result",
