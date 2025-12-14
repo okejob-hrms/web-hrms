@@ -34,11 +34,18 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Exception, TieringRule } from '@/services/settings/types';
 import { Switch } from '@/components/ui/switch';
 
 export default function SettingsOvertimeConfigForm() {
-  const { form, onSubmit, isLoading, handleBack, data } =
+  const { form, onSubmit, isLoading, handleBack, data, holiday } =
     useOvertimeConfigForm();
   const [openTier, setOpenTier] = useState(false);
   const [openExceptions, setOpenExceptions] = useState(false);
@@ -661,18 +668,31 @@ export default function SettingsOvertimeConfigForm() {
           </AlertDialogHeader>
           <div className="w-full space-y-1">
             <label className="text-sm font-medium text-gray-700">Day</label>
-            <div className="flex items-center gap-3">
-              <Input
-                placeholder="Type your day exceptions"
-                value={exceptionsField.day}
-                onChange={(e) =>
-                  setExceptionsField((prev) => ({
-                    ...prev,
-                    day: e.target.value,
-                  }))
-                }
-              />
-            </div>
+            {holiday?.length && (
+              <div className="flex items-center gap-3">
+                <Select
+                  onValueChange={(val) => {
+                    setExceptionsField((prev) => ({
+                      ...prev,
+                      day: val,
+                    }));
+                  }}
+                  value={String(exceptionsField.day)}
+                  defaultValue={String(exceptionsField.day)}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select holiday" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {holiday.map((item, key) => (
+                      <SelectItem key={key} value={item.events}>
+                        {item.events}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
           <div className="w-full space-y-1">
             <label className="text-sm font-medium text-gray-700">Rate</label>

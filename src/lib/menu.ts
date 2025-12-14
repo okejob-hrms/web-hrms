@@ -65,6 +65,10 @@ export const menus: Record<string, MenuItem[]> = {
           name: "Overtime Configuration",
           value: "settings/time-attendance/overtime-configuration",
         },
+        {
+          name: "Holiday Attendance",
+          value: "settings/time-attendance/holiday",
+        },
       ],
     },
     { name: "Leave Configuration", value: "settings/leave-management" },

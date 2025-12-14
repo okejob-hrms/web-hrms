@@ -9,6 +9,8 @@ import { OvertimeApiModel } from '@/services/settings/types';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { useRouter } from 'next/navigation';
+import { getHoliday } from '@/services/holiday';
+import { HolidayList } from '@/services/holiday/types';
 
 // -------------------------
 // SCHEMA
@@ -87,6 +89,12 @@ export function useOvertimeConfigForm() {
     staleTime: 1000 * 60 * 5,
   });
 
+  const { data: holiday, } = useQuery<HolidayList[]>({
+    queryKey: ['getHolidays'],
+    queryFn: () => getHoliday(),
+    staleTime: 1000 * 60 * 5,
+  });
+
   const form = useForm<OvertimeConfigValues>({
     resolver: zodResolver(OvertimeConfigSchema),
     defaultValues: data ? mapFromApiResponse(data) : {},
@@ -125,6 +133,7 @@ export function useOvertimeConfigForm() {
     isLoading,
     isSubmitting: mutation.isPending,
     handleBack,
-    data
+    data,
+    holiday
   };
 }
