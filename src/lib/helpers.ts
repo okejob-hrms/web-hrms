@@ -450,3 +450,41 @@ export function getStatusSelfAssessment(status: number): StatusConfig {
 
   return { variant, className, label };
 }
+
+export function getStatusOKRCycle(statusLabel?: string): StatusConfig {
+  if (!statusLabel) {
+    return {
+      variant: "default",
+      label: "-",
+    };
+  }
+
+  let variant: BadgeVariant = "default";
+  let className = "";
+  let circleClassName = "";
+
+  switch (statusLabel) {
+    case "Draft":
+      variant = "secondary";
+      className = "bg-gray-100 text-gray-700";
+      circleClassName = "bg-gray-700";
+      break;
+    case "Active":
+      variant = "secondary";
+      className = "bg-success-focused text-success-hover";
+      circleClassName = "bg-success-hover";
+      break;
+    case "Completed":
+      variant = "secondary";
+      className = "bg-primary-focused text-primary-hover";
+      circleClassName = "bg-primary-hover";
+      break;
+    case "Archived":
+      variant = "secondary";
+      className = "bg-gray-200 text-gray-600";
+      circleClassName = "bg-gray-600";
+      break;
+  }
+
+  return { variant, className, circleClassName, label: statusLabel };
+}

@@ -12,7 +12,7 @@ import {
 import { TextAreaForm } from "@/components/ui/textarea";
 
 const formSchema = z.object({
-  name: z.string().min(1, "Objective is required"),
+  title: z.string().min(1, "Objective is required"),
 });
 
 interface FormObjectiveProps {
@@ -29,12 +29,12 @@ export const FormObjective = ({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
+      title: "",
     },
   });
 
   const handleSave = (): void => {
-    onCreate({ name: form.getValues("name") });
+    onCreate({ title: form.getValues("title") });
     handleClose();
   };
 
@@ -56,7 +56,7 @@ export const FormObjective = ({
             onSubmit={form.handleSubmit((data) => console.log(data))}
             className="px-6 pb-6 space-y-5"
           >
-            <TextAreaForm name="name" label="Objective" required />
+            <TextAreaForm name="title" label="Objective" required />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Button variant="outline" type="button" onClick={handleClose}>
                 Cancel

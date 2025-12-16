@@ -1,6 +1,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { ObjectiveTab } from "./objective-tab";
+import { KeyResultTab } from "./key-result-tab";
 
 export function OKRTab() {
   const tabs = [
@@ -12,7 +13,7 @@ export function OKRTab() {
     {
       name: "Key Result",
       value: "2",
-      content: <div>Key Result</div>,
+      content: <KeyResultTab />,
     },
     {
       name: "Dashboard",

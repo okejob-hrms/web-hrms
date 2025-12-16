@@ -1,6 +1,12 @@
 import { api } from "@/lib/api";
-import { PaginatedResponse } from "@/lib/types";
-import { IOKRCycleRequest, IOKRResponse } from "./types";
+import { ApiResponse, PaginatedResponse } from "@/lib/types";
+import {
+  IOKRCycleRequest,
+  IOKRDetailsResponse,
+  IOKRKeyResultRequest,
+  IOKRObjectiveRequest,
+  IOKRResponse,
+} from "./types";
 
 export const getOKRCycles = async (): Promise<
   PaginatedResponse<IOKRResponse>
@@ -8,6 +14,28 @@ export const getOKRCycles = async (): Promise<
   try {
     const response =
       await api.get<PaginatedResponse<IOKRResponse>>("okr/cycles");
+    return response.json();
+  } catch (error: any) {
+    if (error.name === "HTTPError") {
+      const errorResponse = await error.response.json();
+      const enhancedError = new Error(error.message);
+      (enhancedError as any).response = {
+        json: () => Promise.resolve(errorResponse),
+        status: error.response.status,
+      };
+      throw enhancedError;
+    }
+    throw error;
+  }
+};
+
+export const getOKRCycleDetails = async (
+  id: number,
+): Promise<ApiResponse<IOKRDetailsResponse>> => {
+  try {
+    const response = await api.get<ApiResponse<IOKRDetailsResponse>>(
+      `okr/cycles/${id}`,
+    );
     return response.json();
   } catch (error: any) {
     if (error.name === "HTTPError") {
@@ -90,12 +118,52 @@ export const getOKRObjectives = async (): Promise<
 };
 
 export const createOKRObjective = async (
-  params: IOKRCycleRequest,
+  params: IOKRObjectiveRequest,
 ): Promise<IOKRResponse> => {
   try {
     const response = await api.post<IOKRResponse>("okr/objectives", {
       json: params,
     });
+    return response.json();
+  } catch (error: any) {
+    if (error.name === "HTTPError") {
+      const errorResponse = await error.response.json();
+      const enhancedError = new Error(error.message);
+      (enhancedError as any).response = {
+        json: () => Promise.resolve(errorResponse),
+        status: error.response.status,
+      };
+      throw enhancedError;
+    }
+    throw error;
+  }
+};
+
+export const createOKRKeyResult = async (
+  params: IOKRKeyResultRequest,
+): Promise<IOKRResponse> => {
+  try {
+    const response = await api.post<IOKRResponse>("okr/key-results", {
+      json: params,
+    });
+    return response.json();
+  } catch (error: any) {
+    if (error.name === "HTTPError") {
+      const errorResponse = await error.response.json();
+      const enhancedError = new Error(error.message);
+      (enhancedError as any).response = {
+        json: () => Promise.resolve(errorResponse),
+        status: error.response.status,
+      };
+      throw enhancedError;
+    }
+    throw error;
+  }
+};
+
+export const deleteOKRKeyResult = async (id: number): Promise<IOKRResponse> => {
+  try {
+    const response = await api.delete(`okr/key-results/${id}`);
     return response.json();
   } catch (error: any) {
     if (error.name === "HTTPError") {

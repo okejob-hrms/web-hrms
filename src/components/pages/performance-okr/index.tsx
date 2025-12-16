@@ -23,9 +23,10 @@ import {
 import dayjs from "dayjs";
 import useOKR from "./hook";
 import FormModal from "./sections/form-modal";
-import { getStatusOvertime } from "@/lib/helpers";
+import { getStatusOKRCycle, getStatusOvertime } from "@/lib/helpers";
 import { Badge } from "@/components/ui/badge";
 import { IOKRResponse } from "@/services/okr/types";
+import { cn } from "@/lib/utils";
 
 export default function PerformanceOKR() {
   const {
@@ -178,12 +179,14 @@ export default function PerformanceOKR() {
         );
       },
       cell: ({ row }) => {
-        const status = row.original.status;
-        const { variant, className, label } = getStatusOvertime(status);
-        if (!row.original.status) return "-";
+        const status = row.original.status_label;
+        const { variant, className, label, circleClassName } =
+          getStatusOKRCycle(status);
+        if (!row.original.status_label) return "-";
 
         return (
           <Badge variant={variant} className={className}>
+            <div className={cn(circleClassName, "w-2 h-2 rounded-full")} />{" "}
             {label}
           </Badge>
         );

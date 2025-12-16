@@ -6,16 +6,44 @@ import { getJobLevels } from "@/services/job-levels";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { IMutateKPIRequest } from "@/services/performances/kpi/types";
-import { postAddKPI } from "@/services/performances/kpi";
+import { getAllKPIs, postAddKPI } from "@/services/performances/kpi";
 import { ApiErrorResponse } from "@/lib/types";
+import {
+  createOKRKeyResult,
+  createOKRObjective,
+  getOKRCycleDetails,
+} from "@/services/okr";
+import { useParams } from "next/navigation";
+import {
+  IOKRCycleRequest,
+  IOKRKeyResultRequest,
+  IOKRObjectiveRequest,
+} from "@/services/okr/types";
 
 export const useOKRDetails = () => {
   const queryClient = useQueryClient();
+  const params = useParams();
   const [searchOKR, setSearchOKR] = React.useState("");
+  const [searchKPI, setSearchKPI] = React.useState("");
   const [openFormObjective, setOpenFormObjective] = React.useState(false);
   const [openFormKpi, setOpenFormKpi] = React.useState(false);
 
   const formKpi = useForm();
+  const id = React.useMemo(() => {
+    const idParam = params?.id;
+    if (idParam && !isNaN(Number(idParam))) {
+      return Number(idParam);
+    }
+    return null;
+  }, [params]);
+
+  const { data: detailOKRCycle, isLoading: isLoadingDetailOKRCycle } = useQuery(
+    {
+      queryKey: ["okrCycleDetails", id],
+      queryFn: () => getOKRCycleDetails(id!),
+      enabled: !!id,
+    },
+  );
 
   const { data: jobPositions } = useQuery({
     queryKey: ["jobPositions"],
@@ -27,11 +55,26 @@ export const useOKRDetails = () => {
     queryFn: getJobLevels,
   });
 
-  const addKpiMutation = useMutation({
-    mutationFn: postAddKPI,
+  const { data: kpiData } = useQuery({
+    queryKey: ["okrCycles", searchKPI],
+    queryFn: () => getAllKPIs(searchKPI ? { search: searchKPI } : undefined),
+  });
+
+  const kpiOptions = React.useMemo(() => {
+    if (kpiData?.data) {
+      return kpiData.data.map((item) => ({
+        label: item.name,
+        value: item.name,
+      }));
+    }
+    return [];
+  }, [kpiData?.data]);
+
+  const createKeyResult = useMutation({
+    mutationFn: createOKRKeyResult,
     onSuccess: () => {
       toast.success("Add new Key Result successfully!");
-      queryClient.invalidateQueries({ queryKey: ["okr-details"] }); // Assuming there is a query key for OKR details
+      queryClient.invalidateQueries({ queryKey: ["okrCycleDetails", id] });
       setOpenFormKpi(false);
       formKpi.reset();
     },
@@ -67,8 +110,60 @@ export const useOKRDetails = () => {
     },
   });
 
-  const handleSaveKpi = (data: IMutateKPIRequest) => {
-    addKpiMutation.mutate(data);
+  const createObjectiveMutation = useMutation({
+    mutationFn: createOKRObjective,
+    onSuccess: () => {
+      toast.success("Add new Objective successfully!");
+      queryClient.invalidateQueries({ queryKey: ["okr-details"] });
+      setOpenFormObjective(false);
+    },
+    onError: (error: any) => {
+      if (error?.response) {
+        try {
+          error.response
+            .json()
+            .then((errorData: ApiErrorResponse) => {
+              if (errorData.errors) {
+                Object.entries(errorData.errors).forEach(
+                  ([fieldName, messages]) => {
+                    // formObjective.setError(fieldName as any, {
+                    //   type: "server",
+                    //   message: messages[0],
+                    // });
+                  },
+                );
+              }
+              toast.error(errorData.message || "Failed to add Objective");
+            })
+            .catch(() => {
+              toast.error("Failed to add Objective: Server error");
+            });
+        } catch (parseError) {
+          toast.error("Failed to add Objective: Server error");
+        }
+      } else {
+        toast.error(
+          `Failed to add Objective: ${error.message || "Unknown error"}`,
+        );
+      }
+    },
+  });
+
+  const handleSaveKpi = (data: IOKRKeyResultRequest) => {
+    createKeyResult.mutate(data);
+  };
+
+  const handleSaveObjective = (data: { title: string }) => {
+    createObjectiveMutation.mutate({
+      okr_cycle_id: id!,
+      title: data.title,
+    });
+  };
+
+  const handleOpenKeyResultForm = (objective_id: number) => {
+    setOpenFormKpi(true);
+    formKpi.reset();
+    formKpi.setValue("objective_id", objective_id);
   };
 
   const jobPositionOptions = React.useMemo(() => {
@@ -121,14 +216,15 @@ export const useOKRDetails = () => {
   ];
 
   const directionOptions = [
-    { label: "None", value: "0" },
-    { label: "Up", value: "1" },
-    { label: "Down", value: "2" },
+    { label: "Higher is Better", value: "0" },
+    { label: "Lower is Better", value: "1" },
   ];
 
   return {
     searchOKR,
     setSearchOKR,
+    searchKPI,
+    setSearchKPI,
     openFormObjective,
     setOpenFormObjective,
     openFormKpi,
@@ -140,6 +236,11 @@ export const useOKRDetails = () => {
     aggregationOptions,
     directionOptions,
     handleSaveKpi,
+    handleSaveObjective,
+    handleOpenKeyResultForm,
     formKpi,
+    kpiOptions,
+    detailOKRCycle,
+    isLoadingDetailOKRCycle,
   };
 };

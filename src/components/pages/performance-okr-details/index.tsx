@@ -6,18 +6,66 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Edit2, Ellipsis, FileDown, Trash } from "lucide-react";
 import * as React from "react";
-import { getStatusSelfAssessment } from "@/lib/helpers";
+import { getStatusOKRCycle } from "@/lib/helpers";
 import { Badge } from "@/components/ui/badge";
 import { OKRTab } from "./sections/tab";
 import { CircularProgress } from "@/components/ui/progress";
+import { useOKRDetails } from "./hook";
+import { Skeleton } from "@/components/ui/skeleton";
+import dayjs from "dayjs";
+import { cn } from "@/lib/utils";
 
 export const PerformanceOKRDetails = () => {
-  const status = getStatusSelfAssessment(1);
+  const { detailOKRCycle, isLoadingDetailOKRCycle } = useOKRDetails();
+  const status = getStatusOKRCycle(detailOKRCycle?.data?.status_label);
+
+  if (!detailOKRCycle?.data && !isLoadingDetailOKRCycle) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh] px-4">
+        <div className="text-center space-y-6 max-w-md">
+          <div className="flex justify-center">
+            <div className="rounded-full bg-gray-100 p-6">
+              <FileDown className="w-12 h-12 text-gray-400" />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-2xl font-semibold text-gray-900">
+              OKR Cycle Not Found
+            </h2>
+            <p className="text-gray-500 text-base">
+              The OKR cycle you're looking for doesn't exist or has been
+              removed. Please check the URL or return to the OKR cycles list.
+            </p>
+          </div>
+          <div className="flex justify-center gap-3">
+            <button
+              onClick={() => window.history.back()}
+              className="px-6 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md font-medium transition-colors"
+            >
+              Go Back
+            </button>
+            <button
+              onClick={() => (window.location.href = "/performance/okr")}
+              className="px-6 py-2.5 bg-primary hover:bg-primary/90 text-white rounded-md font-medium transition-colors"
+            >
+              View All OKR Cycles
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoadingDetailOKRCycle) {
+    return <Skeleton />;
+  }
+
   return (
     <div className="font-sans md:px-[125px] px-4 space-y-4">
       <div className="flex gap-2 items-center">
-        <h1 className="font-semibold text-4xl">Q4 2025</h1>
+        <h1 className="font-semibold text-4xl">{detailOKRCycle?.data?.name}</h1>
         <Badge variant={status.variant} className={status.className}>
+          <div className={cn(status.circleClassName, "w-2 h-2 rounded-full")} />{" "}
           {status.label}
         </Badge>
         <DropdownMenu>
@@ -69,11 +117,15 @@ export const PerformanceOKRDetails = () => {
       <div className="grid grid-cols-2 gap-4">
         <div className="flex flex-col gap-1">
           <span className="text-text-disabled text-sm">Start Date</span>
-          <span className="text-base">-</span>
+          <span className="text-base">
+            {dayjs(detailOKRCycle?.data.start_date).format("MMMM DD, YYYY")}
+          </span>
         </div>
         <div className="flex flex-col gap-1">
           <span className="text-text-disabled text-sm">End Date</span>
-          <span className="text-base">-</span>
+          <span className="text-base">
+            {dayjs(detailOKRCycle?.data.end_date).format("MMMM DD, YYYY")}
+          </span>
         </div>
         <div className="border border-grayscale-10 rounded-xs px-4 py-2 flex justify-between items-center col-span-2 md:col-span-1">
           <div className="flex flex-col gap-1">
@@ -98,7 +150,7 @@ export const PerformanceOKRDetails = () => {
             <div className="w-2 h-2 bg-primary-border rounded-xs"></div>
             <div className="flex flex-col">
               <span className="text-xl font-semibold text-text-secondary">
-                142
+                {detailOKRCycle?.data.tracking_periods_count}
               </span>
               <span className="text-text-disabled text-sm">
                 Total Key Result

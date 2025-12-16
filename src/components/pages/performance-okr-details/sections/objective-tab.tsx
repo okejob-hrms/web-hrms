@@ -9,21 +9,48 @@ import { stringAvatar } from "@/lib/utils";
 import { LinearProgress } from "@/components/ui/progress";
 import { FormObjective } from "./form-objective";
 import { FormKpi } from "./form-kpi";
+import { IOKRKeyResult, IOKRObjective } from "@/services/okr/types";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
 
-interface CardGroupProps {
+dayjs.extend(relativeTime);
+
+interface CardObjectiveProps {
+  objective: IOKRObjective;
   onNewKpi: () => void;
 }
 
-const CardItem = () => {
+interface CardKeyResultProps {
+  keyResult: IOKRKeyResult;
+}
+
+const CardKeyResult = ({ keyResult }: CardKeyResultProps) => {
+  const {
+    searchKPI,
+    setSearchKPI,
+    openFormKpi,
+    setOpenFormKpi,
+    formKpi,
+    handleSaveKpi,
+    frequencyOptions,
+    formatOptions,
+    jobPositionOptions,
+    jobLevelOptions,
+    aggregationOptions,
+    directionOptions,
+    kpiOptions,
+  } = useOKRDetails();
   return (
     <div className="flex flex-col gap-2 p-4 w-full">
       <div className="flex flex-row gap-1.5 items-center justify-between">
         <div className="flex flex-col">
           <span className="text-grayscale-50 font-semibold">KEY RESULT</span>
-          <span className="text-text-disabled text-sm">updated 1h ago</span>
+          <span className="text-text-disabled text-sm">
+            updated {dayjs(keyResult.updated_at).fromNow()}
+          </span>
         </div>
         <div className="flex flex-row gap-1">
-          <Badge variant="outline">Behind</Badge>
+          <Badge variant="outline">{keyResult.status_label}</Badge>
           <Avatar className="h-10 w-10">
             <AvatarImage src="" />
             <AvatarFallback className="text-primary-hover bg-primary-background text-base font-medium">
@@ -32,28 +59,40 @@ const CardItem = () => {
           </Avatar>
         </div>
       </div>
-      <div className="flex gap-1">
-        <span>
-          Mengurangi waktu henti mesin per minggu hingga di bawah 2 jam
-        </span>
-        <Button size="sm" variant="ghost">
+      <div className="flex gap-1 items-center justify-between">
+        <span>{keyResult.title}</span>
+        <Button size="sm" variant="ghost" onClick={() => setOpenFormKpi(true)}>
           <Edit />
         </Button>
       </div>
-      <LinearProgress value={20} />
+      <LinearProgress value={keyResult.progress} />
+      <FormKpi
+        open={openFormKpi}
+        onOpenChange={setOpenFormKpi}
+        form={formKpi}
+        onSave={handleSaveKpi}
+        frequencyOptions={frequencyOptions}
+        formatOptions={formatOptions}
+        jobPositionOptions={jobPositionOptions}
+        jobLevelOptions={jobLevelOptions}
+        aggregationOptions={aggregationOptions}
+        directionOptions={directionOptions}
+        kpiOptions={kpiOptions}
+        searchKPI={searchKPI}
+        onSearchKPIChange={setSearchKPI}
+      />
     </div>
   );
 };
 
-const CardGroup = ({ onNewKpi }: CardGroupProps) => {
+const CardObjective = ({ onNewKpi, objective }: CardObjectiveProps) => {
+  const keyResults = objective.key_results;
   return (
     <div className="border border-grayscale-20 rounded-md shadow-sm w-full md:min-w-[418px] h-fit">
-      <div className="flex flex-row gap-1.5 items-center p-4">
+      <div className="flex flex-row justify-between items-center p-4">
         <div className="flex flex-col">
           <span className="text-primary font-semibold">Objective</span>
-          <span className="text-black font-semibold">
-            Meningkatkan efisiensi proses produksi di lini 1 dan 2
-          </span>
+          <span className="text-black font-semibold">{objective.title}</span>
         </div>
         <div className="flex flex-row gap-1">
           <Button
@@ -70,8 +109,17 @@ const CardGroup = ({ onNewKpi }: CardGroupProps) => {
         </div>
       </div>
       <Separator />
-      <CardItem />
-      <CardItem />
+      {keyResults.length > 0 ? (
+        keyResults.map((item) => (
+          <CardKeyResult key={item.id} keyResult={item} />
+        ))
+      ) : (
+        <div className="p-4">
+          <Button size="lg" className="w-full" onClick={onNewKpi}>
+            <Plus /> Define Key Result
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
@@ -80,6 +128,8 @@ export const ObjectiveTab = () => {
   const {
     searchOKR,
     setSearchOKR,
+    searchKPI,
+    setSearchKPI,
     openFormObjective,
     setOpenFormObjective,
     openFormKpi,
@@ -92,6 +142,10 @@ export const ObjectiveTab = () => {
     jobLevelOptions,
     aggregationOptions,
     directionOptions,
+    kpiOptions,
+    handleSaveObjective,
+    detailOKRCycle,
+    handleOpenKeyResultForm,
   } = useOKRDetails();
   return (
     <div>
@@ -114,16 +168,20 @@ export const ObjectiveTab = () => {
             </Button>
             <span className="font-semibold">Add New Objective</span>
           </div>
-          <CardGroup onNewKpi={() => setOpenFormKpi(true)} />
-          <CardGroup onNewKpi={() => setOpenFormKpi(true)} />
-          <CardGroup onNewKpi={() => setOpenFormKpi(true)} />
+          {detailOKRCycle?.data.objectives.map((objective) => (
+            <CardObjective
+              key={objective.id}
+              onNewKpi={() => handleOpenKeyResultForm(objective.id)}
+              objective={objective}
+            />
+          ))}
         </div>
       </div>
 
       <FormObjective
         open={openFormObjective}
         onOpenChange={setOpenFormObjective}
-        onCreate={() => {}}
+        onCreate={(data: { title: string }) => handleSaveObjective(data)}
       />
       <FormKpi
         open={openFormKpi}
@@ -136,6 +194,9 @@ export const ObjectiveTab = () => {
         jobLevelOptions={jobLevelOptions}
         aggregationOptions={aggregationOptions}
         directionOptions={directionOptions}
+        kpiOptions={kpiOptions}
+        searchKPI={searchKPI}
+        onSearchKPIChange={setSearchKPI}
       />
     </div>
   );
