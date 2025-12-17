@@ -3,7 +3,6 @@ import * as React from "react";
 import { useFormContext } from "react-hook-form";
 import { Label } from "@/components/ui/label";
 import { SelectForm } from "@/components/ui/select-form";
-import { MultiSelectForm } from "@/components/ui/multi-select";
 import { InputForm, Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -220,7 +219,7 @@ export const LibraryForm = React.memo(function LibraryForm({
           </p>
           <div className="flex gap-2 items-center">
             <Input
-              className="!w-20"
+              className="w-20!"
               type="number"
               value={minValue}
               onChange={(e) =>
@@ -232,7 +231,7 @@ export const LibraryForm = React.memo(function LibraryForm({
             />
             <span>-</span>
             <Input
-              className="!w-20"
+              className="w-20!"
               type="number"
               value={maxValue}
               onChange={(e) =>
@@ -259,15 +258,11 @@ export const LibraryForm = React.memo(function LibraryForm({
 interface CustomFormProps {
   groupIndex?: number;
   fieldIndex?: number;
-  answerType?: string;
-  onAnswerTypeChange?: (type: string) => void;
 }
 
 export const CustomForm = React.memo(function CustomForm({
   groupIndex,
   fieldIndex,
-  answerType = "range",
-  onAnswerTypeChange,
 }: CustomFormProps) {
   const form = useFormContext();
   const fieldPrefix =
@@ -277,6 +272,7 @@ export const CustomForm = React.memo(function CustomForm({
 
   const minValue = form.watch(`${fieldPrefix}.options.min`) || 1;
   const maxValue = form.watch(`${fieldPrefix}.options.max`) || 8;
+  const answerType = form.watch(`${fieldPrefix}.type`);
 
   return (
     <div className="flex flex-col gap-4">
@@ -294,7 +290,6 @@ export const CustomForm = React.memo(function CustomForm({
           { label: "Range", value: "range" },
           { label: "Paragraph", value: "textarea" },
         ]}
-        onChange={(e) => onAnswerTypeChange?.(e.target.value)}
       />
 
       {answerType === "range" && (
@@ -304,7 +299,7 @@ export const CustomForm = React.memo(function CustomForm({
           </p>
           <div className="flex gap-2 items-center">
             <Input
-              className="!w-20"
+              className="w-20!"
               type="number"
               value={minValue}
               onChange={(e) =>
@@ -316,7 +311,7 @@ export const CustomForm = React.memo(function CustomForm({
             />
             <span>-</span>
             <Input
-              className="!w-20"
+              className="w-20!"
               type="number"
               value={maxValue}
               onChange={(e) =>
@@ -525,8 +520,6 @@ export const FormCompetencyTemplate = React.memo(
           <CustomForm
             groupIndex={groupIndex}
             fieldIndex={fieldIndex}
-            answerType={answerType}
-            onAnswerTypeChange={setAnswerType}
           />
         )}
       </div>
