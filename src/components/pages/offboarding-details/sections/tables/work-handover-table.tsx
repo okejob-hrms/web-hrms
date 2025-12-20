@@ -15,7 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { TextAreaForm } from "@/components/ui/textarea";
 import { useDebounce } from "@/hooks/use-debounce";
 import { cn, stringAvatar } from "@/lib/utils";
-import { getEmployeeDetail, getEmployees } from "@/services/employees";
+import { getEmployeeDetailByUserId, getEmployees } from "@/services/employees";
 import {
   deleteHandoverAssetsReturn,
   getHandoverAssetsReturn,
@@ -68,7 +68,7 @@ const EmployeeProfile = React.memo(function EmployeeProfile({
 }) {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["employee-detail", userId],
-    queryFn: () => getEmployeeDetail(userId),
+    queryFn: () => getEmployeeDetailByUserId(userId),
   });
 
   if (isLoading) {
@@ -216,7 +216,7 @@ export const FormModal = React.memo(function FormModal({
     if (employees?.data?.data) {
       return employees.data.data.map((item) => ({
         label: item.name,
-        value: item.id.toString(),
+        value: item.user_id.toString(),
       }));
     }
     return [];

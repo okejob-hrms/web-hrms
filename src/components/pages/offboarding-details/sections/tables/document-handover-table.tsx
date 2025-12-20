@@ -15,7 +15,7 @@ import { MultiSelectForm } from "@/components/ui/multi-select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDebounce } from "@/hooks/use-debounce";
 import { cn, stringAvatar } from "@/lib/utils";
-import { getEmployeeDetail, getEmployees } from "@/services/employees";
+import { getEmployeeDetailByUserId, getEmployees } from "@/services/employees";
 import {
   deleteHandoverAssetsReturn,
   getHandoverAssetsReturn,
@@ -68,7 +68,7 @@ const EmployeeProfile = React.memo(function EmployeeProfile({
 }) {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["employee-detail", userId],
-    queryFn: () => getEmployeeDetail(userId),
+    queryFn: () => getEmployeeDetailByUserId(userId),
   });
 
   if (isLoading) {
@@ -216,7 +216,7 @@ export const FormModal = React.memo(function FormModal({
     if (employees?.data?.data) {
       return employees.data.data.map((item) => ({
         label: item.name,
-        value: item.id.toString(),
+        value: item.user_id.toString(),
       }));
     }
     return [];
@@ -263,7 +263,10 @@ export const FormModal = React.memo(function FormModal({
         name: editData.name || "",
         recipients: ids as any,
       });
-      setSelectedRecipients(editData.recipients);
+      setSelectedRecipients(editData.recipients.map((r) => ({
+        user_id: r.user_id,
+        status: r.status,
+      })));
       setDefaultRecipients(ids.map(String));
     } else if (open) {
       form.reset({
@@ -287,7 +290,7 @@ export const FormModal = React.memo(function FormModal({
           const removedIds = prevIds.filter((id) => !newIds.includes(id));
           const updated = prev.filter((r) => !removedIds.includes(r.user_id));
           const newRecipients = addedIds.map((id) => ({
-            id: 0,
+            // id: 0,
             user_id: id,
             status: 1,
             status_label: "Waiting Approval",
