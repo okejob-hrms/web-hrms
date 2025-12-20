@@ -78,6 +78,14 @@ export interface IOKRObjective {
   updated_at: string;
 }
 
+export interface IOKRKeyResultsSummary {
+  total: number;
+  draft: number;
+  active: number;
+  done: number;
+  archived: number;
+}
+
 export interface IOKRDetailsResponse {
   id: number;
   period: string;
@@ -95,8 +103,7 @@ export interface IOKRDetailsResponse {
   };
   objectives_count: number;
   objectives: IOKRObjective[];
-  tracking_periods_count: number;
-  tracking_periods: any[];
+  key_results: IOKRKeyResultsSummary;
   created_at: string;
   updated_at: string;
 }
@@ -115,4 +122,40 @@ export interface IOKRKeyResultRequest {
   status?: number;
   direction: number;
   aggregation: number;
+}
+
+export interface IOKRTrackingPeriodCycle {
+  id: number;
+  name: string;
+  start_date: string;
+  end_date: string;
+}
+
+export interface IOKRTrackingPeriodEntry {
+  period_id: number;
+  label: string;
+  actual_value: number;
+  target_value: number;
+}
+
+export interface IOKRTrackingKeyResult {
+  title: string;
+  okr_key_result_id: number;
+  okr_cycle_id: number;
+  frequency: number;
+  start_at: string;
+  end_at: string;
+  tracking_table: IOKRTrackingPeriodEntry[];
+}
+
+export interface IOKRTrackingPeriodsResponse {
+  cycle: IOKRTrackingPeriodCycle;
+  objective_frequency: string;
+  key_result: IOKRTrackingKeyResult[];
+}
+
+export interface IOKRTrackingPeriodRequest {
+  key_result_id: number;
+  tracking_period_id: number;
+  actual_value: number;
 }

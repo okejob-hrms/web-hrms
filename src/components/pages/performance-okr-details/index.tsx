@@ -150,7 +150,7 @@ export const PerformanceOKRDetails = () => {
             <div className="w-2 h-2 bg-primary-border rounded-xs"></div>
             <div className="flex flex-col">
               <span className="text-xl font-semibold text-text-secondary">
-                {detailOKRCycle?.data.tracking_periods_count}
+                {detailOKRCycle?.data.key_results.total}
               </span>
               <span className="text-text-disabled text-sm">
                 Total Key Result
@@ -161,7 +161,7 @@ export const PerformanceOKRDetails = () => {
             <div className="w-2 h-2 bg-warning rounded-xs"></div>
             <div className="flex flex-col">
               <span className="text-xl font-semibold text-text-secondary">
-                142
+                {detailOKRCycle?.data.key_results.active}
               </span>
               <span className="text-text-disabled text-sm">
                 Open Key Result
@@ -172,7 +172,7 @@ export const PerformanceOKRDetails = () => {
             <div className="w-2 h-2 bg-success rounded-xs"></div>
             <div className="flex flex-col">
               <span className="text-xl font-semibold text-text-secondary">
-                142
+                {detailOKRCycle?.data.key_results.done}
               </span>
               <span className="text-text-disabled text-sm">
                 Completed Key Result
