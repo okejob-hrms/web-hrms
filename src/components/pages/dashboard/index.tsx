@@ -8,13 +8,18 @@ import { Assessment } from './sections/assessment';
 import { Offboarding } from './sections/offboarding';
 import { PendingAction } from './sections/pending-action';
 import { Analytics } from './sections/analytics';
+import AppSkeleton from '@/components/partials/app-skeleton';
 
 export default function DashboardLive() {
   const tabs = [
     {
       name: 'Pending Action Overview',
       value: 'pending-actions',
-      content: <PendingAction />,
+      content: (
+        <React.Suspense fallback={<AppSkeleton />}>
+          <PendingAction />
+        </React.Suspense>
+      ),
     },
     {
       name: 'Analytics Dashboard',
