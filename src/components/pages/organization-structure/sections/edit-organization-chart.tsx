@@ -1,5 +1,4 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-// FileName: index.tsx
 "use client";
 
 import Image from "next/image";
@@ -14,6 +13,7 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import AssignEmployeeModal from "./assign-employee-modal";
 import EmployeeProfileModal from "./employee-profile-modal";
+import { Menu, X } from "lucide-react"; // Icons for mobile toggle
 
 import {
   ReactFlow,
@@ -67,7 +67,7 @@ const getLayoutedElements = (
 
   const newNodes = nodes.map((node) => {
     const nodeWithPosition = dagreGraph.node(node.id);
-    const newNode = {
+    return {
       ...node,
       targetPosition: isHorizontal ? "left" : "top",
       sourcePosition: isHorizontal ? "right" : "bottom",
@@ -76,8 +76,6 @@ const getLayoutedElements = (
         y: nodeWithPosition.y - nodeHeight / 2,
       },
     };
-
-    return newNode;
   });
 
   return { nodes: newNodes, edges };
@@ -90,23 +88,20 @@ const nodeTypes = {
 export default function OrganizationChartEdit() {
   const queryClient = useQueryClient();
   const router = useRouter();
-  const [chartEmployees, setChartEmployees] =
-    useState<EmployeeNode[]>(initialChartData);
-  const [nodes, setNodes, onNodesChange] = useNodesState<Node<NodeCardData>>(
-    []
-  );
+  
+  // Mobile Sidebar State
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  const [chartEmployees, setChartEmployees] = useState<EmployeeNode[]>(initialChartData);
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node<NodeCardData>>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
 
-  const [selectedEmployeeId, setSelectedEmployeeId] = useState<number | null>(
-    null
-  );
-
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState<number | null>(null);
   const [assignEmployeeOpen, setAssignEmployeeOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-  const [selectedEmployeeDetails, setSelectedEmployeeDetails] =
-    useState<EmployeeNode | null>(null);
-    const [selectedParentEmployee, setselectedParentEmployee] =
-    useState<EmployeeNode | null>(null);
+  const [selectedEmployeeDetails, setSelectedEmployeeDetails] = useState<EmployeeNode | null>(null);
+  const [selectedParentEmployee, setselectedParentEmployee] = useState<EmployeeNode | null>(null);
+
   const {
     data: fetchedEmployees,
     isLoading,
@@ -120,18 +115,16 @@ export default function OrganizationChartEdit() {
 
   const handleEmployeeSelect = (employeeId: number) => {
     setSelectedEmployeeId(employeeId);
+    setIsSidebarOpen(false); // Close sidebar on mobile after selection
     queryClient.invalidateQueries({
       queryKey: ["organizationChart", employeeId]
     });
   };
 
   useEffect(() => {
-    if (fetchedEmployees) {
-      setChartEmployees(fetchedEmployees);
-    }
+    if (fetchedEmployees) setChartEmployees(fetchedEmployees);
   }, [fetchedEmployees]);
 
-  console.log("Chart employee", chartEmployees)
   useEffect(() => {
     const onAddChild = (employee: EmployeeNode) => {
       setselectedParentEmployee(employee);
@@ -167,150 +160,114 @@ export default function OrganizationChartEdit() {
       isEditMode: true,
     }));
 
-    const { nodes: transformedNodes, edges: transformedEdges } =
-      transformDataForFlow(dataForNodes);
-    const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
-      transformedNodes,
-      transformedEdges
-    );
+    const { nodes: transformedNodes, edges: transformedEdges } = transformDataForFlow(dataForNodes);
+    const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(transformedNodes, transformedEdges);
 
     setNodes(layoutedNodes as Node<NodeCardData>[]);
     setEdges(layoutedEdges);
   }, [chartEmployees]);
 
-  const handleModalSave = (formValues: AssignEmployeeFormValues) => {
-    assignManager(formValues);
-  };
-
-  const handleCancelClick = () => {
-    router.back();
-  };
-
-  const openAssignModal = () => {
-    setAssignEmployeeOpen(true);
-  };
-
-  const handleModalEditSave = (formValues: EditEmployeeFormValues) => {
-    editManager(formValues);
-  };
-
   const { mutate: assignManager } = useMutation({
     mutationFn: postAssignEmployee,
     onSuccess: () => {
-      toast.success("Assign Manager Successfully Updated!");
+      toast.success("Updated Successfully!");
       queryClient.invalidateQueries({ queryKey: ["organizationChart"] });
-    },
-    onError: (error) => {
-      toast.error(`Failed to create/edit employee: ${error.message}`);
     },
   });
 
   const { mutate: editManager } = useMutation({
     mutationFn: postEditEmployee,
     onSuccess: () => {
-      toast.success("Assign Manager Successfully Updated!");
+      toast.success("Updated Successfully!");
       queryClient.invalidateQueries({ queryKey: ["organizationChart"] });
-    },
-    onError: (error) => {
-      toast.error(`Failed to create/edit employee: ${error.message}`);
     },
   });
 
-  useEffect(() => {
-    if (isError) {
-      setChartEmployees(initialChartData);
-      toast.error("Error Fetching Organization Structure");
-    }
-  }, [isError]);
-
   return (
-  <ReactFlowProvider>
-    <div className="font-sans flex flex-col h-full">
-      <div className="flex items-center justify-between p-4 border-b flex-shrink-0 bg-white">
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={handleCancelClick}>
-            <Image
-              src="/icons/chevronLeft.svg"
-              alt="Back"
-              width={24}
-              height={24}
-            />
+    <ReactFlowProvider>
+      <div className="flex flex-col h-screen w-full overflow-hidden bg-white">
+        <div className="flex items-center justify-between p-4 border-b shrink-0 bg-white z-30">
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" onClick={() => router.back()}>
+              <Image src="/icons/chevronLeft.svg" alt="Back" width={24} height={24} />
+            </Button>
+            <h2 className="font-semibold text-lg md:text-xl truncate">Organization Structure</h2>
+          </div>
+          
+          <Button 
+            variant="outline" 
+            size="sm"
+            className="md:hidden flex items-center gap-2"
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          >
+            {isSidebarOpen ? <X size={16} /> : <Menu size={16} />}
+            <span>{isSidebarOpen ? "Close" : "Employees"}</span>
           </Button>
-          <h2 className="font-semibold text-xl">Organization Structure</h2>
         </div>
-      </div>
-      <div className="flex flex-row" style={{ height: "100vh" }}>
-        <EmployeeListSidebar
-          onEmployeeSelect={handleEmployeeSelect}
-          selectedEmployeeId={selectedEmployeeId}
-        />
-        <div className="flex-1 h-full">
-          {isLoading || isRefetching ? (
-            <div className="flex flex-col gap-4 items-center w-full h-full">
-              <Skeleton className="h-12 w-full" />
-              <div className="space-y-2 w-full h-full">
-                <Skeleton className="w-full h-full" />
+
+        <div className="flex flex-1 relative overflow-hidden">
+          <div className={`
+            absolute inset-y-0 left-0 z-20 w-full sm:w-80 md:w-1/3 lg:w-1/4 bg-white transform transition-transform duration-300 ease-in-out border-r
+            ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
+            md:relative md:translate-x-0
+          `}>
+            <EmployeeListSidebar
+              onEmployeeSelect={handleEmployeeSelect}
+              selectedEmployeeId={selectedEmployeeId}
+            />
+          </div>
+
+          <div className="flex-1 h-full relative">
+            {isLoading || isRefetching ? (
+              <div className="flex flex-col gap-4 p-6 items-center w-full h-full">
+                <Skeleton className="h-12 w-full" />
+                <Skeleton className="w-full flex-1" />
               </div>
-            </div>
-          ) : chartEmployees.length === 0 ? (
-            <div
-              className="bg-grayscale-10 border shadow-sm border-grayscale-20 p-12 flex flex-col items-center justify-center gap-2 cursor-pointer h-full"
-              onClick={() => openAssignModal()}
-            >
-              <Image
-                src="/icons/user-grey.svg"
-                alt="no employees"
-                width={40}
-                height={40}
-                className="opacity-60"
-              />
-              <p className="font-medium text-gray-700">No Employees Assigned</p>
-              <p className="text-gray-500 text-sm text-center">
-                <span className="text-primary cursor-pointer underline">
-                  Click
-                </span>{" "}
-                to start building your company’s organization structure.
-              </p>
-            </div>
-          ) : (
-            <ReactFlow
-              nodes={nodes}
-              edges={edges}
-              onNodesChange={onNodesChange}
-              onEdgesChange={onEdgesChange}
-              nodeTypes={nodeTypes}
-              fitView
-              style={{
-                backgroundColor: "#EDEDED",
-              }}
-              className="bg-grayscale-10"
-            >
-              <Background />
-              <CustomControls />
-            </ReactFlow>
-          )}
+            ) : chartEmployees.length === 0 ? (
+              <div 
+                className="bg-grayscale-10 p-12 flex flex-col items-center justify-center gap-2 h-full text-center"
+                onClick={() => setAssignEmployeeOpen(true)}
+              >
+                <Image src="/icons/user-grey.svg" alt="none" width={40} height={40} className="opacity-60" />
+                <p className="font-medium text-gray-700">No Employees Assigned</p>
+                <p className="text-sm text-primary underline cursor-pointer">Click to start building</p>
+              </div>
+            ) : (
+              <ReactFlow
+                nodes={nodes}
+                edges={edges}
+                onNodesChange={onNodesChange}
+                onEdgesChange={onEdgesChange}
+                nodeTypes={nodeTypes}
+                fitView
+                style={{ backgroundColor: "#EDEDED" }}
+              >
+                <Background />
+                <CustomControls />
+              </ReactFlow>
+            )}
+          </div>
         </div>
-      </div>
 
-      <AssignEmployeeModal
-        open={assignEmployeeOpen}
-        handleSave={handleModalSave}
-        onOpenChange={setAssignEmployeeOpen}
-        chartEmployees={chartEmployees}
-        parentEmployee={selectedParentEmployee}
-      />
-
-      {selectedEmployeeDetails && (
-        <EmployeeProfileModal
-          open={isProfileModalOpen}
-          onOpenChange={setIsProfileModalOpen}
-          handleClose={() => setIsProfileModalOpen(false)}
-          employeeData={selectedEmployeeDetails}
-          handleSave={handleModalEditSave}
+        <AssignEmployeeModal
+          open={assignEmployeeOpen}
+          handleSave={(v) => assignManager(v)}
+          onOpenChange={setAssignEmployeeOpen}
           chartEmployees={chartEmployees}
+          parentEmployee={selectedParentEmployee}
         />
-      )}
-    </div>
-  </ReactFlowProvider>
+
+        {selectedEmployeeDetails && (
+          <EmployeeProfileModal
+            open={isProfileModalOpen}
+            onOpenChange={setIsProfileModalOpen}
+            handleClose={() => setIsProfileModalOpen(false)}
+            employeeData={selectedEmployeeDetails}
+            handleSave={(v) => editManager(v)}
+            chartEmployees={chartEmployees}
+          />
+        )}
+      </div>
+    </ReactFlowProvider>
   );
 }

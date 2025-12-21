@@ -5,19 +5,18 @@ import { getJobPosition } from "@/services/job-position";
 import { getJobLevels } from "@/services/job-levels";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { IMutateKPIRequest } from "@/services/performances/kpi/types";
-import { getAllKPIs, postAddKPI } from "@/services/performances/kpi";
+import { getAllKPIs } from "@/services/performances/kpi";
 import { ApiErrorResponse } from "@/lib/types";
 import {
   createOKRKeyResult,
   createOKRObjective,
   getOKRCycleDetails,
+  getOKRTrackingPeriods,
 } from "@/services/okr";
 import { useParams } from "next/navigation";
 import {
-  IOKRCycleRequest,
   IOKRKeyResultRequest,
-  IOKRObjectiveRequest,
+  IOKRTrackingKeyResult,
 } from "@/services/okr/types";
 
 export const useOKRDetails = () => {
@@ -242,5 +241,119 @@ export const useOKRDetails = () => {
     kpiOptions,
     detailOKRCycle,
     isLoadingDetailOKRCycle,
+  };
+};
+
+const transformTrackingDataToTableRows = (
+  keyResults: IOKRTrackingKeyResult[],
+) => {
+  return keyResults.map((kr) => {
+    const row: Record<string, any> = {
+      name: kr.title,
+      okr_key_result_id: kr.okr_key_result_id,
+      okr_cycle_id: kr.okr_cycle_id,
+      frequency: kr.frequency,
+      start_at: kr.start_at,
+      end_at: kr.end_at,
+    };
+
+    kr.tracking_table.forEach((period) => {
+      row[`period_${period.period_id}`] = {
+        period_id: period.period_id,
+        label: period.label,
+        actual: period.actual_value,
+        target: period.target_value,
+      };
+    });
+
+    row.tracking_periods = kr.tracking_table.map((period) => ({
+      period_id: period.period_id,
+      label: period.label,
+    }));
+
+    return row;
+  });
+};
+
+export const useOKRTrackingPeriods = () => {
+  const params = useParams();
+  const [periodType, setPeriodType] = React.useState("4");
+  const [searchKeyResult, setSearchKeyResult] = React.useState("");
+
+  const id = React.useMemo(() => {
+    const idParam = params?.id;
+    if (idParam && !isNaN(Number(idParam))) {
+      return Number(idParam);
+    }
+    return null;
+  }, [params]);
+
+  const {
+    data: trackingPeriodsData,
+    isLoading: isLoadingTrackingPeriods,
+    refetch: refetchTrackingPeriods,
+  } = useQuery({
+    queryKey: ["okrTrackingPeriods", id, periodType],
+    queryFn: () => getOKRTrackingPeriods(id!, periodType),
+    enabled: !!id,
+  });
+
+  const tableData = React.useMemo(() => {
+    if (!trackingPeriodsData?.data?.key_result) {
+      return [];
+    }
+
+    const rows = transformTrackingDataToTableRows(
+      trackingPeriodsData.data.key_result,
+    );
+
+    if (searchKeyResult) {
+      return rows.filter((row) =>
+        row.name.toLowerCase().includes(searchKeyResult.toLowerCase()),
+      );
+    }
+
+    return rows;
+  }, [trackingPeriodsData?.data?.key_result, searchKeyResult]);
+
+  const periodColumns = React.useMemo(() => {
+    if (!trackingPeriodsData?.data?.key_result?.[0]?.tracking_table) {
+      return [];
+    }
+
+    return trackingPeriodsData.data.key_result[0].tracking_table.map(
+      (period) => ({
+        period_id: period.period_id,
+        label: period.label,
+        key: `period_${period.period_id}`,
+      }),
+    );
+  }, [trackingPeriodsData?.data?.key_result]);
+
+  const cycleInfo = React.useMemo(() => {
+    return trackingPeriodsData?.data?.cycle || null;
+  }, [trackingPeriodsData?.data?.cycle]);
+  const objectiveFrequency = React.useMemo(() => {
+    return trackingPeriodsData?.data?.objective_frequency || "";
+  }, [trackingPeriodsData?.data?.objective_frequency]);
+
+  const handlePeriodTypeChange = (newPeriodType: string) => {
+    setPeriodType(newPeriodType);
+  };
+
+  return {
+    periodType,
+    setPeriodType,
+    handlePeriodTypeChange,
+    searchKeyResult,
+    setSearchKeyResult,
+    trackingPeriodsData,
+    isLoadingTrackingPeriods,
+    refetchTrackingPeriods,
+    tableData,
+    periodColumns,
+    cycleInfo,
+    objectiveFrequency,
+    okrCycleId: id,
   };
 };

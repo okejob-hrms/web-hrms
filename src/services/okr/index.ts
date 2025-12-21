@@ -6,6 +6,8 @@ import {
   IOKRKeyResultRequest,
   IOKRObjectiveRequest,
   IOKRResponse,
+  IOKRTrackingPeriodRequest,
+  IOKRTrackingPeriodsResponse,
 } from "./types";
 
 export const getOKRCycles = async (): Promise<
@@ -164,6 +166,55 @@ export const createOKRKeyResult = async (
 export const deleteOKRKeyResult = async (id: number): Promise<IOKRResponse> => {
   try {
     const response = await api.delete(`okr/key-results/${id}`);
+    return response.json();
+  } catch (error: any) {
+    if (error.name === "HTTPError") {
+      const errorResponse = await error.response.json();
+      const enhancedError = new Error(error.message);
+      (enhancedError as any).response = {
+        json: () => Promise.resolve(errorResponse),
+        status: error.response.status,
+      };
+      throw enhancedError;
+    }
+    throw error;
+  }
+};
+
+export const getOKRTrackingPeriods = async (
+  okrCycleId: number,
+  periodType: string,
+): Promise<ApiResponse<IOKRTrackingPeriodsResponse>> => {
+  try {
+    const response = await api.get<ApiResponse<IOKRTrackingPeriodsResponse>>(
+      `okr/cycles/${okrCycleId}/tracking-periods?period_type=${periodType}`,
+    );
+    return response.json();
+  } catch (error: any) {
+    if (error.name === "HTTPError") {
+      const errorResponse = await error.response.json();
+      const enhancedError = new Error(error.message);
+      (enhancedError as any).response = {
+        json: () => Promise.resolve(errorResponse),
+        status: error.response.status,
+      };
+      throw enhancedError;
+    }
+    throw error;
+  }
+};
+
+export const setOKRTrackingPeriods = async (
+  id: number,
+  params: IOKRTrackingPeriodRequest,
+): Promise<IOKRTrackingPeriodsResponse> => {
+  try {
+    const response = await api.post<IOKRTrackingPeriodsResponse>(
+      `okr/cycles/${id}/tracking-periods`,
+      {
+        json: params,
+      },
+    );
     return response.json();
   } catch (error: any) {
     if (error.name === "HTTPError") {

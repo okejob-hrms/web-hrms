@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { Form } from "@/components/ui/form";
@@ -23,9 +22,19 @@ import { createEmployee } from "@/services/employees";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { convertPhoneToNumber } from "@/lib/helpers";
+import { ApiErrorResponse } from "@/lib/types";
+
+type EmployeeFormValues = z.infer<typeof employeeManagementFormScheme>;
 
 export const AddEmployeeForm = React.memo(function AddEmployee() {
   const router = useRouter();
+
+  const form = useForm<EmployeeFormValues>({
+    resolver: zodResolver(employeeManagementFormScheme),
+    defaultValues: employeeManagementFormDefaultValues,
+    mode: "onChange",
+  });
+
   const { mutate, isPending } = useMutation({
     mutationFn: (params: IMutateEmployeeRequests) => createEmployee(params),
     onSuccess: () => {
@@ -33,85 +42,84 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
       router.push("/employee/employee-management");
       form.reset();
     },
-    onError: (error: any) => {
-      toast.error(
-        `Failed to add employee: ${error.message || "Unknown error"}`,
-      );
+    onError: async (error: Error & { response?: Response }) => {
+      if (error?.response) {
+        try {
+          const errorData: ApiErrorResponse = await error.response.json();
+          toast.error(errorData.message || "Failed to add employee");
+        } catch {
+          toast.error("Failed to add employee: Server error");
+        }
+      } else {
+        toast.error(
+          `Failed to add employee: ${error.message || "Unknown error"}`,
+        );
+      }
     },
   });
-  const form = useForm<z.infer<typeof employeeManagementFormScheme>>({
-    resolver: zodResolver(employeeManagementFormScheme),
-    defaultValues: employeeManagementFormDefaultValues,
-  });
 
-  const onSubmit = (values: z.infer<typeof employeeManagementFormScheme>) => {
-    try {
-      const filteredSocialMedia = values.social_media_accounts?.filter(
-        (account) => account?.type.trim() !== "" && account?.url.trim() !== "",
-      );
+  const onSubmit = (values: EmployeeFormValues) => {
+    const filteredSocialMedia = values.social_media_accounts?.filter(
+      (account) => account?.type.trim() !== "" && account?.url.trim() !== "",
+    );
 
-      const params: IMutateEmployeeRequests = {
-        ...values,
-        role_id: Number(values.role_id),
-        department_id: Number(values.department_id),
-        job_level_id: Number(values.job_level_id),
-        job_position_id: Number(values.job_position_id),
-        ...(filteredSocialMedia && {
-          social_media_accounts: filteredSocialMedia,
-        }),
-        country_code: String(values.country_code),
-        branch_id: Number(values.branch_id),
-        team_id: Number(values.team_member),
-        date_of_birth: dayjs(values.date_of_birth).format("YYYY-MM-DD"),
-        start_date: dayjs(values.start_date).format("YYYY-MM-DD"),
-        end_date: dayjs(values.end_date).format("YYYY-MM-DD"),
-        allowances: values.allowances.map((item) => ({
-          allowance_type_id: Number(item?.allowance_type_id),
-          allowance_value: Number(item?.allowance_value),
-        })),
-        phone_number: Number(convertPhoneToNumber(values.phone_number)),
-        bank_id: Number(values.bank_id),
-        work_experiences: values.work_experiences?.filter((item) => item.id),
-        contact_refferences: values.contact_refferences?.filter(
-          (item) => item.id,
-        ),
-        families: values.families?.filter((item) => item.id),
-        educations: values.educations?.filter((item) => item.id),
-        ...(values.primary_direct_report_id !== 0
-          ? {
-              primary_direct_report_id: Number(values.primary_direct_report_id),
-            }
-          : { primary_direct_report_id: null }),
-        ...(values.additional_direct_report_id !== 0
-          ? {
-              additional_direct_report_id: Number(
-                values.additional_direct_report_id,
-              ),
-            }
-          : { additional_direct_report_id: null }),
-        ...(values.attachments && {
-          attachments: values.attachments
-            .filter(
-              (item) => item.type !== undefined && item.path !== undefined,
-            )
-            .map((item) => ({ type: item.type, path: item.path })),
-        }),
-      };
-      console.log(params);
-      mutate(params);
-    } catch (err) {
-      console.log("Error submit", err);
-    }
+    const { end_date, ...restValues } = values;
+
+    const params: IMutateEmployeeRequests = {
+      ...restValues,
+      role_id: Number(values.role_id),
+      department_id: Number(values.department_id),
+      job_level_id: Number(values.job_level_id),
+      job_position_id: Number(values.job_position_id),
+      ...(filteredSocialMedia && {
+        social_media_accounts: filteredSocialMedia,
+      }),
+      country_code: String(values.country_code),
+      branch_id: Number(values.branch_id),
+      team_id: Number(values.team_member),
+      date_of_birth: dayjs(values.date_of_birth).format("YYYY-MM-DD"),
+      start_date: dayjs(values.start_date).format("YYYY-MM-DD"),
+      ...(end_date && dayjs(end_date).isValid()
+        ? { end_date: dayjs(end_date).format("YYYY-MM-DD") }
+        : {}),
+      allowances: values.allowances?.map((item) => ({
+        allowance_type_id: Number(item?.allowance_type_id),
+        allowance_value: Number(item?.allowance_value),
+      })),
+      phone_number: Number(convertPhoneToNumber(String(values.phone_number))),
+      bank_id: Number(values.bank_id),
+      work_experiences: values.work_experiences?.filter((item) => item.id),
+      contact_refferences: values.contact_refferences?.filter(
+        (item) => item.id,
+      ),
+      families: values.families?.filter((item) => item.id),
+      educations: values.educations?.filter((item) => item.id),
+      ...(values.primary_direct_report_id !== 0
+        ? {
+            primary_direct_report_id: Number(values.primary_direct_report_id),
+          }
+        : { primary_direct_report_id: null }),
+      ...(values.additional_direct_report_id !== 0
+        ? {
+            additional_direct_report_id: Number(
+              values.additional_direct_report_id,
+            ),
+          }
+        : { additional_direct_report_id: null }),
+      ...(values.attachments && {
+        attachments: values.attachments
+          .filter((item) => item.type !== undefined && item.path !== undefined)
+          .map((item) => ({ type: item.type, path: item.path })),
+      }),
+    };
+
+    mutate(params);
   };
 
-  React.useEffect(() => {
-    console.log("# ERRORS ", form.formState.errors);
-  }, [form.formState.errors]);
-
   return (
-    <React.Fragment>
+    <>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)}>
+        <form>
           <PersonalInformationSection />
           <EmployeeinformationSection />
           <SalaryInformationSection />
@@ -127,12 +135,18 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
             >
               Cancel
             </Button>
-            <Button isLoading={isPending} className="md:max-w-36 w-[50%]">
+            <Button
+              type="button"
+              disabled={isPending}
+              isLoading={isPending}
+              className="md:max-w-36 w-[50%]"
+              onClick={form.handleSubmit(onSubmit)}
+            >
               Add Employee
             </Button>
           </div>
         </form>
       </Form>
-    </React.Fragment>
+    </>
   );
 });
