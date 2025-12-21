@@ -6,7 +6,20 @@ interface MenuItem {
 }
 
 export const menus: Record<string, MenuItem[]> = {
-  dashboard: [],
+  dashboard: [
+    {
+      name: "Offboarding",
+      value: "offboarding",
+      subItem: [
+        { name: "Active Offboarding", value: "dashboard?overview=offboarding-active" },
+        { name: "Waiting of Offboarding", value: "dashboard?overview=offboarding-waiting" },
+      ],
+    },
+    { name: "Attandance Aprroval", value: "dashboard?overview=attendance" },
+    { name: "Leave Request", value: "dashboard?overview=leave" },
+    { name: "Overtime Request", value: "dashboard?overview=overtime" },
+    { name: "Payslip Request", value: "dashboard?overview=payslip" },
+  ],
   employee: [
     { name: "Employee Management", value: "employee/employee-management" },
     {

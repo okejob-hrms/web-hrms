@@ -6,7 +6,7 @@ import { month } from "@/lib/utils";
 
 export const getAttendance = async (
   pagination?: PaginationState,
-  filters?: { search?: string; date?: string }
+  filters?: { search?: string; date?: string; status?: string; }
 ): Promise<ApiResponse<PaginatedResponse<Attendance>>> => {
   const searchParams: Record<string, string> = {};
 
@@ -23,6 +23,10 @@ export const getAttendance = async (
 
   if (filters?.date) {
     searchParams.date = filters.date;
+  }
+
+  if (filters?.status) {
+    searchParams.status = filters.status;
   }
 
   const response = await api.get<ApiResponse<PaginatedResponse<Attendance>>>(

@@ -23,6 +23,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const removePadding = noPaddingPages.includes(pathname);
   const isAuthPage = pathname.startsWith('/auth');
   const breadcrumbs = getBreadcrumbs(pathname);
+  const isDashboard = ['/dashboard'];
+  const removeBg = isDashboard.includes(pathname);
 
   const [queryClient] = useState(
     () =>
@@ -72,7 +74,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           {hideSidebar ? (
             <div
               className={cn(
-                'flex justify-center bg-white min-h-screen',
+                'flex justify-center min-h-screen',
+                !removeBg && 'bg-white',
                 !removePadding && 'py-4 md:py-10',
               )}
             >

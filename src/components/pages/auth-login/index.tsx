@@ -53,7 +53,7 @@ export default function AuthLogin() {
           router.push('/auth/change-password');
         } else {
           toast.success('Login successful!');
-          router.push('/dashboard');
+          router.push('/dashboard?overview=offboarding-active');
         }
       } else {
         toast.error(res.message || 'Login failed, please try again.');

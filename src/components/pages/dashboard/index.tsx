@@ -6,18 +6,20 @@ import { cn } from '@/lib/utils';
 import { Payroll } from './sections/payroll';
 import { Assessment } from './sections/assessment';
 import { Offboarding } from './sections/offboarding';
+import { PendingAction } from './sections/pending-action';
+import { Analytics } from './sections/analytics';
 
 export default function DashboardLive() {
   const tabs = [
     {
       name: 'Pending Action Overview',
       value: 'pending-actions',
-      content: <div></div>,
+      content: <PendingAction />,
     },
     {
       name: 'Analytics Dashboard',
       value: 'analytics',
-      content: <div></div>,
+      content: <Analytics />,
     },
     {
       name: 'Offboarding',
@@ -39,7 +41,7 @@ export default function DashboardLive() {
   return (
     <div className="mx-auto font-sans min-h-screen">
       <div className="flex flex-col justify-between gap-6">
-        <div className="bg-white flex flex-col gap-4 px-6 py-4">
+        <div className="flex flex-col gap-4 px-6">
           <Tabs defaultValue={tabs[0].value} className="w-full mx-auto">
             <TabsList className="p-1 w-full bg-secondary-background h-50 md:h-12 flex flex-col md:flex-row">
               {tabs.map((tab) => (

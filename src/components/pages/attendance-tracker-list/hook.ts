@@ -21,6 +21,7 @@ export function useAttendance() {
   const [openReject, setOpenReject] = React.useState(false);
   const [selectedData, setSelectedData] = React.useState<Attendance>();
   const [selectedId, setSelectedId] = React.useState<string>('');
+  const [selectedIdTrackers, setSelectedIdTrackers] = React.useState<string>('');
   const [filters, setFilters] = React.useState<Filters>({
     date: '',
     search: '',
@@ -39,7 +40,7 @@ export function useAttendance() {
     isFetching,
     isRefetching,
   } = useQuery({
-    queryKey: ["attendance", pagination, filters.search, filters.date],
+    queryKey: ["attendance", pagination, filters.search, filters.date, filters.status],
     queryFn: () => getAttendance(pagination, filters),
     placeholderData: keepPreviousData,
     refetchOnMount: "always",
@@ -68,7 +69,6 @@ export function useAttendance() {
     queryKey: ["attendanceDetail", selectedId, detailFilter.month, detailFilter.year],
     queryFn: () => getAttendanceDetail(selectedId, detailFilter.month, detailFilter.year),
     enabled: !!selectedId,
-    placeholderData: keepPreviousData,
   });
 
   const { mutate: updateStatus } = useMutation({
@@ -107,13 +107,13 @@ export function useAttendance() {
   }
 
   const handleApprove = () => {
-    if (!selectedId) return;
-    updateStatus({ id: Number(selectedId), status: 1 });
+    if (!selectedIdTrackers) return;
+    updateStatus({ id: Number(selectedIdTrackers), status: 1 });
   };
 
   const handleReject = () => {
-    if (!selectedId) return;
-    updateStatus({ id: Number(selectedId), status: 2 });
+    if (!selectedIdTrackers) return;
+    updateStatus({ id: Number(selectedIdTrackers), status: 2 });
   };
 
   const handleDelete = () => {
@@ -163,5 +163,6 @@ export function useAttendance() {
     detailFilter,
     handleNextDetailMonth,
     handlePrevDetailMonth,
+    setSelectedIdTrackers,
   };
 }

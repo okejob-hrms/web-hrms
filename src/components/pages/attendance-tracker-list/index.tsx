@@ -52,11 +52,13 @@ import dayjs from 'dayjs';
 interface AttendanceTrackerListProps {
   hidePannel?: boolean;
   relativeUser?: string;
+  relativeStatus?: string;
 }
 
 export const AttendanceTrackerList = ({
   hidePannel = false,
   relativeUser,
+  relativeStatus,
 }: AttendanceTrackerListProps) => {
   const router = useRouter();
 
@@ -87,6 +89,7 @@ export const AttendanceTrackerList = ({
     detailFilter,
     handleNextDetailMonth,
     handlePrevDetailMonth,
+    setSelectedIdTrackers,
   } = useAttendance();
 
   const columns: ColumnDef<Attendance>[] = [
@@ -266,10 +269,18 @@ export const AttendanceTrackerList = ({
       }));
       setPagination((prev) => ({ ...prev, pageIndex: 0 }));
     }
-  }, [relativeUser]);
+
+    if (relativeStatus) {
+      setFilters((prev) => ({
+        ...prev,
+        status: relativeStatus,
+      }));
+      setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+    }
+  }, [relativeUser, relativeStatus]);
 
   return (
-    <div className="font-sans min-h-screen flex flex-col space-y-6 px-6">
+    <div className={`font-sans min-h-screen flex flex-col space-y-6 px-6`}>
       {!hidePannel && (
         <>
           <h2 className="font-semibold text-xl">Summary</h2>
@@ -328,43 +339,47 @@ export const AttendanceTrackerList = ({
           </div>
         </>
       )}
-      <div className="flex flex-col justify-between gap-6 mt-5">
+      <div
+        className={`flex flex-col justify-between gap-6 ${!hidePannel && 'mt-5'}`}
+      >
         {!hidePannel && (
-          <div className="flex flex-col md:flex-row md:items-end gap-2 md:h-10">
-            <Input
-              name="search"
-              className="w-full md:w-1/4"
-              placeholder="Search by Employee Name or Email"
-              icon={<Search className="size-5 text-grayscale-20" />}
-              iconPosition="right"
-              value={filters.search}
-              onChange={(e) => {
-                setFilters((prev) => ({
-                  ...prev,
-                  search: e.target.value,
-                }));
-                setPagination((prev) => ({ ...prev, pageIndex: 0 }));
-              }}
-            />
+          <>
+            <div className="flex flex-col md:flex-row md:items-end gap-2 md:h-10">
+              <Input
+                name="search"
+                className="w-full md:w-1/4"
+                placeholder="Search by Employee Name or Email"
+                icon={<Search className="size-5 text-grayscale-20" />}
+                iconPosition="right"
+                value={filters.search}
+                onChange={(e) => {
+                  setFilters((prev) => ({
+                    ...prev,
+                    search: e.target.value,
+                  }));
+                  setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+                }}
+              />
 
-            <Separator orientation="vertical" />
+              <Separator orientation="vertical" />
 
-            <Input
-              type="date"
-              className="w-full md:w-1/4"
-              name="date"
-              onChange={(e) => {
-                setFilters((prev) => ({
-                  ...prev,
-                  date: e ? dayjs(e.target.value).format('YYYY-MM-DD') : '',
-                }));
-                setPagination((prev) => ({ ...prev, pageIndex: 0 }));
-              }}
-            />
-          </div>
+              <Input
+                type="date"
+                className="w-full md:w-1/4"
+                name="date"
+                onChange={(e) => {
+                  setFilters((prev) => ({
+                    ...prev,
+                    date: e ? dayjs(e.target.value).format('YYYY-MM-DD') : '',
+                  }));
+                  setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+                }}
+              />
+            </div>
+            <Separator />
+          </>
         )}
 
-        <Separator />
         <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6">
           <div className="flex md:flex-row flex-col justify-between w-full md:items-center items-start gap-4">
             <h2 className="font-semibold text-xl">Attendance Tracker</h2>
@@ -552,7 +567,7 @@ export const AttendanceTrackerList = ({
                                   className="bg-white text-red-500 border-red-500"
                                   onClick={() => {
                                     setOpenReject(true);
-                                    setSelectedId(String(item.id));
+                                    setSelectedIdTrackers(String(item.id));
                                   }}
                                 >
                                   <X />
@@ -565,7 +580,7 @@ export const AttendanceTrackerList = ({
                                   size="sm"
                                   onClick={() => {
                                     setOpenApprove(true);
-                                    setSelectedId(String(item.id));
+                                    setSelectedIdTrackers(String(item.id));
                                   }}
                                 >
                                   <Check />

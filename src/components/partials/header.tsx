@@ -45,7 +45,7 @@ const menuItems = [
     name: 'dashboard',
     label: 'Dashboard',
     icon: '/icons/dashboard.svg',
-    path: '/dashboard',
+    path: '/dashboard?overview=offboarding-active',
     children: [],
   },
   {

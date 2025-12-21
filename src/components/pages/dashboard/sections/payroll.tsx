@@ -65,7 +65,7 @@ export const Payroll = () => {
       <div className="flex flex-col justify-between gap-6 mt-5">
         <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6">
           <div className="flex md:flex-row flex-col justify-between w-full md:items-center items-start gap-4">
-            <h2 className="font-semibold text-xl">Sum of Payroll</h2>
+            <h2 className="font-bold text-xl text-gray-600">Sum of Payroll</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

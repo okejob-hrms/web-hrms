@@ -13,6 +13,7 @@ import dayjs from 'dayjs';
 import { toast } from 'sonner';
 import { getAttendanceDetail, getAttendanceDetailById, postAttendance, putAttendance } from '@/services/attendance';
 import { AttendanceDetail } from '@/services/attendance/types';
+import { usePathname } from 'next/navigation';
 
 // -------------------------
 // SCHEMA & TYPES
@@ -40,6 +41,9 @@ type AttendancePayload = Omit<AttendanceFormValues, "attendance_date" | "user_id
 // HOOK
 // -------------------------
 export function useAttendenceForm() {
+  const pathname = usePathname();
+  const isAddMode = pathname.endsWith('/add');
+
   const defaultMap = {
     lat: -6.2088,
     lng: 106.8456,
@@ -129,20 +133,22 @@ export function useAttendenceForm() {
   }, [detailData, form]);
 
   const mutation = useMutation<unknown, unknown, { selectedId?: string; attendanceId:string; payload: AttendancePayload }>({
-    mutationFn: ({ selectedId,attendanceId,  payload }) => {
-      if (selectedId) {
+    mutationFn: ({ selectedId, attendanceId,  payload }) => {
+      if (!isAddMode) {
+        console.log('update')
         return putAttendance(attendanceId, payload);
       }
+      console.log('create')
       return postAttendance(payload);
     },
-    onSuccess: (_, { selectedId }) => {
+    onSuccess: (_) => {
       queryClient.invalidateQueries({ queryKey: ['attendance'] });
-      toast.success(selectedId ? "Update attendance successful." : "Create attendance successful.");
+      toast.success(!isAddMode ? "Update attendance successful." : "Create attendance successful.");
       setIsLoading(false);
       router.push('/attendance/attendance-tracker');
     },
-    onError: (_, { selectedId }) => {
-      toast.error(selectedId ? "Update attendance failed." : "Create attendance failed.");
+    onError: (_) => {
+      toast.error(!isAddMode ? "Update attendance failed." : "Create attendance failed.");
       setIsLoading(false);
     },
   });
@@ -179,7 +185,7 @@ export function useAttendenceForm() {
       payload = { ...payload, status: 0 };
     }
 
-    mutation.mutate({ selectedId,  attendanceId: String(detailData?.data.id), payload });
+    mutation.mutate({ selectedId ,  attendanceId: String(detailData?.data.id), payload });
   };
 
   const handleBack = () => {
@@ -192,6 +198,7 @@ export function useAttendenceForm() {
   }
 
   const handleDetailData = (id: string, slug: string) => {
+    console.log(id,slug)
     setSelectedId(id);
     setSelectedAttendance(slug);
   }

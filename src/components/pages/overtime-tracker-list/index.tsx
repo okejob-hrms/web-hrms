@@ -45,7 +45,13 @@ import {
 import OvertimeDetailModal from './sections/detail-modal';
 import OvertimeEditModal from './sections/edit-modal';
 
-export default function OvertimeTrackerList() {
+interface OvertimeTrackerListProps {
+  hidePannel?: boolean;
+}
+
+export default function OvertimeTrackerList({
+  hidePannel = false,
+}: OvertimeTrackerListProps) {
   const {
     attendances,
     pagination,
@@ -276,33 +282,37 @@ export default function OvertimeTrackerList() {
 
   return (
     <div className="font-sans min-h-screen flex flex-col space-y-6 px-6">
-      <h2 className="font-semibold text-xl">Summary</h2>
-      <div className="grid xl:grid-cols-4 grid-cols-1 gap-6">
-        <InfoList
-          title="New Overtime Request"
-          compare="vs"
-          time="yesterday"
-          value={attendances?.summary.new_requests.today}
-        />
-        <InfoList
-          title="Pending Overtime Request"
-          compare=""
-          time=""
-          value={attendances?.summary.pending}
-        />
-        <InfoList
-          title="Approved Overtime Request"
-          compare=""
-          time=""
-          value={attendances?.summary.approved}
-        />
-        <InfoList
-          title="Rejected Overtime Request"
-          compare=""
-          time=""
-          value={attendances?.summary.rejected}
-        />
-      </div>
+      {!hidePannel && (
+        <>
+          <h2 className="font-semibold text-xl">Summary</h2>
+          <div className="grid xl:grid-cols-4 grid-cols-1 gap-6">
+            <InfoList
+              title="New Overtime Request"
+              compare="vs"
+              time="yesterday"
+              value={attendances?.summary.new_requests.today}
+            />
+            <InfoList
+              title="Pending Overtime Request"
+              compare=""
+              time=""
+              value={attendances?.summary.pending}
+            />
+            <InfoList
+              title="Approved Overtime Request"
+              compare=""
+              time=""
+              value={attendances?.summary.approved}
+            />
+            <InfoList
+              title="Rejected Overtime Request"
+              compare=""
+              time=""
+              value={attendances?.summary.rejected}
+            />
+          </div>
+        </>
+      )}
 
       <Tabs
         defaultValue={String(tabs[0].value)}
