@@ -108,9 +108,19 @@ export const Assessment = () => {
             <BarChart data={data} barGap={5}>
               <CartesianGrid strokeDasharray="3 3" />
 
-              <XAxis dataKey="month" />
-
+              <XAxis
+                dataKey="month"
+                stroke="#6b7280"
+                tickLine={false}
+                axisLine={false}
+                tick={{ fontSize: 13, fill: '#9ca3af' }}
+              />
               <YAxis
+                stroke="#6b7280"
+                tickLine={false}
+                axisLine={false}
+                allowDecimals={false}
+                tick={{ fontSize: 13, fill: '#9ca3af' }}
                 width={100}
                 tickFormatter={(v) =>
                   'Rp ' + (v / 1000).toLocaleString('id-ID') + 'k'
