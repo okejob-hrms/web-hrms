@@ -7,6 +7,7 @@ export const employeeManagementFormScheme = z.object({
   email: z.string().email("Invalid email").min(1, "required"),
   // role_id: z.number().int().min(1, "required"),
   role_id: z.string().min(1, "required"),
+  countryCode: z.string().optional(),
   country_code: z.string().optional(),
   phone_number: phoneNumberSchema,
   gender: z.string(),
@@ -64,9 +65,20 @@ export const employeeManagementFormScheme = z.object({
   attachments: z.array(
     z.object({
       type: z.string().min(1, "required"),
-      path: z.string().min(1, "required"),
+      path: z.string(),
     }),
-  ),
+  ).superRefine((attachments, ctx) => {
+    const optionalTypes = ["other"];
+    attachments.forEach((att, index) => {
+      if (!optionalTypes.includes(att.type) && att.path.trim() === "") {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "required",
+          path: [index, "path"],
+        });
+      }
+    });
+  }),
   employee_documents: z
     .array(
       z.object({
@@ -203,9 +215,10 @@ export const employeeManagementFormDefaultValues = {
     { type: "cv", path: "" },
     { type: "graduation_certificate", path: "" },
     { type: "personal_id", path: "" },
+    { type: "family_card", path: "" },
+    { type: "npwp", path: "" },
     { type: "health_insurance_card", path: "" },
     { type: "bank_account_book", path: "" },
-    { type: "family_card", path: "" },
     { type: "driver_license", path: "" },
     { type: "other", path: "" },
   ],

@@ -10,7 +10,7 @@ import { PersonalInformationSection } from "../sections/personal-information-sec
 import { SalaryInformationSection } from "../sections/salary-information-section";
 import { BankInformationSection } from "../sections/bank-information-section";
 import { AttachmentsSection } from "../sections/attachments-section";
-import { Button } from "../../../ui/button";
+
 import {
   employeeManagementFormDefaultValues,
   employeeManagementFormScheme,
@@ -23,6 +23,7 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { convertPhoneToNumber } from "@/lib/helpers";
 import { ApiErrorResponse } from "@/lib/types";
+import { Button } from "@/components/ui/button";
 
 type EmployeeFormValues = z.infer<typeof employeeManagementFormScheme>;
 
@@ -58,12 +59,12 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
     },
   });
 
-  const onSubmit = (values: EmployeeFormValues) => {
+  const onSubmit = React.useCallback((values: EmployeeFormValues) => {
     const filteredSocialMedia = values.social_media_accounts?.filter(
       (account) => account?.type.trim() !== "" && account?.url.trim() !== "",
     );
 
-    const { end_date, ...restValues } = values;
+    const { end_date, countryCode, ...restValues } = values;
 
     const params: IMutateEmployeeRequests = {
       ...restValues,
@@ -108,13 +109,25 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
         : { additional_direct_report_id: null }),
       ...(values.attachments && {
         attachments: values.attachments
-          .filter((item) => item.type !== undefined && item.path !== undefined)
+          .filter((item) => item.type !== undefined && item.path !== undefined && item.path.trim() !== "")
           .map((item) => ({ type: item.type, path: item.path })),
       }),
     };
 
     mutate(params);
-  };
+  }, [mutate]);
+
+  const handleAddEmployee = React.useCallback(async () => {
+    const isValid = await form.trigger();
+    
+    if (!isValid) {
+      console.log("# VALIDATION ERRORS ", form.formState.errors);
+      return;
+    }
+    
+    const formData = form.getValues();
+    onSubmit(formData);
+  }, [form, onSubmit]);
 
   return (
     <>
@@ -140,7 +153,7 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
               disabled={isPending}
               isLoading={isPending}
               className="md:max-w-36 w-[50%]"
-              onClick={form.handleSubmit(onSubmit)}
+              onClick={handleAddEmployee}
             >
               Add Employee
             </Button>
@@ -150,3 +163,4 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
     </>
   );
 });
+

@@ -56,8 +56,6 @@ export const SalaryInformationSection = React.memo(
       enabled: !!watchedJobPosition && !!watchedJobLevel,
     });
 
-    console.log("base salary", baseSalary?.data);
-
     React.useEffect(() => {
       if (baseSalary?.data?.[0]?.amount) {
         setValue("base_salary", baseSalary.data[0].amount);

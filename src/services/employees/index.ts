@@ -62,13 +62,27 @@ export const getEmployees = (
   return response.json();
 };
 
-export const createEmployee = (
+export const createEmployee = async (
   params: IMutateEmployeeRequests,
 ): Promise<ApiResponse<ICreateEmployeeResponse>> => {
-  const response = api.post<ApiResponse<ICreateEmployeeResponse>>(`employees`, {
-    json: params,
-  });
-  return response.json();
+  try {
+    const response = await api.post<ApiResponse<ICreateEmployeeResponse>>(`employees`, {
+      json: params,
+      timeout: 60000,
+    });
+    return response.json();
+  } catch (error: any) {
+    if (error.name === "HTTPError") {
+      const errorResponse = await error.response.json();
+      const enhancedError = new Error(error.message);
+      (enhancedError as any).response = {
+        json: () => Promise.resolve(errorResponse),
+        status: error.response.status,
+      };
+      throw enhancedError;
+    }
+    throw error;
+  }
 };
 
 export const updateEmployee = async (
