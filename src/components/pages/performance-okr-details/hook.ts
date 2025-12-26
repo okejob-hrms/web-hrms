@@ -12,11 +12,13 @@ import {
   createOKRObjective,
   getOKRCycleDetails,
   getOKRTrackingPeriods,
+  setOKRTrackingPeriods,
 } from "@/services/okr";
 import { useParams } from "next/navigation";
 import {
   IOKRKeyResultRequest,
   IOKRTrackingKeyResult,
+  IOKRTrackingPeriodRequest,
 } from "@/services/okr/types";
 
 export const useOKRDetails = () => {
@@ -209,7 +211,7 @@ export const useOKRDetails = () => {
   ];
 
   const aggregationOptions = [
-    { label: "None", value: "0" },
+    { label: "Latest", value: "0" },
     { label: "Sum", value: "1" },
     { label: "Average", value: "2" },
   ];
@@ -277,8 +279,12 @@ const transformTrackingDataToTableRows = (
 
 export const useOKRTrackingPeriods = () => {
   const params = useParams();
+  const queryClient = useQueryClient();
   const [periodType, setPeriodType] = React.useState("4");
   const [searchKeyResult, setSearchKeyResult] = React.useState("");
+  const [editedValues, setEditedValues] = React.useState<
+    Record<string, IOKRTrackingPeriodRequest>
+  >({});
 
   const id = React.useMemo(() => {
     const idParam = params?.id;
@@ -297,6 +303,49 @@ export const useOKRTrackingPeriods = () => {
     queryFn: () => getOKRTrackingPeriods(id!, periodType),
     enabled: !!id,
   });
+
+  const saveTrackingPeriodsMutation = useMutation({
+    mutationFn: async (values: IOKRTrackingPeriodRequest[]) => {
+      return setOKRTrackingPeriods(id!, values);
+    },
+    onSuccess: () => {
+      toast.success("Tracking periods saved successfully!");
+      queryClient.invalidateQueries({
+        queryKey: ["okrTrackingPeriods", id, periodType],
+      });
+      setEditedValues({});
+    },
+    onError: (error: any) => {
+      toast.error(
+        `Failed to save tracking periods: ${error.message || "Unknown error"}`,
+      );
+    },
+  });
+
+  const handleUpdateValue = (
+    keyResultId: number,
+    periodId: number,
+    actualValue: number,
+  ) => {
+    const key = `${keyResultId}_${periodId}`;
+    setEditedValues((prev) => ({
+      ...prev,
+      [key]: {
+        key_result_id: keyResultId,
+        tracking_period_id: periodId,
+        actual_value: actualValue,
+      },
+    }));
+  };
+
+  const handleSaveTrackingPeriods = () => {
+    const values = Object.values(editedValues);
+    if (values.length === 0) {
+      toast.info("No changes to save");
+      return;
+    }
+    saveTrackingPeriodsMutation.mutate(values);
+  };
 
   const tableData = React.useMemo(() => {
     if (!trackingPeriodsData?.data?.key_result) {
@@ -339,6 +388,7 @@ export const useOKRTrackingPeriods = () => {
 
   const handlePeriodTypeChange = (newPeriodType: string) => {
     setPeriodType(newPeriodType);
+    setEditedValues({});
   };
 
   return {
@@ -355,5 +405,9 @@ export const useOKRTrackingPeriods = () => {
     cycleInfo,
     objectiveFrequency,
     okrCycleId: id,
+    editedValues,
+    handleUpdateValue,
+    handleSaveTrackingPeriods,
+    isSaving: saveTrackingPeriodsMutation.isPending,
   };
 };
