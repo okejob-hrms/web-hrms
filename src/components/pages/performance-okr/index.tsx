@@ -1,29 +1,13 @@
 import DataTable from "@/components/tables/data-table";
 import { Button } from "@/components/ui/button";
-import * as React from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ColumnDef } from "@tanstack/react-table";
-import {
-  ArrowDown,
-  ArrowUp,
-  ChevronsUpDown,
-  Edit2,
-  Ellipsis,
-  Eye,
-  Search,
-  Trash,
-} from "lucide-react";
+import { ArrowDown, ArrowUp, ChevronsUpDown, Eye } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import dayjs from "dayjs";
 import useOKR from "./hook";
 import FormModal from "./sections/form-modal";
-import { getStatusOKRCycle, getStatusOvertime } from "@/lib/helpers";
+import { getStatusOKRCycle } from "@/lib/helpers";
 import { Badge } from "@/components/ui/badge";
 import { IOKRResponse } from "@/services/okr/types";
 import { cn } from "@/lib/utils";
@@ -142,7 +126,7 @@ export default function PerformanceOKR() {
       accessorKey: "total",
       header: "Total OKR",
       cell: ({ row }) => {
-        return <span>-</span>;
+        return <span>{row.original.objectives_count}</span>;
       },
     },
     {

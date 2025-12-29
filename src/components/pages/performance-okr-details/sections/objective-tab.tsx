@@ -51,12 +51,25 @@ const CardKeyResult = ({ keyResult }: CardKeyResultProps) => {
         </div>
         <div className="flex flex-row gap-1">
           <Badge variant="outline">{keyResult.status_label}</Badge>
-          <Avatar className="h-10 w-10">
-            <AvatarImage src="" />
-            <AvatarFallback className="text-primary-hover bg-primary-background text-base font-medium">
-              {stringAvatar("")}
-            </AvatarFallback>
-          </Avatar>
+          <div className="flex -space-x-4 rtl:space-x-reverse">
+            {keyResult.assignments.length > 0 ? (
+              keyResult.assignments.map((assignment) => (
+                <Avatar className="h-10 w-10 border border-white">
+                  <AvatarImage src={assignment.avatar_url || ""} />
+                  <AvatarFallback className="text-primary-hover bg-primary-background text-base font-medium">
+                    {stringAvatar(assignment.name)}
+                  </AvatarFallback>
+                </Avatar>
+              ))
+            ) : (
+              <Avatar className="h-10 w-10 border border-white">
+                <AvatarImage src="" />
+                <AvatarFallback className="text-primary-hover bg-primary-background text-base font-medium">
+                  {stringAvatar("")}
+                </AvatarFallback>
+              </Avatar>
+            )}
+          </div>
         </div>
       </div>
       <div className="flex gap-1 items-center justify-between">
