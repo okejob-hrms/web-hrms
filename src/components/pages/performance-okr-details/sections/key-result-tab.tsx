@@ -72,6 +72,9 @@ export const KeyResultTab = () => {
     tableData,
     periodColumns,
     isLoadingTrackingPeriods,
+    handleUpdateValue,
+    handleSaveTrackingPeriods,
+    isSaving,
   } = useOKRTrackingPeriods();
 
   const [columnOffset, setColumnOffset] = React.useState(0);
@@ -182,11 +185,10 @@ export const KeyResultTab = () => {
                     type="number"
                     defaultValue={data.actual}
                     onChange={(e) => {
-                      console.log(
-                        `Actual for ${row.original.name} on ${periodCol.label}:`,
-                        e.target.value,
-                        "period_id:",
+                      handleUpdateValue(
+                        row.original.okr_key_result_id,
                         data.period_id,
+                        Number(e.target.value),
                       );
                     }}
                     className="h-8 text-sm"
@@ -249,7 +251,9 @@ export const KeyResultTab = () => {
               </span>
             )}
           </div>
-          <Button>Save</Button>
+          <Button onClick={handleSaveTrackingPeriods} disabled={isSaving}>
+            {isSaving ? "Saving..." : "Save"}
+          </Button>
         </div>
         {tableData.length > 0 ? (
           <DataTable columns={generateColumns} data={tableData} />

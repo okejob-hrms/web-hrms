@@ -206,7 +206,7 @@ export const getOKRTrackingPeriods = async (
 
 export const setOKRTrackingPeriods = async (
   id: number,
-  params: IOKRTrackingPeriodRequest,
+  params: IOKRTrackingPeriodRequest[],
 ): Promise<IOKRTrackingPeriodsResponse> => {
   try {
     const response = await api.post<IOKRTrackingPeriodsResponse>(
