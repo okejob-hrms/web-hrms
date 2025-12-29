@@ -8,6 +8,7 @@ export interface IOKRResponse {
   status: number;
   status_label: string;
   tenant_id: number;
+  objectives_count: number;
   created_by: {
     id: number;
     name: string;
@@ -61,6 +62,16 @@ export interface IOKRKeyResult {
   tenant_id: number;
   created_at: string;
   updated_at: string;
+  assignments_count: number;
+  assignments: {
+    id: number;
+    name: string;
+    email: string;
+    phone: string | null;
+    employee_id: number;
+    employee_code: string;
+    avatar_url: string | null;
+  }[];
 }
 
 export interface IOKRObjective {
