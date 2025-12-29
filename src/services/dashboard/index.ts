@@ -1,5 +1,5 @@
 import { api } from "@/lib/api";
-import { AgeStatResponse, AttendanceStatResponse, AttStatResponse, DataOffboardingTrendResponse, EmployeeStatResponse, ExperienceStatResponse, GenderStatResponse, OffboardingResponse, PendingResponse } from "./types";
+import { AgeStatResponse, AttendanceStatResponse, AttListStatResponse, AttStatResponse, DataOffboardingTrendResponse, EmployeeStatResponse, ExperienceStatResponse, ExperienceTrend, ExpTrendListDataResponse, GenderStatResponse, OffboardingResponse, PendingResponse } from "./types";
 import { PaginationState } from "@tanstack/react-table";
 
 export const getPendingStat = async (): Promise<PendingResponse> => {
@@ -171,6 +171,73 @@ export const getAttStat = async (
 
   const response = await api.get<AttStatResponse>(
     'dashboard/analytic/attendance-stats',
+    { searchParams }
+  )
+
+  return response.json()
+}
+
+export const getAttStatList = async (
+  pagination?: PaginationState,
+  search?: string,
+): Promise<AttListStatResponse> => {
+  const searchParams: Record<string, string> = {}
+
+  if (pagination) {
+    searchParams.page = String(pagination.pageIndex + 1)
+    searchParams.per_page = String(pagination.pageSize)
+  }
+
+  if (search?.trim()) {
+    searchParams.search = search
+  }
+
+  const response = await api.get<AttListStatResponse>(
+    'dashboard/analytic/attendance-employee',
+    { searchParams }
+  )
+
+  return response.json()
+}
+
+export const getExperienceTrend = async (
+  filters: { branch_id?: string; department_id?: string }
+): Promise<ExperienceTrend> => {
+  const searchParams: Record<string, string> = {}
+
+  if (filters.branch_id) {
+    searchParams.start_date = filters.branch_id
+  }
+
+  if (filters.department_id) {
+    searchParams.end_date = filters.department_id
+  }
+
+  const response = await api.get<ExperienceTrend>(
+    'dashboard/analytic/experience-employee-trend',
+    { searchParams }
+  )
+
+  return response.json()
+}
+
+export const getExpStatList = async (
+  pagination?: PaginationState,
+  search?: string,
+): Promise<ExpTrendListDataResponse> => {
+  const searchParams: Record<string, string> = {}
+
+  if (pagination) {
+    searchParams.page = String(pagination.pageIndex + 1)
+    searchParams.per_page = String(pagination.pageSize)
+  }
+
+  if (search?.trim()) {
+    searchParams.search = search
+  }
+
+  const response = await api.get<ExpTrendListDataResponse>(
+    'dashboard/analytic/experience-employee-detail',
     { searchParams }
   )
 

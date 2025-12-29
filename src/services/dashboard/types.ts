@@ -182,3 +182,51 @@ export interface AttObj {
     diff: number;
     today: number;
 }
+
+export interface AttListStatResponse {
+    data: AttListData[];
+    message: string;
+    pagination: Pagination;
+    status: string;
+}
+
+export interface AttListData {
+    absent: number;
+    branch_name: string;
+    early_clock_in: number;
+    early_clock_out: number;
+    late_clock_in: number;
+    leave: number;
+    name: string;
+    on_time: number;
+    user_id: number;
+}
+
+export interface ExperienceTrend {
+    data: ExpTrends[];
+    message: string;
+    status: string;
+}
+
+export interface ExpTrends {
+    experienced: number;
+    fresh_graduate: number;
+    total: number;
+    year: number;
+}
+
+export interface ExpTrendListDataResponse {
+    data: ExpTrendListData[];
+    message: string;
+    pagination: Pagination;
+    status: string;
+}
+
+export interface ExpTrendListData {
+    branch_name: string;
+    experience_years: number;
+    job_position: string;
+    name: string;
+    profile_id: number;
+    user_id: number;
+}

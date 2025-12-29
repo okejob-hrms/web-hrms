@@ -22,6 +22,10 @@ import {
 import { useDashboardAnalytics } from '../../hooks/attendance';
 import { Skeleton } from '@/components/ui/skeleton';
 import DashboardInfo from '@/components/ui/dashboard-info';
+import DataTable from '@/components/tables/data-table';
+import { Input } from '@/components/ui/input';
+import { AttListData } from '@/services/dashboard/types';
+import { ColumnDef } from '@tanstack/react-table';
 
 interface AttendanceModalProps {
   open: boolean;
@@ -32,7 +36,18 @@ export default function AttendanceModal({
   open,
   onOpenChange,
 }: AttendanceModalProps) {
-  const { attendanceStat, attStat, attStatLoading } = useDashboardAnalytics();
+  const {
+    attendanceStat,
+    attStat,
+    attStatLoading,
+    dataListAtt,
+    loadingListAtt,
+    dataPaginationAtt,
+    search,
+    setSearch,
+    pagination,
+    setPagination,
+  } = useDashboardAnalytics();
 
   const lineData = attendanceStat?.data.map((item) => ({
     month: item.month,
@@ -45,6 +60,49 @@ export default function AttendanceModal({
 
   const lineTitle = ['On Time', 'Late', 'Absent', 'Overtime', 'Leave'];
   const lineColor = ['#18618B', '#FFB84D', '#C964A2', '#64C9B1', '#367839'];
+
+  const columns: ColumnDef<AttListData>[] = [
+    {
+      accessorKey: 'name',
+      header: 'Name',
+      cell: ({ row }) => (
+        <div className="flex flex-col">
+          <span className="font-semibold text-foreground text-sm">
+            {row.original.name}
+          </span>
+          <span className="text-text-secondary">#{row.original.user_id}</span>
+        </div>
+      ),
+    },
+    {
+      accessorKey: 'branch_name',
+      header: 'Branch',
+    },
+    {
+      accessorKey: 'late_clock_in',
+      header: 'Late Clock In',
+    },
+    {
+      accessorKey: 'on_time',
+      header: 'On Time',
+    },
+    {
+      accessorKey: 'early_clock_in',
+      header: 'Early Clock In',
+    },
+    {
+      accessorKey: 'early_clock_out',
+      header: 'Early Clock Out',
+    },
+    {
+      accessorKey: 'absent',
+      header: 'Absent',
+    },
+    {
+      accessorKey: 'leave',
+      header: 'Leave',
+    },
+  ];
 
   const LineChartComponent = () => (
     <ResponsiveContainer width="100%" height={200}>
@@ -139,7 +197,7 @@ export default function AttendanceModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="h-screen w-screen sm:max-w-7xl p-6 rounded-2xl bg-white">
+      <DialogContent className="h-screen w-screen sm:max-w-7xl p-6 rounded-2xl bg-white overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Employee Attendance Trend</DialogTitle>
         </DialogHeader>
@@ -190,6 +248,47 @@ export default function AttendanceModal({
               ))}
             </div>
           )}
+
+          <div className="flex flex-col justify-between gap-6 mt-5">
+            <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6">
+              <div className="flex md:flex-row flex-col justify-between w-full md:items-center items-start gap-4">
+                <h2 className="font-bold text-xl text-gray-600">
+                  Recent Resigned Employee
+                </h2>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="space-y-2">
+                  <Input
+                    type="text"
+                    className="w-full"
+                    value={search}
+                    placeholder="Search employee name"
+                    onChange={(e) => {
+                      setSearch(e.target.value);
+                    }}
+                  />
+                </div>
+              </div>
+
+              {loadingListAtt ? (
+                <div className="flex flex-col gap-4 items-center w-full">
+                  <Skeleton className="h-12 w-full" />
+                  <div className="space-y-2 w-full">
+                    <Skeleton className="h-30 w-full" />
+                  </div>
+                </div>
+              ) : (
+                <DataTable
+                  columns={columns}
+                  data={dataListAtt?.data}
+                  pagination={dataPaginationAtt}
+                  paginationState={pagination}
+                  setPaginationState={setPagination}
+                />
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Footer */}

@@ -27,6 +27,7 @@ import { Input } from '@/components/ui/input';
 import { useDashboardAnalytics } from '../hooks/attendance';
 import AttendanceModal from './modal/attendance-modal';
 import { Button } from '@/components/ui/button';
+import ExperienceModal from './modal/experience-modal';
 
 export const Analytics = () => {
   const {
@@ -44,6 +45,7 @@ export const Analytics = () => {
   } = useDashboardAnalytics();
 
   const [openAttendance, setOpenAttendance] = React.useState(false);
+  const [openExperience, setOpenExperience] = React.useState(false);
 
   const lineData = attendanceStat?.data.map((item) => ({
     month: item.month,
@@ -352,7 +354,9 @@ export const Analytics = () => {
 
         {/* Center Text */}
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-          <span className="text-xl font-semibold text-primary">{100000}</span>
+          <span className="text-xl font-semibold text-primary">
+            {experienceStat?.data.total}
+          </span>
           <span className="text-xs text-gray-400">Employees</span>
         </div>
       </div>
@@ -571,7 +575,9 @@ export const Analytics = () => {
               </div>
               <RefreshCcw size={14} className="text-gray-700" />
             </div>
-            <Maximize2 className="text-gray-900" />
+            <Button variant="link" onClick={() => setOpenExperience(true)}>
+              <Maximize2 className="text-gray-900" />
+            </Button>
           </div>
           <ExperienceChart />
         </div>
@@ -643,7 +649,9 @@ export const Analytics = () => {
           <DepartmentsChart />
         </div>
       </div>
+
       <AttendanceModal open={openAttendance} onOpenChange={setOpenAttendance} />
+      <ExperienceModal open={openExperience} onOpenChange={setOpenExperience} />
     </div>
   );
 };

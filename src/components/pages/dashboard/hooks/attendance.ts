@@ -2,13 +2,17 @@
 
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getAgeStat, getAttendanceStat, getAttStat, getEmployeeStat, getExperienceStat, getGenderStat, getOffboardingList, getOffboardingStat } from '@/services/dashboard';
-import { ListOff } from '@/services/dashboard/types';
+import { getAgeStat, getAttendanceStat, getAttStat, getAttStatList, getEmployeeStat, getExperienceStat, getExperienceTrend, getExpStatList, getGenderStat, getOffboardingList, getOffboardingStat } from '@/services/dashboard';
+import { AttListData, ExpTrendListData } from '@/services/dashboard/types';
 import { PaginatedResponse } from '@/lib/types';
 import { PaginationState } from '@tanstack/react-table';
 import { getJobPosition } from '@/services/job-position';
 
 export function useDashboardAnalytics() {
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 10,
+  });
   const [search, setSearch] = useState('');
   const [filters, setFilters] = useState({
     start_date: "",
@@ -16,6 +20,11 @@ export function useDashboardAnalytics() {
     branch_id: "",
     department_id: "",
   });
+  const [paginationExp, setPaginationExp] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 10,
+  });
+  const [searchExp, setSearchExp] = useState('');
 
 
 // ==========  ATTENDANCE
@@ -29,32 +38,27 @@ export function useDashboardAnalytics() {
     queryFn: () => getAttStat(filters),
   });
 
-  const [pagination, setPagination] = useState<PaginationState>({
-    pageIndex: 0,
-    pageSize: 10,
-  });
-
   const {
-    data: dataList,
-    isLoading: loadingList,
+    data: dataListAtt,
+    isLoading: loadingListAtt,
   } = useQuery({
-    queryKey: ["list", pagination, search],
-    queryFn: () => getOffboardingList(pagination, search),
+    queryKey: ["listAtt", pagination, search],
+    queryFn: () => getAttStatList(pagination, search),
   });
 
-  const dataPagination: PaginatedResponse<ListOff> = {
-    current_page: dataList?.pagination.current_page ?? 1,
-    current_page_url: `${dataList?.pagination.first ?? ''}`,
-    first_page_url: dataList?.pagination.first ?? '',
-    from: dataList?.pagination.from ?? 0,
-    last_page: dataList?.pagination.last_page ?? 1,
-    next_page_url: dataList?.pagination.next ?? null,
-    path: 'api/v1/payruns',
-    per_page: dataList?.pagination.per_page ?? 10,
-    prev_page_url: dataList?.pagination.prev ?? null,
-    to: dataList?.pagination.to ?? 0,
-    total: dataList?.pagination.total ?? 0,
-    data: dataList?.data ?? [],
+  const dataPaginationAtt: PaginatedResponse<AttListData> = {
+    current_page: dataListAtt?.pagination.current_page ?? 1,
+    current_page_url: `${dataListAtt?.pagination.first ?? ''}`,
+    first_page_url: dataListAtt?.pagination.first ?? '',
+    from: dataListAtt?.pagination.from ?? 0,
+    last_page: dataListAtt?.pagination.last_page ?? 1,
+    next_page_url: dataListAtt?.pagination.next ?? null,
+    path: 'api/v1/attendance',
+    per_page: dataListAtt?.pagination.per_page ?? 10,
+    prev_page_url: dataListAtt?.pagination.prev ?? null,
+    to: dataListAtt?.pagination.to ?? 0,
+    total: dataListAtt?.pagination.total ?? 0,
+    data: dataListAtt?.data ?? [],
   };
 // ========== END ATTENDANCE
 
@@ -72,6 +76,34 @@ export function useDashboardAnalytics() {
     queryKey: ['experienceStat', filters],
     queryFn: () => getExperienceStat(filters),
   });
+
+  const { data: experienceTrend, isLoading: experienceTrendLoading } = useQuery({
+    queryKey: ['experienceTrend', filters],
+    queryFn: () => getExperienceTrend(filters),
+  });
+
+    const {
+    data: dataListExpTrend,
+    isLoading: loadingListExpTrend,
+  } = useQuery({
+    queryKey: ["listExpTrend", paginationExp, searchExp],
+    queryFn: () => getExpStatList(paginationExp, searchExp),
+  });
+
+  const dataPaginationExpTrend: PaginatedResponse<ExpTrendListData> = {
+    current_page: dataListExpTrend?.pagination.current_page ?? 1,
+    current_page_url: `${dataListExpTrend?.pagination.first ?? ''}`,
+    first_page_url: dataListExpTrend?.pagination.first ?? '',
+    from: dataListExpTrend?.pagination.from ?? 0,
+    last_page: dataListExpTrend?.pagination.last_page ?? 1,
+    next_page_url: dataListExpTrend?.pagination.next ?? null,
+    path: 'api/v1/ExpTrendendance',
+    per_page: dataListExpTrend?.pagination.per_page ?? 10,
+    prev_page_url: dataListExpTrend?.pagination.prev ?? null,
+    to: dataListExpTrend?.pagination.to ?? 0,
+    total: dataListExpTrend?.pagination.total ?? 0,
+    data: dataListExpTrend?.data ?? [],
+  };
 // ==========  END EXPERIENCE
 
 // ==========  AGE
@@ -98,9 +130,9 @@ export function useDashboardAnalytics() {
   return {
     attendanceStat,
     attendanceStatLoading,
-    dataList,
-    loadingList,
-    dataPagination,
+    dataListAtt,
+    loadingListAtt,
+    dataPaginationAtt,
     pagination,
     setPagination,
     search,
@@ -118,5 +150,14 @@ export function useDashboardAnalytics() {
     positions,
     attStat,
     attStatLoading,
+    experienceTrend,
+    experienceTrendLoading,
+    paginationExp,
+    searchExp,
+    dataListExpTrend,
+    loadingListExpTrend,
+    dataPaginationExpTrend,
+    setPaginationExp,
+    setSearchExp,
   };
 }

@@ -411,7 +411,7 @@ export const Offboarding = () => {
         <div className="col-span-1 md:col-span-3 space-y-3">
           <div className="flex gap-3 items-center">
             <h2 className="font-bold text-xl text-gray-600">
-              Attendance Trend
+              Offboarding Employee
             </h2>
             <div className="text-gray-400 text-sm">
               Last Updated: December 4, 2025
