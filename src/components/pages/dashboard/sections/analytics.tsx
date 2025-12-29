@@ -24,52 +24,84 @@ import {
 } from '@/components/ui/select';
 import { Maximize2, RefreshCcw } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { useDashboardAnalytics } from '../hooks/attendance';
+import AttendanceModal from './modal/attendance-modal';
+import { Button } from '@/components/ui/button';
 
 export const Analytics = () => {
-  const lineData = [
-    { month: 'Jan', onTime: 14, late: 1, absent: 2, overtime: 3, leave: 1 },
-    { month: 'Feb', onTime: 18, late: 1, absent: 2, overtime: 3, leave: 0 },
-    { month: 'Mar', onTime: 13, late: 0, absent: 2, overtime: 7, leave: 0 },
-    { month: 'Apr', onTime: 10, late: 4, absent: 2, overtime: 7, leave: 0 },
-    { month: 'May', onTime: 14, late: 0, absent: 2, overtime: 3, leave: 2 },
-    { month: 'Jun', onTime: 10, late: 2, absent: 2, overtime: 3, leave: 2 },
-    { month: 'Jul', onTime: 17, late: 1, absent: 1, overtime: 2, leave: 1 },
-    { month: 'Aug', onTime: 12, late: 2, absent: 2, overtime: 6, leave: 2 },
-    { month: 'Sep', onTime: 13, late: 1, absent: 2, overtime: 4, leave: 1 },
-    { month: 'Oct', onTime: 14, late: 1, absent: 2, overtime: 5, leave: 1 },
-    { month: 'Nov', onTime: 12, late: 3, absent: 2, overtime: 4, leave: 1 },
-    { month: 'Dec', onTime: 16, late: 1, absent: 2, overtime: 3, leave: 1 },
-  ];
+  const {
+    attendanceStat,
+    attendanceStatLoading,
+    employeeStat,
+    employeeStatLoading,
+    experienceStat,
+    experienceStatLoading,
+    ageStat,
+    ageStatLoading,
+    genderStat,
+    genderStatLoading,
+    positions,
+  } = useDashboardAnalytics();
+
+  const [openAttendance, setOpenAttendance] = React.useState(false);
+
+  const lineData = attendanceStat?.data.map((item) => ({
+    month: item.month,
+    onTime: item.on_time,
+    late: item.late,
+    absent: item.absent,
+    overtime: item.overtime,
+    leave: item.leave,
+  }));
+
   const lineTitle = ['On Time', 'Late', 'Absent', 'Overtime', 'Leave'];
   const lineColor = ['#18618B', '#FFB84D', '#C964A2', '#64C9B1', '#367839'];
-
-  const employeeData = [
-    { name: 'PT Catur Prima Sejahtera', value: 320, color: '#0A2636' },
-    { name: 'PT Glory Makmur', value: 100, color: '#8CC9E8' },
-    { name: 'PT Catur Sakti Sejahtera', value: 500, color: '#1F5E82' },
-    { name: 'PT Ciputra', value: 100, color: '#6FB7DD' },
-    { name: 'PT Lentera Bangsa', value: 80, color: '#CDEAF8' },
-    { name: 'PT Maju Sentosa', value: 100, color: '#EAF6FC' },
+  const dougColor = [
+    '#8CC8EB',
+    '#FFB84D',
+    '#18618B',
+    '#EAF6FC',
+    '#FFD79B',
+    '#18618B',
+    '#FFB84D',
+    '#C964A2',
+    '#64C9B1',
+    '#367839',
+    '#CCDDCC',
   ];
+
+  const employeeData =
+    employeeStat?.data.details.map((item, i) => ({
+      name: item.name,
+      value: item.total_employees,
+      color: dougColor[i],
+    })) ?? [];
 
   const experienceData = [
-    { name: 'Fresh Graduate', value: 320, color: '#0A2636' },
-    { name: 'Experienced', value: 100, color: '#8CC9E8' },
+    {
+      name: 'Fresh Graduate',
+      value: experienceStat?.data.fresh_graduate,
+      color: '#0A2636',
+    },
+    {
+      name: 'Experienced',
+      value: experienceStat?.data.experienced,
+      color: '#8CC9E8',
+    },
   ];
 
-  const spread = [
-    { year: '(1946-1964)', value: 30000 },
-    { year: '(1965-1980)', value: 35000 },
-    { year: '(1981-1996)', value: 25000 },
-    { year: '(1997-2012)', value: 32000 },
-    { year: '(2013-2025)', value: 24000 },
-  ];
+  const spread =
+    ageStat?.data.map((item, i) => ({
+      year: item.generation,
+      value: item.total,
+    })) ?? [];
 
-  const genderData = [
-    { name: 'Male', value: 320, color: '#0A2636' },
-    { name: 'Female', value: 100, color: '#8CC9E8' },
-    { name: 'Prefer not to say', value: 1, color: '#8CC9E8' },
-  ];
+  const genderData =
+    genderStat?.data.map((item, i) => ({
+      name: item.gender,
+      value: item.total,
+      color: dougColor[i],
+    })) ?? [];
 
   const positionList = [
     { name: 'COO', value: 1, color: '#8CC8EB' },
@@ -189,13 +221,15 @@ export const Analytics = () => {
 
         {/* Center Text */}
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-          <span className="text-xl font-semibold text-primary">{100000}</span>
+          <span className="text-xl font-semibold text-primary">
+            {employeeStat?.data.total_employee}
+          </span>
           <span className="text-xs text-gray-400">Employees</span>
         </div>
       </div>
 
       {/* Legend */}
-      <div className="flex flex-col gap-3 mt-4">
+      <div className="grid grid-cols-2 gap-3 mt-4">
         {employeeData.map((item, index) => (
           <div key={index} className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-3">
@@ -238,7 +272,9 @@ export const Analytics = () => {
 
         {/* Center Text */}
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-          <span className="text-xl font-semibold text-primary">{100000}</span>
+          <span className="text-xl font-semibold text-primary">
+            {experienceStat?.data.total}
+          </span>
           <span className="text-xs text-gray-400">Employees</span>
         </div>
       </div>
@@ -487,7 +523,9 @@ export const Analytics = () => {
               </div>
               <RefreshCcw size={14} className="text-gray-700" />
             </div>
-            <Maximize2 className="text-gray-900" />
+            <Button variant="link" onClick={() => setOpenAttendance(true)}>
+              <Maximize2 className="text-gray-900" />
+            </Button>
           </div>
           <LineChartComponent />
           <div className="flex flex-row gap-3 mt-4 justify-center">
@@ -605,6 +643,7 @@ export const Analytics = () => {
           <DepartmentsChart />
         </div>
       </div>
+      <AttendanceModal open={openAttendance} onOpenChange={setOpenAttendance} />
     </div>
   );
 };

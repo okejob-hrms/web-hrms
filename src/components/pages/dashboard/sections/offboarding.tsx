@@ -13,271 +13,223 @@ import {
   Bar,
   Legend,
 } from 'recharts';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
-import { RefreshCcw } from 'lucide-react';
+import { Eye, RefreshCcw } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { formatCurrency } from '@/lib/utils';
-import { Separator } from '@radix-ui/react-separator';
+import { useDashboardOffboarding } from '../hooks/offboarding';
+import { Skeleton } from '@/components/ui/skeleton';
+import DataTable from '@/components/tables/data-table';
+import { ColumnDef } from '@tanstack/react-table';
+import { ListOff } from '@/services/dashboard/types';
+import { Button } from '@/components/ui/button';
+
+type DepartmentChartRow = {
+  month: string;
+  [key: string]: number | string;
+};
 
 export const Offboarding = () => {
-  const lineData = [
-    { month: 'Jan', value: 4 },
-    { month: 'Feb', value: 8 },
-    { month: 'Mar', value: 3 },
-    { month: 'Apr', value: 0 },
-    { month: 'May', value: 4 },
-    { month: 'Jun', value: 0 },
-    { month: 'Jul', value: 3 },
-    { month: 'Aug', value: 2 },
-    { month: 'Sep', value: 5 },
-    { month: 'Oct', value: 4 },
-    { month: 'Nov', value: 4 },
-    { month: 'Dec', value: 8 },
-  ];
+  const COLORS: Record<string, string> = {};
+  const {
+    offStat,
+    offStatLoading,
+    dataList,
+    loadingList,
+    dataPagination,
+    pagination,
+    setPagination,
+    search,
+    setSearch,
+    filters,
+    setFilters,
+  } = useDashboardOffboarding();
 
-  const departmentData = [
+  const columns: ColumnDef<ListOff>[] = [
     {
-      month: 'Jan',
-      admin: 1,
-      service: 0,
-      tech: 0,
-      sales: 2,
-      operations: 0,
-      production: 1,
+      accessorKey: 'name',
+      header: 'Name',
+      cell: ({ row }) => (
+        <div className="flex flex-col">
+          <span className="font-semibold text-foreground text-sm">
+            {row.original.user_name}
+          </span>
+          <span className="text-text-secondary">#{row.original.user_id}</span>
+        </div>
+      ),
     },
     {
-      month: 'Feb',
-      admin: 0,
-      service: 1,
-      tech: 0,
-      sales: 3,
-      operations: 0,
-      production: 0,
+      accessorKey: 'job_position',
+      header: 'Position',
     },
     {
-      month: 'Mar',
-      admin: 0,
-      service: 0,
-      tech: 0,
-      sales: 1,
-      operations: 0,
-      production: 0,
+      accessorKey: 'job_level',
+      header: 'Job Level',
     },
     {
-      month: 'Apr',
-      admin: 0,
-      service: 0,
-      tech: 0,
-      sales: 0,
-      operations: 0,
-      production: 0,
+      accessorKey: 'department',
+      header: 'Department',
     },
     {
-      month: 'May',
-      admin: 0,
-      service: 0,
-      tech: 0,
-      sales: 2,
-      operations: 1,
-      production: 0,
+      accessorKey: 'join_date',
+      header: 'Joined',
     },
     {
-      month: 'Jun',
-      admin: 0,
-      service: 0,
-      tech: 0,
-      sales: 0,
-      operations: 0,
-      production: 0,
+      accessorKey: 'last_working_date',
+      header: 'Last Working Date',
     },
     {
-      month: 'Jul',
-      admin: 0,
-      service: 0,
-      tech: 0,
-      sales: 3,
-      operations: 0,
-      production: 1,
-    },
-    {
-      month: 'Aug',
-      admin: 1,
-      service: 1,
-      tech: 0,
-      sales: 2,
-      operations: 0,
-      production: 0,
-    },
-    {
-      month: 'Sep',
-      admin: 0,
-      service: 0,
-      tech: 1,
-      sales: 1,
-      operations: 0,
-      production: 0,
-    },
-    {
-      month: 'Oct',
-      admin: 1,
-      service: 0,
-      tech: 0,
-      sales: 4,
-      operations: 0,
-      production: 0,
-    },
-    {
-      month: 'Nov',
-      admin: 0,
-      service: 1,
-      tech: 0,
-      sales: 2,
-      operations: 0,
-      production: 1,
-    },
-    {
-      month: 'Dec',
-      admin: 1,
-      service: 0,
-      tech: 0,
-      sales: 1,
-      operations: 1,
-      production: 0,
+      accessorKey: 'menu',
+      size: 70,
+      header: '',
+      cell: ({ row }) => (
+        <Button
+          variant="link"
+          onClick={() => console.log(row.original.user_id)}
+          className="whitespace-nowrap"
+        >
+          <Eye className="w-4 h-4" />
+        </Button>
+      ),
     },
   ];
 
-  const jobLevelData = [
-    {
-      month: 'Jan',
-      director: 1,
-      manager: 2,
-      teamLeader: 0,
-      senior: 1,
-      medior: 0,
-      junior: 0,
-    },
-    {
-      month: 'Feb',
-      director: 0,
-      manager: 2,
-      teamLeader: 2,
-      senior: 0,
-      medior: 0,
-      junior: 0,
-    },
-    {
-      month: 'Mar',
-      director: 1,
-      manager: 0,
-      teamLeader: 0,
-      senior: 0,
-      medior: 0,
-      junior: 0,
-    },
-    {
-      month: 'Apr',
-      director: 0,
-      manager: 0,
-      teamLeader: 0,
-      senior: 0,
-      medior: 0,
-      junior: 0,
-    },
-    {
-      month: 'May',
-      director: 2,
-      manager: 0,
-      teamLeader: 0,
-      senior: 0,
-      medior: 0,
-      junior: 0,
-    },
-    {
-      month: 'Jun',
-      director: 0,
-      manager: 0,
-      teamLeader: 0,
-      senior: 0,
-      medior: 0,
-      junior: 0,
-    },
-    {
-      month: 'Jul',
-      director: 0,
-      manager: 1,
-      teamLeader: 3,
-      senior: 0,
-      medior: 0,
-      junior: 1,
-    },
-    {
-      month: 'Aug',
-      director: 0,
-      manager: 0,
-      teamLeader: 0,
-      senior: 0,
-      medior: 0,
-      junior: 3,
-    },
-    {
-      month: 'Sep',
-      director: 0,
-      manager: 0,
-      teamLeader: 0,
-      senior: 0,
-      medior: 1,
-      junior: 0,
-    },
-    {
-      month: 'Oct',
-      director: 0,
-      manager: 0,
-      teamLeader: 0,
-      senior: 0,
-      medior: 1,
-      junior: 0,
-    },
-    {
-      month: 'Nov',
-      director: 1,
-      manager: 0,
-      teamLeader: 0,
-      senior: 0,
-      medior: 1,
-      junior: 0,
-    },
-    {
-      month: 'Dec',
-      director: 2,
-      manager: 0,
-      teamLeader: 5,
-      senior: 0,
-      medior: 0,
-      junior: 0,
-    },
-  ];
+  const lineData = offStat?.data.trend.map((item) => ({
+    month: item.month,
+    value: item.total,
+  }));
 
-  const branchData = [
-    { month: 'Jan', caturPrima: 1, caturSakti: 0, ciputra: 0 },
-    { month: 'Feb', caturPrima: 1, caturSakti: 0, ciputra: 1 },
-    { month: 'Mar', caturPrima: 3, caturSakti: 1, ciputra: 1 },
-    { month: 'Apr', caturPrima: 0, caturSakti: 0, ciputra: 0 },
-    { month: 'May', caturPrima: 3, caturSakti: 2, ciputra: 1 },
-    { month: 'Jun', caturPrima: 0, caturSakti: 0, ciputra: 0 },
-    { month: 'Jul', caturPrima: 0, caturSakti: 4, ciputra: 0 },
-    { month: 'Aug', caturPrima: 0, caturSakti: 5, ciputra: 0 },
-    { month: 'Sep', caturPrima: 0, caturSakti: 0, ciputra: 0 },
-    { month: 'Oct', caturPrima: 0, caturSakti: 2, ciputra: 0 },
-    { month: 'Nov', caturPrima: 5, caturSakti: 0, ciputra: 0 },
-    { month: 'Dec', caturPrima: 0, caturSakti: 4, ciputra: 3 },
-  ];
+  const normalizeKey = (value: string) =>
+    value
+      .toLowerCase()
+      .replace(/&/g, 'and')
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_|_$/g, '');
+
+  const deptKeys = Array.from(
+    new Set(offStat?.data?.department_date?.map((i) => i.department)),
+  );
+
+  const DEPT_MAP = deptKeys.reduce(
+    (acc, level) => {
+      acc[level] = normalizeKey(level);
+      return acc;
+    },
+    {} as Record<string, string>,
+  );
+
+  Object.values(DEPT_MAP).forEach((key, i) => {
+    COLORS[key] = ['#8CC8EB', '#80C684', '#FFB84D', '#18618B'][i % 4];
+  });
+
+  const departmentData: DepartmentChartRow[] =
+    offStat?.data?.department_date?.reduce<DepartmentChartRow[]>(
+      (acc, item) => {
+        const month = new Date(item.month + '-01').toLocaleString('en-US', {
+          month: 'short',
+        });
+
+        let row = acc.find((d) => d.month === month);
+
+        if (!row) {
+          const newRow: DepartmentChartRow = { month };
+
+          Object.values(DEPT_MAP).forEach((key) => {
+            newRow[key] = 0;
+          });
+
+          acc.push(newRow);
+          row = newRow;
+        }
+
+        const key = DEPT_MAP[item.department];
+        row[key] = (row[key] as number) + item.total;
+
+        return acc;
+      },
+      [],
+    ) ?? [];
+
+  const jobLevelKeys = Array.from(
+    new Set(offStat?.data?.job_level_date?.map((i) => i.job_level)),
+  );
+
+  const JOB_LEVEL_MAP = jobLevelKeys.reduce(
+    (acc, level) => {
+      acc[level] = normalizeKey(level);
+      return acc;
+    },
+    {} as Record<string, string>,
+  );
+
+  Object.values(JOB_LEVEL_MAP).forEach((key, i) => {
+    COLORS[key] = ['#8CC8EB', '#80C684', '#FFB84D', '#18618B'][i % 4];
+  });
+
+  const jobLevelData: DepartmentChartRow[] =
+    offStat?.data?.job_level_date?.reduce<DepartmentChartRow[]>((acc, item) => {
+      const month = new Date(item.month + '-01').toLocaleString('en-US', {
+        month: 'short',
+      });
+
+      let row = acc.find((d) => d.month === month);
+
+      if (!row) {
+        const newRow: DepartmentChartRow = { month };
+
+        Object.values(JOB_LEVEL_MAP).forEach((key) => {
+          newRow[key] = 0;
+        });
+
+        acc.push(newRow);
+        row = newRow;
+      }
+
+      const key = JOB_LEVEL_MAP[item.job_level];
+      row[key] = (row[key] as number) + item.total;
+
+      return acc;
+    }, []) ?? [];
+
+  const branchKeys = Array.from(
+    new Set(offStat?.data?.branch_date?.map((i) => i.branch)),
+  );
+
+  const BRANCH_MAP = branchKeys.reduce(
+    (acc, level) => {
+      acc[level] = normalizeKey(level);
+      return acc;
+    },
+    {} as Record<string, string>,
+  );
+
+  Object.values(BRANCH_MAP).forEach((key, i) => {
+    COLORS[key] = ['#8CC8EB', '#80C684', '#FFB84D', '#18618B'][i % 4];
+  });
+
+  const branchData: DepartmentChartRow[] =
+    offStat?.data?.branch_date?.reduce<DepartmentChartRow[]>((acc, item) => {
+      const month = new Date(item.month + '-01').toLocaleString('en-US', {
+        month: 'short',
+      });
+
+      let row = acc.find((d) => d.month === month);
+
+      if (!row) {
+        const newRow: DepartmentChartRow = { month };
+
+        Object.values(BRANCH_MAP).forEach((key) => {
+          newRow[key] = 0;
+        });
+
+        acc.push(newRow);
+        row = newRow;
+      }
+
+      const key = BRANCH_MAP[item.branch];
+      row[key] = (row[key] as number) + item.total;
+
+      return acc;
+    }, []) ?? [];
 
   // -----------------------------
   // COMPONENT CHART
@@ -337,42 +289,15 @@ export const Offboarding = () => {
         <Tooltip formatter={(v) => v.toLocaleString('id-ID')} />
         <Legend height={100} />
 
-        <Bar
-          dataKey="admin"
-          stackId="a"
-          name="Corporate & Administration"
-          fill="#8CC8EB"
-        />
-        <Bar
-          dataKey="service"
-          stackId="a"
-          name="Service & Retail"
-          fill="#80C684"
-        />
-        <Bar
-          dataKey="tech"
-          stackId="a"
-          name="Technology & Digital"
-          fill="#FFB84D"
-        />
-        <Bar
-          dataKey="sales"
-          stackId="a"
-          name="Sales & Marketing"
-          fill="#18618B"
-        />
-        <Bar
-          dataKey="operations"
-          stackId="a"
-          name="Manufacturing & Ops"
-          fill="#E0A8CB"
-        />
-        <Bar
-          dataKey="production"
-          stackId="a"
-          name="Staff Production"
-          fill="#2A7866"
-        />
+        {Object.entries(DEPT_MAP).map(([label, key]) => (
+          <Bar
+            key={key}
+            dataKey={key}
+            stackId="a"
+            name={label}
+            fill={COLORS[key] ?? '#8884d8'}
+          />
+        ))}
       </BarChart>
     </ResponsiveContainer>
   );
@@ -400,17 +325,15 @@ export const Offboarding = () => {
         <Tooltip formatter={(v) => v.toLocaleString('id-ID')} />
         <Legend height={100} />
 
-        <Bar dataKey="director" stackId="a" name="Director" fill="#8CC8EB" />
-        <Bar dataKey="manager" stackId="a" name="Manager" fill="#80C684" />
-        <Bar
-          dataKey="teamLeader"
-          stackId="a"
-          name="Team Leader"
-          fill="#FFB84D"
-        />
-        <Bar dataKey="senior" stackId="a" name="Senior Staff" fill="#18618B" />
-        <Bar dataKey="medior" stackId="a" name="Medior Staff" fill="#E0A8CB" />
-        <Bar dataKey="junior" stackId="a" name="Junior Staff" fill="#2A7866" />
+        {Object.entries(JOB_LEVEL_MAP).map(([label, key]) => (
+          <Bar
+            key={key}
+            dataKey={key}
+            stackId="a"
+            name={label}
+            fill={COLORS[key] ?? '#8884d8'}
+          />
+        ))}
       </BarChart>
     </ResponsiveContainer>
   );
@@ -439,27 +362,15 @@ export const Offboarding = () => {
         <Tooltip formatter={(value) => value.toLocaleString('id-ID')} />
 
         <Legend height={100} />
-        <Bar
-          dataKey="caturPrima"
-          name="PT Catur Prima Sejahtera"
-          fill="#0d47a1"
-          barSize={40}
-          stackId="a"
-        />
-        <Bar
-          dataKey="caturSakti"
-          name="PT Catur Sakti Sejahtera"
-          fill="#263238"
-          barSize={40}
-          stackId="a"
-        />
-        <Bar
-          dataKey="ciputra"
-          name="PT Ciputra"
-          fill="#455a64"
-          barSize={40}
-          stackId="a"
-        />
+        {Object.entries(BRANCH_MAP).map(([label, key]) => (
+          <Bar
+            key={key}
+            dataKey={key}
+            stackId="a"
+            name={label}
+            fill={COLORS[key] ?? '#8884d8'}
+          />
+        ))}
       </BarChart>
     </ResponsiveContainer>
   );
@@ -468,18 +379,36 @@ export const Offboarding = () => {
     <div className="font-sans min-h-screen flex flex-col space-y-6 py-6">
       <div className="space-y-1">
         <div className="text-xs font-bold text-gray-600">Date Period</div>
-        <Input
-          type="date"
-          className="w-full"
-          name="date"
-          onChange={(e) => {
-            console.log(e);
-          }}
-        />
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Input
+            type="date"
+            className="w-full"
+            name="start_date"
+            value={filters.start_date}
+            onChange={(e) => {
+              setFilters((prev) => ({
+                ...prev,
+                start_date: e.target.value,
+              }));
+            }}
+          />
+          <Input
+            type="date"
+            className="w-full"
+            name="end_date"
+            value={filters.end_date}
+            onChange={(e) => {
+              setFilters((prev) => ({
+                ...prev,
+                end_date: e.target.value,
+              }));
+            }}
+          />
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-8 md:grid-cols-3 bg-white p-4 rounded-xl shadow-sm">
-        <div className="col-span-3 space-y-3">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 bg-white p-4 rounded-xl shadow-sm">
+        <div className="col-span-1 md:col-span-3 space-y-3">
           <div className="flex gap-3 items-center">
             <h2 className="font-bold text-xl text-gray-600">
               Attendance Trend
@@ -491,28 +420,29 @@ export const Offboarding = () => {
           </div>
           <div className="text-gray-600">Total Resigned Employees</div>
           <h2 className="font-bold text-2xl text-primary">
-            {formatCurrency(50)}
+            {formatCurrency(offStat?.data.total ?? 0)}
           </h2>
         </div>
+
         {/* CHART FULL WIDTH */}
         <div className="col-span-1 md:col-span-3">
           <LineChartComponent />
         </div>
 
         {/* CHART 1 */}
-        <div className="">
+        <div className="col-span-1">
           <h2 className="font-semibold text-center mb-2">By Department</h2>
           <BarChartDepartment />
         </div>
 
         {/* CHART 2 */}
-        <div className="">
+        <div className="col-span-1">
           <h2 className="font-semibold text-center mb-2">By Job Level</h2>
           <BarChartJobLevel />
         </div>
 
         {/* CHART 3 */}
-        <div className="">
+        <div className="col-span-1">
           <h2 className="font-semibold text-center mb-2">By Branch</h2>
           <BarChartBranch />
         </div>
@@ -531,13 +461,31 @@ export const Offboarding = () => {
               <Input
                 type="text"
                 className="w-full"
+                value={search}
                 placeholder="Search employee name"
                 onChange={(e) => {
-                  console.log(e);
+                  setSearch(e.target.value);
                 }}
               />
             </div>
           </div>
+
+          {loadingList ? (
+            <div className="flex flex-col gap-4 items-center w-full">
+              <Skeleton className="h-12 w-full" />
+              <div className="space-y-2 w-full">
+                <Skeleton className="h-30 w-full" />
+              </div>
+            </div>
+          ) : (
+            <DataTable
+              columns={columns}
+              data={dataList?.data}
+              pagination={dataPagination}
+              paginationState={pagination}
+              setPaginationState={setPagination}
+            />
+          )}
         </div>
       </div>
     </div>
