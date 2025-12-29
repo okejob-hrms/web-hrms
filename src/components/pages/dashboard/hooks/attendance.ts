@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getAgeStat, getAttendanceStat, getEmployeeStat, getExperienceStat, getGenderStat, getOffboardingList, getOffboardingStat } from '@/services/dashboard';
+import { getAgeStat, getAttendanceStat, getAttStat, getEmployeeStat, getExperienceStat, getGenderStat, getOffboardingList, getOffboardingStat } from '@/services/dashboard';
 import { ListOff } from '@/services/dashboard/types';
 import { PaginatedResponse } from '@/lib/types';
 import { PaginationState } from '@tanstack/react-table';
@@ -22,6 +22,11 @@ export function useDashboardAnalytics() {
   const { data: attendanceStat, isLoading: attendanceStatLoading } = useQuery({
     queryKey: ['attendanceStat', filters],
     queryFn: () => getAttendanceStat(filters),
+  });
+
+  const { data: attStat, isLoading: attStatLoading } = useQuery({
+    queryKey: ['attStat', filters],
+    queryFn: () => getAttStat(filters),
   });
 
   const [pagination, setPagination] = useState<PaginationState>({
@@ -111,5 +116,7 @@ export function useDashboardAnalytics() {
     genderStat,
     genderStatLoading,
     positions,
+    attStat,
+    attStatLoading,
   };
 }

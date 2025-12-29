@@ -25,6 +25,8 @@ import {
 import { Maximize2, RefreshCcw } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useDashboardAnalytics } from '../hooks/attendance';
+import AttendanceModal from './modal/attendance-modal';
+import { Button } from '@/components/ui/button';
 
 export const Analytics = () => {
   const {
@@ -40,6 +42,8 @@ export const Analytics = () => {
     genderStatLoading,
     positions,
   } = useDashboardAnalytics();
+
+  const [openAttendance, setOpenAttendance] = React.useState(false);
 
   const lineData = attendanceStat?.data.map((item) => ({
     month: item.month,
@@ -519,7 +523,9 @@ export const Analytics = () => {
               </div>
               <RefreshCcw size={14} className="text-gray-700" />
             </div>
-            <Maximize2 className="text-gray-900" />
+            <Button variant="link" onClick={() => setOpenAttendance(true)}>
+              <Maximize2 className="text-gray-900" />
+            </Button>
           </div>
           <LineChartComponent />
           <div className="flex flex-row gap-3 mt-4 justify-center">
@@ -637,6 +643,7 @@ export const Analytics = () => {
           <DepartmentsChart />
         </div>
       </div>
+      <AttendanceModal open={openAttendance} onOpenChange={setOpenAttendance} />
     </div>
   );
 };

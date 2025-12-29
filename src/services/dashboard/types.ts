@@ -161,3 +161,24 @@ export interface Genders {
     gender: string;
     total: number;
 }
+
+export interface AttStatResponse {
+    data: AttObjData;
+    message: string;
+    status: string;
+}
+
+export interface AttObjData {
+    absent: AttObj;
+    early_clock_in: AttObj;
+    early_clock_out: AttObj;
+    late_clock_in: AttObj;
+    leave: AttObj;
+    on_time: AttObj;
+    overtime: AttObj;
+}
+
+export interface AttObj {
+    diff: number;
+    today: number;
+}

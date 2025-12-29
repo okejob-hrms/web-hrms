@@ -1,5 +1,5 @@
 import { api } from "@/lib/api";
-import { AgeStatResponse, AttendanceStatResponse, DataOffboardingTrendResponse, EmployeeStatResponse, ExperienceStatResponse, GenderStatResponse, OffboardingResponse, PendingResponse } from "./types";
+import { AgeStatResponse, AttendanceStatResponse, AttStatResponse, DataOffboardingTrendResponse, EmployeeStatResponse, ExperienceStatResponse, GenderStatResponse, OffboardingResponse, PendingResponse } from "./types";
 import { PaginationState } from "@tanstack/react-table";
 
 export const getPendingStat = async (): Promise<PendingResponse> => {
@@ -150,6 +150,27 @@ export const getGenderStat = async (
 
   const response = await api.get<GenderStatResponse>(
     'dashboard/analytic/gender',
+    { searchParams }
+  )
+
+  return response.json()
+}
+
+export const getAttStat = async (
+  filters: { branch_id?: string; department_id?: string }
+): Promise<AttStatResponse> => {
+  const searchParams: Record<string, string> = {}
+
+  if (filters.branch_id) {
+    searchParams.start_date = filters.branch_id
+  }
+
+  if (filters.department_id) {
+    searchParams.end_date = filters.department_id
+  }
+
+  const response = await api.get<AttStatResponse>(
+    'dashboard/analytic/attendance-stats',
     { searchParams }
   )
 
