@@ -383,24 +383,24 @@ export const Offboarding = () => {
           <Input
             type="date"
             className="w-full"
-            name="startDate"
-            value={filters.startDate}
+            name="start_date"
+            value={filters.start_date}
             onChange={(e) => {
               setFilters((prev) => ({
                 ...prev,
-                startDate: e.target.value,
+                start_date: e.target.value,
               }));
             }}
           />
           <Input
             type="date"
             className="w-full"
-            name="endDate"
-            value={filters.endDate}
+            name="end_date"
+            value={filters.end_date}
             onChange={(e) => {
               setFilters((prev) => ({
                 ...prev,
-                endDate: e.target.value,
+                end_date: e.target.value,
               }));
             }}
           />

@@ -94,3 +94,70 @@ export interface Pagination {
     to: number;
     total: number;
 }
+
+export interface AttendanceStatResponse {
+    data: AttendanceStatData[];
+    message: string;
+    status: string;
+}
+
+export interface AttendanceStatData {
+    absent: number;
+    early: number;
+    late: number;
+    leave: number;
+    month: string;
+    on_time: number;
+    overtime: number;
+}
+
+export interface EmployeeStatResponse {
+    message: string;
+    status: string;
+    data: EmployeeDataStat;
+}
+
+export interface EmployeeDataStat {
+    details: Detail[];
+    total_employee: number;
+}
+
+export interface Detail {
+    id: number;
+    name: string;
+    total_employees: number;
+}
+
+export interface ExperienceStatResponse {
+    data: ExperienceData;
+    message: string;
+    status: string;
+}
+
+export interface ExperienceData {
+    experienced: number;
+    fresh_graduate: number;
+    total: number;
+}
+
+export interface AgeStatResponse {
+    data: AgeSpread[];
+    message: string;
+    status: string;
+}
+
+export interface AgeSpread {
+    generation: string;
+    total: number;
+}
+
+export interface GenderStatResponse {
+    data: Genders[];
+    message: string;
+    status: string;
+}
+
+export interface Genders {
+    gender: string;
+    total: number;
+}

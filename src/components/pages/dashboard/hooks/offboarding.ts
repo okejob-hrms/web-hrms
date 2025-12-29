@@ -10,10 +10,9 @@ import { PaginationState } from '@tanstack/react-table';
 export function useDashboardOffboarding() {
   const [search, setSearch] = useState('');
   const [filters, setFilters] = useState({
-    startDate: "",
-    endDate: "",
+    start_date: "",
+    end_date: "",
   });
-
 
   const { data: offStat, isLoading: offStatLoading } = useQuery({
     queryKey: ['offStat', filters],
