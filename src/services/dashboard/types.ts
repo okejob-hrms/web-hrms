@@ -1,0 +1,96 @@
+export interface PendingResponse {
+  message: string;
+  status: string;
+  data: {
+    active_offboarding: number;
+    employee_on_leave_today: number;
+    pending_leave: number;
+    pending_overtime: number;
+    pending_payslip: number;
+  };
+}
+
+export interface OffboardingResponse {
+    data: DataOffboardingResponse;
+    message: string;
+    status: string;
+}
+
+export interface DataOffboardingResponse {
+    branch: Branch[];
+    branch_date: BranchDate[];
+    department: Department[];
+    department_date: DepartmentDate[];
+    job_level: JobLevel[];
+    job_level_date: JobLevelDate[];
+    total: number;
+    trend: Trend[];
+}
+
+export interface Branch {
+    branch?: string;
+    total?: number;
+}
+
+export interface BranchDate {
+    branch: string;
+    month: string;
+    total: number;
+}
+
+export interface Department {
+    department: string;
+    total: number;
+}
+
+export interface DepartmentDate {
+    department: string;
+    month: string;
+    total: number;
+}
+
+export interface JobLevel {
+    job_level: string;
+    total: number;
+}
+
+export interface JobLevelDate {
+    job_level: string;
+    month: string;
+    total: number;
+}
+
+export interface Trend {
+    month: string;
+    total: number;
+}
+
+export interface DataOffboardingTrendResponse {
+    data: ListOff[];
+    message: string;
+    pagination: Pagination;
+    status: string;
+}
+
+export interface ListOff {
+    department: string;
+    job_level: string;
+    job_position: string;
+    join_date: string;
+    last_working_date: string;
+    user_id: number;
+    user_name: string;
+}
+
+export interface Pagination {
+    current_page: number;
+    first: string;
+    from: number;
+    last: string;
+    last_page: number;
+    next: null;
+    per_page: number;
+    prev: null;
+    to: number;
+    total: number;
+}

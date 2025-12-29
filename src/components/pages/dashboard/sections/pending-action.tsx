@@ -12,19 +12,35 @@ import EmployeeOffboardingList from '../../offboarding';
 import AttendanceLeaveRequest from '../../attendance-leave-request';
 import OvertimeTrackerList from '../../overtime-tracker-list';
 import { PayrollRequest } from '../../payroll-request';
+import { useDashboardPending } from '../hooks/pending';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export const PendingAction = () => {
   const searchParams = useSearchParams();
   const overview = searchParams.get('overview');
-
-  const [loading, setLoading] = React.useState(false);
+  const { pendingStat, pendingStatLoading } = useDashboardPending();
 
   const pannel = [
-    { title: 'Active Offboarding', value: 884 },
-    { title: 'Pending Leave Approvals', value: 10 },
-    { title: 'Employees On Leave Today', value: 100 },
-    { title: 'Pending Overtime Approval', value: 521 },
-    { title: 'Pending Payslip Request Approval', value: 940 },
+    {
+      title: 'Active Offboarding',
+      value: pendingStat?.data.active_offboarding ?? 0,
+    },
+    {
+      title: 'Pending Leave Approvals',
+      value: pendingStat?.data.pending_leave ?? 0,
+    },
+    {
+      title: 'Employees On Leave Today',
+      value: pendingStat?.data.employee_on_leave_today ?? 0,
+    },
+    {
+      title: 'Pending Overtime Approval',
+      value: pendingStat?.data.pending_overtime ?? 0,
+    },
+    {
+      title: 'Pending Payslip Request Approval',
+      value: pendingStat?.data.pending_payslip ?? 0,
+    },
   ];
 
   const content = React.useMemo(() => {
@@ -48,18 +64,28 @@ export const PendingAction = () => {
 
   return (
     <div className="font-sans min-h-screen flex flex-col py-6">
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-        {pannel.map((item, id) => (
-          <DashboardInfo key={id} title={item.title} value={item.value} />
-        ))}
-      </div>
+      {pendingStatLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          <Skeleton className="h-32" />
+          <Skeleton className="h-32" />
+          <Skeleton className="h-32" />
+          <Skeleton className="h-32" />
+          <Skeleton className="h-32" />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          {pannel.map((item, id) => (
+            <DashboardInfo key={id} title={item.title} value={item.value} />
+          ))}
+        </div>
+      )}
 
       <SidebarProvider className="mx-auto w-full md:py-10 flex flex-col md:flex-row md:gap-4">
         <SidebarTrigger className="md:hidden" />
         <AppSidebar title="Pending Action" menuItems={menus['dashboard']} />
 
         <main className="w-full px-2 md:px-0 py-3 md:py-0 -px-6">
-          {loading ? <AppSkeleton /> : content}
+          {pendingStatLoading ? <AppSkeleton /> : content}
         </main>
       </SidebarProvider>
     </div>
