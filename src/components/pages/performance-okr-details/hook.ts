@@ -193,7 +193,6 @@ export const useOKRDetails = () => {
     { label: "Weekly", value: "2" },
     { label: "Monthly", value: "3" },
     { label: "Quarterly", value: "4" },
-    { label: "Yearly", value: "5" },
   ];
 
   const formatOptions = [

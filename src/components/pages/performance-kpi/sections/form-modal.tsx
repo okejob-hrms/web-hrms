@@ -15,6 +15,26 @@ import {
 } from "@/services/performances/kpi/types";
 import * as React from "react";
 import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+
+const kpiFormSchema = z.object({
+  name: z.string().min(1, "KPI Name is required"),
+  description: z.string().min(1, "Description is required"),
+  frequency: z.string().min(1, "Frequency is required"),
+  format: z.string().min(1, "Format is required"),
+  job_position_ids: z
+    .array(z.number())
+    .min(1, "At least one Job Position is required"),
+  job_level_ids: z
+    .array(z.number())
+    .min(1, "At least one Job Level is required"),
+  target: z.string().optional(),
+  direction: z.string().optional(),
+  aggregation: z.string().min(1, "KPI Aggregation is required"),
+});
+
+type KPIFormValues = z.infer<typeof kpiFormSchema>;
 
 interface IOption {
   label: string;
@@ -50,7 +70,20 @@ export default function FormModal({
   editMode,
   isLoadingDetails,
 }: FormAddModalProps) {
-  const form = useForm();
+  const form = useForm<KPIFormValues>({
+    resolver: zodResolver(kpiFormSchema),
+    defaultValues: {
+      name: "",
+      description: "",
+      frequency: "",
+      format: "",
+      job_position_ids: [],
+      job_level_ids: [],
+      target: "",
+      direction: "",
+      aggregation: "",
+    },
+  });
 
   React.useEffect(() => {
     if (editMode && kpiDetails && open) {
@@ -80,8 +113,7 @@ export default function FormModal({
     }
   }, [editMode, kpiDetails, open, form]);
 
-  const handleSave = (): void => {
-    const formData = form.getValues();
+  const handleSave = (formData: KPIFormValues): void => {
     const data: IMutateKPIRequest = {
       name: formData.name,
       description: formData.description,
@@ -89,8 +121,8 @@ export default function FormModal({
       format: Number(formData.format),
       job_position_ids: formData.job_position_ids,
       job_level_ids: formData.job_level_ids,
-      target: Number(formData.target),
-      direction: Number(formData.direction),
+      target: formData.target ? Number(formData.target) : 0,
+      direction: formData.direction ? Number(formData.direction) : 0,
       aggregation: Number(formData.aggregation),
     };
     onSave(data);
@@ -132,7 +164,7 @@ export default function FormModal({
               required
               className="w-full"
             />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 w-full">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 w-full items-start">
               <SelectForm
                 name="frequency"
                 label="Frequency"
@@ -204,7 +236,7 @@ export default function FormModal({
               </Button>
               <Button
                 type="button"
-                onClick={handleSave}
+                onClick={form.handleSubmit(handleSave)}
                 disabled={isLoadingDetails && editMode}
                 className="px-8 bg-[#0e7490] hover:bg-[#0c6380] text-white"
               >

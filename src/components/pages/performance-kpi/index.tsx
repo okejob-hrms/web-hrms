@@ -162,41 +162,39 @@ export default function PerformanceKPI() {
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
-            <DropdownMenuContent>
-              <DropdownMenuItem asChild>
-                <button
-                  onClick={() => {
-                    handleDetail(row.original);
-                  }}
-                  className="flex gap-2 w-full text-left"
-                >
-                  <Eye className="w-4 h-4" />
-                  KPI Details
-                </button>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <button
-                  onClick={() => {
-                    handleEdit(row.original.id);
-                  }}
-                  className="flex gap-2 w-full text-left"
-                >
-                  <Edit2 className="w-4 h-4" />
-                  Edit KPI
-                </button>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <button
-                  onClick={() => {
-                    handleDelete(row.original.id);
-                  }}
-                  className="flex gap-2 w-full text-left"
-                >
-                  <Trash className="w-4 h-4" />
-                  Delete KPI
-                </button>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
+            <DropdownMenuItem asChild>
+              <button
+                onClick={() => {
+                  handleDetail(row.original);
+                }}
+                className="flex gap-2 w-full text-left"
+              >
+                <Eye className="w-4 h-4" />
+                KPI Details
+              </button>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <button
+                onClick={() => {
+                  handleEdit(row.original.id);
+                }}
+                className="flex gap-2 w-full text-left"
+              >
+                <Edit2 className="w-4 h-4" />
+                Edit KPI
+              </button>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <button
+                onClick={() => {
+                  handleDelete(row.original.id);
+                }}
+                className="flex gap-2 w-full text-left"
+              >
+                <Trash className="w-4 h-4" />
+                Delete KPI
+              </button>
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       ),
