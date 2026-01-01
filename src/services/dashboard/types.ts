@@ -230,3 +230,52 @@ export interface ExpTrendListData {
     profile_id: number;
     user_id: number;
 }
+
+export interface AdditionalList {
+    data: AdditionalItem;
+    message: string;
+    status: string;
+}
+
+export interface AdditionalItem {
+    departments: ItemsOfAdd[];
+    job_level: ItemsOfAdd[];
+    job_position: ItemsOfAdd[];
+    teams: ItemsOfAdd[];
+}
+
+export interface ItemsOfAdd {
+    name: string;
+    total: number;
+}
+
+export interface AdditionalListDetail {
+    data: AdditionalListDetailData[];
+    message: string;
+    pagination: Pagination;
+    status: string;
+}
+
+export interface AdditionalListDetailData {
+    branch_name: string;
+    name: string;
+    total: number;
+}
+
+export interface PayrollSummary {
+  current_total: number;
+  last_year_total: number;
+  percentage_change: number;
+}
+
+export interface PayrollDashboardData {
+  base_salary: PayrollSummary;
+  overtime_payroll: PayrollSummary;
+  allowance: PayrollSummary;
+}
+
+export interface PayrollDashboardResponse {
+  status: string;
+  message: string;
+  data: PayrollDashboardData;
+}

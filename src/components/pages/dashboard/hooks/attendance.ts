@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getAgeStat, getAttendanceStat, getAttStat, getAttStatList, getEmployeeStat, getExperienceStat, getExperienceTrend, getExpStatList, getGenderStat, getOffboardingList, getOffboardingStat } from '@/services/dashboard';
-import { AttListData, ExpTrendListData } from '@/services/dashboard/types';
+import { getAdditionalList, getAdditionalListDetail, getAgeStat, getAttendanceStat, getAttStat, getAttStatList, getEmployeeStat, getExperienceStat, getExperienceTrend, getExpStatList, getGenderStat, getOffboardingList, getOffboardingStat } from '@/services/dashboard';
+import { AdditionalListDetailData, AttListData, ExpTrendListData } from '@/services/dashboard/types';
 import { PaginatedResponse } from '@/lib/types';
 import { PaginationState } from '@tanstack/react-table';
 import { getJobPosition } from '@/services/job-position';
@@ -25,6 +25,12 @@ export function useDashboardAnalytics() {
     pageSize: 10,
   });
   const [searchExp, setSearchExp] = useState('');
+  const [typeAdditional, setTypeAdditional] = useState('');
+  const [paginationAdd, setPaginationAdd] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 10,
+  });
+  const [searchAdd, setSearchAdd] = useState('');
 
 
 // ==========  ATTENDANCE
@@ -82,7 +88,7 @@ export function useDashboardAnalytics() {
     queryFn: () => getExperienceTrend(filters),
   });
 
-    const {
+  const {
     data: dataListExpTrend,
     isLoading: loadingListExpTrend,
   } = useQuery({
@@ -120,12 +126,35 @@ export function useDashboardAnalytics() {
   });
 // ==========  END GENDER
 
-  const { data: positions } = useQuery({
-    queryKey: ["job-position"],
-    queryFn: getJobPosition,
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
+// ==========  ADDITIONAL
+  const { data: additionalStat, isLoading: additionalStatLoading } = useQuery({
+    queryKey: ['additionalStat', filters],
+    queryFn: () => getAdditionalList(filters),
   });
+
+  const {
+    data: additionalStatDetail,
+    isLoading: additionalStatDetailLoading,
+  } = useQuery({
+    queryKey: ["listAdditional", paginationAdd, searchAdd, typeAdditional],
+    queryFn: () => getAdditionalListDetail(paginationAdd, searchAdd, typeAdditional),
+  });
+
+  const dataPaginationAdditionalDetail: PaginatedResponse<AdditionalListDetailData> = {
+    current_page: additionalStatDetail?.pagination.current_page ?? 1,
+    current_page_url: `${additionalStatDetail?.pagination.first ?? ''}`,
+    first_page_url: additionalStatDetail?.pagination.first ?? '',
+    from: additionalStatDetail?.pagination.from ?? 0,
+    last_page: additionalStatDetail?.pagination.last_page ?? 1,
+    next_page_url: additionalStatDetail?.pagination.next ?? null,
+    path: 'api/v1/dashboard/analytic/additional-detail',
+    per_page: additionalStatDetail?.pagination.per_page ?? 10,
+    prev_page_url: additionalStatDetail?.pagination.prev ?? null,
+    to: additionalStatDetail?.pagination.to ?? 0,
+    total: additionalStatDetail?.pagination.total ?? 0,
+    data: additionalStatDetail?.data ?? [],
+  };
+// ==========  END ADDITIONAL
 
   return {
     attendanceStat,
@@ -147,7 +176,6 @@ export function useDashboardAnalytics() {
     ageStatLoading,
     genderStat,
     genderStatLoading,
-    positions,
     attStat,
     attStatLoading,
     experienceTrend,
@@ -159,5 +187,16 @@ export function useDashboardAnalytics() {
     dataPaginationExpTrend,
     setPaginationExp,
     setSearchExp,
+    additionalStat,
+    additionalStatLoading,
+    additionalStatDetail,
+    additionalStatDetailLoading,
+    dataPaginationAdditionalDetail,
+    typeAdditional,
+    setTypeAdditional,
+    paginationAdd,
+    setPaginationAdd,
+    searchAdd,
+    setSearchAdd,
   };
 }

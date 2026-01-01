@@ -21,8 +21,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { useDashboardPayroll } from '../hooks/payroll';
 
 export const Payroll = () => {
+  const { payrolls, payrollsLoading, search, setSearch, filters, setFilters } =
+    useDashboardPayroll();
+
   const pannel = [
     { title: 'Base Salary', increase: -10, value: 400000000 },
     { title: 'Allowance', increase: 8, value: 20000000 },

@@ -28,24 +28,22 @@ import { useDashboardAnalytics } from '../hooks/attendance';
 import AttendanceModal from './modal/attendance-modal';
 import { Button } from '@/components/ui/button';
 import ExperienceModal from './modal/experience-modal';
+import AdditionalModal from './modal/additional-modal';
 
 export const Analytics = () => {
   const {
     attendanceStat,
-    attendanceStatLoading,
     employeeStat,
-    employeeStatLoading,
     experienceStat,
-    experienceStatLoading,
     ageStat,
-    ageStatLoading,
     genderStat,
-    genderStatLoading,
-    positions,
+    additionalStat,
+    setTypeAdditional,
   } = useDashboardAnalytics();
 
   const [openAttendance, setOpenAttendance] = React.useState(false);
   const [openExperience, setOpenExperience] = React.useState(false);
+  const [openAdditional, setOpenAdditional] = React.useState(false);
 
   const lineData = attendanceStat?.data.map((item) => ({
     month: item.month,
@@ -93,7 +91,7 @@ export const Analytics = () => {
   ];
 
   const spread =
-    ageStat?.data.map((item, i) => ({
+    ageStat?.data.map((item) => ({
       year: item.generation,
       value: item.total,
     })) ?? [];
@@ -105,37 +103,49 @@ export const Analytics = () => {
       color: dougColor[i],
     })) ?? [];
 
-  const positionList = [
-    { name: 'COO', value: 1, color: '#8CC8EB' },
-    { name: 'Product Manager', value: 3, color: '#FFB84D' },
-    { name: 'Staff IT', value: 11, color: '#18618B' },
-    { name: 'Staff Production', value: 21, color: '#EAF6FC' },
-    { name: 'Sales', value: 10, color: '#FFD79B' },
-  ];
+  const positionList =
+    additionalStat?.data.job_position
+      ?.slice()
+      .sort((a, b) => b.total - a.total)
+      .slice(0, 5)
+      .map((item, i) => ({
+        name: item.name,
+        value: item.total,
+        color: dougColor[i],
+      })) ?? [];
 
-  const teamsList = [
-    { name: 'General Corporate', value: 1, color: '#8CC8EB' },
-    { name: 'IT', value: 13, color: '#FFB84D' },
-    { name: 'Cross Functional', value: 4, color: '#18618B' },
-    { name: 'Production', value: 21, color: '#EAF6FC' },
-    { name: 'Sales & Marketing', value: 10, color: '#FFD79B' },
-  ];
+  const teamsList =
+    additionalStat?.data.teams
+      ?.slice()
+      .sort((a, b) => b.total - a.total)
+      .slice(0, 5)
+      .map((item, i) => ({
+        name: item.name,
+        value: item.total,
+        color: dougColor[i],
+      })) ?? [];
 
-  const lvlList = [
-    { name: 'Director', value: 1, color: '#8CC8EB' },
-    { name: 'Manager', value: 4, color: '#FFB84D' },
-    { name: 'Team Leader', value: 4, color: '#18618B' },
-    { name: 'Senior Staff', value: 15, color: '#EAF6FC' },
-    { name: 'Junior Staff', value: 33, color: '#FFD79B' },
-  ];
+  const lvlList =
+    additionalStat?.data.job_level
+      ?.slice()
+      .sort((a, b) => b.total - a.total)
+      .slice(0, 5)
+      .map((item, i) => ({
+        name: item.name,
+        value: item.total,
+        color: dougColor[i],
+      })) ?? [];
 
-  const departmentsList = [
-    { name: 'Corporate', value: 8, color: '#8CC8EB' },
-    { name: 'Custom', value: 10, color: '#FFB84D' },
-    { name: 'Sales', value: 14, color: '#18618B' },
-    { name: 'Delivery', value: 15, color: '#EAF6FC' },
-    { name: 'Human Resource', value: 13, color: '#FFD79B' },
-  ];
+  const departmentsList =
+    additionalStat?.data.departments
+      ?.slice()
+      .sort((a, b) => b.total - a.total)
+      .slice(0, 5)
+      .map((item, i) => ({
+        name: item.name,
+        value: item.total,
+        color: dougColor[i],
+      })) ?? [];
 
   // -----------------------------
   // COMPONENT CHART
@@ -614,7 +624,15 @@ export const Analytics = () => {
             <div className="flex gap-3 items-center">
               <h2 className="font-bold text-xl text-gray-600">Position</h2>
             </div>
-            <Maximize2 className="text-gray-900" />
+            <Button
+              variant="link"
+              onClick={() => {
+                setTypeAdditional('job_position');
+                setOpenAdditional(true);
+              }}
+            >
+              <Maximize2 className="text-gray-900" />
+            </Button>
           </div>
           <PositionChart />
         </div>
@@ -624,7 +642,15 @@ export const Analytics = () => {
             <div className="flex gap-3 items-center">
               <h2 className="font-bold text-xl text-gray-600">Teams</h2>
             </div>
-            <Maximize2 className="text-gray-900" />
+            <Button
+              variant="link"
+              onClick={() => {
+                setTypeAdditional('teams');
+                setOpenAdditional(true);
+              }}
+            >
+              <Maximize2 className="text-gray-900" />
+            </Button>
           </div>
           <TeamsChart />
         </div>
@@ -634,7 +660,15 @@ export const Analytics = () => {
             <div className="flex gap-3 items-center">
               <h2 className="font-bold text-xl text-gray-600">Job Level</h2>
             </div>
-            <Maximize2 className="text-gray-900" />
+            <Button
+              variant="link"
+              onClick={() => {
+                setTypeAdditional('job_level');
+                setOpenAdditional(true);
+              }}
+            >
+              <Maximize2 className="text-gray-900" />
+            </Button>
           </div>
           <JobLevelChart />
         </div>
@@ -644,7 +678,15 @@ export const Analytics = () => {
             <div className="flex gap-3 items-center">
               <h2 className="font-bold text-xl text-gray-600">Departments</h2>
             </div>
-            <Maximize2 className="text-gray-900" />
+            <Button
+              variant="link"
+              onClick={() => {
+                setTypeAdditional('department');
+                setOpenAdditional(true);
+              }}
+            >
+              <Maximize2 className="text-gray-900" />
+            </Button>
           </div>
           <DepartmentsChart />
         </div>
@@ -652,6 +694,7 @@ export const Analytics = () => {
 
       <AttendanceModal open={openAttendance} onOpenChange={setOpenAttendance} />
       <ExperienceModal open={openExperience} onOpenChange={setOpenExperience} />
+      <AdditionalModal open={openAdditional} onOpenChange={setOpenAdditional} />
     </div>
   );
 };

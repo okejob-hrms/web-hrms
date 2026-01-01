@@ -1,5 +1,5 @@
 import { api } from "@/lib/api";
-import { AgeStatResponse, AttendanceStatResponse, AttListStatResponse, AttStatResponse, DataOffboardingTrendResponse, EmployeeStatResponse, ExperienceStatResponse, ExperienceTrend, ExpTrendListDataResponse, GenderStatResponse, OffboardingResponse, PendingResponse } from "./types";
+import { AdditionalList, AdditionalListDetail, AgeStatResponse, AttendanceStatResponse, AttListStatResponse, AttStatResponse, DataOffboardingTrendResponse, EmployeeStatResponse, ExperienceStatResponse, ExperienceTrend, ExpTrendListDataResponse, GenderStatResponse, OffboardingResponse, PayrollDashboardResponse, PendingResponse } from "./types";
 import { PaginationState } from "@tanstack/react-table";
 
 export const getPendingStat = async (): Promise<PendingResponse> => {
@@ -239,6 +239,75 @@ export const getExpStatList = async (
   const response = await api.get<ExpTrendListDataResponse>(
     'dashboard/analytic/experience-employee-detail',
     { searchParams }
+  )
+
+  return response.json()
+}
+
+export const getAdditionalList = async (
+  filters: { branch_id?: string; department_id?: string }
+): Promise<AdditionalList> => {
+  const searchParams: Record<string, string> = {}
+
+  if (filters.branch_id) {
+    searchParams.start_date = filters.branch_id
+  }
+
+  if (filters.department_id) {
+    searchParams.end_date = filters.department_id
+  }
+
+  const response = await api.get<AdditionalList>(
+    'dashboard/analytic/additional',
+    { searchParams }
+  )
+
+  return response.json()
+}
+
+export const getAdditionalListDetail = async (
+  pagination?: PaginationState,
+  search?: string,
+  typeAdditional?:string,
+): Promise<AdditionalListDetail> => {
+  const searchParams: Record<string, string> = {}
+
+  if (pagination) {
+    searchParams.page = String(pagination.pageIndex + 1)
+    searchParams.per_page = String(pagination.pageSize)
+  }
+
+  if (search?.trim()) {
+    searchParams.search = search
+  }
+
+  if (typeAdditional) {
+    searchParams.type = typeAdditional
+  }
+
+  const response = await api.get<AdditionalListDetail>(
+    `dashboard/analytic/additional-detail`,
+    { searchParams }
+  )
+
+  return response.json()
+}
+
+export const getPayrollDashboard = async (
+  filters: { branch_id?: string; department_id?: string }
+): Promise<PayrollDashboardResponse> => {
+  const searchParams: Record<string, string> = {}
+
+  if (filters.branch_id) {
+    searchParams.start_date = filters.branch_id
+  }
+
+  if (filters.department_id) {
+    searchParams.end_date = filters.department_id
+  }
+
+  const response = await api.get<PayrollDashboardResponse>(
+    'dashboard/analytic/payroll/stat',
   )
 
   return response.json()
