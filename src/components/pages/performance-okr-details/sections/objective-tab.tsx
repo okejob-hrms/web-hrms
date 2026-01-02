@@ -1,5 +1,11 @@
 import { Input } from "@/components/ui/input";
-import { Edit, Ellipsis, Plus, Search } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Edit, Edit2, Ellipsis, Plus, Search, Trash } from "lucide-react";
 import { useOKRDetails } from "../hook";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -116,9 +122,37 @@ const CardObjective = ({ onNewKpi, objective }: CardObjectiveProps) => {
           >
             <Plus />
           </Button>
-          <Button size="sm" className="px-2! py-1!" variant="ghost">
-            <Ellipsis />
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="p-1 hover:bg-gray-100 rounded">
+                <Ellipsis className="text-grayscale-30" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem asChild>
+                <button
+                  onClick={() => {
+                    // handleEdit();
+                  }}
+                  className="flex gap-2 w-full text-left"
+                >
+                  <Edit2 className="w-4 h-4" />
+                  Rename
+                </button>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <button
+                  onClick={() => {
+                    // handleDelete();
+                  }}
+                  className="flex gap-2 w-full text-left"
+                >
+                  <Trash className="w-4 h-4" />
+                  Delete
+                </button>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
       <Separator />

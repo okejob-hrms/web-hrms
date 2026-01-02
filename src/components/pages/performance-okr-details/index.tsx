@@ -75,41 +75,39 @@ export const PerformanceOKRDetails = () => {
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
-            <DropdownMenuContent>
-              <DropdownMenuItem asChild>
-                <button
-                  onClick={() => {
-                    // handleDetail();
-                  }}
-                  className="flex gap-2 w-full text-left"
-                >
-                  <FileDown className="w-4 h-4" />
-                  Export OKR
-                </button>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <button
-                  onClick={() => {
-                    // handleEdit();
-                  }}
-                  className="flex gap-2 w-full text-left"
-                >
-                  <Edit2 className="w-4 h-4" />
-                  Edit OKR
-                </button>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <button
-                  onClick={() => {
-                    // handleDelete();
-                  }}
-                  className="flex gap-2 w-full text-left"
-                >
-                  <Trash className="w-4 h-4" />
-                  Delete OKR
-                </button>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
+            <DropdownMenuItem asChild>
+              <button
+                onClick={() => {
+                  // handleDetail();
+                }}
+                className="flex gap-2 w-full text-left"
+              >
+                <FileDown className="w-4 h-4" />
+                Export OKR
+              </button>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <button
+                onClick={() => {
+                  // handleEdit();
+                }}
+                className="flex gap-2 w-full text-left"
+              >
+                <Edit2 className="w-4 h-4" />
+                Edit OKR
+              </button>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <button
+                onClick={() => {
+                  // handleDelete();
+                }}
+                className="flex gap-2 w-full text-left"
+              >
+                <Trash className="w-4 h-4" />
+                Delete OKR
+              </button>
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

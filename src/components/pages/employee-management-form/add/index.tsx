@@ -59,72 +59,80 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
     },
   });
 
-  const onSubmit = React.useCallback((values: EmployeeFormValues) => {
-    const filteredSocialMedia = values.social_media_accounts?.filter(
-      (account) => account?.type.trim() !== "" && account?.url.trim() !== "",
-    );
+  const onSubmit = React.useCallback(
+    (values: EmployeeFormValues) => {
+      const filteredSocialMedia = values.social_media_accounts?.filter(
+        (account) => account?.type.trim() !== "" && account?.url.trim() !== "",
+      );
 
-    const { end_date, countryCode, ...restValues } = values;
+      const { end_date, countryCode, ...restValues } = values;
 
-    const params: IMutateEmployeeRequests = {
-      ...restValues,
-      role_id: Number(values.role_id),
-      department_id: Number(values.department_id),
-      job_level_id: Number(values.job_level_id),
-      job_position_id: Number(values.job_position_id),
-      ...(filteredSocialMedia && {
-        social_media_accounts: filteredSocialMedia,
-      }),
-      country_code: String(values.country_code),
-      branch_id: Number(values.branch_id),
-      team_id: Number(values.team_member),
-      date_of_birth: dayjs(values.date_of_birth).format("YYYY-MM-DD"),
-      start_date: dayjs(values.start_date).format("YYYY-MM-DD"),
-      ...(end_date && dayjs(end_date).isValid()
-        ? { end_date: dayjs(end_date).format("YYYY-MM-DD") }
-        : {}),
-      allowances: values.allowances?.map((item) => ({
-        allowance_type_id: Number(item?.allowance_type_id),
-        allowance_value: Number(item?.allowance_value),
-      })),
-      phone_number: Number(convertPhoneToNumber(String(values.phone_number))),
-      bank_id: Number(values.bank_id),
-      work_experiences: values.work_experiences?.filter((item) => item.id),
-      contact_refferences: values.contact_refferences?.filter(
-        (item) => item.id,
-      ),
-      families: values.families?.filter((item) => item.id),
-      educations: values.educations?.filter((item) => item.id),
-      ...(values.primary_direct_report_id !== 0
-        ? {
-            primary_direct_report_id: Number(values.primary_direct_report_id),
-          }
-        : { primary_direct_report_id: null }),
-      ...(values.additional_direct_report_id !== 0
-        ? {
-            additional_direct_report_id: Number(
-              values.additional_direct_report_id,
-            ),
-          }
-        : { additional_direct_report_id: null }),
-      ...(values.attachments && {
-        attachments: values.attachments
-          .filter((item) => item.type !== undefined && item.path !== undefined && item.path.trim() !== "")
-          .map((item) => ({ type: item.type, path: item.path })),
-      }),
-    };
+      const params: IMutateEmployeeRequests = {
+        ...restValues,
+        role_id: Number(values.role_id),
+        department_id: Number(values.department_id),
+        job_level_id: Number(values.job_level_id),
+        job_position_id: Number(values.job_position_id),
+        ...(filteredSocialMedia && {
+          social_media_accounts: filteredSocialMedia,
+        }),
+        country_code: String(values.country_code),
+        branch_id: Number(values.branch_id),
+        team_id: Number(values.team_member),
+        date_of_birth: dayjs(values.date_of_birth).format("YYYY-MM-DD"),
+        start_date: dayjs(values.start_date).format("YYYY-MM-DD"),
+        ...(end_date && dayjs(end_date).isValid()
+          ? { end_date: dayjs(end_date).format("YYYY-MM-DD") }
+          : {}),
+        allowances: values.allowances?.map((item) => ({
+          allowance_type_id: Number(item?.allowance_type_id),
+          allowance_value: Number(item?.allowance_value),
+        })),
+        phone_number: Number(convertPhoneToNumber(String(values.phone_number))),
+        bank_id: Number(values.bank_id),
+        work_experiences: values.work_experiences?.filter((item) => item.id),
+        contact_refferences: values.contact_refferences?.filter(
+          (item) => item.id,
+        ),
+        families: values.families?.filter((item) => item.id),
+        educations: values.educations?.filter((item) => item.id),
+        ...(values.primary_direct_report_id !== 0
+          ? {
+              primary_direct_report_id: Number(values.primary_direct_report_id),
+            }
+          : { primary_direct_report_id: null }),
+        ...(values.additional_direct_report_id !== 0
+          ? {
+              additional_direct_report_id: Number(
+                values.additional_direct_report_id,
+              ),
+            }
+          : { additional_direct_report_id: null }),
+        ...(values.attachments && {
+          attachments: values.attachments
+            .filter(
+              (item) =>
+                item.type !== undefined &&
+                item.path !== undefined &&
+                item.path.trim() !== "",
+            )
+            .map((item) => ({ type: item.type, path: item.path })),
+        }),
+      };
 
-    mutate(params);
-  }, [mutate]);
+      mutate(params);
+    },
+    [mutate],
+  );
 
   const handleAddEmployee = React.useCallback(async () => {
     const isValid = await form.trigger();
-    
+
     if (!isValid) {
       console.log("# VALIDATION ERRORS ", form.formState.errors);
       return;
     }
-    
+
     const formData = form.getValues();
     onSubmit(formData);
   }, [form, onSubmit]);
@@ -163,4 +171,3 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
     </>
   );
 });
-
