@@ -4,7 +4,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Edit2, Ellipsis, FileDown, Trash } from "lucide-react";
+import { Edit2, Ellipsis, FileDown, Play, Trash } from "lucide-react";
 import * as React from "react";
 import { getStatusOKRCycle } from "@/lib/helpers";
 import { Badge } from "@/components/ui/badge";
@@ -14,9 +14,21 @@ import { useOKRDetails } from "./hook";
 import { Skeleton } from "@/components/ui/skeleton";
 import dayjs from "dayjs";
 import { cn } from "@/lib/utils";
+import { InitiateModal } from "./sections/initiate-modal";
+import { DeleteModal } from "./sections/delete-modal";
 
 export const PerformanceOKRDetails = () => {
-  const { detailOKRCycle, isLoadingDetailOKRCycle } = useOKRDetails();
+  const {
+    detailOKRCycle,
+    isLoadingDetailOKRCycle,
+    setOpenInitiateOKR,
+    openInitiateOKR,
+    id,
+    handleInitiateOKR,
+    openDeleteOKR,
+    setOpenDeleteOKR,
+    handleDeleteOKR,
+  } = useOKRDetails();
   const status = getStatusOKRCycle(detailOKRCycle?.data?.status_label);
 
   if (!detailOKRCycle?.data && !isLoadingDetailOKRCycle) {
@@ -100,12 +112,23 @@ export const PerformanceOKRDetails = () => {
             <DropdownMenuItem asChild>
               <button
                 onClick={() => {
-                  // handleDelete();
+                  setOpenDeleteOKR(true);
                 }}
                 className="flex gap-2 w-full text-left"
               >
                 <Trash className="w-4 h-4" />
                 Delete OKR
+              </button>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <button
+                onClick={() => {
+                  setOpenInitiateOKR(true);
+                }}
+                className="flex gap-2 w-full text-left"
+              >
+                <Play className="w-4 h-4" />
+                Initiate OKR
               </button>
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -180,6 +203,18 @@ export const PerformanceOKRDetails = () => {
         </div>
       </div>
       <OKRTab />
+      <InitiateModal
+        open={openInitiateOKR}
+        onOpenChange={setOpenInitiateOKR}
+        onSubmit={handleInitiateOKR}
+        id={id!}
+      />
+      <DeleteModal
+        open={openDeleteOKR}
+        onOpenChange={setOpenDeleteOKR}
+        onSubmit={handleDeleteOKR}
+        id={id!}
+      />
     </div>
   );
 };

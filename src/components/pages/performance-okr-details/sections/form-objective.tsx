@@ -19,18 +19,23 @@ interface FormObjectiveProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCreate: (data: z.infer<typeof formSchema>) => void;
+  defaultValues?: z.infer<typeof formSchema>;
 }
 
 export const FormObjective = ({
   open,
   onOpenChange,
   onCreate,
+  defaultValues,
 }: FormObjectiveProps) => {
+  const isEditMode = !!defaultValues?.title;
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
+    defaultValues: defaultValues || {
       title: "",
     },
+    values: defaultValues,
   });
 
   const handleSave = (): void => {
@@ -48,7 +53,7 @@ export const FormObjective = ({
       <DialogContent className="sm:max-w-[600px] p-0 bg-white">
         <DialogHeader className="px-6 pt-6 pb-4">
           <DialogTitle className="text-xl font-semibold">
-            Add New Objective
+            {isEditMode ? "Edit Objective" : "Add New Objective"}
           </DialogTitle>
         </DialogHeader>
         <Form {...form}>
@@ -62,7 +67,7 @@ export const FormObjective = ({
                 Cancel
               </Button>
               <Button type="button" onClick={handleSave}>
-                Create
+                {isEditMode ? "Update" : "Create"}
               </Button>
             </div>
           </form>
