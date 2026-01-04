@@ -29,8 +29,11 @@ import AttendanceModal from './modal/attendance-modal';
 import { Button } from '@/components/ui/button';
 import ExperienceModal from './modal/experience-modal';
 import AdditionalModal from './modal/additional-modal';
+import AgeModal from './modal/age-modal';
 
 export const Analytics = () => {
+  const dashboardAnalytics = useDashboardAnalytics();
+
   const {
     attendanceStat,
     employeeStat,
@@ -39,11 +42,12 @@ export const Analytics = () => {
     genderStat,
     additionalStat,
     setTypeAdditional,
-  } = useDashboardAnalytics();
+  } = dashboardAnalytics;
 
   const [openAttendance, setOpenAttendance] = React.useState(false);
   const [openExperience, setOpenExperience] = React.useState(false);
   const [openAdditional, setOpenAdditional] = React.useState(false);
+  const [openAge, setOpenAge] = React.useState(false);
 
   const lineData = attendanceStat?.data.map((item) => ({
     month: item.month,
@@ -601,7 +605,14 @@ export const Analytics = () => {
               </div>
               <RefreshCcw size={14} className="text-gray-700" />
             </div>
-            <Maximize2 className="text-gray-900" />
+            <Button
+              variant="link"
+              onClick={() => {
+                setOpenAge(true);
+              }}
+            >
+              <Maximize2 className="text-gray-900" />
+            </Button>
           </div>
           <SpreadChart />
         </div>
@@ -645,7 +656,7 @@ export const Analytics = () => {
             <Button
               variant="link"
               onClick={() => {
-                setTypeAdditional('teams');
+                setTypeAdditional('team');
                 setOpenAdditional(true);
               }}
             >
@@ -694,7 +705,16 @@ export const Analytics = () => {
 
       <AttendanceModal open={openAttendance} onOpenChange={setOpenAttendance} />
       <ExperienceModal open={openExperience} onOpenChange={setOpenExperience} />
-      <AdditionalModal open={openAdditional} onOpenChange={setOpenAdditional} />
+      <AdditionalModal
+        open={openAdditional}
+        onOpenChange={setOpenAdditional}
+        dashboardAnalytics={dashboardAnalytics}
+      />
+      <AgeModal
+        open={openAge}
+        onOpenChange={setOpenAge}
+        dashboardAnalytics={dashboardAnalytics}
+      />
     </div>
   );
 };

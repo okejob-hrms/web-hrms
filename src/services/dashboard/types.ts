@@ -264,6 +264,7 @@ export interface AdditionalListDetailData {
 
 export interface PayrollSummary {
   current_total: number;
+  last_year_count: number;
   last_year_total: number;
   percentage_change: number;
 }
@@ -272,10 +273,27 @@ export interface PayrollDashboardData {
   base_salary: PayrollSummary;
   overtime_payroll: PayrollSummary;
   allowance: PayrollSummary;
+  payslip: PayrollSummary;
+  penalties: PayrollSummary;
 }
 
 export interface PayrollDashboardResponse {
   status: string;
   message: string;
   data: PayrollDashboardData;
+}
+
+export interface AgeListDataResponse {
+    data:       AgeListData[];
+    message:    string;
+    pagination: Pagination;
+    status:     string;
+}
+
+export interface AgeListData {
+    branch:        string;
+    category:      string;
+    date_of_birth: string;
+    name:          string;
+    position:      string;
 }

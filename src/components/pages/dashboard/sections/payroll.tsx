@@ -22,19 +22,40 @@ import {
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { useDashboardPayroll } from '../hooks/payroll';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export const Payroll = () => {
   const { payrolls, payrollsLoading, search, setSearch, filters, setFilters } =
     useDashboardPayroll();
 
   const pannel = [
-    { title: 'Base Salary', increase: -10, value: 400000000 },
-    { title: 'Allowance', increase: 8, value: 20000000 },
-    { title: 'Overtime', increase: 9, value: 10000000 },
-    { title: 'Salary Deduction (Employee)', increase: -10, value: 52100000 },
-    { title: 'Salary Dedcution (Employer)', increase: 20, value: 94000000 },
-    { title: 'Penalties', increase: 10, value: 2000000000 },
-    { title: 'Payslip Request', increase: -5, value: 120 },
+    {
+      title: 'Base Salary',
+      increase: payrolls?.data.base_salary.percentage_change,
+      value: payrolls?.data.base_salary.last_year_count,
+    },
+    {
+      title: 'Allowance',
+      increase: payrolls?.data.allowance.percentage_change,
+      value: payrolls?.data.allowance.last_year_count,
+    },
+    {
+      title: 'Overtime',
+      increase: payrolls?.data.overtime_payroll.percentage_change,
+      value: payrolls?.data.overtime_payroll.last_year_count,
+    },
+    { title: 'Salary Deduction (Employee)', increase: 0, value: 0 },
+    { title: 'Salary Dedcution (Employer)', increase: 0, value: 0 },
+    {
+      title: 'Penalties',
+      increase: payrolls?.data.penalties.percentage_change,
+      value: payrolls?.data.penalties.percentage_change,
+    },
+    {
+      title: 'Payslip Request',
+      increase: payrolls?.data.payslip.percentage_change,
+      value: payrolls?.data.payslip.percentage_change,
+    },
   ];
 
   const data = [
@@ -54,18 +75,28 @@ export const Payroll = () => {
 
   return (
     <div className="font-sans min-h-screen flex flex-col space-y-6 py-6">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {pannel.map((item, id) => {
-          return (
-            <DashboardInfo
-              key={id}
-              title={item.title}
-              increase={item.increase}
-              value={item.value}
-            />
-          );
-        })}
-      </div>
+      {payrollsLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Skeleton className="h-32" />
+          <Skeleton className="h-32" />
+          <Skeleton className="h-32" />
+          <Skeleton className="h-32" />
+          <Skeleton className="h-32" />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {pannel.map((item, id) => {
+            return (
+              <DashboardInfo
+                key={id}
+                title={item.title}
+                increase={item.increase}
+                value={item.value}
+              />
+            );
+          })}
+        </div>
+      )}
       <div className="flex flex-col justify-between gap-6 mt-5">
         <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6">
           <div className="flex md:flex-row flex-col justify-between w-full md:items-center items-start gap-4">

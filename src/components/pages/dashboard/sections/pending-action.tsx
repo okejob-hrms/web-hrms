@@ -48,9 +48,9 @@ export const PendingAction = () => {
       case 'attendance':
         return <AttendanceTrackerList hidePannel relativeStatus="0" />;
       case 'offboarding-active':
-        return <EmployeeOffboardingList />;
+        return <EmployeeOffboardingList hidePannel status={2} />;
       case 'offboarding-waiting':
-        return <EmployeeOffboardingList />;
+        return <EmployeeOffboardingList hidePannel status={1} />;
       case 'leave':
         return <AttendanceLeaveRequest hidePannel />;
       case 'overtime':

@@ -30,19 +30,18 @@ export default function AttendanceLeaveRequest({
             setFilters={leaveRequest.setFilters}
             setPagination={leaveRequest.setPagination}
           />
-
-          <LeaveTable
-            data={leaveRequest.leaves?.data.data}
-            pagination={leaveRequest.leaves?.data}
-            paginationState={leaveRequest.pagination}
-            setPaginationState={leaveRequest.setPagination}
-            loading={leaveRequest.loading}
-            onSelectLeave={leaveRequest.selectLeave}
-            onOpenModal={leaveRequest.openModal}
-            onNavigateAdd={leaveRequest.handleNavigateAddRequestPage}
-          />
         </>
       )}
+      <LeaveTable
+        data={leaveRequest.leaves?.data.data}
+        pagination={leaveRequest.leaves?.data}
+        paginationState={leaveRequest.pagination}
+        setPaginationState={leaveRequest.setPagination}
+        loading={leaveRequest.loading}
+        onSelectLeave={leaveRequest.selectLeave}
+        onOpenModal={leaveRequest.openModal}
+        onNavigateAdd={leaveRequest.handleNavigateAddRequestPage}
+      />
 
       <LeaveModals
         modalState={leaveRequest.modalState}

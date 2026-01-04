@@ -21,17 +21,21 @@ interface Params {
 
 export const getOffboardings = (
   params: Params,
+  status?: number,
 ): Promise<PaginatedResponse<IOffboardingResponse>> => {
-  const cleanedParams = Object.entries(params ?? {}).reduce<
-    Record<string, unknown>
-  >((acc, [key, value]) => {
+  const cleanedParams = Object.entries({
+    ...params,
+    ...(status !== undefined ? { status } : {}),
+  }).reduce<Record<string, unknown>>((acc, [key, value]) => {
     if (value == null) return acc;
+
     if (typeof value === "string") {
       const trimmed = value.trim();
       if (trimmed.length === 0) return acc;
       acc[key] = trimmed;
       return acc;
     }
+
     if (Array.isArray(value)) {
       const filtered = value.filter(
         (v) => v != null && String(v).trim().length > 0,
@@ -40,10 +44,7 @@ export const getOffboardings = (
       acc[key] = filtered;
       return acc;
     }
-    if (typeof value === "number") {
-      acc[key] = value;
-      return acc;
-    }
+
     acc[key] = value;
     return acc;
   }, {});
@@ -52,11 +53,14 @@ export const getOffboardings = (
     encodeValuesOnly: true,
     arrayFormat: "brackets",
   });
+
   const response = api.get<PaginatedResponse<IOffboardingResponse>>(
     `employee/offboardings${queryString ? `?${queryString}` : ""}`,
   );
+
   return response.json();
 };
+
 
 export const createInitiateOffboarding = (
   params: IMutateOffboardingRequests,

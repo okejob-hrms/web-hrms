@@ -13,45 +13,51 @@ import { useDashboardAnalytics } from '../../hooks/attendance';
 import { Skeleton } from '@/components/ui/skeleton';
 import DataTable from '@/components/tables/data-table';
 import { Input } from '@/components/ui/input';
-import { AdditionalListDetailData } from '@/services/dashboard/types';
+import { AgeListData } from '@/services/dashboard/types';
 import { ColumnDef } from '@tanstack/react-table';
-import { snakeToTitleCase } from '@/lib/helpers';
 
-interface AdditionalModalProps {
+interface AgeModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   dashboardAnalytics: ReturnType<typeof useDashboardAnalytics>;
 }
 
-export default function AdditionalModal({
+export default function AgeModal({
   open,
   onOpenChange,
   dashboardAnalytics,
-}: AdditionalModalProps) {
+}: AgeModalProps) {
   const {
-    additionalStatDetail,
-    additionalStatDetailLoading,
-    dataPaginationAdditionalDetail,
-    typeAdditional,
-    paginationAdd,
-    setPaginationAdd,
-    searchAdd,
-    setSearchAdd,
+    dataListAge,
+    loadingListAge,
+    dataPaginationAge,
+    paginationAge,
+    setPaginationAge,
+    searchAge,
+    setSearchAge,
   } = dashboardAnalytics;
 
-  const columns = React.useMemo<ColumnDef<AdditionalListDetailData>[]>(
+  const columns = React.useMemo<ColumnDef<AgeListData>[]>(
     () => [
-      {
-        accessorKey: 'branch_name',
-        header: 'Branch',
-      },
       {
         accessorKey: 'name',
         header: 'Name',
       },
       {
-        accessorKey: 'total',
-        header: 'Total',
+        accessorKey: 'position',
+        header: 'Position',
+      },
+      {
+        accessorKey: 'branch',
+        header: 'Branch',
+      },
+      {
+        accessorKey: 'date_of_birth',
+        header: 'DOB',
+      },
+      {
+        accessorKey: 'category',
+        header: 'Category',
       },
     ],
     [],
@@ -61,7 +67,7 @@ export default function AdditionalModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-screen sm:max-w-7xl p-6 rounded-2xl bg-white overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{snakeToTitleCase(typeAdditional)}</DialogTitle>
+          <DialogTitle>Age Spread Detail</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col justify-between gap-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -69,16 +75,16 @@ export default function AdditionalModal({
               <Input
                 type="text"
                 className="w-full"
-                value={searchAdd}
+                value={searchAge}
                 placeholder="Search name"
                 onChange={(e) => {
-                  setSearchAdd(e.target.value);
+                  setSearchAge(e.target.value);
                 }}
               />
             </div>
           </div>
 
-          {additionalStatDetailLoading ? (
+          {loadingListAge ? (
             <div className="flex flex-col gap-4 items-center w-full">
               <Skeleton className="h-12 w-full" />
               <div className="space-y-2 w-full">
@@ -87,12 +93,11 @@ export default function AdditionalModal({
             </div>
           ) : (
             <DataTable
-              key={typeAdditional}
               columns={columns}
-              data={additionalStatDetail?.data}
-              pagination={dataPaginationAdditionalDetail}
-              paginationState={paginationAdd}
-              setPaginationState={setPaginationAdd}
+              data={dataListAge?.data}
+              pagination={dataPaginationAge}
+              paginationState={paginationAge}
+              setPaginationState={setPaginationAge}
             />
           )}
         </div>

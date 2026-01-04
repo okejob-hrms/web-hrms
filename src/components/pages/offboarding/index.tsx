@@ -1,29 +1,34 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-"use client";
+'use client';
 
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import * as React from "react";
-import { Toolbar } from "./sections/toolbar";
-import { ColumnDef, PaginationState } from "@tanstack/react-table";
-import { DataTable } from "@/components/tables/data-table";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { cn, stringAvatar } from "@/lib/utils";
-import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
-import { Filters } from "./types";
-import { useDebounce } from "@/hooks/use-debounce";
-import { Skeleton } from "@/components/ui/skeleton";
-import Image from "next/image";
-import { InitiateOffboardingEmployee } from "./sections/initiate-offboarding-form";
-import { getOffboardings } from "@/services/employees/offboardings";
-import { IOffboardingResponse } from "@/services/employees/offboardings/types";
-import { Clock } from "lucide-react";
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import * as React from 'react';
+import { Toolbar } from './sections/toolbar';
+import { ColumnDef, PaginationState } from '@tanstack/react-table';
+import { DataTable } from '@/components/tables/data-table';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { cn, stringAvatar } from '@/lib/utils';
+import Link from 'next/link';
+import { useQuery } from '@tanstack/react-query';
+import { Filters } from './types';
+import { useDebounce } from '@/hooks/use-debounce';
+import { Skeleton } from '@/components/ui/skeleton';
+import Image from 'next/image';
+import { InitiateOffboardingEmployee } from './sections/initiate-offboarding-form';
+import { getOffboardings } from '@/services/employees/offboardings';
+import { IOffboardingResponse } from '@/services/employees/offboardings/types';
+import { Clock } from 'lucide-react';
+
+interface EmployeeOffboardingListProps {
+  hidePannel?: boolean;
+  status?: number;
+}
 
 export const columns: ColumnDef<IOffboardingResponse>[] = [
   {
-    accessorKey: "user_name",
-    header: "Name",
+    accessorKey: 'user_name',
+    header: 'Name',
     cell: ({ row }) => (
       <div className="flex gap-4 items-center min-w-[150px]">
         <Avatar className="h-10 w-10">
@@ -44,61 +49,61 @@ export const columns: ColumnDef<IOffboardingResponse>[] = [
     ),
   },
   {
-    accessorKey: "job_position",
-    header: "Position",
+    accessorKey: 'job_position',
+    header: 'Position',
     cell: ({ row }) => {
-      return row.original.job_position || "-";
+      return row.original.job_position || '-';
     },
   },
   {
-    accessorKey: "department",
-    header: "Department",
+    accessorKey: 'department',
+    header: 'Department',
     cell: ({ row }) => {
-      return row.original.department || "-";
+      return row.original.department || '-';
     },
   },
   {
-    accessorKey: "start_date",
-    header: "Join Date",
+    accessorKey: 'start_date',
+    header: 'Join Date',
     cell: ({ row }) => {
       const date = new Date(row.original.join_date);
       return date.toLocaleDateString();
     },
   },
   {
-    accessorKey: "status",
-    header: "Status",
+    accessorKey: 'status',
+    header: 'Status',
     cell: ({ row }) => {
       const status = row.original.status_offboarding;
       return (
         <Badge
           variant="default"
           className={cn(
-            "rounded-full",
-            status === "In Progress"
-              ? "bg-warning-background"
-              : status === "Completed"
-                ? "bg-success-focused"
-                : "bg-error-focused",
+            'rounded-full',
+            status === 'In Progress'
+              ? 'bg-warning-background'
+              : status === 'Completed'
+                ? 'bg-success-focused'
+                : 'bg-error-focused',
           )}
         >
-          {status === "In Progress" ? (
+          {status === 'In Progress' ? (
             <Clock color="#FFB84D" />
           ) : (
             <div
               className={cn(
-                status === "Completed" ? "bg-success" : "bg-error",
-                "h-2 w-2 rounded-full",
+                status === 'Completed' ? 'bg-success' : 'bg-error',
+                'h-2 w-2 rounded-full',
               )}
             />
           )}
           <span
             className={cn(
-              status === "In Progress"
-                ? "text-warning-hover"
-                : status === "Completed"
-                  ? "text-success"
-                  : "text-error",
+              status === 'In Progress'
+                ? 'text-warning-hover'
+                : status === 'Completed'
+                  ? 'text-success'
+                  : 'text-error',
             )}
           >
             {status}
@@ -108,8 +113,8 @@ export const columns: ColumnDef<IOffboardingResponse>[] = [
     },
   },
   {
-    accessorKey: "menu",
-    header: "",
+    accessorKey: 'menu',
+    header: '',
     cell: ({ row }) => {
       return (
         <Link href={`/employee/off-boarding/${row.original.id}`}>
@@ -125,7 +130,10 @@ export const columns: ColumnDef<IOffboardingResponse>[] = [
   },
 ];
 
-export default function EmployeeOffboardingList() {
+export default function EmployeeOffboardingList({
+  hidePannel = false,
+  status,
+}: EmployeeOffboardingListProps) {
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: 0,
     pageSize: 10,
@@ -133,7 +141,7 @@ export default function EmployeeOffboardingList() {
   const [filters, setFilters] = React.useState<Filters>({
     // department_id: 0,
     // job_position_id: 0,
-    search: "",
+    search: '',
   });
 
   const debouncedFilters = useDebounce(filters, 300);
@@ -142,14 +150,14 @@ export default function EmployeeOffboardingList() {
       ...debouncedFilters,
       page: pagination.pageIndex + 1,
       per_page: pagination.pageSize,
-      search: "",
+      search: '',
     }),
     [debouncedFilters, pagination],
   );
 
   const { data: employees, isLoading } = useQuery({
-    queryKey: ["offboardings", queryParams],
-    queryFn: () => getOffboardings(queryParams),
+    queryKey: ['offboardings', queryParams, status],
+    queryFn: () => getOffboardings(queryParams, status),
     // queryFn: () => getEmployees(queryParams),
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
@@ -180,14 +188,18 @@ export default function EmployeeOffboardingList() {
     try {
       setPagination(updater);
     } catch (error) {
-      console.log("error handle pagination ", error);
+      console.log('error handle pagination ', error);
     }
   }, []);
 
   return (
     <div className="flex flex-col justify-between gap-6 p-4">
-      <Toolbar onFiltersChange={handleFiltersChange} />
-      <Separator />
+      {!hidePannel && (
+        <>
+          <Toolbar onFiltersChange={handleFiltersChange} />
+          <Separator />
+        </>
+      )}
       <div className="rounded-md bg-white border shadow-sm border-grayscale-20 p-6 flex flex-col gap-4">
         <div className="flex md:flex-row flex-col justify-between w-full md:items-center items-start gap-4">
           <div className="flex gap-2 items-center">
@@ -196,10 +208,10 @@ export default function EmployeeOffboardingList() {
             </h2>
             <Badge className="bg-primary-background text-primary rounded-full">
               {employees?.total || 0} Employee
-              {employees?.total !== 1 ? "s" : ""}
+              {employees?.total !== 1 ? 's' : ''}
             </Badge>
           </div>
-          <InitiateOffboardingEmployee />
+          {!hidePannel && <InitiateOffboardingEmployee />}
         </div>
         {isLoading ? (
           <div className="flex flex-col gap-4 items-center w-full">

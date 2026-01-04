@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { getAdditionalList, getAdditionalListDetail, getAgeStat, getAttendanceStat, getAttStat, getAttStatList, getEmployeeStat, getExperienceStat, getExperienceTrend, getExpStatList, getGenderStat, getOffboardingList, getOffboardingStat } from '@/services/dashboard';
-import { AdditionalListDetailData, AttListData, ExpTrendListData } from '@/services/dashboard/types';
+import { useMemo, useState } from 'react';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { getAdditionalList, getAdditionalListDetail, getAgeStat, getAgeStatList, getAttendanceStat, getAttStat, getAttStatList, getEmployeeStat, getExperienceStat, getExperienceTrend, getExpStatList, getGenderStat, getOffboardingList, getOffboardingStat } from '@/services/dashboard';
+import { AdditionalListDetailData, AgeListData, AttListData, ExpTrendListData } from '@/services/dashboard/types';
 import { PaginatedResponse } from '@/lib/types';
 import { PaginationState } from '@tanstack/react-table';
 import { getJobPosition } from '@/services/job-position';
@@ -31,6 +31,11 @@ export function useDashboardAnalytics() {
     pageSize: 10,
   });
   const [searchAdd, setSearchAdd] = useState('');
+  const [paginationAge, setPaginationAge] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 10,
+  });
+  const [searchAge, setSearchAge] = useState('');
 
 
 // ==========  ATTENDANCE
@@ -117,6 +122,29 @@ export function useDashboardAnalytics() {
     queryKey: ['ageStat', filters],
     queryFn: () => getAgeStat(filters),
   });
+
+  const {
+    data: dataListAge,
+    isLoading: loadingListAge,
+  } = useQuery({
+    queryKey: ["listAge", paginationExp, searchExp],
+    queryFn: () => getAgeStatList(paginationExp, searchExp),
+  });
+
+  const dataPaginationAge: PaginatedResponse<AgeListData> = {
+    current_page: dataListAge?.pagination.current_page ?? 1,
+    current_page_url: `${dataListAge?.pagination.first ?? ''}`,
+    first_page_url: dataListAge?.pagination.first ?? '',
+    from: dataListAge?.pagination.from ?? 0,
+    last_page: dataListAge?.pagination.last_page ?? 1,
+    next_page_url: dataListAge?.pagination.next ?? null,
+    path: 'api/v1/Ageendance',
+    per_page: dataListAge?.pagination.per_page ?? 10,
+    prev_page_url: dataListAge?.pagination.prev ?? null,
+    to: dataListAge?.pagination.to ?? 0,
+    total: dataListAge?.pagination.total ?? 0,
+    data: dataListAge?.data ?? [],
+  };
 // ==========  END AGE
 
 // ==========  GENDER
@@ -138,22 +166,26 @@ export function useDashboardAnalytics() {
   } = useQuery({
     queryKey: ["listAdditional", paginationAdd, searchAdd, typeAdditional],
     queryFn: () => getAdditionalListDetail(paginationAdd, searchAdd, typeAdditional),
+    enabled: !!typeAdditional,
   });
-
-  const dataPaginationAdditionalDetail: PaginatedResponse<AdditionalListDetailData> = {
+  
+const dataPaginationAdditionalDetail: PaginatedResponse<AdditionalListDetailData> =
+  useMemo(() => ({
     current_page: additionalStatDetail?.pagination.current_page ?? 1,
-    current_page_url: `${additionalStatDetail?.pagination.first ?? ''}`,
+    current_page_url: additionalStatDetail?.pagination.first ?? '',
     first_page_url: additionalStatDetail?.pagination.first ?? '',
     from: additionalStatDetail?.pagination.from ?? 0,
     last_page: additionalStatDetail?.pagination.last_page ?? 1,
     next_page_url: additionalStatDetail?.pagination.next ?? null,
     path: 'api/v1/dashboard/analytic/additional-detail',
-    per_page: additionalStatDetail?.pagination.per_page ?? 10,
+    per_page:
+      additionalStatDetail?.pagination.per_page ?? paginationAdd.pageIndex,
     prev_page_url: additionalStatDetail?.pagination.prev ?? null,
     to: additionalStatDetail?.pagination.to ?? 0,
     total: additionalStatDetail?.pagination.total ?? 0,
     data: additionalStatDetail?.data ?? [],
-  };
+  }), [additionalStatDetail, paginationAdd.pageSize]);
+
 // ==========  END ADDITIONAL
 
   return {
@@ -198,5 +230,12 @@ export function useDashboardAnalytics() {
     setPaginationAdd,
     searchAdd,
     setSearchAdd,
+    dataListAge,
+    loadingListAge,
+    dataPaginationAge,
+    paginationAge,
+    setPaginationAge,
+    searchAge,
+    setSearchAge,
   };
 }

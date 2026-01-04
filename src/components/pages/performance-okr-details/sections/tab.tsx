@@ -1,24 +1,25 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { cn } from "@/lib/utils";
-import { ObjectiveTab } from "./objective-tab";
-import { KeyResultTab } from "./key-result-tab";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { cn } from '@/lib/utils';
+import { ObjectiveTab } from './objective-tab';
+import { KeyResultTab } from './key-result-tab';
+import OKRChartsSection from './dashboard';
 
 export function OKRTab() {
   const tabs = [
     {
-      name: "Objective Key Result",
-      value: "1",
+      name: 'Objective Key Result',
+      value: '1',
       content: <ObjectiveTab />,
     },
     {
-      name: "Key Result",
-      value: "2",
+      name: 'Key Result',
+      value: '2',
       content: <KeyResultTab />,
     },
     {
-      name: "Dashboard",
-      value: "3",
-      content: <div>Dashboard</div>,
+      name: 'Dashboard',
+      value: '3',
+      content: <OKRChartsSection />,
     },
   ];
 
@@ -30,8 +31,8 @@ export function OKRTab() {
             key={tab.value}
             value={tab.value}
             className={cn(
-              "px-2.5 sm:px-3 text-secondary-hover",
-              "data-[state=active]:bg-secondary data-[state=active]:text-white",
+              'px-2.5 sm:px-3 text-secondary-hover',
+              'data-[state=active]:bg-secondary data-[state=active]:text-white',
             )}
           >
             <code className="flex items-center gap-1 text-[13px] [&>svg]:h-4 [&>svg]:w-4">

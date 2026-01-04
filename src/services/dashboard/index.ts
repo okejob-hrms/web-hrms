@@ -1,5 +1,5 @@
 import { api } from "@/lib/api";
-import { AdditionalList, AdditionalListDetail, AgeStatResponse, AttendanceStatResponse, AttListStatResponse, AttStatResponse, DataOffboardingTrendResponse, EmployeeStatResponse, ExperienceStatResponse, ExperienceTrend, ExpTrendListDataResponse, GenderStatResponse, OffboardingResponse, PayrollDashboardResponse, PendingResponse } from "./types";
+import { AdditionalList, AdditionalListDetail, AgeListDataResponse, AgeStatResponse, AttendanceStatResponse, AttListStatResponse, AttStatResponse, DataOffboardingTrendResponse, EmployeeStatResponse, ExperienceStatResponse, ExperienceTrend, ExpTrendListDataResponse, GenderStatResponse, OffboardingResponse, PayrollDashboardResponse, PendingResponse } from "./types";
 import { PaginationState } from "@tanstack/react-table";
 
 export const getPendingStat = async (): Promise<PendingResponse> => {
@@ -307,7 +307,30 @@ export const getPayrollDashboard = async (
   }
 
   const response = await api.get<PayrollDashboardResponse>(
-    'dashboard/analytic/payroll/stat',
+    'dashboard/payroll/stat',
+  )
+
+  return response.json()
+}
+
+export const getAgeStatList = async (
+  pagination?: PaginationState,
+  search?: string,
+): Promise<AgeListDataResponse> => {
+  const searchParams: Record<string, string> = {}
+
+  if (pagination) {
+    searchParams.page = String(pagination.pageIndex + 1)
+    searchParams.per_page = String(pagination.pageSize)
+  }
+
+  if (search?.trim()) {
+    searchParams.search = search
+  }
+
+  const response = await api.get<AgeListDataResponse>(
+    'dashboard/analytic/age-spread-detail',
+    { searchParams }
   )
 
   return response.json()
