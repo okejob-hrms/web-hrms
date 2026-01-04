@@ -83,9 +83,9 @@ const CardKeyResult = ({ keyResult }: CardKeyResultProps) => {
       </div>
       <div className="flex gap-1 items-center justify-between">
         <span>{keyResult.title}</span>
-        <Button size="sm" variant="ghost" onClick={() => setOpenFormKpi(true)}>
+        {/* <Button size="sm" variant="ghost" onClick={() => setOpenFormKpi(true)}>
           <Edit />
-        </Button>
+        </Button> */}
       </div>
       <LinearProgress value={keyResult.progress} />
       <FormKpi

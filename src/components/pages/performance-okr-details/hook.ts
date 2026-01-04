@@ -14,6 +14,7 @@ import {
   getOKRCycleDetails,
   getOKRTrackingPeriods,
   setOKRTrackingPeriods,
+  setStatusOKRCycle,
   updateOKRObjective,
 } from "@/services/okr";
 import { useParams, useRouter } from "next/navigation";
@@ -317,8 +318,37 @@ export const useOKRDetails = () => {
     }
   };
 
+  const initiateOKRMutation = useMutation({
+    mutationFn: () => setStatusOKRCycle({ status: 1 }, id!),
+    onSuccess: () => {
+      toast.success("OKR initiated successfully!");
+      queryClient.invalidateQueries({ queryKey: ["okrCycleDetails", id] });
+      setOpenInitiateOKR(false);
+    },
+    onError: (error: any) => {
+      if (error?.response) {
+        try {
+          error.response
+            .json()
+            .then((errorData: ApiErrorResponse) => {
+              toast.error(errorData.message || "Failed to initiate OKR");
+            })
+            .catch(() => {
+              toast.error("Failed to initiate OKR: Server error");
+            });
+        } catch (parseError) {
+          toast.error("Failed to initiate OKR: Server error");
+        }
+      } else {
+        toast.error(
+          `Failed to initiate OKR: ${error.message || "Unknown error"}`,
+        );
+      }
+    },
+  });
+
   const handleInitiateOKR = () => {
-    setOpenInitiateOKR(false);
+    initiateOKRMutation.mutate();
   };
 
   return {

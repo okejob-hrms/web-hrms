@@ -182,6 +182,29 @@ export const updateOKRObjective = async (
   }
 };
 
+export const setStatusOKRCycle = async (
+  params: { status: number },
+  id: number,
+): Promise<IOKRResponse> => {
+  try {
+    const response = await api.post<IOKRResponse>(`okr/cycles/${id}/status`, {
+      json: params,
+    });
+    return response.json();
+  } catch (error: any) {
+    if (error.name === "HTTPError") {
+      const errorResponse = await error.response.json();
+      const enhancedError = new Error(error.message);
+      (enhancedError as any).response = {
+        json: () => Promise.resolve(errorResponse),
+        status: error.response.status,
+      };
+      throw enhancedError;
+    }
+    throw error;
+  }
+};
+
 export const createOKRKeyResult = async (
   params: IOKRKeyResultRequest,
 ): Promise<IOKRResponse> => {
