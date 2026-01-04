@@ -98,6 +98,24 @@ export const updateOKRCycle = async (
   }
 };
 
+export const deleteOKRCycle = async (id: number): Promise<IOKRResponse> => {
+  try {
+    const response = await api.delete<IOKRResponse>(`okr/cycles/${id}`);
+    return response.json();
+  } catch (error: any) {
+    if (error.name === "HTTPError") {
+      const errorResponse = await error.response.json();
+      const enhancedError = new Error(error.message);
+      (enhancedError as any).response = {
+        json: () => Promise.resolve(errorResponse),
+        status: error.response.status,
+      };
+      throw enhancedError;
+    }
+    throw error;
+  }
+};
+
 export const getOKRObjectives = async (): Promise<
   PaginatedResponse<IOKRResponse>
 > => {
@@ -124,6 +142,52 @@ export const createOKRObjective = async (
 ): Promise<IOKRResponse> => {
   try {
     const response = await api.post<IOKRResponse>("okr/objectives", {
+      json: params,
+    });
+    return response.json();
+  } catch (error: any) {
+    if (error.name === "HTTPError") {
+      const errorResponse = await error.response.json();
+      const enhancedError = new Error(error.message);
+      (enhancedError as any).response = {
+        json: () => Promise.resolve(errorResponse),
+        status: error.response.status,
+      };
+      throw enhancedError;
+    }
+    throw error;
+  }
+};
+
+export const updateOKRObjective = async (
+  params: IOKRObjectiveRequest,
+  id: number,
+): Promise<IOKRResponse> => {
+  try {
+    const response = await api.put<IOKRResponse>(`okr/objectives/${id}`, {
+      json: params,
+    });
+    return response.json();
+  } catch (error: any) {
+    if (error.name === "HTTPError") {
+      const errorResponse = await error.response.json();
+      const enhancedError = new Error(error.message);
+      (enhancedError as any).response = {
+        json: () => Promise.resolve(errorResponse),
+        status: error.response.status,
+      };
+      throw enhancedError;
+    }
+    throw error;
+  }
+};
+
+export const setStatusOKRCycle = async (
+  params: { status: number },
+  id: number,
+): Promise<IOKRResponse> => {
+  try {
+    const response = await api.post<IOKRResponse>(`okr/cycles/${id}/status`, {
       json: params,
     });
     return response.json();

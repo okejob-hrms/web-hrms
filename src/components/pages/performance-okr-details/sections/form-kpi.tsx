@@ -261,7 +261,6 @@ export const FormKpi = ({
             <SelectForm
               name="direction"
               label="Direction"
-              isOptional
               className="w-full"
               options={directionOptions}
             />

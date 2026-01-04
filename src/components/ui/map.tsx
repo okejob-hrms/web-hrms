@@ -1,17 +1,24 @@
-'use client';
+"use client";
 
-import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
-import { useEffect } from 'react';
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  useMapEvents,
+  useMap,
+} from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
+import { useEffect } from "react";
 
 type Props = {
   location: { lat: number; lng: number };
   setLocation: (loc: { lat: number; lng: number }) => void;
+  flyTo?: { lat: number; lng: number } | null;
 };
 
 const customIcon = new L.Icon({
-  iconUrl: '/icons/map-pin.svg', // ganti sesuai path asset marker kamu
+  iconUrl: "/icons/map-pin.svg",
   iconSize: [25, 41],
   iconAnchor: [12, 41],
 });
@@ -30,17 +37,38 @@ function LocationMarker({
   return null;
 }
 
-export default function MapPicker({ location, setLocation }: Props) {
+function FlyToLocation({
+  flyTo,
+}: {
+  flyTo: { lat: number; lng: number } | null;
+}) {
+  const map = useMap();
+
   useEffect(() => {
-    // Bisa dipakai untuk debugging
-    console.log('Current location:', location);
+    if (flyTo) {
+      map.flyTo([flyTo.lat, flyTo.lng], 15, {
+        duration: 1.5,
+      });
+    }
+  }, [flyTo, map]);
+
+  return null;
+}
+
+export default function MapPicker({
+  location,
+  setLocation,
+  flyTo = null,
+}: Props) {
+  useEffect(() => {
+    console.log("Current location:", location);
   }, [location]);
 
   return (
     <MapContainer
       center={[location.lat, location.lng]}
       zoom={13}
-      style={{ height: '400px', width: '100%' }}
+      style={{ height: "400px", width: "100%" }}
     >
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -48,6 +76,7 @@ export default function MapPicker({ location, setLocation }: Props) {
       />
       <Marker position={[location.lat, location.lng]} icon={customIcon} />
       <LocationMarker setLocation={setLocation} />
+      <FlyToLocation flyTo={flyTo} />
     </MapContainer>
   );
 }

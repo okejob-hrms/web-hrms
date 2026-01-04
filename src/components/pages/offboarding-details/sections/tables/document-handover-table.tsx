@@ -263,10 +263,12 @@ export const FormModal = React.memo(function FormModal({
         name: editData.name || "",
         recipients: ids as any,
       });
-      setSelectedRecipients(editData.recipients.map((r) => ({
-        user_id: r.user_id,
-        status: r.status,
-      })));
+      setSelectedRecipients(
+        editData.recipients.map((r) => ({
+          user_id: r.user_id,
+          status: r.status,
+        })),
+      );
       setDefaultRecipients(ids.map(String));
     } else if (open) {
       form.reset({

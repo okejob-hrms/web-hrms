@@ -10,13 +10,17 @@ import { ApiErrorResponse } from "@/lib/types";
 import {
   createOKRKeyResult,
   createOKRObjective,
+  deleteOKRCycle,
   getOKRCycleDetails,
   getOKRTrackingPeriods,
   setOKRTrackingPeriods,
+  setStatusOKRCycle,
+  updateOKRObjective,
 } from "@/services/okr";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
   IOKRKeyResultRequest,
+  IOKRObjective,
   IOKRTrackingKeyResult,
   IOKRTrackingPeriodRequest,
 } from "@/services/okr/types";
@@ -24,10 +28,15 @@ import {
 export const useOKRDetails = () => {
   const queryClient = useQueryClient();
   const params = useParams();
+  const router = useRouter();
   const [searchOKR, setSearchOKR] = React.useState("");
   const [searchKPI, setSearchKPI] = React.useState("");
   const [openFormObjective, setOpenFormObjective] = React.useState(false);
   const [openFormKpi, setOpenFormKpi] = React.useState(false);
+  const [openInitiateOKR, setOpenInitiateOKR] = React.useState(false);
+  const [openDeleteOKR, setOpenDeleteOKR] = React.useState(false);
+  const [selectedObjective, setSelectedObjective] =
+    React.useState<IOKRObjective | null>(null);
 
   const formKpi = useForm();
   const id = React.useMemo(() => {
@@ -115,7 +124,7 @@ export const useOKRDetails = () => {
     mutationFn: createOKRObjective,
     onSuccess: () => {
       toast.success("Add new Objective successfully!");
-      queryClient.invalidateQueries({ queryKey: ["okr-details"] });
+      queryClient.invalidateQueries({ queryKey: ["okrCycleDetails", id] });
       setOpenFormObjective(false);
     },
     onError: (error: any) => {
@@ -150,15 +159,92 @@ export const useOKRDetails = () => {
     },
   });
 
+  const updateObjectiveMutation = useMutation({
+    mutationFn: ({
+      objectiveId,
+      data,
+    }: {
+      objectiveId: number;
+      data: { title: string };
+    }) =>
+      updateOKRObjective({ okr_cycle_id: id!, title: data.title }, objectiveId),
+    onSuccess: () => {
+      toast.success("Objective updated successfully!");
+      queryClient.invalidateQueries({ queryKey: ["okrCycleDetails", id] });
+      setOpenFormObjective(false);
+      setSelectedObjective(null);
+    },
+    onError: (error: any) => {
+      if (error?.response) {
+        try {
+          error.response
+            .json()
+            .then((errorData: ApiErrorResponse) => {
+              toast.error(errorData.message || "Failed to update Objective");
+            })
+            .catch(() => {
+              toast.error("Failed to update Objective: Server error");
+            });
+        } catch (parseError) {
+          toast.error("Failed to update Objective: Server error");
+        }
+      } else {
+        toast.error(
+          `Failed to update Objective: ${error.message || "Unknown error"}`,
+        );
+      }
+    },
+  });
+
+  const deleteObjectiveMutation = useMutation({
+    mutationFn: () => deleteOKRCycle(id!),
+    onSuccess: () => {
+      toast.success("OKR deleted successfully!");
+      queryClient.invalidateQueries({ queryKey: ["okr-cycles"] });
+      router.push("/performance/okr");
+    },
+    onError: (error: any) => {
+      if (error?.response) {
+        try {
+          error.response
+            .json()
+            .then((errorData: ApiErrorResponse) => {
+              toast.error(errorData.message || "Failed to delete OKR");
+            })
+            .catch(() => {
+              toast.error("Failed to delete OKR: Server error");
+            });
+        } catch (parseError) {
+          toast.error("Failed to delete OKR: Server error");
+        }
+      } else {
+        toast.error(
+          `Failed to delete OKR: ${error.message || "Unknown error"}`,
+        );
+      }
+    },
+  });
+
   const handleSaveKpi = (data: IOKRKeyResultRequest) => {
     createKeyResult.mutate(data);
   };
 
+  const handleDeleteOKR = () => {
+    deleteObjectiveMutation.mutate();
+  };
+
   const handleSaveObjective = (data: { title: string }) => {
-    createObjectiveMutation.mutate({
-      okr_cycle_id: id!,
-      title: data.title,
-    });
+    if (selectedObjective) {
+      updateObjectiveMutation.mutate({
+        objectiveId: selectedObjective.id,
+        data,
+      });
+    } else {
+      createObjectiveMutation.mutate({
+        okr_cycle_id: id!,
+        title: data.title,
+      });
+    }
   };
 
   const handleOpenKeyResultForm = (objective_id: number) => {
@@ -193,7 +279,6 @@ export const useOKRDetails = () => {
     { label: "Weekly", value: "2" },
     { label: "Monthly", value: "3" },
     { label: "Quarterly", value: "4" },
-    { label: "Yearly", value: "5" },
   ];
 
   const formatOptions = [
@@ -221,15 +306,66 @@ export const useOKRDetails = () => {
     { label: "Lower is Better", value: "1" },
   ];
 
+  const handleShowEditObjective = (objective: IOKRObjective) => {
+    setSelectedObjective(objective);
+    setOpenFormObjective(true);
+  };
+
+  const handleCloseFormObjective = (open: boolean) => {
+    setOpenFormObjective(open);
+    if (!open) {
+      setSelectedObjective(null);
+    }
+  };
+
+  const initiateOKRMutation = useMutation({
+    mutationFn: () => setStatusOKRCycle({ status: 1 }, id!),
+    onSuccess: () => {
+      toast.success("OKR initiated successfully!");
+      queryClient.invalidateQueries({ queryKey: ["okrCycleDetails", id] });
+      setOpenInitiateOKR(false);
+    },
+    onError: (error: any) => {
+      if (error?.response) {
+        try {
+          error.response
+            .json()
+            .then((errorData: ApiErrorResponse) => {
+              toast.error(errorData.message || "Failed to initiate OKR");
+            })
+            .catch(() => {
+              toast.error("Failed to initiate OKR: Server error");
+            });
+        } catch (parseError) {
+          toast.error("Failed to initiate OKR: Server error");
+        }
+      } else {
+        toast.error(
+          `Failed to initiate OKR: ${error.message || "Unknown error"}`,
+        );
+      }
+    },
+  });
+
+  const handleInitiateOKR = () => {
+    initiateOKRMutation.mutate();
+  };
+
   return {
+    id,
     searchOKR,
     setSearchOKR,
     searchKPI,
     setSearchKPI,
     openFormObjective,
-    setOpenFormObjective,
+    setOpenFormObjective: handleCloseFormObjective,
+    selectedObjective,
     openFormKpi,
     setOpenFormKpi,
+    openInitiateOKR,
+    setOpenInitiateOKR,
+    openDeleteOKR,
+    setOpenDeleteOKR,
     jobPositionOptions,
     jobLevelOptions,
     frequencyOptions,
@@ -239,6 +375,9 @@ export const useOKRDetails = () => {
     handleSaveKpi,
     handleSaveObjective,
     handleOpenKeyResultForm,
+    handleShowEditObjective,
+    handleInitiateOKR,
+    handleDeleteOKR,
     formKpi,
     kpiOptions,
     detailOKRCycle,

@@ -32,6 +32,7 @@ import {
   getPerformanceCompetencies,
   getPerformanceCompetencyLevels,
 } from "@/services/performance-competency";
+import { TextAreaForm } from "@/components/ui/textarea";
 
 interface LibraryFormProps {
   groupIndex?: number;
@@ -112,6 +113,19 @@ export const LibraryForm = React.memo(function LibraryForm({
 
   const minValue = form.watch(`${fieldPrefix}.options.min`) || 1;
   const maxValue = form.watch(`${fieldPrefix}.options.max`) || 8;
+
+  React.useEffect(() => {
+    if (answerType === "range" && fieldPrefix) {
+      const currentOptions = form.getValues(`${fieldPrefix}.options`);
+      if (!currentOptions?.min || !currentOptions?.max) {
+        form.setValue(
+          `${fieldPrefix}.options`,
+          { min: 1, max: 8 },
+          { shouldValidate: false, shouldDirty: true },
+        );
+      }
+    }
+  }, [answerType, fieldPrefix, form]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -274,6 +288,20 @@ export const CustomForm = React.memo(function CustomForm({
   const maxValue = form.watch(`${fieldPrefix}.options.max`) || 8;
   const answerType = form.watch(`${fieldPrefix}.type`);
 
+  // Initialize default options when range type is selected
+  React.useEffect(() => {
+    if (answerType === "range" && fieldPrefix) {
+      const currentOptions = form.getValues(`${fieldPrefix}.options`);
+      if (!currentOptions?.min || !currentOptions?.max) {
+        form.setValue(
+          `${fieldPrefix}.options`,
+          { min: 1, max: 8 },
+          { shouldValidate: false, shouldDirty: true },
+        );
+      }
+    }
+  }, [answerType, fieldPrefix, form]);
+
   return (
     <div className="flex flex-col gap-4">
       <InputForm
@@ -281,7 +309,12 @@ export const CustomForm = React.memo(function CustomForm({
         label="Aspect Name"
         placeholder="e.g., Work Environment"
       />
-
+      <TextAreaForm
+        name={`${fieldPrefix}.description`}
+        label="Description"
+        placeholder="e.g., Work Environment"
+        isOptional
+      />
       <SelectForm
         name={`${fieldPrefix}.type`}
         label="Answer Type"
@@ -517,10 +550,7 @@ export const FormCompetencyTemplate = React.memo(
           />
         )}
         {selectedType === "custom" && (
-          <CustomForm
-            groupIndex={groupIndex}
-            fieldIndex={fieldIndex}
-          />
+          <CustomForm groupIndex={groupIndex} fieldIndex={fieldIndex} />
         )}
       </div>
     );

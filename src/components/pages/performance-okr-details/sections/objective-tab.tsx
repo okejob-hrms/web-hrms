@@ -1,5 +1,11 @@
 import { Input } from "@/components/ui/input";
-import { Edit, Ellipsis, Plus, Search } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Edit, Edit2, Ellipsis, Plus, Search, Trash } from "lucide-react";
 import { useOKRDetails } from "../hook";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -10,14 +16,17 @@ import { LinearProgress } from "@/components/ui/progress";
 import { FormObjective } from "./form-objective";
 import { FormKpi } from "./form-kpi";
 import { IOKRKeyResult, IOKRObjective } from "@/services/okr/types";
+import React from "react";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import { getStatusOKRCycle } from "@/lib/helpers";
 
 dayjs.extend(relativeTime);
 
 interface CardObjectiveProps {
   objective: IOKRObjective;
   onNewKpi: () => void;
+  handleRenameObjective: (objective: IOKRObjective) => void;
 }
 
 interface CardKeyResultProps {
@@ -74,9 +83,9 @@ const CardKeyResult = ({ keyResult }: CardKeyResultProps) => {
       </div>
       <div className="flex gap-1 items-center justify-between">
         <span>{keyResult.title}</span>
-        <Button size="sm" variant="ghost" onClick={() => setOpenFormKpi(true)}>
+        {/* <Button size="sm" variant="ghost" onClick={() => setOpenFormKpi(true)}>
           <Edit />
-        </Button>
+        </Button> */}
       </div>
       <LinearProgress value={keyResult.progress} />
       <FormKpi
@@ -98,8 +107,13 @@ const CardKeyResult = ({ keyResult }: CardKeyResultProps) => {
   );
 };
 
-const CardObjective = ({ onNewKpi, objective }: CardObjectiveProps) => {
+const CardObjective = ({
+  onNewKpi,
+  objective,
+  handleRenameObjective,
+}: CardObjectiveProps) => {
   const keyResults = objective.key_results;
+  const status = getStatusOKRCycle(objective.status_label);
   return (
     <div className="border border-grayscale-20 rounded-md shadow-sm w-full md:min-w-[418px] h-fit">
       <div className="flex flex-row justify-between items-center p-4">
@@ -116,9 +130,37 @@ const CardObjective = ({ onNewKpi, objective }: CardObjectiveProps) => {
           >
             <Plus />
           </Button>
-          <Button size="sm" className="px-2! py-1!" variant="ghost">
-            <Ellipsis />
-          </Button>
+          {status.label === "Draft" && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="p-1 hover:bg-gray-100 rounded">
+                  <Ellipsis className="text-grayscale-30" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem asChild>
+                  <button
+                    onClick={() => handleRenameObjective(objective)}
+                    className="flex gap-2 w-full text-left"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                    Rename
+                  </button>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <button
+                    onClick={() => {
+                      // handleDelete();
+                    }}
+                    className="flex gap-2 w-full text-left"
+                  >
+                    <Trash className="w-4 h-4" />
+                    Delete
+                  </button>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       </div>
       <Separator />
@@ -159,6 +201,8 @@ export const ObjectiveTab = () => {
     handleSaveObjective,
     detailOKRCycle,
     handleOpenKeyResultForm,
+    handleShowEditObjective,
+    selectedObjective,
   } = useOKRDetails();
   return (
     <div>
@@ -186,6 +230,7 @@ export const ObjectiveTab = () => {
               key={objective.id}
               onNewKpi={() => handleOpenKeyResultForm(objective.id)}
               objective={objective}
+              handleRenameObjective={() => handleShowEditObjective(objective)}
             />
           ))}
         </div>
@@ -195,6 +240,9 @@ export const ObjectiveTab = () => {
         open={openFormObjective}
         onOpenChange={setOpenFormObjective}
         onCreate={(data: { title: string }) => handleSaveObjective(data)}
+        defaultValues={
+          selectedObjective ? { title: selectedObjective.title } : undefined
+        }
       />
       <FormKpi
         open={openFormKpi}

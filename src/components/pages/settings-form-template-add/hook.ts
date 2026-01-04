@@ -24,6 +24,7 @@ import { useRouter } from "next/navigation";
 
 interface FormFieldData {
   label: string;
+  description?: string;
   type?: string;
   is_required: boolean;
   order: number;
@@ -146,6 +147,7 @@ export function useFormTemplateAdd({
           fields:
             group.fields?.map((field, index) => ({
               label: field.label || "",
+              description: field.description || "",
               type: field.type || "",
               is_required: field.is_required || false,
               order: field.order ?? index,
@@ -338,6 +340,7 @@ export function useFormTemplateAdd({
             metadata: group.metadata,
             fields: group.fields.map((field, index) => ({
               label: field.label,
+              description: field.description,
               type: field.type,
               is_required: field.is_required,
               order: index,
@@ -372,6 +375,7 @@ export function useFormTemplateAdd({
             metadata: group.metadata,
             fields: group.fields.map((field, index) => ({
               label: field.label,
+              description: field.description,
               type: field.type,
               is_required: field.is_required,
               order: index,

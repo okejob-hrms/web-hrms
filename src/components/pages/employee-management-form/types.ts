@@ -62,23 +62,25 @@ export const employeeManagementFormScheme = z.object({
   account_number: z.string().min(1, "required"),
   account_name: z.string().min(1, "required"),
 
-  attachments: z.array(
-    z.object({
-      type: z.string().min(1, "required"),
-      path: z.string(),
+  attachments: z
+    .array(
+      z.object({
+        type: z.string().min(1, "required"),
+        path: z.string(),
+      }),
+    )
+    .superRefine((attachments, ctx) => {
+      const optionalTypes = ["other"];
+      attachments.forEach((att, index) => {
+        if (!optionalTypes.includes(att.type) && att.path.trim() === "") {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "required",
+            path: [index, "path"],
+          });
+        }
+      });
     }),
-  ).superRefine((attachments, ctx) => {
-    const optionalTypes = ["other"];
-    attachments.forEach((att, index) => {
-      if (!optionalTypes.includes(att.type) && att.path.trim() === "") {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "required",
-          path: [index, "path"],
-        });
-      }
-    });
-  }),
   employee_documents: z
     .array(
       z.object({

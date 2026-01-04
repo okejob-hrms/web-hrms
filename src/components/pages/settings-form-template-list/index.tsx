@@ -109,7 +109,7 @@ export default function FormTemplateList() {
               <DropdownMenuItem>
                 <Link
                   href={`/settings/form-template/edit/${row.original.id}`}
-                  className="flex gap-2 justify-between items-center"
+                  className="flex gap-2 justify-baseline items-center w-full"
                 >
                   <Image
                     src="/icons/editGrey.svg"
@@ -122,7 +122,7 @@ export default function FormTemplateList() {
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <button
-                  className="flex gap-2"
+                  className="flex gap-2 justify-baseline items-center w-full cursor-pointer"
                   onClick={() => {
                     setSelectedId(String(row.original.id));
                     setOpenDelete(true);
