@@ -12,8 +12,6 @@ interface Props {
   kr: {
     id: number;
     name: string;
-    status: number;
-
     frequency: string;
     averageActual: number;
     averageTarget: number;
