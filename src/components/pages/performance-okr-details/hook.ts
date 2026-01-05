@@ -24,6 +24,7 @@ import {
   IOKRTrackingKeyResult,
   IOKRTrackingPeriodRequest,
 } from "@/services/okr/types";
+import { getStatusOKRCycle } from "@/lib/helpers";
 
 export const useOKRDetails = () => {
   const queryClient = useQueryClient();
@@ -323,6 +324,7 @@ export const useOKRDetails = () => {
     onSuccess: () => {
       toast.success("OKR initiated successfully!");
       queryClient.invalidateQueries({ queryKey: ["okrCycleDetails", id] });
+      queryClient.invalidateQueries({ queryKey: ["okr-cycles"] });
       setOpenInitiateOKR(false);
     },
     onError: (error: any) => {
@@ -351,6 +353,7 @@ export const useOKRDetails = () => {
     initiateOKRMutation.mutate();
   };
 
+  const status = getStatusOKRCycle(detailOKRCycle?.data?.status_label);
   return {
     id,
     searchOKR,
@@ -382,6 +385,7 @@ export const useOKRDetails = () => {
     kpiOptions,
     detailOKRCycle,
     isLoadingDetailOKRCycle,
+    status
   };
 };
 

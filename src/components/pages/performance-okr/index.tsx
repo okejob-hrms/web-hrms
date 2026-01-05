@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowDown, ArrowUp, ChevronsUpDown, Eye } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
 import dayjs from "dayjs";
 import useOKR from "./hook";
 import FormModal from "./sections/form-modal";
@@ -19,7 +18,6 @@ export default function PerformanceOKR() {
     paginationState,
     setPagination,
     openForm,
-    setOpenForm,
     handleNew,
     handleDetail,
     handleSave,

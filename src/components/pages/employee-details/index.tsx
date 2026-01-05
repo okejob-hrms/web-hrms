@@ -12,7 +12,6 @@ import { PayrollDetail } from "./sections/payroll";
 import { useQuery } from "@tanstack/react-query";
 import { getEmployeeDetail } from "@/services/employees";
 import { IEmployeeDetailsResponse } from "@/services/employees/types";
-import { AssetsDetail } from "./sections/assets";
 import { AttendanceDetail } from "./sections/attendance";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
@@ -51,12 +50,6 @@ export function Tab({ data }: TabProps) {
       value: "attendance",
       content: <AttendanceDetail data={data} />,
       icon: <Icon name="clock" size={18} color="currentColor" />,
-    },
-    {
-      name: "Assets",
-      value: "assets",
-      content: <AssetsDetail />,
-      icon: <Icon name="inventory" size={18} color="currentColor" />,
     },
   ];
   return (
