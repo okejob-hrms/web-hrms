@@ -5,6 +5,7 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
+  Bar,
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -36,10 +37,26 @@ export function OKRKeyResultCard({ kr }: Props) {
       <CardContent className="h-[260px]">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={kr.chartData}>
-            <XAxis dataKey="label" />
-            <YAxis />
+            <XAxis
+              dataKey="label"
+              stroke="#6b7280"
+              tickLine={false}
+              tick={{ fontSize: 13, fill: '#9ca3af' }}
+            />
+            <YAxis
+              stroke="#6b7280"
+              tickLine={false}
+              allowDecimals={false}
+              tick={{ fontSize: 13, fill: '#9ca3af' }}
+              width={30}
+            />
             <Tooltip />
-            <Line type="monotone" dataKey="value" strokeWidth={2} />
+            <Bar
+              dataKey="value"
+              barSize={24}
+              radius={[3, 3, 0, 0]}
+              fill="#C86AA4"
+            />
             <Line type="monotone" dataKey="target" strokeDasharray="4 4" />
           </LineChart>
         </ResponsiveContainer>
