@@ -8,6 +8,7 @@ import {
   IPerformanceCompetencyLevel,
   IPerformanceCompetencyResponse,
   IPaginatedParam,
+  IPerformanceLevelParam,
 } from "./types";
 import qs from "qs";
 
@@ -121,13 +122,17 @@ export const deletePerformanceCompetency = async (
   }
 };
 
-export const getPerformanceCompetencyLevels = async (): Promise<
-  ApiResponse<PaginatedResponse<IPerformanceCompetencyLevel>>
-> => {
+export const getPerformanceCompetencyLevels = async (
+  params: IPaginatedParam & IPerformanceLevelParam,
+): Promise<PaginatedResponse<IPerformanceCompetencyLevel>> => {
   try {
     return api
-      .get(`setting/performance-competency-levels`)
-      .json<ApiResponse<PaginatedResponse<IPerformanceCompetencyLevel>>>();
+      .get(
+        params
+          ? `setting/performance-competency-levels?${qs.stringify(params)}`
+          : "setting/performance-competency-levels",
+      )
+      .json<PaginatedResponse<IPerformanceCompetencyLevel>>();
   } catch (error: any) {
     if (error.name === "HTTPError") {
       const errorResponse = await error.response.json();

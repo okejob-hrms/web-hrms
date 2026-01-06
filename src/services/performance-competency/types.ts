@@ -10,8 +10,14 @@ export interface IPerformanceCompetencyResponse {
 }
 
 export interface IPaginatedParam {
-  per_page: string;
-  page: string;
+  per_page?: string;
+  page?: string;
+}
+
+export interface IPerformanceLevelParam {
+  competency_id?: string;
+  dimensions: string;
+  level: string;
 }
 
 export interface ICompetency {

@@ -50,6 +50,15 @@ export const LibraryForm = React.memo(function LibraryForm({
   const form = useFormContext();
   const [searchTerm, setSearchTerm] = React.useState("");
   const [open, setOpen] = React.useState(false);
+  const fieldPrefix =
+    groupIndex !== undefined && fieldIndex !== undefined
+      ? `groups.${groupIndex}.fields.${fieldIndex}`
+      : "";
+  const selectedCompetencyId = form.watch(
+    `${fieldPrefix}.metadata.competency_id`,
+  );
+  const selectedDimension = form.watch(`${fieldPrefix}.metadata.dimension`);
+  const watchedAnswerType = form.watch(`${fieldPrefix}.type`) || answerType;
 
   const { data: performanceCompetencies, isLoading: isLoadingCompetencies } =
     useQuery({
@@ -58,8 +67,14 @@ export const LibraryForm = React.memo(function LibraryForm({
     });
 
   const { data: levels, isLoading: isLoadingLevels } = useQuery({
-    queryKey: ["performance-levels"],
-    queryFn: () => getPerformanceCompetencyLevels(),
+    queryKey: ["performance-levels", selectedCompetencyId, selectedDimension],
+    queryFn: () =>
+      getPerformanceCompetencyLevels({
+        competency_id: selectedCompetencyId?.toString(),
+        dimensions: selectedDimension,
+        level: "",
+      }),
+    enabled: !!selectedCompetencyId && !!selectedDimension,
   });
 
   const competencyOptions = React.useMemo(
@@ -92,17 +107,30 @@ export const LibraryForm = React.memo(function LibraryForm({
 
   const levelOptions = React.useMemo(
     () =>
-      levels?.data?.data?.map((item) => ({
+      levels?.data?.map((item) => ({
         value: item.id.toString(),
         label: `[${item.level}] ${item.name}`,
       })) || [],
     [levels],
   );
 
-  const fieldPrefix =
-    groupIndex !== undefined && fieldIndex !== undefined
-      ? `groups.${groupIndex}.fields.${fieldIndex}`
-      : "";
+  const prevCompetencyIdRef = React.useRef(selectedCompetencyId);
+  const prevDimensionRef = React.useRef(selectedDimension);
+
+  React.useEffect(() => {
+    if (
+      (prevCompetencyIdRef.current !== selectedCompetencyId ||
+        prevDimensionRef.current !== selectedDimension) &&
+      fieldPrefix
+    ) {
+      form.setValue(`${fieldPrefix}.metadata.level_id`, undefined, {
+        shouldValidate: false,
+        shouldDirty: true,
+      });
+      prevCompetencyIdRef.current = selectedCompetencyId;
+      prevDimensionRef.current = selectedDimension;
+    }
+  }, [selectedCompetencyId, selectedDimension, fieldPrefix, form]);
 
   const filteredCompetencyOptions = React.useMemo(() => {
     if (searchTerm === "") return competencyOptions;
@@ -115,7 +143,7 @@ export const LibraryForm = React.memo(function LibraryForm({
   const maxValue = form.watch(`${fieldPrefix}.options.max`) || 8;
 
   React.useEffect(() => {
-    if (answerType === "range" && fieldPrefix) {
+    if (watchedAnswerType === "range" && fieldPrefix) {
       const currentOptions = form.getValues(`${fieldPrefix}.options`);
       if (!currentOptions?.min || !currentOptions?.max) {
         form.setValue(
@@ -125,7 +153,7 @@ export const LibraryForm = React.memo(function LibraryForm({
         );
       }
     }
-  }, [answerType, fieldPrefix, form]);
+  }, [watchedAnswerType, fieldPrefix, form]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -226,7 +254,7 @@ export const LibraryForm = React.memo(function LibraryForm({
         onChange={(e) => onAnswerTypeChange?.(e.target.value)}
       />
 
-      {answerType === "range" && (
+      {watchedAnswerType === "range" && (
         <div className="flex flex-col gap-2">
           <p className="text-sm font-normal">
             Range Configuration<span className="text-error">*</span>
@@ -288,7 +316,6 @@ export const CustomForm = React.memo(function CustomForm({
   const maxValue = form.watch(`${fieldPrefix}.options.max`) || 8;
   const answerType = form.watch(`${fieldPrefix}.type`);
 
-  // Initialize default options when range type is selected
   React.useEffect(() => {
     if (answerType === "range" && fieldPrefix) {
       const currentOptions = form.getValues(`${fieldPrefix}.options`);

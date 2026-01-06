@@ -27,6 +27,7 @@ interface CardObjectiveProps {
   objective: IOKRObjective;
   onNewKpi: () => void;
   handleRenameObjective: (objective: IOKRObjective) => void;
+  statusLabel: string;
 }
 
 interface CardKeyResultProps {
@@ -111,9 +112,9 @@ const CardObjective = ({
   onNewKpi,
   objective,
   handleRenameObjective,
+  statusLabel
 }: CardObjectiveProps) => {
   const keyResults = objective.key_results;
-  const status = getStatusOKRCycle(objective.status_label);
   return (
     <div className="border border-grayscale-20 rounded-md shadow-sm w-full md:min-w-[418px] h-fit">
       <div className="flex flex-row justify-between items-center p-4">
@@ -130,7 +131,7 @@ const CardObjective = ({
           >
             <Plus />
           </Button>
-          {status.label === "Draft" && (
+          {statusLabel === "Draft" && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="p-1 hover:bg-gray-100 rounded">
@@ -203,6 +204,7 @@ export const ObjectiveTab = () => {
     handleOpenKeyResultForm,
     handleShowEditObjective,
     selectedObjective,
+    status
   } = useOKRDetails();
   return (
     <div>
@@ -231,6 +233,7 @@ export const ObjectiveTab = () => {
               onNewKpi={() => handleOpenKeyResultForm(objective.id)}
               objective={objective}
               handleRenameObjective={() => handleShowEditObjective(objective)}
+              statusLabel={status.label}
             />
           ))}
         </div>
