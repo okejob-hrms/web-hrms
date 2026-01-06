@@ -58,6 +58,7 @@ export const LibraryForm = React.memo(function LibraryForm({
     `${fieldPrefix}.metadata.competency_id`,
   );
   const selectedDimension = form.watch(`${fieldPrefix}.metadata.dimension`);
+  const watchedAnswerType = form.watch(`${fieldPrefix}.type`) || answerType;
 
   const { data: performanceCompetencies, isLoading: isLoadingCompetencies } =
     useQuery({
@@ -142,7 +143,7 @@ export const LibraryForm = React.memo(function LibraryForm({
   const maxValue = form.watch(`${fieldPrefix}.options.max`) || 8;
 
   React.useEffect(() => {
-    if (answerType === "range" && fieldPrefix) {
+    if (watchedAnswerType === "range" && fieldPrefix) {
       const currentOptions = form.getValues(`${fieldPrefix}.options`);
       if (!currentOptions?.min || !currentOptions?.max) {
         form.setValue(
@@ -152,7 +153,7 @@ export const LibraryForm = React.memo(function LibraryForm({
         );
       }
     }
-  }, [answerType, fieldPrefix, form]);
+  }, [watchedAnswerType, fieldPrefix, form]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -253,7 +254,7 @@ export const LibraryForm = React.memo(function LibraryForm({
         onChange={(e) => onAnswerTypeChange?.(e.target.value)}
       />
 
-      {answerType === "range" && (
+      {watchedAnswerType === "range" && (
         <div className="flex flex-col gap-2">
           <p className="text-sm font-normal">
             Range Configuration<span className="text-error">*</span>
