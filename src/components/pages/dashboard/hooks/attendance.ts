@@ -1,17 +1,24 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { getAdditionalList, getAdditionalListDetail, getAgeStat, getAgeStatList, getAttendanceStat, getAttStat, getAttStatList, getEmployeeStat, getExperienceStat, getExperienceTrend, getExpStatList, getGenderStat, getOffboardingList, getOffboardingStat } from '@/services/dashboard';
 import { AdditionalListDetailData, AgeListData, AttListData, ExpTrendListData } from '@/services/dashboard/types';
 import { PaginatedResponse } from '@/lib/types';
 import { PaginationState } from '@tanstack/react-table';
-import { getJobPosition } from '@/services/job-position';
+import { getBranches, getBranchesAll } from '@/services/settings';
+import { getDepartment } from '@/services/department';
 
 export function useDashboardAnalytics() {
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: 10,
+  });
+  const [filter, setFilter] = useState({
+    start_date: "",
+    end_date: "",
+    branch_id: "",
+    department_id: "",
   });
   const [search, setSearch] = useState('');
   const [filters, setFilters] = useState({
@@ -37,10 +44,33 @@ export function useDashboardAnalytics() {
   });
   const [searchAge, setSearchAge] = useState('');
 
+  const {
+    data: branchesData,
+  } = useQuery({
+    queryKey: ["company-branches"],
+    queryFn: async () => {
+      const response = await getBranchesAll();
+      return response.data ?? [];
+    },
+  });
+
+  const {
+    data: departmentData,
+  } = useQuery({
+    queryKey: ["departments", pagination],
+    queryFn: () => getDepartment(pagination),
+  });
+  
+
 
 // ==========  ATTENDANCE
   const { data: attendanceStat, isLoading: attendanceStatLoading } = useQuery({
-    queryKey: ['attendanceStat', filters],
+    queryKey: ['attendanceStat', filter],
+    queryFn: () => getAttendanceStat(filter),
+  });
+
+  const { data: attendanceStatDetails, isLoading: attendanceStatLoadingDetails } = useQuery({
+    queryKey: ['attendanceStatDetails', filters],
     queryFn: () => getAttendanceStat(filters),
   });
 
@@ -53,8 +83,8 @@ export function useDashboardAnalytics() {
     data: dataListAtt,
     isLoading: loadingListAtt,
   } = useQuery({
-    queryKey: ["listAtt", pagination, search],
-    queryFn: () => getAttStatList(pagination, search),
+    queryKey: ["listAtt", pagination, search, filters],
+    queryFn: () => getAttStatList(pagination, search, filters),
   });
 
   const dataPaginationAtt: PaginatedResponse<AttListData> = {
@@ -76,15 +106,20 @@ export function useDashboardAnalytics() {
 
 // ==========  EMPLOYEE
   const { data: employeeStat, isLoading: employeeStatLoading } = useQuery({
-    queryKey: ['employeeStat', filters],
-    queryFn: () => getEmployeeStat(filters),
+    queryKey: ['employeeStat', filter],
+    queryFn: () => getEmployeeStat(filter),
   });
 // ==========  END EMPLOYEE
 
 
 // ==========  EXPERIENCE
   const { data: experienceStat, isLoading: experienceStatLoading } = useQuery({
-    queryKey: ['experienceStat', filters],
+    queryKey: ['experienceStat', filter],
+    queryFn: () => getExperienceStat(filter),
+  });
+
+  const { data: experienceStatDetail, isLoading: experienceStatLoadingDetail } = useQuery({
+    queryKey: ['experienceStatDetail', filters],
     queryFn: () => getExperienceStat(filters),
   });
 
@@ -97,8 +132,8 @@ export function useDashboardAnalytics() {
     data: dataListExpTrend,
     isLoading: loadingListExpTrend,
   } = useQuery({
-    queryKey: ["listExpTrend", paginationExp, searchExp],
-    queryFn: () => getExpStatList(paginationExp, searchExp),
+    queryKey: ["listExpTrend", paginationExp, searchExp, filters],
+    queryFn: () => getExpStatList(paginationExp, searchExp, filters),
   });
 
   const dataPaginationExpTrend: PaginatedResponse<ExpTrendListData> = {
@@ -119,16 +154,16 @@ export function useDashboardAnalytics() {
 
 // ==========  AGE
   const { data: ageStat, isLoading: ageStatLoading } = useQuery({
-    queryKey: ['ageStat', filters],
-    queryFn: () => getAgeStat(filters),
+    queryKey: ['ageStat', filter],
+    queryFn: () => getAgeStat(filter),
   });
 
   const {
     data: dataListAge,
     isLoading: loadingListAge,
   } = useQuery({
-    queryKey: ["listAge", paginationExp, searchExp],
-    queryFn: () => getAgeStatList(paginationExp, searchExp),
+    queryKey: ["listAge", paginationExp, searchAge],
+    queryFn: () => getAgeStatList(paginationExp, searchAge),
   });
 
   const dataPaginationAge: PaginatedResponse<AgeListData> = {
@@ -149,15 +184,15 @@ export function useDashboardAnalytics() {
 
 // ==========  GENDER
   const { data: genderStat, isLoading: genderStatLoading } = useQuery({
-    queryKey: ['genderStat', filters],
-    queryFn: () => getGenderStat(filters),
+    queryKey: ['genderStat', filter],
+    queryFn: () => getGenderStat(filter),
   });
 // ==========  END GENDER
 
 // ==========  ADDITIONAL
   const { data: additionalStat, isLoading: additionalStatLoading } = useQuery({
-    queryKey: ['additionalStat', filters],
-    queryFn: () => getAdditionalList(filters),
+    queryKey: ['additionalStat', filter],
+    queryFn: () => getAdditionalList(filter),
   });
 
   const {
@@ -189,6 +224,10 @@ const dataPaginationAdditionalDetail: PaginatedResponse<AdditionalListDetailData
 // ==========  END ADDITIONAL
 
   return {
+    filter,
+    setFilter,
+    attendanceStatDetails,
+    attendanceStatLoadingDetails,
     attendanceStat,
     attendanceStatLoading,
     dataListAtt,
@@ -237,5 +276,9 @@ const dataPaginationAdditionalDetail: PaginatedResponse<AdditionalListDetailData
     setPaginationAge,
     searchAge,
     setSearchAge,
+    branchesData,
+    departmentData,
+    experienceStatDetail,
+    experienceStatLoadingDetail,
   };
 }

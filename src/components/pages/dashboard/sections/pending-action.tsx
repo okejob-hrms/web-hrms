@@ -58,7 +58,7 @@ export const PendingAction = () => {
       case 'payslip':
         return <PayrollRequest />;
       default:
-        return <EmployeeOffboardingList />;
+        return <EmployeeOffboardingList hidePannel status={2} />;
     }
   }, [overview]);
 

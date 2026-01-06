@@ -35,6 +35,8 @@ export const Analytics = () => {
   const dashboardAnalytics = useDashboardAnalytics();
 
   const {
+    filter,
+    setFilter,
     attendanceStat,
     employeeStat,
     experienceStat,
@@ -42,6 +44,8 @@ export const Analytics = () => {
     genderStat,
     additionalStat,
     setTypeAdditional,
+    branchesData,
+    departmentData,
   } = dashboardAnalytics;
 
   const [openAttendance, setOpenAttendance] = React.useState(false);
@@ -484,46 +488,82 @@ export const Analytics = () => {
   return (
     <div className="font-sans min-h-screen flex flex-col space-y-6 py-6">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="space-y-1">
+        <div className="space-y-1 col-span-1 md:col-span-2">
           <div className="text-xs font-bold text-gray-600">Date Period</div>
-          <Input
-            type="date"
-            className="w-full"
-            name="date"
-            onChange={(e) => {
-              console.log(e);
-            }}
-          />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Input
+              type="date"
+              className="w-full"
+              name="start_date"
+              value={filter.start_date}
+              onChange={(e) => {
+                setFilter((prev) => ({
+                  ...prev,
+                  start_date: e.target.value,
+                }));
+              }}
+            />
+            <Input
+              type="date"
+              className="w-full"
+              name="end_date"
+              value={filter.end_date}
+              onChange={(e) => {
+                setFilter((prev) => ({
+                  ...prev,
+                  end_date: e.target.value,
+                }));
+              }}
+            />
+          </div>
         </div>
         <div className="space-y-1">
           <div className="text-xs font-bold text-gray-600">Branch</div>
           <Select
-            // value={}
+            value={filter.branch_id}
             onValueChange={(val) => {
-              console.log(val);
+              setFilter((prev) => ({
+                ...prev,
+                branch_id: val,
+              }));
             }}
           >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select branch" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="Branch 1">Branch 1</SelectItem>
+              {branchesData?.map((item, key) => {
+                return (
+                  <SelectItem key={key} value={String(item.id)}>
+                    {item.name}
+                  </SelectItem>
+                );
+              })}
             </SelectContent>
           </Select>
         </div>
         <div className="space-y-1">
           <div className="text-xs font-bold text-gray-600">Departement</div>
           <Select
-            // value={}
+            value={filter.department_id}
             onValueChange={(val) => {
-              console.log(val);
+              setFilter((prev) => ({
+                ...prev,
+                department_id: val,
+              }));
             }}
           >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select departement" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="Department 1">Department 1</SelectItem>
+              {departmentData?.data.data.map((item, key) => {
+                return (
+                  <SelectItem key={key} value={String(item.id)}>
+                    {item.name}
+                  </SelectItem>
+                );
+              })}
             </SelectContent>
           </Select>
         </div>

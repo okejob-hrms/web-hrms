@@ -52,16 +52,23 @@ export const getOffboardingList = async (
 }
 
 export const getAttendanceStat = async (
-  filters: { branch_id?: string; department_id?: string }
+  filters: { start_date?: string; end_date?: string; branch_id?: string; department_id?: string }
 ): Promise<AttendanceStatResponse> => {
   const searchParams: Record<string, string> = {}
+  if (filters.start_date) {
+    searchParams.start_date = filters.start_date
+  }
+
+  if (filters.end_date) {
+    searchParams.end_date = filters.end_date
+  }
 
   if (filters.branch_id) {
-    searchParams.start_date = filters.branch_id
+    searchParams.branch_id = filters.branch_id
   }
 
   if (filters.department_id) {
-    searchParams.end_date = filters.department_id
+    searchParams.department_id = filters.department_id
   }
 
   const response = await api.get<AttendanceStatResponse>(
@@ -73,16 +80,23 @@ export const getAttendanceStat = async (
 }
 
 export const getEmployeeStat = async (
-  filters: { branch_id?: string; department_id?: string }
+  filters: { start_date?:string; end_date?: string; branch_id?: string; department_id?: string }
 ): Promise<EmployeeStatResponse> => {
   const searchParams: Record<string, string> = {}
+  if (filters.start_date) {
+    searchParams.start_date = filters.start_date
+  }
+
+  if (filters.end_date) {
+    searchParams.end_date = filters.end_date
+  }
 
   if (filters.branch_id) {
-    searchParams.start_date = filters.branch_id
+    searchParams.branch_id = filters.branch_id
   }
 
   if (filters.department_id) {
-    searchParams.end_date = filters.department_id
+    searchParams.department_id = filters.department_id
   }
 
   const response = await api.get<EmployeeStatResponse>(
@@ -94,9 +108,16 @@ export const getEmployeeStat = async (
 }
 
 export const getExperienceStat = async (
-  filters: { branch_id?: string; department_id?: string }
+  filters: { start_date?:string; end_date?: string; branch_id?: string; department_id?: string }
 ): Promise<ExperienceStatResponse> => {
   const searchParams: Record<string, string> = {}
+  if (filters.start_date) {
+    searchParams.start_date = filters.start_date
+  }
+
+  if (filters.end_date) {
+    searchParams.end_date = filters.end_date
+  }
 
   if (filters.branch_id) {
     searchParams.start_date = filters.branch_id
@@ -115,16 +136,23 @@ export const getExperienceStat = async (
 }
 
 export const getAgeStat = async (
-  filters: { branch_id?: string; department_id?: string }
+  filters: { start_date?:string; end_date?: string; branch_id?: string; department_id?: string }
 ): Promise<AgeStatResponse> => {
   const searchParams: Record<string, string> = {}
+  if (filters.start_date) {
+    searchParams.start_date = filters.start_date
+  }
+
+  if (filters.end_date) {
+    searchParams.end_date = filters.end_date
+  }
 
   if (filters.branch_id) {
-    searchParams.start_date = filters.branch_id
+    searchParams.branch_id = filters.branch_id
   }
 
   if (filters.department_id) {
-    searchParams.end_date = filters.department_id
+    searchParams.department_id = filters.department_id
   }
 
   const response = await api.get<AgeStatResponse>(
@@ -136,10 +164,17 @@ export const getAgeStat = async (
 }
 
 export const getGenderStat = async (
-  filters: { branch_id?: string; department_id?: string }
+  filters: { start_date?:string; end_date?: string; branch_id?: string; department_id?: string }
 ): Promise<GenderStatResponse> => {
   const searchParams: Record<string, string> = {}
+  if (filters.start_date) {
+    searchParams.start_date = filters.start_date
+  }
 
+  if (filters.end_date) {
+    searchParams.end_date = filters.end_date
+  }
+  
   if (filters.branch_id) {
     searchParams.start_date = filters.branch_id
   }
@@ -157,9 +192,16 @@ export const getGenderStat = async (
 }
 
 export const getAttStat = async (
-  filters: { branch_id?: string; department_id?: string }
+  filters: { start_date?:string; end_date?: string;  branch_id?: string; department_id?: string }
 ): Promise<AttStatResponse> => {
   const searchParams: Record<string, string> = {}
+  if (filters.start_date) {
+    searchParams.start_date = filters.start_date
+  }
+
+  if (filters.end_date) {
+    searchParams.end_date = filters.end_date
+  }
 
   if (filters.branch_id) {
     searchParams.start_date = filters.branch_id
@@ -180,8 +222,24 @@ export const getAttStat = async (
 export const getAttStatList = async (
   pagination?: PaginationState,
   search?: string,
+  filters?: { start_date?:string; end_date?: string;  branch_id?: string; department_id?: string }
 ): Promise<AttListStatResponse> => {
   const searchParams: Record<string, string> = {}
+  if (filters?.start_date) {
+    searchParams.start_date = filters?.start_date
+  }
+
+  if (filters?.end_date) {
+    searchParams.end_date = filters?.end_date
+  }
+
+  if (filters?.branch_id) {
+    searchParams.start_date = filters?.branch_id
+  }
+
+  if (filters?.department_id) {
+    searchParams.end_date = filters?.department_id
+  }
 
   if (pagination) {
     searchParams.page = String(pagination.pageIndex + 1)
@@ -201,10 +259,17 @@ export const getAttStatList = async (
 }
 
 export const getExperienceTrend = async (
-  filters: { branch_id?: string; department_id?: string }
+  filters: { start_date?:string; end_date?: string;  branch_id?: string; department_id?: string }
 ): Promise<ExperienceTrend> => {
   const searchParams: Record<string, string> = {}
+  if (filters.start_date) {
+    searchParams.start_date = filters.start_date
+  }
 
+  if (filters.end_date) {
+    searchParams.end_date = filters.end_date
+  }
+  
   if (filters.branch_id) {
     searchParams.start_date = filters.branch_id
   }
@@ -224,8 +289,25 @@ export const getExperienceTrend = async (
 export const getExpStatList = async (
   pagination?: PaginationState,
   search?: string,
+  filters?: { start_date?:string; end_date?: string;  branch_id?: string; department_id?: string }
 ): Promise<ExpTrendListDataResponse> => {
   const searchParams: Record<string, string> = {}
+
+    if (filters?.start_date) {
+    searchParams.start_date = filters?.start_date
+  }
+
+  if (filters?.end_date) {
+    searchParams.end_date = filters?.end_date
+  }
+
+  if (filters?.branch_id) {
+    searchParams.start_date = filters?.branch_id
+  }
+
+  if (filters?.department_id) {
+    searchParams.end_date = filters?.department_id
+  }
 
   if (pagination) {
     searchParams.page = String(pagination.pageIndex + 1)
@@ -245,10 +327,17 @@ export const getExpStatList = async (
 }
 
 export const getAdditionalList = async (
-  filters: { branch_id?: string; department_id?: string }
+  filters: { start_date?:string; end_date?: string;  branch_id?: string; department_id?: string }
 ): Promise<AdditionalList> => {
   const searchParams: Record<string, string> = {}
+  if (filters.start_date) {
+    searchParams.start_date = filters.start_date
+  }
 
+  if (filters.end_date) {
+    searchParams.end_date = filters.end_date
+  }
+  
   if (filters.branch_id) {
     searchParams.start_date = filters.branch_id
   }

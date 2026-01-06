@@ -19,6 +19,13 @@ import {
   CartesianGrid,
   ResponsiveContainer,
 } from 'recharts';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useDashboardAnalytics } from '../../hooks/attendance';
 import { Skeleton } from '@/components/ui/skeleton';
 import DashboardInfo from '@/components/ui/dashboard-info';
@@ -37,7 +44,7 @@ export default function AttendanceModal({
   onOpenChange,
 }: AttendanceModalProps) {
   const {
-    attendanceStat,
+    attendanceStatDetails,
     attStat,
     attStatLoading,
     dataListAtt,
@@ -46,10 +53,24 @@ export default function AttendanceModal({
     search,
     setSearch,
     pagination,
+    filters,
+    setFilters,
     setPagination,
+    branchesData,
+    departmentData,
   } = useDashboardAnalytics();
 
-  const lineData = attendanceStat?.data.map((item) => ({
+  const onCloseModal = () => {
+    setFilters({
+      start_date: '',
+      end_date: '',
+      department_id: '',
+      branch_id: '',
+    });
+    onOpenChange(false);
+  };
+
+  const lineData = attendanceStatDetails?.data.map((item) => ({
     month: item.month,
     onTime: item.on_time,
     late: item.late,
@@ -196,11 +217,93 @@ export default function AttendanceModal({
   ];
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={onCloseModal}>
       <DialogContent className="h-screen w-screen sm:max-w-7xl p-6 rounded-2xl bg-white overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Employee Attendance Trend</DialogTitle>
         </DialogHeader>
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="space-y-1 col-span-1 md:col-span-2">
+            <div className="text-xs font-bold text-gray-600">Date Period</div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input
+                type="date"
+                className="w-full"
+                name="start_date"
+                value={filters.start_date}
+                onChange={(e) => {
+                  setFilters((prev) => ({
+                    ...prev,
+                    start_date: e.target.value,
+                  }));
+                }}
+              />
+              <Input
+                type="date"
+                className="w-full"
+                name="end_date"
+                value={filters.end_date}
+                onChange={(e) => {
+                  setFilters((prev) => ({
+                    ...prev,
+                    end_date: e.target.value,
+                  }));
+                }}
+              />
+            </div>
+          </div>
+          <div className="space-y-1">
+            <div className="text-xs font-bold text-gray-600">Branch</div>
+            <Select
+              value={filters.branch_id}
+              onValueChange={(val) => {
+                setFilters((prev) => ({
+                  ...prev,
+                  branch_id: val,
+                }));
+              }}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select branch" />
+              </SelectTrigger>
+              <SelectContent>
+                {branchesData?.map((item, key) => {
+                  return (
+                    <SelectItem key={key} value={String(item.id)}>
+                      {item.name}
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1">
+            <div className="text-xs font-bold text-gray-600">Departement</div>
+            <Select
+              value={filters.department_id}
+              onValueChange={(val) => {
+                setFilters((prev) => ({
+                  ...prev,
+                  department_id: val,
+                }));
+              }}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select departement" />
+              </SelectTrigger>
+              <SelectContent>
+                {departmentData?.data.data.map((item, key) => {
+                  return (
+                    <SelectItem key={key} value={String(item.id)}>
+                      {item.name}
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
 
         <div className="w-full space-y-5">
           <div className="space-y-3 bg-white p-4 rounded-xl shadow-sm">
@@ -253,7 +356,7 @@ export default function AttendanceModal({
             <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6">
               <div className="flex md:flex-row flex-col justify-between w-full md:items-center items-start gap-4">
                 <h2 className="font-bold text-xl text-gray-600">
-                  Recent Resigned Employee
+                  Attendance Employee Trend
                 </h2>
               </div>
 
@@ -294,7 +397,7 @@ export default function AttendanceModal({
         {/* Footer */}
         <DialogFooter className="mt-6 flex justify-between items-center w-full">
           <div className="flex gap-3">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
+            <Button variant="outline" onClick={() => onCloseModal}>
               Cancel
             </Button>
           </div>

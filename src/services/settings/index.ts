@@ -366,3 +366,25 @@ export const removeLeaveBalance = async (
     })
     .json<LeaveBalance>();
 };
+
+
+export const getBranchesAll = async (): Promise<
+  PaginatedResponse<ICompanyBranches>
+> => {
+  try {
+    return api
+      .get(`setting/branch?per_page=10000`)
+      .json<PaginatedResponse<ICompanyBranches>>();
+  } catch (error: any) {
+    if (error.name === "HTTPError") {
+      const errorResponse = await error.response.json();
+      const enhancedError = new Error(error.message);
+      (enhancedError as any).response = {
+        json: () => Promise.resolve(errorResponse),
+        status: error.response.status,
+      };
+      throw enhancedError;
+    }
+    throw error;
+  }
+};

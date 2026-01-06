@@ -28,7 +28,7 @@ const Profile = React.memo(function Profile({ className, user }: Props) {
       <Avatar>
         <AvatarImage className="size-10" src="" alt="@shadcn" />
         <AvatarFallback className="size-8">
-          {user?.name.charAt(0)}
+          {user?.name?.charAt(0) ?? 'HR'}
         </AvatarFallback>
       </Avatar>
       <div className="md:flex flex-col gap-1 hidden">
