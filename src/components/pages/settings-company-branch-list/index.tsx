@@ -113,7 +113,7 @@ export default function SettingsCompanyBranchList() {
               <DropdownMenuItem>
                 <Link
                   href={`/settings/company/company-branch/edit/${row.original.id}`}
-                  className="flex gap-2 justify-between items-center"
+                  className="flex gap-2 justify-start items-center w-full"
                 >
                   <Image
                     src="/icons/editGrey.svg"
