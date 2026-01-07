@@ -123,7 +123,7 @@ export const deletePerformanceCompetency = async (
 };
 
 export const getPerformanceCompetencyLevels = async (
-  params: IPaginatedParam & IPerformanceLevelParam,
+  params?: IPaginatedParam & IPerformanceLevelParam,
 ): Promise<PaginatedResponse<IPerformanceCompetencyLevel>> => {
   try {
     return api

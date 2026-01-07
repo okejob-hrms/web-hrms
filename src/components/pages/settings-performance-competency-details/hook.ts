@@ -128,7 +128,7 @@ export const usePerformanceCompetencyDetails = () => {
   };
 
   const handleEditClick = (id: number) => {
-    const level = competencyLevels?.data.data.find(
+    const level = competencyLevels?.data.find(
       (item: any) => item.id === id,
     );
     if (level) {
@@ -179,8 +179,8 @@ export const usePerformanceCompetencyDetails = () => {
 
   // Filter levels by competency ID
   const filteredLevels = React.useMemo(() => {
-    if (!competencyLevels?.data.data) return [];
-    return competencyLevels.data.data.filter(
+    if (!competencyLevels?.data) return [];
+    return competencyLevels.data.filter(
       (level: any) => level.performance_competency_id === competencyId,
     );
   }, [competencyLevels, competencyId]);
