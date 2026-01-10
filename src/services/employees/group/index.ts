@@ -9,7 +9,7 @@ type GetEmployeeGroupParams = {
 };
 
 export const getEmployeeGroupJobLevel = async (
-  params?: GetEmployeeGroupParams
+  params?: GetEmployeeGroupParams,
 ): Promise<ApiResponse<IJobLevelGroup[]>> => {
   const queryParams = new URLSearchParams();
 

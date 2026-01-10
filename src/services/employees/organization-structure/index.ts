@@ -5,10 +5,13 @@ import {
   IEmployeeOrganizationStructure,
 } from "../types";
 import { api } from "@/lib/api";
-import { AssignEmployeeFormValues, EditEmployeeFormValues } from "@/components/pages/organization-structure/types";
+import {
+  AssignEmployeeFormValues,
+  EditEmployeeFormValues,
+} from "@/components/pages/organization-structure/types";
 
 export const getOrgChart = async (
-  employeeId?: string | null
+  employeeId?: string | null,
 ): Promise<ApiResponse<IEmployeeOrganizationStructure[]>> => {
   const queryParams = new URLSearchParams();
 
@@ -24,12 +27,12 @@ export const getOrgChart = async (
 };
 
 export const postAssignEmployee = async (
-  payload: AssignEmployeeFormValues
+  payload: AssignEmployeeFormValues,
 ): Promise<ApiResponse<IAssignManagerResponse[]>> => {
   try {
     const response = await api.post<ApiResponse<IAssignManagerResponse[]>>(
       "employees/assign-manager",
-      { json: payload }
+      { json: payload },
     );
     return response.json();
   } catch (error: any) {
@@ -56,12 +59,12 @@ export const postAssignEmployee = async (
 };
 
 export const postEditEmployee = async (
-  payload: EditEmployeeFormValues
+  payload: EditEmployeeFormValues,
 ): Promise<ApiResponse<IAssignManagerResponse[]>> => {
   try {
     const response = await api.post<ApiResponse<IAssignManagerResponse[]>>(
       "employees/assign-manager",
-      { json: payload }
+      { json: payload },
     );
     return response.json();
   } catch (error: any) {

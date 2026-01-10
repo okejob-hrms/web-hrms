@@ -61,7 +61,6 @@ export const getOffboardings = (
   return response.json();
 };
 
-
 export const createInitiateOffboarding = (
   params: IMutateOffboardingRequests,
 ): Promise<ApiResponse<ICreateEmployeeResponse>> => {

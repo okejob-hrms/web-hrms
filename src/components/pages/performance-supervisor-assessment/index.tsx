@@ -130,7 +130,7 @@ export default function SupervisorAssessmentList() {
       },
     },
     {
-      accessorKey: "final_score",
+      accessorKey: "score_threshold",
       header: ({ column }) => {
         const isSorted = column.getIsSorted();
         const SortIcon = () =>
@@ -155,6 +155,7 @@ export default function SupervisorAssessmentList() {
           </div>
         );
       },
+      cell: ({ row }) => <span>{row.original.score_threshold || "-"}</span>,
     },
     {
       accessorKey: "schedule",
