@@ -121,6 +121,13 @@ export interface ISupervisorAssessmentFinalScore {
   } | null;
   work_value_label: string;
   total_score_label: string;
+  penalty_point?: number;
+  penalty?: {
+    id: number;
+    name: string;
+    point: number;
+    valid_until: string | null;
+  };
 }
 
 export interface ISupervisorAssessmentResponse {
@@ -138,6 +145,7 @@ export interface ISupervisorAssessmentResponse {
   assessors: IAssessor[];
   form: IForm;
   final_submission: IFinalSubmission | null;
+  score_threshold: string | null;
   // final_score: ISupervisorAssessmentFinalScore | null;
   created_at: string;
   updated_at: string;

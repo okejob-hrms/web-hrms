@@ -128,9 +128,7 @@ export const usePerformanceCompetencyDetails = () => {
   };
 
   const handleEditClick = (id: number) => {
-    const level = competencyLevels?.data.find(
-      (item: any) => item.id === id,
-    );
+    const level = competencyLevels?.data.find((item: any) => item.id === id);
     if (level) {
       form.reset({
         performance_competency_id: competencyId,

@@ -16,6 +16,8 @@ import { AttendanceDetail } from "./sections/attendance";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { Clock, Gavel } from "lucide-react";
+import { PenaltyDetail } from "./sections/penalty";
 
 interface Props {
   id: number;
@@ -49,7 +51,13 @@ export function Tab({ data }: TabProps) {
       name: "Attendance",
       value: "attendance",
       content: <AttendanceDetail data={data} />,
-      icon: <Icon name="clock" size={18} color="currentColor" />,
+      icon: <Clock size={18} color="currentColor" />,
+    },
+    {
+      name: "Penalty",
+      value: "penalty",
+      content: <PenaltyDetail userId={data.user_id} />,
+      icon: <Gavel size={18} color="currentColor" />,
     },
   ];
   return (

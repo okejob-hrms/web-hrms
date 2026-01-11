@@ -72,33 +72,29 @@ export const SettingsPerformanceCompetencyDetails = React.memo(
                 <Ellipsis className="text-grayscale-30" />
               </DropdownMenuTrigger>
               <DropdownMenuContent>
-                <DropdownMenuItem>
-                  <button
-                    className="flex gap-2 justify-between items-center"
-                    onClick={() => handleEditClick(row.original.id)}
-                  >
-                    <Image
-                      src="/icons/editGrey.svg"
-                      height={16}
-                      width={16}
-                      alt="icon-edit"
-                    />
-                    Edit Level
-                  </button>
+                <DropdownMenuItem
+                  onSelect={() => handleEditClick(row.original.id)}
+                  className="flex gap-2 justify-start items-center w-full cursor-pointer"
+                >
+                  <Image
+                    src="/icons/editGrey.svg"
+                    height={16}
+                    width={16}
+                    alt="icon-edit"
+                  />
+                  Edit Level
                 </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <button
-                    className="flex gap-2"
-                    onClick={() => handleDeleteClick(row.original.id)}
-                  >
-                    <Image
-                      src="/icons/delete.svg"
-                      height={16}
-                      width={16}
-                      alt="icon-delete"
-                    />
-                    Delete Level
-                  </button>
+                <DropdownMenuItem
+                  onSelect={() => handleDeleteClick(row.original.id)}
+                  className="flex gap-2 cursor-pointer"
+                >
+                  <Image
+                    src="/icons/delete.svg"
+                    height={16}
+                    width={16}
+                    alt="icon-delete"
+                  />
+                  Delete Level
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
