@@ -18,7 +18,7 @@ export default function OKRChartsSection() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {obj.keyResults.map((kr) => (
-              <OKRKeyResultCard key={kr.id} kr={kr} />
+              <OKRKeyResultCard key={kr.id} kr={kr} cycleId={obj.okrCycleId} />
             ))}
           </div>
         </div>
