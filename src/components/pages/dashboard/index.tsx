@@ -11,6 +11,15 @@ import { Analytics } from './sections/analytics';
 import AppSkeleton from '@/components/partials/app-skeleton';
 
 export default function DashboardLive() {
+  const [user, setUser] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    const storedUser = JSON.stringify(localStorage.getItem('user'));
+    setUser(storedUser);
+  }, []);
+
+  console.log(user);
+
   const tabs = [
     {
       name: 'Pending Action Overview',
