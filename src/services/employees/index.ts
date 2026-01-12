@@ -66,10 +66,13 @@ export const createEmployee = async (
   params: IMutateEmployeeRequests,
 ): Promise<ApiResponse<ICreateEmployeeResponse>> => {
   try {
-    const response = await api.post<ApiResponse<ICreateEmployeeResponse>>(`employees`, {
-      json: params,
-      timeout: 60000,
-    });
+    const response = await api.post<ApiResponse<ICreateEmployeeResponse>>(
+      `employees`,
+      {
+        json: params,
+        timeout: 60000,
+      },
+    );
     return response.json();
   } catch (error: any) {
     if (error.name === "HTTPError") {

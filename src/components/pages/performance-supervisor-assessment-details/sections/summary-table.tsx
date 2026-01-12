@@ -60,7 +60,9 @@ export const AssessmentSummaryTable: React.FC<AssessmentSummaryTableProps> = ({
           <TableRow className="bg-warning-background">
             <TableCell className="text-right">Penalty Point</TableCell>
             <TableCell className="text-right">
-              <span className="text-error font-semibold">0</span>
+              <span className="text-error font-semibold">
+                {data.penalty_point || 0}
+              </span>
             </TableCell>
           </TableRow>
           <TableRow className="bg-primary-background">

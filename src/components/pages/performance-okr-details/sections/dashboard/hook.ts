@@ -33,15 +33,13 @@ export const useOKRDashboard = () => {
     enabled: !!id,
   });
 
-  /**
-   * 🔥 FULLY MAPPED DATA (no helper import)
-   */
   const objectives = React.useMemo(() => {
     if (!data?.data) return [];
 
     return data.data.map((objective) => ({
       id: objective.id,
       name: objective.name,
+      okrCycleId: objective.okr_cycle_id,
       progress: objective.progress,
       status: objective.status,
       keyResults: objective.key_results.map((kr) => {
@@ -56,6 +54,7 @@ export const useOKRDashboard = () => {
         return {
           id: kr.id,
           name: kr.name,
+          frequencyCode: kr.frequency,
           frequency: kr.frequency_label,
           format: kr.format_label,
           averageActual: kr.average_actual_value,
