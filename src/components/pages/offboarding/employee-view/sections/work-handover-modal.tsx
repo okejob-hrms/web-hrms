@@ -82,7 +82,6 @@ const WorkHandoverFormModal: React.FC<WorkHandoverFormModalProps> = ({
               )}
             />
 
-            {/* MultiSelect Implementation based on your example code */}
             <div className="flex flex-col gap-2">
               <label className="text-sm font-medium text-gray-700">
                 Handed Over To<span className="text-red-500 ml-1">*</span>
@@ -97,7 +96,6 @@ const WorkHandoverFormModal: React.FC<WorkHandoverFormModalProps> = ({
                 searchValue={searchEmployee}
                 onSearchChange={setSearchEmployee}
               />
-              {/* Optional: Add manual error message if needed for MultiSelect */}
             </div>
 
             <div className="flex justify-end gap-3 pt-4">

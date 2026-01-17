@@ -16,9 +16,8 @@ export default function OffboardingStepPage({ params }: { params: Promise<{ id: 
       case 'exit-interview':
         return (
           <ExitInterviewForm 
-            fields={MOCK_EXIT_FIELDS} 
-            formId={offboardingData?.form_id ?? 1} 
-            offboardingId={offboardingData?.id ?? 1}
+            formId={offboardingData?.form_id} 
+            offboardingId={offboardingData?.id}
           />
         );
       case 'work-handover':

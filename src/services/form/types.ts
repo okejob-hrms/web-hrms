@@ -38,11 +38,21 @@ export interface IFormGroup {
 export interface IFormTemplateParams {
   form_id?: number;
   group_id?: number;
+  label?: string;
+  type?: string;
+  options?: string[];
+  is_required?: boolean;
+  order?: number;
+}
+
+export interface FormFieldData {
+  id: number;
+  type: 'checkbox' | 'range' | 'textarea' | 'text' | 'select' | 'radio';
   label: string;
-  type: string;
-  options: string[];
-  is_required: boolean;
   order: number;
+  is_required: boolean;
+  options?: any;
+  metadata?: any;
 }
 
 export interface IFormField {
@@ -85,4 +95,30 @@ export interface IMutateFormRequest {
   name: string;
   type: number; // 1: Exit Interview, 2: Self Assessment, 3: Supervisor Assesment
   description?: string;
+}
+
+
+export interface ISubmissionForm {
+  field_id: number;
+  value: any;
+  additional_data?: any;
+}
+
+export interface IExitFormRequest {
+  submissions: ISubmissionForm[];
+}
+
+export interface IRecipientRequest {
+  user_id: number;
+  status: number;
+}
+
+export interface IHandoverItemRequest {
+  category: "work" | "document" | "equipment" | "facility";
+  name: string;
+  recipients: IRecipientRequest[];
+}
+
+export interface IHandoverRequest {
+  data: IHandoverItemRequest[];
 }

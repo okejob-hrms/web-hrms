@@ -7,6 +7,10 @@ import {
   IMutateFormRequest,
   IMutateFieldRequest,
   IFormGroup,
+  IFormField,
+  FormFieldData,
+  IExitFormRequest,
+  IHandoverRequest,
 } from "./types";
 
 export const getAllForm = async (): Promise<
@@ -31,11 +35,11 @@ export const getAllForm = async (): Promise<
 
 export const getFields = async (
   params: IFormTemplateParams,
-): Promise<PaginatedResponse<IFormTemplate>> => {
+): Promise<ApiResponse<FormFieldData[]>> => {
   try {
-    const response = await api.get<PaginatedResponse<IFormTemplate>>(
+    const response = await api.get<ApiResponse<FormFieldData[]>>(
       `form/field`,
-      { json: params },
+      { searchParams: params as any },
     );
     return response.json();
   } catch (error: any) {
@@ -175,6 +179,59 @@ export const getFormById = async (
   try {
     const response = await api.get<ApiResponse<IFormTemplate>>(
       `forms/${form_id}`,
+    );
+    return response.json();
+  } catch (error: any) {
+    if (error.name === "HTTPError") {
+      const errorResponse = await error.response.json();
+      const enhancedError = new Error(error.message);
+      (enhancedError as any).response = {
+        json: () => Promise.resolve(errorResponse),
+        status: error.response.status,
+      };
+      throw enhancedError;
+    }
+    throw error;
+  }
+};
+
+
+export const postSubmitExitInterview = async (
+  params: IExitFormRequest,
+  offboardingId?: number,
+): Promise<ApiResponse<any>> => {
+  try {
+    const response = await api.post<ApiResponse<any>>(
+      `employee/offboardings/${offboardingId}/exit-interview`,
+      {
+        json: params,
+      }
+    );
+    return response.json();
+  } catch (error: any) {
+    if (error.name === "HTTPError") {
+      const errorResponse = await error.response.json();
+      const enhancedError = new Error(error.message);
+      (enhancedError as any).response = {
+        json: () => Promise.resolve(errorResponse),
+        status: error.response.status,
+      };
+      throw enhancedError;
+    }
+    throw error;
+  }
+};
+
+export const postSubmitHandover = async (
+  offboardingId: number,
+  params: IHandoverRequest
+): Promise<ApiResponse<any>> => {
+  try {
+    const response = await api.post<ApiResponse<any>>(
+      `employee/offboardings/${offboardingId}/handover-asset-return/bulk`,
+      {
+        json: params,
+      }
     );
     return response.json();
   } catch (error: any) {

@@ -17,34 +17,77 @@ import { getStatusOvertime } from "@/lib/helpers";
 import dayjs from "dayjs";
 import { Badge } from "@/components/ui/badge";
 import WorkHandoverFormModal from "./work-handover-modal";
+import { useESS } from "@/components/pages/ess/hook";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { IHandoverRequest } from "@/services/form/types";
+import { postSubmitHandover } from "@/services/form";
+import { toast } from "sonner";
 
 export default function WorkHandover() {
-  const [isModalOpen, setIsModalOpen] = React.useState(false);
-  const [selectedHandover, setSelectedHandover] = React.useState<any | null>(null);
-  const [searchEmployee, setSearchEmployee] = React.useState("");
 
-  const employeesOptions = [
-    { label: "Olivia Rhye", value: "1", subtitle: "CEO" },
-    { label: "Phoenix Baker", value: "2", subtitle: "COO" },
-  ];
+  const { 
+    setOpenFormModal, 
+    openFormModal, 
+    employees, 
+    isLoadingEmployees,
+    searchEmployee,
+    setSearchEmployee
+  } = useESS();
+
+  const { offboardingData } = useESS();
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: (request: IHandoverRequest) => 
+      postSubmitHandover(offboardingData?.id!, request),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["offboardingProgress"] });
+      toast.success("Handover item added successfully");
+      setOpenFormModal(false);
+    },
+    onError: (error: any) => {
+      toast.error("Failed to submit handover");
+      console.error(error);
+    }
+  });
+  const [selectedHandover, setSelectedHandover] = React.useState<any | null>(null);
+
+  const employeesOptions = React.useMemo(() => {
+    return employees?.data?.data?.map((emp: any) => ({
+      label: emp.name,
+      value: emp.id.toString(),
+      image: emp.image_url
+    })) || [];
+  }, [employees]);
 
   const handleAdd = () => {
     setSelectedHandover(null);
-    setIsModalOpen(true);
+    setOpenFormModal(true);
   };
 
   const handleEdit = (data: any) => {
     setSelectedHandover({
-      works: data.leave_type?.works || "",
-      handover_to_user_id: data.user?.id?.toString() || "",
+      works: data.works || "",
+      handover_to_user_ids: data.handover_users?.map((u: any) => u.id.toString()) || [],
     });
-    setIsModalOpen(true);
+    setOpenFormModal(true);
   };
 
-  const handleSubmit = (data: any) => {
-    console.log("Submitted Data:", data);
-    // Add your API call logic here
-    setIsModalOpen(false);
+  const handleSubmit = (data: { works: string; handover_to_user_ids: string[] }) => {
+    const request: IHandoverRequest = {
+      data: [
+        {
+          category: "work",
+          name: data.works,
+          recipients: data.handover_to_user_ids.map((id) => ({
+            user_id: parseInt(id),
+            status: 1,
+          })),
+        },
+      ],
+    };
+
+    mutation.mutate(request);
   };
   const columns: ColumnDef<any>[] = React.useMemo(
     () => [
@@ -143,8 +186,8 @@ export default function WorkHandover() {
       <DataTable columns={columns} data={[]} />
 
       <WorkHandoverFormModal
-        open={isModalOpen}
-        onOpenChange={setIsModalOpen}
+        open={openFormModal}
+        onOpenChange={setOpenFormModal}
         onSubmit={handleSubmit}
         initialData={selectedHandover}
         employeesOptions={employeesOptions}

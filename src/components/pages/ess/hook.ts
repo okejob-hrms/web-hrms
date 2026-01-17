@@ -1,13 +1,25 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getAttendanceStat, getAttStat, getAttStatList } from '@/services/dashboard';
 import { PaginatedResponse } from '@/lib/types';
 import { PaginationState } from '@tanstack/react-table';
 import { getOffboarding, getOffboardingProgress } from '@/services/offboarding-employee';
+import { getFields } from '@/services/form';
+import { getEmployees } from '@/services/employees';
+import { useDebounce } from '@/hooks/use-debounce';
 
-export function useESS() {
+export interface USEESSProps {
+  formId?: number;
+}
+
+export function useESS({ 
+  formId,
+}: USEESSProps = {}) {
+  const [openFormModal, setOpenFormModal] = React.useState(false);
+  const [searchEmployee, setSearchEmployee] = React.useState("");
+  const debouncedEmployee = useDebounce(searchEmployee, 300);
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: 10,
@@ -50,6 +62,40 @@ export function useESS() {
     enabled: !!offboardingResponse?.data?.id,
     retry: false,
   });
+
+  const {
+    data: formFieldsResponse,
+    isLoading: formFieldsLoading,
+    isFetching: formFieldsFetching,
+  } = useQuery({
+    queryKey: ['formFields', formId], 
+    queryFn: async () => {
+      try {
+        return await getFields({ form_id: formId! });
+      } catch (err) {
+        console.error("CRITICAL ERROR IN SERVICE:", err);
+        throw err;
+      }
+    },
+    enabled: !!formId, 
+    retry: false,
+    staleTime: 0,
+  });
+
+  const { data: employees, isLoading: isLoadingEmployees } = useQuery({
+    queryKey: ["supervisor-assessment-Employees", debouncedEmployee],
+    queryFn: () =>
+      getEmployees(
+        debouncedEmployee
+          ? { search: debouncedEmployee, per_page: 50 }
+          : { per_page: 50 },
+      ),
+    enabled: openFormModal,
+    // placeholderData: keepPreviousData,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
   
 
 // ========== END ATTENDANCE
@@ -66,6 +112,14 @@ export function useESS() {
     offboardingProgress: offboardingProgressResponse?.data,
     offboardingProgressLoading,
     offboardingProgressError,
+    formFields: formFieldsResponse?.data,
+    formFieldsLoading,
     error,
+    setOpenFormModal,
+    openFormModal,
+    employees,
+    isLoadingEmployees,
+    searchEmployee,
+    setSearchEmployee
   };
 }
