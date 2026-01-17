@@ -75,7 +75,7 @@ export const useOKRDetails = () => {
     if (kpiData?.data) {
       return kpiData.data.map((item) => ({
         label: item.name,
-        value: item.name,
+        value: item.id.toString(),
       }));
     }
     return [];
@@ -385,7 +385,7 @@ export const useOKRDetails = () => {
     kpiOptions,
     detailOKRCycle,
     isLoadingDetailOKRCycle,
-    status
+    status,
   };
 };
 

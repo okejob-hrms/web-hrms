@@ -98,7 +98,7 @@ export const AttendanceLeaveRequestForm = React.memo(
               key="1"
               name="attachments"
               label="Attachments"
-              required
+              required={false}
             />
           </form>
           <div className="flex gap-4 col-span-2">

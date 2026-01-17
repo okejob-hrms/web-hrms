@@ -112,7 +112,7 @@ const CardObjective = ({
   onNewKpi,
   objective,
   handleRenameObjective,
-  statusLabel
+  statusLabel,
 }: CardObjectiveProps) => {
   const keyResults = objective.key_results;
   return (
@@ -204,7 +204,7 @@ export const ObjectiveTab = () => {
     handleOpenKeyResultForm,
     handleShowEditObjective,
     selectedObjective,
-    status
+    status,
   } = useOKRDetails();
   return (
     <div>

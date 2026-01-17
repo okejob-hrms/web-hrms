@@ -35,6 +35,7 @@ import { Check, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { UseFormReturn } from "react-hook-form";
 import { IOKRKeyResultRequest } from "@/services/okr/types";
+import { getKPIDetails } from "@/services/performances/kpi";
 
 interface IOption {
   label: string;
@@ -74,9 +75,12 @@ export const FormKpi = ({
 }: FormKpiProps) => {
   const handleSave = () => {
     const formData = form.getValues();
+    const selectedKpi = kpiOptions.find(
+      (option) => option.value === formData.name?.toString(),
+    );
     const data: IOKRKeyResultRequest = {
       objective_id: formData.objective_id,
-      title: formData.name,
+      title: selectedKpi ? selectedKpi.label : formData.name,
       description: formData.description,
       frequency: Number(formData.frequency),
       format: Number(formData.format),
@@ -155,7 +159,7 @@ export const FormKpi = ({
                                   <CommandItem
                                     key={item.value}
                                     value={item.label}
-                                    onSelect={(currentValue) => {
+                                    onSelect={async (currentValue) => {
                                       const selectedOption = kpiOptions.find(
                                         (option) =>
                                           option.label.toLowerCase() ===
@@ -163,6 +167,72 @@ export const FormKpi = ({
                                       );
                                       if (selectedOption) {
                                         field.onChange(selectedOption.value);
+                                        // Fetch KPI Details
+                                        try {
+                                          const kpiDetails =
+                                            await getKPIDetails(
+                                              Number(selectedOption.value),
+                                            );
+                                          const kpiData = kpiDetails.data;
+                                          if (kpiData) {
+                                            form.setValue(
+                                              "description",
+                                              kpiData.description || "",
+                                            );
+                                            form.setValue(
+                                              "frequency",
+                                              String(kpiData.frequency),
+                                            );
+                                            form.setValue(
+                                              "format",
+                                              String(kpiData.format),
+                                            );
+                                            form.setValue(
+                                              "target",
+                                              kpiData.target,
+                                            );
+                                            form.setValue(
+                                              "direction",
+                                              String(kpiData.direction),
+                                            );
+                                            form.setValue(
+                                              "aggregation",
+                                              String(kpiData.aggregation),
+                                            );
+
+                                            // Handle Job Position (taking the first one if available)
+                                            if (
+                                              kpiData.job_position_ids &&
+                                              kpiData.job_position_ids.length >
+                                                0
+                                            ) {
+                                              form.setValue(
+                                                "job_position_id",
+                                                String(
+                                                  kpiData.job_position_ids[0],
+                                                ),
+                                              );
+                                            }
+
+                                            // Handle Job Level (taking the first one if available)
+                                            if (
+                                              kpiData.job_level_ids &&
+                                              kpiData.job_level_ids.length > 0
+                                            ) {
+                                              form.setValue(
+                                                "job_level_id",
+                                                String(
+                                                  kpiData.job_level_ids[0],
+                                                ),
+                                              );
+                                            }
+                                          }
+                                        } catch (error) {
+                                          console.error(
+                                            "Failed to fetch KPI details",
+                                            error,
+                                          );
+                                        }
                                       }
                                       setOpen(false);
                                       if (onSearchKPIChange) {

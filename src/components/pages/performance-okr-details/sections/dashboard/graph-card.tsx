@@ -6,8 +6,8 @@ import {
   Tooltip,
   ResponsiveContainer,
   Bar,
-} from 'recharts';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+} from "recharts";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface Props {
   kr: {
@@ -41,13 +41,13 @@ export function OKRKeyResultCard({ kr }: Props) {
               dataKey="label"
               stroke="#6b7280"
               tickLine={false}
-              tick={{ fontSize: 13, fill: '#9ca3af' }}
+              tick={{ fontSize: 13, fill: "#9ca3af" }}
             />
             <YAxis
               stroke="#6b7280"
               tickLine={false}
               allowDecimals={false}
-              tick={{ fontSize: 13, fill: '#9ca3af' }}
+              tick={{ fontSize: 13, fill: "#9ca3af" }}
               width={30}
             />
             <Tooltip />

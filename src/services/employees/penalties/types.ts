@@ -9,3 +9,11 @@ export interface IPenaltyResponse {
   created_at: string;
   updated_at: string;
 }
+
+export interface IPenaltyRequest {
+  user_id: number;
+  point: number;
+  name: string;
+  description: string;
+  valid_until: string | null;
+}

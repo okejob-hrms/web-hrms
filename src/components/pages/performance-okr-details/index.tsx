@@ -28,7 +28,7 @@ export const PerformanceOKRDetails = () => {
     openDeleteOKR,
     setOpenDeleteOKR,
     handleDeleteOKR,
-    status
+    status,
   } = useOKRDetails();
 
   if (!detailOKRCycle?.data && !isLoadingDetailOKRCycle) {

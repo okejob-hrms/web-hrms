@@ -31,7 +31,7 @@ export const CreateLeaveRequestSchema = z.object({
         type: z.string(),
       }),
     )
-    .min(1, "Attachment is required"),
+    .optional(),
   approvers: z.array(
     z.object({
       id: z.number(),
@@ -49,9 +49,9 @@ export const useLeaveRequestForm = () => {
     defaultValues: {
       user_id: "",
       leave_type_id: "",
-      start_date: dayjs(new Date()).format("YYYY-MM-DD"),
-      end_date: dayjs(new Date()).format("YYYY-MM-DD"),
-      attachments: [],
+      start_date: dayjs(new Date()).format("YYYY-MM-DD").toString(),
+      end_date: dayjs(new Date()).format("YYYY-MM-DD").toString(),
+      // attachments: [],
       reason: "",
       approvers: [],
     },
@@ -146,7 +146,7 @@ export const useLeaveRequestForm = () => {
             id: approver.approver_id,
             user_id: approver.user_id,
           })),
-        })
+        });
       });
     }
   }, [detailLeave, isEditMode, form]);
@@ -271,7 +271,7 @@ export const useLeaveRequestForm = () => {
       start_date: dayjs(data.start_date).format("YYYY-MM-DD"),
       end_date: dayjs(data.end_date).format("YYYY-MM-DD"),
       reason: data.reason,
-      attachment: data.attachments[0]?.type || "",
+      attachment: data.attachments?.[0]?.type || "",
       approvers: data.approvers.map((approver) => ({
         id: Number(approver.id),
         user_id: Number(approver.user_id),
