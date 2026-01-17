@@ -11,6 +11,7 @@ export interface IUser {
 export interface ILoginResponse {
   user: IUser;
   token: string;
+  roles: string[];
 }
 
 export interface ILoginRequest {

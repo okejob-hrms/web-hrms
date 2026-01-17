@@ -52,8 +52,14 @@ export default function AuthLogin() {
           toast.success('Login successful. This is your first login.');
           router.push('/auth/change-password');
         } else {
+          const role = res.data.roles;
+          const isEmployee = role.includes('Employee');
+          if (isEmployee) {
+            router.push('/dashboard?overview=offboarding-active');
+          } else {
+            router.push('/ess');
+          }
           toast.success('Login successful!');
-          router.push('/dashboard?overview=offboarding-active');
         }
       } else {
         toast.error(res.message || 'Login failed, please try again.');

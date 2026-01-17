@@ -9,13 +9,15 @@ import { useLeaveRequest } from './hook';
 import LeaveTable from './sections/leave-table';
 
 interface AttendanceLeaveRequestProps {
+  isEmployee?: boolean;
   hidePannel?: boolean;
 }
 
 export default function AttendanceLeaveRequest({
+  isEmployee = false,
   hidePannel = false,
 }: AttendanceLeaveRequestProps) {
-  const leaveRequest = useLeaveRequest();
+  const leaveRequest = useLeaveRequest(isEmployee);
 
   return (
     <div className="font-sans min-h-screen flex flex-col space-y-6 px-6">
