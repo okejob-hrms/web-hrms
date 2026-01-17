@@ -52,13 +52,18 @@ export default function AuthLogin() {
           toast.success('Login successful. This is your first login.');
           router.push('/auth/change-password');
         } else {
-          const role = res.data.roles;
-          const isEmployee = role.includes('Employee');
+          const roles = res.data.roles || [];
+
+          const isEmployee = roles.some((role) =>
+            role.toLowerCase().includes('employee'),
+          );
+
           if (isEmployee) {
-            router.push('/dashboard?overview=offboarding-active');
-          } else {
             router.push('/ess');
+          } else {
+            router.push('/dashboard?overview=offboarding-active');
           }
+
           toast.success('Login successful!');
         }
       } else {
