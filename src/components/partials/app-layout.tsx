@@ -23,7 +23,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const removePadding = noPaddingPages.includes(pathname);
   const isAuthPage = pathname.startsWith('/auth');
   const breadcrumbs = getBreadcrumbs(pathname);
-  const isDashboard = ['/dashboard'];
+  const isDashboard = ['/dashboard', '/ess', '/ess/'];
   const removeBg = isDashboard.includes(pathname);
 
   const [queryClient] = useState(

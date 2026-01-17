@@ -184,6 +184,8 @@ export const getHideSidebar = (path: string) => {
     "/payroll/list/",
     "/settings/leave-management/",
     "/performance/self-assessment/add",
+    "/ess/",
+    "/ess"
   ];
 
   const employeeDetailPattern = /^\/employee\/employee-management\/\d+$/;
