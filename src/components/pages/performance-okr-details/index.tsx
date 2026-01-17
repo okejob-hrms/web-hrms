@@ -5,8 +5,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Edit2, Ellipsis, FileDown, Play, Trash } from "lucide-react";
-import * as React from "react";
-import { getStatusOKRCycle } from "@/lib/helpers";
 import { Badge } from "@/components/ui/badge";
 import { OKRTab } from "./sections/tab";
 import { CircularProgress } from "@/components/ui/progress";
@@ -98,39 +96,45 @@ export const PerformanceOKRDetails = () => {
                 Export OKR
               </button>
             </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <button
-                onClick={() => {
-                  // handleEdit();
-                }}
-                className="flex gap-2 w-full text-left"
-              >
-                <Edit2 className="w-4 h-4" />
-                Edit OKR
-              </button>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <button
-                onClick={() => {
-                  setOpenDeleteOKR(true);
-                }}
-                className="flex gap-2 w-full text-left"
-              >
-                <Trash className="w-4 h-4" />
-                Delete OKR
-              </button>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <button
-                onClick={() => {
-                  setOpenInitiateOKR(true);
-                }}
-                className="flex gap-2 w-full text-left"
-              >
-                <Play className="w-4 h-4" />
-                Initiate OKR
-              </button>
-            </DropdownMenuItem>
+            {
+              status.label !== "Active" && (
+                <>
+                  <DropdownMenuItem asChild>
+                    <button
+                      onClick={() => {
+                        // handleEdit();
+                      }}
+                      className="flex gap-2 w-full text-left"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                      Edit OKR
+                    </button>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <button
+                      onClick={() => {
+                        setOpenDeleteOKR(true);
+                      }}
+                      className="flex gap-2 w-full text-left"
+                    >
+                      <Trash className="w-4 h-4" />
+                      Delete OKR
+                    </button>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <button
+                      onClick={() => {
+                        setOpenInitiateOKR(true);
+                      }}
+                      className="flex gap-2 w-full text-left"
+                    >
+                      <Play className="w-4 h-4" />
+                      Initiate OKR
+                    </button>
+                  </DropdownMenuItem>
+                </>
+              )
+            }
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -158,7 +162,7 @@ export const PerformanceOKRDetails = () => {
             </span>
           </div>
           <CircularProgress
-            value={50}
+            value={Number(detailOKRCycle?.data.overall_progress)}
             size={120}
             strokeWidth={10}
             showLabel
