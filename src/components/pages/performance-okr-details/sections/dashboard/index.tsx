@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useOKRDashboard } from './hook';
-import { OKRKeyResultCard } from './graph-card';
+import { useOKRDashboard } from "./hook";
+import { OKRKeyResultCard } from "./graph-card";
 
 export default function OKRChartsSection() {
   const { objectives, isLoading } = useOKRDashboard();

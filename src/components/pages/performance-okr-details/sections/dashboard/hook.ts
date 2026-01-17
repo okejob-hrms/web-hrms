@@ -1,5 +1,5 @@
 // hooks/useOKRDashboard.ts
-'use client';
+"use client";
 
 import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -23,11 +23,7 @@ export const useOKRDashboard = () => {
     return null;
   }, [params]);
 
-  const {
-    data,
-    isLoading,
-    isError,
-  } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ["okrDashboard", id],
     queryFn: () => getOKRDashboard(id!),
     enabled: !!id,
