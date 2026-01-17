@@ -21,9 +21,12 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Bell, Clock } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
+import { useRouter } from 'next/navigation';
 
 export const EssPage = () => {
   const dashboardAnalytics = useESS();
+  const router = useRouter();
+  const { offboardingData, offboardingLoading } = useESS();
 
   const lineData = dashboardAnalytics.attendanceStat?.data.map((item) => ({
     month: item.month,
@@ -134,20 +137,23 @@ export const EssPage = () => {
 
       <div className="font-sans flex flex-col space-y-6">
         <div className="font-bold text-xl text-primary">For You Today</div>
-        <div className="w-full p-6 bg-yellow-50 border border-yellow-500 rounded-xl">
-          <div className="space-y-2">
-            <div className="flex gap-3 items-center">
-              <Bell className="text-orange-500" />
-              <div className="text-primary font-semibold">
-                Complate your offboarding journey!
+        {offboardingData && (
+          <div className="w-full p-6 bg-yellow-50 border border-yellow-500 rounded-xl">
+            <div className="space-y-2">
+              <div className="flex gap-3 items-center">
+                <Bell className="text-orange-500" />
+                <div className="text-primary font-semibold">
+                  Complate your offboarding journey!
+                </div>
               </div>
+              <div className="text-gray-500">
+                Let’s wrap things up smoothly before you leave
+              </div>
+              <Button onClick={() => router.push('/ess/offboarding')} variant="default">Start Offboarding Process</Button>
             </div>
-            <div className="text-gray-500">
-              Let’s wrap things up smoothly before you leave
-            </div>
-            <Button variant="default">Start Offboarding Process</Button>
           </div>
-        </div>
+        )}
+        
 
         <div className="grid grid-cols-1 space-y-6 sm:grid-cols-3 md:gap-6">
           <div className="col-span-3 md:col-span-2 space-y-3 bg-white p-4 rounded-xl shadow-sm">

@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getAttendanceStat, getAttStat, getAttStatList } from '@/services/dashboard';
 import { PaginatedResponse } from '@/lib/types';
 import { PaginationState } from '@tanstack/react-table';
+import { getOffboarding, getOffboardingProgress } from '@/services/offboarding-employee';
 
 export function useESS() {
   const [pagination, setPagination] = useState<PaginationState>({
@@ -29,6 +30,28 @@ export function useESS() {
     queryFn: () => getAttStat(filter),
   });
 
+  const { 
+    data: offboardingResponse, 
+    isLoading: offboardingLoading, 
+    error 
+  } = useQuery({
+    queryKey: ['offboardingStatus'],
+    queryFn: () => getOffboarding(),
+    retry: false,
+  });
+
+  const { 
+    data: offboardingProgressResponse, 
+    isLoading: offboardingProgressLoading, 
+    error: offboardingProgressError, 
+  } = useQuery({
+    queryKey: ['offboardingProgress', offboardingResponse?.data?.id], 
+    queryFn: () => getOffboardingProgress(offboardingResponse?.data?.id || 1),
+    enabled: !!offboardingResponse?.data?.id,
+    retry: false,
+  });
+  
+
 // ========== END ATTENDANCE
 
   return {
@@ -38,5 +61,11 @@ export function useESS() {
     attendanceStatLoading,
     attStat,
     attStatLoading,
+    offboardingData: offboardingResponse?.data,
+    offboardingLoading,
+    offboardingProgress: offboardingProgressResponse?.data,
+    offboardingProgressLoading,
+    offboardingProgressError,
+    error,
   };
 }
