@@ -220,13 +220,13 @@ export default function AssignEmployee({
             <DialogTitle>Assign Employee</DialogTitle>
           </DialogHeader>
 
-          <>
+          {/* <>
             <Input
               placeholder="Search employee name..."
               value={searchEmployee}
               onChange={(e) => setSearchEmployee(e.target.value)}
             />
-          </>
+          </> */}
 
           <DataTable
             columns={candidateColumns}
@@ -243,7 +243,26 @@ export default function AssignEmployee({
             </Button>
             <Button
               onClick={() => {
-                setSelectedEmployees(candidateSelection);
+                const mapper = candidateSelection.map((item) => ({
+                  ...item,
+                  employment: {
+                    department: {
+                      id: item.department_id,
+                      name: item.department,
+                    },
+                    job_position: {
+                      id: item.job_position_id,
+                      name: item.job_position,
+                    },
+                    job_level: {
+                      id: item.job_level_id,
+                      name: item.job_level,
+                    },
+                  },
+                  id: item.user_id,
+                  employee_id: item.id,
+                }));
+                setSelectedEmployees(mapper);
                 onOpenChange(false);
                 onRowSelectionChange({});
               }}

@@ -23,11 +23,12 @@ export default function AttendanceLeaveRequest({
     <div className="font-sans min-h-screen flex flex-col space-y-6 px-6">
       {!hidePannel && (
         <>
-          <h2 className="font-semibold text-xl">Summary</h2>
+          {!isEmployee && <h2 className="font-semibold text-xl">Summary</h2>}
 
           <LeaveSummary summary={leaveRequest.leaves?.summary} />
 
           <LeaveFilters
+            isEmployee={isEmployee}
             filters={leaveRequest.filters}
             setFilters={leaveRequest.setFilters}
             setPagination={leaveRequest.setPagination}
@@ -35,14 +36,23 @@ export default function AttendanceLeaveRequest({
         </>
       )}
       <LeaveTable
-        data={leaveRequest.leaves?.data.data}
-        pagination={leaveRequest.leaves?.data}
+        data={
+          isEmployee
+            ? leaveRequest.leavesEmployee?.data
+            : leaveRequest.leaves?.data.data
+        }
+        pagination={
+          isEmployee
+            ? leaveRequest.leavesEmployeePagination
+            : leaveRequest.leaves?.data
+        }
         paginationState={leaveRequest.pagination}
         setPaginationState={leaveRequest.setPagination}
         loading={leaveRequest.loading}
         onSelectLeave={leaveRequest.selectLeave}
         onOpenModal={leaveRequest.openModal}
         onNavigateAdd={leaveRequest.handleNavigateAddRequestPage}
+        isEmployee={isEmployee}
       />
 
       <LeaveModals
@@ -53,6 +63,7 @@ export default function AttendanceLeaveRequest({
         onReject={leaveRequest.handleReject}
         onDelete={leaveRequest.handleDelete}
         getEmployeeData={leaveRequest.getEmployeeData}
+        isEmployee={isEmployee}
       />
     </div>
   );

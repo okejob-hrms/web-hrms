@@ -52,14 +52,34 @@ export interface ILeaveResponse {
   duration: number;
 }
 
+export interface ILeaveEmployeeResponse {
+  status: string;
+  message: string;
+  data: ILeaveResponse[];
+  pagination: Pagination;
+}
+
+export interface Pagination {
+  current_page: number;
+  first: string;
+  from: number;
+  last: string;
+  last_page: number;
+  next: string | null;
+  per_page: number;
+  prev: string | null;
+  to: number;
+  total: number;
+}
+
 export interface IMutateLeaveRequest {
-  user_id: number;
+  user_id?: number;
   leave_type_id: number;
   start_date: string;
   end_date: string;
   reason: string;
   attachment: string;
-  approvers: {
+  approvers?: {
     id: number;
     user_id: number;
     approver_type: string;

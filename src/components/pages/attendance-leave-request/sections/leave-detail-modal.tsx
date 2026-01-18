@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -9,23 +9,23 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { stringAvatar } from "@/lib/utils";
+} from '@/components/ui/alert-dialog';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { stringAvatar } from '@/lib/utils';
 import {
   ILeaveApprover,
   ILeaveResponse,
-} from "@/services/employees/leave/types";
+} from '@/services/employees/leave/types';
 import {
   formatDateRange,
   formatDayDifference,
   getStatusOvertime,
-} from "@/lib/helpers";
-import { Badge } from "@/components/ui/badge";
-import Link from "next/link";
-import { IEmployeeDetailsResponse } from "@/services/employees/types";
-import { getUserLeaveBalance } from "@/services/employees/leave";
-import { CircleX, ClockCheck } from "lucide-react";
+} from '@/lib/helpers';
+import { Badge } from '@/components/ui/badge';
+import Link from 'next/link';
+import { IEmployeeDetailsResponse } from '@/services/employees/types';
+import { getUserLeaveBalance } from '@/services/employees/leave';
+import { CircleX, ClockCheck } from 'lucide-react';
 
 interface Props {
   isOpen: boolean;
@@ -34,6 +34,7 @@ interface Props {
   onReject: () => void;
   data: ILeaveResponse | undefined;
   getEmployeeData: (user_id: number) => Promise<IEmployeeDetailsResponse>;
+  isEmployee: boolean;
 }
 
 interface ApproverData {
@@ -49,13 +50,14 @@ export default function LeaveDetailModal({
   onReject,
   data,
   getEmployeeData,
+  isEmployee,
 }: Props) {
   const [approversData, setApproversData] = useState<ApproverData[]>([]);
-  const [leaveBalance, setLeaveBalance] = useState("-");
+  const [leaveBalance, setLeaveBalance] = useState('-');
   const [employeeData, setEmployeeData] = useState({
-    name: "-",
-    job_position: "-",
-    job_level: "-",
+    name: '-',
+    job_position: '-',
+    job_level: '-',
   });
   const [loading, setLoading] = useState(false);
 
@@ -72,7 +74,7 @@ export default function LeaveDetailModal({
           );
         }
       } catch (err) {
-        console.error("Error get user balance: ", err);
+        console.error('Error get user balance: ', err);
       } finally {
         setLoading(false);
       }
@@ -89,9 +91,9 @@ export default function LeaveDetailModal({
         const employee = await getEmployeeData(data.user_id);
         if (employee) {
           setEmployeeData({
-            name: employee.user?.name || "-",
-            job_position: employee.employment?.job_position?.name || "-",
-            job_level: employee.employment?.job_level?.name || "-",
+            name: employee.user?.name || '-',
+            job_position: employee.employment?.job_position?.name || '-',
+            job_level: employee.employment?.job_level?.name || '-',
           });
         }
 
@@ -101,16 +103,16 @@ export default function LeaveDetailModal({
               const employee = await getEmployeeData(approver.user_id);
               return {
                 approver,
-                employeeName: employee?.user?.name || "Unknown",
+                employeeName: employee?.user?.name || 'Unknown',
                 jobPosition:
-                  employee?.employment?.job_position?.name || "Unknown",
+                  employee?.employment?.job_position?.name || 'Unknown',
               };
             }),
           );
           setApproversData(approversWithDetails);
         }
       } catch (error) {
-        console.error("Error fetching data:", error);
+        console.error('Error fetching data:', error);
       } finally {
         setLoading(false);
       }
@@ -122,7 +124,7 @@ export default function LeaveDetailModal({
   const renderStatus = (statusData: ILeaveResponse) => {
     const status = statusData.status;
     const { variant, className, label } = getStatusOvertime(status);
-    if (!statusData.status) return "-";
+    if (!statusData.status) return '-';
 
     return (
       <Badge variant={variant} className={className}>
@@ -134,7 +136,7 @@ export default function LeaveDetailModal({
   const renderStatusApprover = (approverData: ILeaveApprover) => {
     const status = approverData.status;
     const { variant, className, label } = getStatusOvertime(status);
-    if (!approverData.status) return "-";
+    if (!approverData.status) return '-';
 
     return (
       <Badge variant={variant} className={className}>
@@ -172,39 +174,41 @@ export default function LeaveDetailModal({
           </div>
         ) : (
           <>
-            <div className="flex flex-col items-center justify-center">
-              <Avatar className="h-18 w-18">
-                <AvatarImage src={`${data?.user?.avatar_url}`} />
-                <AvatarFallback className="text-primary-hover bg-primary-background text-base font-medium">
-                  {stringAvatar(data?.user?.name ?? "")}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex flex-col items-center">
-                <div className="font-medium">
-                  <span>{data?.user?.name}</span>
-                  <span>(#{data?.user?.id})</span>
-                </div>
-                <div className="font-medium text-grayscale-100">
-                  <span>
-                    {employeeData.job_level} | {employeeData.job_position}
-                  </span>
+            {!isEmployee && (
+              <div className="flex flex-col items-center justify-center">
+                <Avatar className="h-18 w-18">
+                  <AvatarImage src={`${data?.user?.avatar_url}`} />
+                  <AvatarFallback className="text-primary-hover bg-primary-background text-base font-medium">
+                    {stringAvatar(data?.user?.name ?? '')}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex flex-col items-center">
+                  <div className="font-medium">
+                    <span>{data?.user?.name}</span>
+                    <span>(#{data?.user?.id})</span>
+                  </div>
+                  <div className="font-medium text-grayscale-100">
+                    <span>
+                      {employeeData.job_level} | {employeeData.job_position}
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             <div className="grid grid-cols-2 gap-3 space-y-2 mb-4">
               <div>
                 <div className="text-sm text-gray-500">Leave Type</div>
-                <div>{data?.leave_type.name}</div>
+                <div>{data?.leave_type?.name}</div>
               </div>
               <div>
                 <div className="text-sm text-gray-500">Duration</div>
                 <div>
                   <span className="text-base">
-                    {formatDateRange(data.start_date, data.end_date)}
-                  </span>{" "}
+                    {formatDateRange(data?.start_date, data?.end_date)}
+                  </span>{' '}
                   <span className="text-base text-text-disabled">
-                    ({formatDayDifference(data.start_date, data.end_date)})
+                    ({formatDayDifference(data?.start_date, data?.end_date)})
                   </span>
                 </div>
               </div>
@@ -218,7 +222,7 @@ export default function LeaveDetailModal({
               </div>
               <div className="col-span-2">
                 <div className="text-sm text-gray-500">Reason</div>
-                <div>{data.reason}</div>
+                <div>{data?.reason}</div>
               </div>
               <div className="col-span-2">
                 <div className="text-sm text-gray-500">Attachments</div>
@@ -227,7 +231,7 @@ export default function LeaveDetailModal({
                   className="underline text-primary text-base"
                   target="_blank"
                 >
-                  {data.attachment || "-"}
+                  {data?.attachment || '-'}
                 </Link>
               </div>
               <div className="col-span-2">
@@ -239,7 +243,7 @@ export default function LeaveDetailModal({
                         className="flex justify-between py-1"
                       >
                         <div className="flex">
-                          <span>{item.employeeName}</span>{" "}
+                          <span>{item.employeeName}</span>{' '}
                           <span className="text-text-disabled">
                             ({item.jobPosition})
                           </span>
@@ -247,7 +251,7 @@ export default function LeaveDetailModal({
                         <span>{renderStatusApprover(item.approver)}</span>
                       </div>
                     ))
-                  : "-"}
+                  : '-'}
               </div>
             </div>
           </>
@@ -260,20 +264,24 @@ export default function LeaveDetailModal({
           >
             Cancel
           </AlertDialogCancel>
-          <AlertDialogCancel
-            onClick={handleReject}
-            className="flex-1 bg-white text-red-500 hover:text-red-500 hover:opacity-50 rounded-md py-2 font-medium border-red-500 px-4"
-          >
-            <CircleX />
-            Reject
-          </AlertDialogCancel>
-          <AlertDialogAction
-            onClick={handleApprove}
-            className="flex-1 bg-primary text-white rounded-md py-2 font-medium px-5"
-          >
-            <ClockCheck />
-            Approve Request
-          </AlertDialogAction>
+          {!isEmployee && (
+            <>
+              <AlertDialogCancel
+                onClick={handleReject}
+                className="flex-1 bg-white text-red-500 hover:text-red-500 hover:opacity-50 rounded-md py-2 font-medium border-red-500 px-4"
+              >
+                <CircleX />
+                Reject
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleApprove}
+                className="flex-1 bg-primary text-white rounded-md py-2 font-medium px-5"
+              >
+                <ClockCheck />
+                Approve Request
+              </AlertDialogAction>
+            </>
+          )}
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

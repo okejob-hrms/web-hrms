@@ -20,12 +20,13 @@ import {
 } from "@/services/employees/leave";
 import { getEmployeeDetail } from "@/services/employees";
 import {
+  ILeaveEmployeeResponse,
   ILeaveResponse,
   IMutateLeaveRequest,
   IMutateLeaveStatus,
 } from "@/services/employees/leave/types";
 import { Filters } from "./types";
-import { ApiErrorResponse } from "@/lib/types";
+import { ApiErrorResponse, PaginatedResponse } from "@/lib/types";
 
 export function useLeaveRequest(isEmployee?: boolean) {
   const router = useRouter();
@@ -76,6 +77,21 @@ export function useLeaveRequest(isEmployee?: boolean) {
     placeholderData: keepPreviousData,
     enabled: !!isEmployee 
   });
+
+  const leavesEmployeePagination: PaginatedResponse<ILeaveEmployeeResponse> = {
+    current_page: leavesEmployee?.pagination.current_page ?? 1,
+    current_page_url: `${leavesEmployee?.pagination.first ?? ''}`,
+    first_page_url: leavesEmployee?.pagination.first ?? '',
+    from: leavesEmployee?.pagination.from ?? 0,
+    last_page: leavesEmployee?.pagination.last_page ?? 1,
+    next_page_url: leavesEmployee?.pagination.next ?? null,
+    path: 'api/emdash/my-leave',
+    per_page: leavesEmployee?.pagination.per_page ?? 10,
+    prev_page_url: leavesEmployee?.pagination.prev ?? null,
+    to: leavesEmployee?.pagination.to ?? 0,
+    total: leavesEmployee?.pagination.total ?? 0,
+    data: [],
+  };
 
   const { mutate: updateLeaveRequest } = useMutation({
     mutationFn: ({
@@ -204,7 +220,7 @@ export function useLeaveRequest(isEmployee?: boolean) {
   };
 
   const handleNavigateAddRequestPage = React.useCallback(() => {
-    router.push("/attendance/leave-request/add");
+    router.push(isEmployee ? "/ess/leave/leave-form" : "/attendance/leave-request/add");
   }, [router]);
 
   const openModal = React.useCallback((modal: keyof typeof modalState) => {
@@ -260,5 +276,6 @@ export function useLeaveRequest(isEmployee?: boolean) {
 
     leavesEmployee,
     isLoadingEmployee,
+    leavesEmployeePagination,
   };
 }

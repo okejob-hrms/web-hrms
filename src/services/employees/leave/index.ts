@@ -6,6 +6,7 @@ import {
 } from "@/lib/types";
 import {
   ILeaveDetails,
+  ILeaveEmployeeResponse,
   ILeaveResponse,
   ILeaveSummary,
   IMutateLeaveRequest,
@@ -166,9 +167,7 @@ export const updateStatusLeave = async (
 export const getLeavesEmployee = async (
   pagination?: PaginationState,
   filters?: { search?: string; date?: string; status?: number },
-): Promise<
-  ApiSummaryResponse<PaginatedResponse<ILeaveResponse>, ILeaveSummary>
-> => {
+): Promise<ILeaveEmployeeResponse> => {
   const searchParams: Record<string, string> = {};
 
   if (pagination) {
@@ -195,4 +194,26 @@ export const getLeavesEmployee = async (
   });
 
   return response.json();
+};
+
+export const createLeaveEmployee = async (
+  params: IMutateLeaveRequest,
+): Promise<ApiResponse<PaginatedResponse<ILeaveResponse>>> => {
+  try {
+    const response = await apiEmployee.post<
+      ApiResponse<PaginatedResponse<ILeaveResponse>>
+    >("emdash/my-leave", { json: params });
+    return response.json();
+  } catch (error: any) {
+    if (error.name === "HTTPError") {
+      const errorResponse = await error.response.json();
+      const enhancedError = new Error(error.message);
+      (enhancedError as any).response = {
+        json: () => Promise.resolve(errorResponse),
+        status: error.response.status,
+      };
+      throw enhancedError;
+    }
+    throw error;
+  }
 };

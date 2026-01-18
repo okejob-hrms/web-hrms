@@ -47,6 +47,7 @@ export default function AuthLogin() {
       if (res.status === 'success') {
         localStorage.setItem('token', res.data.token);
         localStorage.setItem('user', JSON.stringify(res.data.user));
+        localStorage.setItem('user_role', JSON.stringify(res.data.roles));
 
         if (res.data.user.is_first_login) {
           toast.success('Login successful. This is your first login.');
