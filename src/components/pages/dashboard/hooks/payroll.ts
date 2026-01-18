@@ -2,20 +2,23 @@
 
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getPayrollDashboard } from '@/services/dashboard';
+import { getPayrollDashboard, getPayrollTrend } from '@/services/dashboard';
 
 export function useDashboardPayroll() {
   const [search, setSearch] = useState('');
   const [filters, setFilters] = useState({
-    // start_date: "",
-    // end_date: "",
-    branch_id: "",
-    department_id: "",
+    start_date: "",
+    end_date: "",
   });
 
   const { data: payrolls, isLoading: payrollsLoading } = useQuery({
-    queryKey: ['payrolls', filters],
-    queryFn: () => getPayrollDashboard(filters),
+    queryKey: ['payrolls'],
+    queryFn: () => getPayrollDashboard(),
+  });
+
+  const { data: payrollTrend, isLoading: payrollTrendLoading } = useQuery({
+    queryKey: ['payrollTrend', filters],
+    queryFn: () => getPayrollTrend(filters),
   });
 
   return {
@@ -25,5 +28,7 @@ export function useDashboardPayroll() {
     setSearch,
     filters,
     setFilters,
+    payrollTrend,
+    payrollTrendLoading,
   };
 }
