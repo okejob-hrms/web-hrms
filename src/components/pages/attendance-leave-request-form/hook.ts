@@ -21,7 +21,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 
-export const useLeaveRequestForm = (isEmployee: boolean) => {
+export const useLeaveRequestForm = (isEmployee?: boolean) => {
   const CreateLeaveRequestSchema = z.object({
     user_id: isEmployee ? z.string().optional() : z.string().min(1, "Employee name is required"),
     leave_type_id: z.string().min(1, "Leave type is required"),

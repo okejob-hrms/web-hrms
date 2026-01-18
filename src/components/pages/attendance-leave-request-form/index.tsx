@@ -11,7 +11,7 @@ import { Button, UploadButton } from '@/components/ui/button';
 import AppSkeleton from '@/components/partials/app-skeleton';
 
 interface AttendanceLeaveRequestFormProps {
-  isEmployee: boolean;
+  isEmployee?: boolean;
 }
 
 export const AttendanceLeaveRequestForm = React.memo(
