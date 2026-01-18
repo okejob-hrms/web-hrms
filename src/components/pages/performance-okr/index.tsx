@@ -128,10 +128,10 @@ export default function PerformanceOKR() {
       },
     },
     {
-      accessorKey: "achievement",
+      accessorKey: "overall_progress",
       header: "Overall Achievement",
       cell: ({ row }) => {
-        return <span>-</span>;
+        return <span>{Number(row.original.overall_progress).toFixed(2)}%</span>;
       },
     },
     {
