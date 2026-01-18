@@ -16,6 +16,7 @@ import {
   deleteLeave,
   updateLeave,
   updateStatusLeave,
+  getLeavesEmployee,
 } from "@/services/employees/leave";
 import { getEmployeeDetail } from "@/services/employees";
 import {
@@ -26,7 +27,7 @@ import {
 import { Filters } from "./types";
 import { ApiErrorResponse } from "@/lib/types";
 
-export function useLeaveRequest() {
+export function useLeaveRequest(isEmployee?: boolean) {
   const router = useRouter();
   const queryClient = useQueryClient();
 
@@ -62,6 +63,18 @@ export function useLeaveRequest() {
     queryKey: ["leaves", pagination, filters],
     queryFn: () => getLeaves(pagination, filters),
     placeholderData: keepPreviousData,
+    enabled: !isEmployee 
+  });
+
+  //employee Section
+  const {
+    data: leavesEmployee,
+    isLoading: isLoadingEmployee,
+  } = useQuery({
+    queryKey: ["leavesEmployee", pagination, filters],
+    queryFn: () => getLeavesEmployee(pagination, filters),
+    placeholderData: keepPreviousData,
+    enabled: !!isEmployee 
   });
 
   const { mutate: updateLeaveRequest } = useMutation({
@@ -244,5 +257,8 @@ export function useLeaveRequest() {
     getEmployeeData,
     selectLeave,
     setSelectedData,
+
+    leavesEmployee,
+    isLoadingEmployee,
   };
 }

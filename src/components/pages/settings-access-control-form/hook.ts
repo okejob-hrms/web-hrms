@@ -126,7 +126,7 @@ export function useRoleManagementForm() {
       ...values,
       guard_name: "web",
       permissions: selectedPermissions,
-      users: selectedEmployees.map((e) => e.user_id),
+      users: selectedEmployees.map((e) => e.id),
     };
 
     if (selectedId) {

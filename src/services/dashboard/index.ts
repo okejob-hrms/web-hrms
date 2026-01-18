@@ -120,7 +120,7 @@ export const getExperienceStat = async (
   }
 
   if (filters.branch_id) {
-    searchParams.start_date = filters.branch_id
+    searchParams.branch_id = filters.branch_id
   }
 
   if (filters.department_id) {
@@ -176,7 +176,7 @@ export const getGenderStat = async (
   }
   
   if (filters.branch_id) {
-    searchParams.start_date = filters.branch_id
+    searchParams.branch_id = filters.branch_id
   }
 
   if (filters.department_id) {
@@ -204,7 +204,7 @@ export const getAttStat = async (
   }
 
   if (filters.branch_id) {
-    searchParams.start_date = filters.branch_id
+    searchParams.branch_id = filters.branch_id
   }
 
   if (filters.department_id) {
@@ -271,7 +271,7 @@ export const getExperienceTrend = async (
   }
   
   if (filters.branch_id) {
-    searchParams.start_date = filters.branch_id
+    searchParams.branch_id = filters.branch_id
   }
 
   if (filters.department_id) {
@@ -302,7 +302,7 @@ export const getExpStatList = async (
   }
 
   if (filters?.branch_id) {
-    searchParams.start_date = filters?.branch_id
+    searchParams.branch_id = filters?.branch_id
   }
 
   if (filters?.department_id) {
@@ -339,7 +339,7 @@ export const getAdditionalList = async (
   }
   
   if (filters.branch_id) {
-    searchParams.start_date = filters.branch_id
+    searchParams.branch_id = filters.branch_id
   }
 
   if (filters.department_id) {
@@ -388,7 +388,7 @@ export const getPayrollDashboard = async (
   const searchParams: Record<string, string> = {}
 
   if (filters.branch_id) {
-    searchParams.start_date = filters.branch_id
+    searchParams.branch_id = filters.branch_id
   }
 
   if (filters.department_id) {

@@ -94,9 +94,7 @@ export default function AssignEmployee({
             <span className="font-semibold text-foreground text-sm">
               {row.original.name}
             </span>
-            <span className="text-text-secondary">
-              {row.original.employee_id}
-            </span>
+            <span className="text-text-secondary">{row.original.user_id}</span>
           </div>
         </div>
       ),
@@ -168,7 +166,7 @@ export default function AssignEmployee({
     if (open) {
       const initialSelection: RowSelectionState = {};
       employees.forEach((emp, idx) => {
-        if (selectedEmployees.some((sel) => sel.employee_id === emp.id)) {
+        if (selectedEmployees.some((sel) => sel.id === emp.user_id)) {
           initialSelection[idx] = true;
         }
       });
@@ -245,12 +243,7 @@ export default function AssignEmployee({
             </Button>
             <Button
               onClick={() => {
-                setSelectedEmployees((prev) => [
-                  ...prev,
-                  ...candidateSelection.filter(
-                    (c) => !prev.some((p) => p.id === c.id),
-                  ),
-                ]);
+                setSelectedEmployees(candidateSelection);
                 onOpenChange(false);
                 onRowSelectionChange({});
               }}
