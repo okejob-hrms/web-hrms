@@ -116,11 +116,48 @@ const menuItems = [
     path: '/settings/access-control',
     children: [],
   },
+  {
+    name: 'ess',
+    label: 'ESS',
+    icon: '/icons/dashboard.svg',
+    path: '/ess',
+    children: [],
+  },
 ];
 
 const HeaderMenu = React.memo(function HeaderMenu() {
   const pathname = usePathname();
   const [isMobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+  const [roles, setRoles] = React.useState<string[]>([]);
+
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    try {
+      const savedRoles = localStorage.getItem('user_role');
+      const parsed = savedRoles ? JSON.parse(savedRoles) : [];
+      setRoles(Array.isArray(parsed) ? parsed : []);
+    } catch {
+      setRoles([]);
+    }
+  }, []);
+
+  const isEmployeeOnly =
+    roles.length === 1 && String(roles[0]).toLowerCase() === 'employee';
+
+  const displayedMenuItems = React.useMemo(() => {
+    if (!isEmployeeOnly) return menuItems;
+
+    return [
+      {
+        name: 'ess',
+        label: 'ESS',
+        icon: '/icons/dashboard.svg',
+        path: '/ess',
+        children: [],
+      },
+    ];
+  }, [isEmployeeOnly]);
 
   const navigationMenuTriggerStyle = (isActive: boolean) =>
     cn(
@@ -135,7 +172,7 @@ const HeaderMenu = React.memo(function HeaderMenu() {
       <div className="hidden md:block">
         <NavigationMenu viewport={false} className="w-full px-10 pt-2">
           <NavigationMenuList>
-            {menuItems.map((item) => {
+            {displayedMenuItems.map((item) => {
               const isActive = pathname.includes(`/${item.name}`);
               return (
                 <NavigationMenuItem key={item.name}>
@@ -225,7 +262,7 @@ const HeaderMenu = React.memo(function HeaderMenu() {
       {/* Mobile Menu Content */}
       {isMobileMenuOpen && (
         <div className="md:hidden bg-white px-4 pb-4 border-t">
-          {menuItems.map((item) => (
+          {displayedMenuItems.map((item) => (
             <div key={item.name} className="py-2">
               <Link
                 href={item.path}

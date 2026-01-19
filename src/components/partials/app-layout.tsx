@@ -27,18 +27,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const breadcrumbs = getBreadcrumbs(pathname);
   const isDashboard = ['/dashboard', '/ess', '/ess/'];
   const removeBg = isDashboard.includes(pathname);
-  const isEmployee = (roles: string[]) =>
-    roles.some((role: string) => role.toLowerCase() === 'employee');
+  // const isEmployee = (roles: string[]) =>
+  //   roles.some((role: string) => role.toLowerCase() === 'employee');
 
-  const [isEmployeeState, setIsEmployeeState] = useState(false);
+  // const [isEmployeeState, setIsEmployeeState] = useState(false);
 
-  useEffect(() => {
-    const roles: string[] = JSON.parse(
-      localStorage.getItem('user_role') || '[]',
-    );
+  // useEffect(() => {
+  //   const roles: string[] = JSON.parse(
+  //     localStorage.getItem('user_role') || '[]',
+  //   );
 
-    setIsEmployeeState(isEmployee(roles));
-  }, []);
+  //   setIsEmployeeState(isEmployee(roles));
+  // }, []);
 
   const [queryClient] = useState(
     () =>
@@ -62,18 +62,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       }),
   );
 
-  useEffect(() => {
-    if (!isEmployeeState) return;
+  // useEffect(() => {
+  //   if (!isEmployeeState) return;
 
-    if (!isAllowedEmployeePath(pathname)) {
-      toast.error('Page is not available');
-      router.replace('/ess');
-    }
-  }, [isEmployeeState, pathname, router]);
+  //   if (!isAllowedEmployeePath(pathname)) {
+  //     toast.error('Page is not available');
+  //     router.replace('/ess');
+  //   }
+  // }, [isEmployeeState, pathname, router]);
 
-  const isAllowedEmployeePath = (pathname: string) => {
-    return pathname.startsWith('/ess') || pathname.startsWith('/auth');
-  };
+  // const isAllowedEmployeePath = (pathname: string) => {
+  //   return pathname.startsWith('/ess') || pathname.startsWith('/auth');
+  // };
 
   const [loading, setLoading] = useState(false);
 
@@ -96,7 +96,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       ) : (
         <>
           <Header showBackNavigate={hideSidebar} />
-          {!isEmployeeState && <HeaderMenu />}
+          <HeaderMenu />
           <HeaderBreadcumb items={breadcrumbs} />
           {hideSidebar ? (
             <div
