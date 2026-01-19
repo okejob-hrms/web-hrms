@@ -2,7 +2,7 @@
 'use client';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   Header,
   HeaderBreadcumb,
@@ -15,8 +15,10 @@ import AppSkeleton from './app-skeleton';
 import { useState, useEffect } from 'react';
 import { Toaster } from '../ui/sonner';
 import { getBreadcrumbs, getGenerateTitle, getHideSidebar } from '@/lib/menu';
+import { toast } from 'sonner';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
   const pathname = usePathname();
   const hideSidebar = getHideSidebar(pathname) || false;
   const noPaddingPages = ['/employee/organization/structure/edit']; // add more if needed
@@ -26,7 +28,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const isDashboard = ['/dashboard', '/ess', '/ess/'];
   const removeBg = isDashboard.includes(pathname);
   const isEmployee = (roles: string[]) =>
-    roles.some((role: string) => role.toLowerCase() === 'employee');
+    roles.some((role: string) => role.toLowerCase() !== 'employee');
 
   const [isEmployeeState, setIsEmployeeState] = useState(false);
 
@@ -59,6 +61,19 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         },
       }),
   );
+
+  useEffect(() => {
+    if (!isEmployeeState) return;
+
+    if (!isAllowedEmployeePath(pathname)) {
+      toast.error('Page is not available');
+      router.replace('/ess');
+    }
+  }, [isEmployeeState, pathname, router]);
+
+  const isAllowedEmployeePath = (pathname: string) => {
+    return pathname.startsWith('/ess') || pathname.startsWith('/auth');
+  };
 
   const [loading, setLoading] = useState(false);
 
