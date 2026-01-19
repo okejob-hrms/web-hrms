@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import InfoList from '@/components/ui/info-list';
 import DashboardInfo from '@/components/ui/dashboard-info';
 import {
   BarChart,
@@ -23,10 +22,19 @@ import {
 import { Label } from '@/components/ui/label';
 import { useDashboardPayroll } from '../hooks/payroll';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Input } from '@/components/ui/input';
 
 export const Payroll = () => {
-  const { payrolls, payrollsLoading, search, setSearch, filters, setFilters } =
-    useDashboardPayroll();
+  const {
+    payrolls,
+    payrollsLoading,
+    search,
+    setSearch,
+    filters,
+    setFilters,
+    payrollTrend,
+    payrollTrendLoading,
+  } = useDashboardPayroll();
 
   const pannel = [
     {
@@ -58,20 +66,12 @@ export const Payroll = () => {
     },
   ];
 
-  const data = [
-    { month: 'Jan', overtime: 300000, allowance: 300000, total: 250000 },
-    { month: 'Feb', overtime: 350000, allowance: 320000, total: 280000 },
-    { month: 'Mar', overtime: 250000, allowance: 280000, total: 210000 },
-    { month: 'Apr', overtime: 320000, allowance: 310000, total: 260000 },
-    { month: 'May', overtime: 240000, allowance: 270000, total: 200000 },
-    { month: 'Jun', overtime: 360000, allowance: 300000, total: 290000 },
-    { month: 'Jul', overtime: 310000, allowance: 290000, total: 250000 },
-    { month: 'Aug', overtime: 320000, allowance: 300000, total: 260000 },
-    { month: 'Sep', overtime: 300000, allowance: 290000, total: 250000 },
-    { month: 'Oct', overtime: 330000, allowance: 310000, total: 270000 },
-    { month: 'Nov', overtime: 350000, allowance: 320000, total: 300000 },
-    { month: 'Dec', overtime: 280000, allowance: 300000, total: 250000 },
-  ];
+  const data = payrollTrend?.data.map((item) => ({
+    month: item.month,
+    overtime: item.overtime,
+    allowance: item.allowance,
+    total: item.total_salary,
+  }));
 
   return (
     <div className="font-sans min-h-screen flex flex-col space-y-6 py-6">
@@ -103,39 +103,32 @@ export const Payroll = () => {
             <h2 className="font-bold text-xl text-gray-600">Sum of Payroll</h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="space-y-2">
-              <Label>Branch</Label>
-              <Select
-                // value={}
-                onValueChange={(val) => {
-                  console.log(val);
+          <div className="space-y-1">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <Input
+                type="date"
+                className="w-full"
+                name="start_date"
+                value={filters.start_date}
+                onChange={(e) => {
+                  setFilters((prev) => ({
+                    ...prev,
+                    start_date: e.target.value,
+                  }));
                 }}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select branch" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Branch 1">Branch 1</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Department</Label>
-              <Select
-                // value={}
-                onValueChange={(val) => {
-                  console.log(val);
+              />
+              <Input
+                type="date"
+                className="w-full"
+                name="end_date"
+                value={filters.end_date}
+                onChange={(e) => {
+                  setFilters((prev) => ({
+                    ...prev,
+                    end_date: e.target.value,
+                  }));
                 }}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select department" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Department 1">Department 1</SelectItem>
-                </SelectContent>
-              </Select>
+              />
             </div>
           </div>
 

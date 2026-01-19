@@ -1,5 +1,5 @@
 import { api } from "@/lib/api";
-import { AdditionalList, AdditionalListDetail, AgeListDataResponse, AgeStatResponse, AttendanceStatResponse, AttListStatResponse, AttStatResponse, DataOffboardingTrendResponse, EmployeeStatResponse, ExperienceStatResponse, ExperienceTrend, ExpTrendListDataResponse, GenderStatResponse, OffboardingResponse, PayrollDashboardResponse, PendingResponse } from "./types";
+import { AdditionalList, AdditionalListDetail, AgeListDataResponse, AgeStatResponse, AttendanceStatResponse, AttListStatResponse, AttStatResponse, DataOffboardingTrendResponse, EmployeeStatResponse, ExperienceStatResponse, ExperienceTrend, ExpTrendListDataResponse, GenderStatResponse, OffboardingResponse, PayrollDashboardResponse, PayrollTrendResponse, PendingResponse } from "./types";
 import { PaginationState } from "@tanstack/react-table";
 
 export const getPendingStat = async (): Promise<PendingResponse> => {
@@ -120,11 +120,11 @@ export const getExperienceStat = async (
   }
 
   if (filters.branch_id) {
-    searchParams.start_date = filters.branch_id
+    searchParams.branch_id = filters.branch_id
   }
 
   if (filters.department_id) {
-    searchParams.end_date = filters.department_id
+    searchParams.department_id = filters.department_id
   }
 
   const response = await api.get<ExperienceStatResponse>(
@@ -176,11 +176,11 @@ export const getGenderStat = async (
   }
   
   if (filters.branch_id) {
-    searchParams.start_date = filters.branch_id
+    searchParams.branch_id = filters.branch_id
   }
 
   if (filters.department_id) {
-    searchParams.end_date = filters.department_id
+    searchParams.department_id = filters.department_id
   }
 
   const response = await api.get<GenderStatResponse>(
@@ -204,11 +204,11 @@ export const getAttStat = async (
   }
 
   if (filters.branch_id) {
-    searchParams.start_date = filters.branch_id
+    searchParams.branch_id = filters.branch_id
   }
 
   if (filters.department_id) {
-    searchParams.end_date = filters.department_id
+    searchParams.department_id = filters.department_id
   }
 
   const response = await api.get<AttStatResponse>(
@@ -238,7 +238,7 @@ export const getAttStatList = async (
   }
 
   if (filters?.department_id) {
-    searchParams.end_date = filters?.department_id
+    searchParams.department_id = filters?.department_id
   }
 
   if (pagination) {
@@ -271,11 +271,11 @@ export const getExperienceTrend = async (
   }
   
   if (filters.branch_id) {
-    searchParams.start_date = filters.branch_id
+    searchParams.branch_id = filters.branch_id
   }
 
   if (filters.department_id) {
-    searchParams.end_date = filters.department_id
+    searchParams.department_id = filters.department_id
   }
 
   const response = await api.get<ExperienceTrend>(
@@ -302,11 +302,11 @@ export const getExpStatList = async (
   }
 
   if (filters?.branch_id) {
-    searchParams.start_date = filters?.branch_id
+    searchParams.branch_id = filters?.branch_id
   }
 
   if (filters?.department_id) {
-    searchParams.end_date = filters?.department_id
+    searchParams.department_id = filters?.department_id
   }
 
   if (pagination) {
@@ -339,11 +339,11 @@ export const getAdditionalList = async (
   }
   
   if (filters.branch_id) {
-    searchParams.start_date = filters.branch_id
+    searchParams.branch_id = filters.branch_id
   }
 
   if (filters.department_id) {
-    searchParams.end_date = filters.department_id
+    searchParams.department_id = filters.department_id
   }
 
   const response = await api.get<AdditionalList>(
@@ -383,17 +383,17 @@ export const getAdditionalListDetail = async (
 }
 
 export const getPayrollDashboard = async (
-  filters: { branch_id?: string; department_id?: string }
+  // filters: { start_date?: string; end_date?: string }
 ): Promise<PayrollDashboardResponse> => {
   const searchParams: Record<string, string> = {}
 
-  if (filters.branch_id) {
-    searchParams.start_date = filters.branch_id
-  }
+  // if (filters.start_date) {
+  //   searchParams.start_date = filters.start_date
+  // }
 
-  if (filters.department_id) {
-    searchParams.end_date = filters.department_id
-  }
+  // if (filters.end_date) {
+  //   searchParams.end_date = filters.end_date
+  // }
 
   const response = await api.get<PayrollDashboardResponse>(
     'dashboard/payroll/stat',
@@ -419,6 +419,27 @@ export const getAgeStatList = async (
 
   const response = await api.get<AgeListDataResponse>(
     'dashboard/analytic/age-spread-detail',
+    { searchParams }
+  )
+
+  return response.json()
+}
+
+export const getPayrollTrend = async (
+  filters: { start_date?: string; end_date?: string }
+): Promise<PayrollTrendResponse> => {
+  const searchParams: Record<string, string> = {}
+
+  if (filters.start_date) {
+    searchParams.start_date = filters.start_date
+  }
+
+  if (filters.end_date) {
+    searchParams.end_date = filters.end_date
+  }
+
+  const response = await api.get<PayrollTrendResponse>(
+    'dashboard/payroll/trend',
     { searchParams }
   )
 

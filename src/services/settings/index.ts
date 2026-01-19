@@ -49,7 +49,7 @@ export const getPermission = async (): Promise<IPermissionResponse> => {
 };
 
 export const getEmployee = async (search: string): Promise<PaginatedResponse<IEmployee>> => {
-  return api.get(`employees?search=${search}`).json<PaginatedResponse<IEmployee>>();
+  return api.get(`employees?per_page=100000${search && `&search=${search}`}`).json<PaginatedResponse<IEmployee>>();
 };
 
 export const createRole = async (

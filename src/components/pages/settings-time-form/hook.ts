@@ -111,7 +111,14 @@ const daysOfWeek = [
 // -------------------------
 // HOOK
 // -------------------------
+interface ApiErrorResponse {
+  status?: string;
+  message?: string;
+  error_code?: string | null;
+}
+
 export function useCompanyForm() {
+
   const router = useRouter();
   const queryClient = useQueryClient();
   const [data, setData] = useState<AttendanceConfigData | null>(null);
@@ -127,6 +134,47 @@ export function useCompanyForm() {
       }
     }
   }, []);
+
+  const extractErrorMessage = async (error: unknown): Promise<string> => {
+    // fetch-style error
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "response" in error
+    ) {
+      const response = (error as { response?: Response }).response;
+
+      if (response && typeof response.json === "function") {
+        try {
+          const data = (await response.json()) as ApiErrorResponse;
+          return data.message ?? "Something went wrong";
+        } catch {
+          return "Something went wrong";
+        }
+      }
+    }
+
+    // axios-style error
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "response" in error
+    ) {
+      const data = (error as {
+        response?: { data?: ApiErrorResponse };
+      }).response?.data;
+
+      if (data?.message) return data.message;
+    }
+
+    // native Error
+    if (error instanceof Error) {
+      return error.message;
+    }
+
+    return "Something went wrong";
+  };
+
 
   // Get shift list
   const { data: shiftData } =
@@ -155,11 +203,13 @@ export function useCompanyForm() {
       toast.success("Update attendance time successful.");
       router.push("/settings/time-attendance/attendance-configuration");
     },
-    onError: (err) => {
-      console.log(err);
-      toast.error("Update attendance time failed.");
+    onError: async (err) => {
+      const message = await extractErrorMessage(err);
+      toast.error(message);
     },
   });
+
+  
 
   const onSubmit = (values: CompanyFormValues) => {
     if (!branch) {

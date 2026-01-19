@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { DataTable } from '@/components/tables/data-table';
-import { ColumnDef } from '@tanstack/react-table';
+import { CellContext, ColumnDef } from '@tanstack/react-table';
 import { Separator } from '@/components/ui/separator';
 import { Filters } from './types';
 import InfoList from '@/components/ui/info-list';
@@ -22,6 +22,7 @@ import {
   Edit3,
   Ellipsis,
   Eye,
+  Plus,
   Search,
   Trash,
   XCircle,
@@ -44,13 +45,17 @@ import {
 } from '@/services/overtime/types';
 import OvertimeDetailModal from './sections/detail-modal';
 import OvertimeEditModal from './sections/edit-modal';
+import OvertimeAddModal from './sections/add-modal';
+import { Button } from '@/components/ui/button';
 
 interface OvertimeTrackerListProps {
   hidePannel?: boolean;
+  isEmployee?: boolean;
 }
 
 export default function OvertimeTrackerList({
   hidePannel = false,
+  isEmployee = false,
 }: OvertimeTrackerListProps) {
   const {
     attendances,
@@ -74,7 +79,12 @@ export default function OvertimeTrackerList({
     setOpenEdit,
     openEdit,
     handleEdit,
-  } = useOvertime();
+    openAdd,
+    setOpenAdd,
+    overtimeDataEmployee,
+    handleAdd,
+  } = useOvertime(isEmployee);
+
   const [detail, setDetail] = React.useState<OvertimeListItem>();
   const [formData, setFormData] = React.useState<RequestOvertime>({
     user_id: 0,
@@ -96,28 +106,32 @@ export default function OvertimeTrackerList({
     });
   }, [detail]);
   const columns: ColumnDef<OvertimeListItem>[] = [
-    {
-      accessorKey: 'employee.name',
-      header: 'Name',
-      cell: ({ row }) => (
-        <div className="flex gap-4 items-center min-w-[150px]">
-          <Avatar className="h-10 w-10">
-            <AvatarImage src={`${row.original.employee?.avatar_url}`} />
-            <AvatarFallback className="text-primary-hover bg-primary-background text-base font-medium">
-              {stringAvatar(row.original.employee?.name ?? '')}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex flex-col">
-            <span className="font-semibold text-foreground text-sm">
-              {row.original.employee?.name}
-            </span>
-            <span className="text-text-secondary">
-              #{row.original.employee?.id}
-            </span>
-          </div>
-        </div>
-      ),
-    },
+    ...(!isEmployee
+      ? [
+          {
+            accessorKey: 'employee.name',
+            header: 'Name',
+            cell: ({ row }: CellContext<OvertimeListItem, unknown>) => (
+              <div className="flex gap-4 items-center min-w-[150px]">
+                <Avatar className="h-10 w-10">
+                  <AvatarImage src={`${row.original.employee?.avatar_url}`} />
+                  <AvatarFallback className="text-primary-hover bg-primary-background text-base font-medium">
+                    {stringAvatar(row.original.employee?.name ?? '')}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex flex-col">
+                  <span className="font-semibold text-foreground text-sm">
+                    {row.original.employee?.name}
+                  </span>
+                  <span className="text-text-secondary">
+                    #{row.original.employee?.id}
+                  </span>
+                </div>
+              </div>
+            ),
+          },
+        ]
+      : []),
 
     {
       accessorKey: 'overtime_date',
@@ -132,7 +146,9 @@ export default function OvertimeTrackerList({
       header: 'Request Date',
       size: 200,
       cell: ({ row }) =>
-        dayjs(row.original.request_date).format('MMMM D, YYYY') || '-',
+        row.original.request_date
+          ? dayjs(row.original.request_date).format('MMMM D, YYYY')
+          : '-',
     },
 
     {
@@ -203,28 +219,31 @@ export default function OvertimeTrackerList({
 
               {row.original.status === 1 && (
                 <>
-                  <DropdownMenuItem
-                    onSelect={() => {
-                      setOpenApprove(true);
-                      setSelectedId(String(row.original?.id));
-                      setSelectedData(row.original);
-                    }}
-                  >
-                    <Clock4Icon className="mr-2" />
-                    Approve Request
-                  </DropdownMenuItem>
+                  {!isEmployee && (
+                    <>
+                      <DropdownMenuItem
+                        onSelect={() => {
+                          setOpenApprove(true);
+                          setSelectedId(String(row.original?.id));
+                          setSelectedData(row.original);
+                        }}
+                      >
+                        <Clock4Icon className="mr-2" />
+                        Approve Request
+                      </DropdownMenuItem>
 
-                  <DropdownMenuItem
-                    onSelect={() => {
-                      setOpenReject(true);
-                      setSelectedId(String(row.original?.id));
-                      setSelectedData(row.original);
-                    }}
-                  >
-                    <XCircle className="mr-2" />
-                    Reject Request
-                  </DropdownMenuItem>
-
+                      <DropdownMenuItem
+                        onSelect={() => {
+                          setOpenReject(true);
+                          setSelectedId(String(row.original?.id));
+                          setSelectedData(row.original);
+                        }}
+                      >
+                        <XCircle className="mr-2" />
+                        Reject Request
+                      </DropdownMenuItem>
+                    </>
+                  )}
                   <DropdownMenuItem
                     onSelect={() => {
                       setOpenEdit(true);
@@ -239,15 +258,17 @@ export default function OvertimeTrackerList({
                 </>
               )}
 
-              <DropdownMenuItem
-                onSelect={() => {
-                  setOpenDelete(true);
-                  setSelectedId(String(row.original?.id));
-                }}
-              >
-                <Trash className="mr-2" />
-                Delete Request
-              </DropdownMenuItem>
+              {!isEmployee && (
+                <DropdownMenuItem
+                  onSelect={() => {
+                    setOpenDelete(true);
+                    setSelectedId(String(row.original?.id));
+                  }}
+                >
+                  <Trash className="mr-2" />
+                  Delete Request
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         );
@@ -284,33 +305,35 @@ export default function OvertimeTrackerList({
     <div className="font-sans min-h-screen flex flex-col space-y-6 px-6">
       {!hidePannel && (
         <>
-          <h2 className="font-semibold text-xl">Summary</h2>
-          <div className="grid xl:grid-cols-4 grid-cols-1 gap-6">
-            <InfoList
-              title="New Overtime Request"
-              compare="vs"
-              time="yesterday"
-              value={attendances?.summary.new_requests.today}
-            />
-            <InfoList
-              title="Pending Overtime Request"
-              compare=""
-              time=""
-              value={attendances?.summary.pending}
-            />
-            <InfoList
-              title="Approved Overtime Request"
-              compare=""
-              time=""
-              value={attendances?.summary.approved}
-            />
-            <InfoList
-              title="Rejected Overtime Request"
-              compare=""
-              time=""
-              value={attendances?.summary.rejected}
-            />
-          </div>
+          {!isEmployee && <h2 className="font-semibold text-xl">Summary</h2>}
+          {!isEmployee && (
+            <div className="grid xl:grid-cols-4 grid-cols-1 gap-6">
+              <InfoList
+                title="New Overtime Request"
+                compare="vs"
+                time="yesterday"
+                value={attendances?.summary.new_requests.today}
+              />
+              <InfoList
+                title="Pending Overtime Request"
+                compare=""
+                time=""
+                value={attendances?.summary.pending}
+              />
+              <InfoList
+                title="Approved Overtime Request"
+                compare=""
+                time=""
+                value={attendances?.summary.approved}
+              />
+              <InfoList
+                title="Rejected Overtime Request"
+                compare=""
+                time=""
+                value={attendances?.summary.rejected}
+              />
+            </div>
+          )}
         </>
       )}
 
@@ -380,11 +403,20 @@ export default function OvertimeTrackerList({
         <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6">
           <div className="flex md:flex-row flex-col justify-between w-full md:items-center items-start gap-4">
             <h2 className="font-semibold text-xl">Overtime Request</h2>
+            {isEmployee && (
+              <Button onClick={() => setOpenAdd(true)}>
+                <Plus /> New Overtime Request
+              </Button>
+            )}
           </div>
 
           <DataTable
             columns={columns}
-            data={attendances?.data.data}
+            data={
+              isEmployee
+                ? overtimeDataEmployee?.data.data
+                : attendances?.data.data
+            }
             pagination={attendances?.data}
             paginationState={pagination}
             setPaginationState={setPagination}
@@ -421,6 +453,15 @@ export default function OvertimeTrackerList({
             isOpen={openEdit}
             setIsOpen={(e) => setOpenEdit(e)}
             data={detail}
+            formData={formData}
+            setFormData={setFormData}
+            isEmployee={isEmployee}
+          />
+
+          <OvertimeAddModal
+            onUpdate={() => handleAdd(formData)}
+            isOpen={openAdd}
+            setIsOpen={(e) => setOpenAdd(e)}
             formData={formData}
             setFormData={setFormData}
           />

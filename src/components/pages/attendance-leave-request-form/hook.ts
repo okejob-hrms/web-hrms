@@ -4,6 +4,7 @@ import { ApiErrorResponse } from "@/lib/types";
 import { getEmployees } from "@/services/employees";
 import {
   createLeave,
+  createLeaveEmployee,
   getDetailLeave,
   getUserLeaveBalance,
   updateLeave,
@@ -19,31 +20,39 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
-export const CreateLeaveRequestSchema = z.object({
-  user_id: z.string().min(1, "Employee name is required"),
-  leave_type_id: z.string().min(1, "Leave type is required"),
-  start_date: z.string().min(1, "Start date is required"),
-  end_date: z.string().min(1, "End date is required"),
-  reason: z.string().min(1, "Reason is required"),
-  attachments: z
-    .array(
-      z.object({
-        type: z.string(),
-      }),
-    )
-    .optional(),
-  approvers: z.array(
-    z.object({
-      id: z.number(),
-      user_id: z.number(),
-    }),
-  ),
-  // .min(1, "Approver is required"),
-});
 
-export type ICreateLeaveRequest = z.infer<typeof CreateLeaveRequestSchema>;
+export const useLeaveRequestForm = (isEmployee?: boolean) => {
+  const CreateLeaveRequestSchema = z.object({
+    user_id: isEmployee ? z.string().optional() : z.string().min(1, "Employee name is required"),
+    leave_type_id: z.string().min(1, "Leave type is required"),
+    start_date: z.union([z.date(), z.string().min(1, "Start date is required")]),
+    end_date: z.union([z.date(), z.string().min(1, "End date is required")]),
+    reason: z.string().min(1, "Reason is required"),
+    attachments: z
+      .array(
+        z.object({
+          type: z.string(),
+        }),
+      )
+      .optional(),
+    approvers: isEmployee 
+      ? z.array(
+        z.object({
+          id: z.number(),
+          user_id: z.number(),
+        }),
+      ).optional()
+      : z.array(
+        z.object({
+          id: z.number(),
+          user_id: z.number(),
+        }),
+      ),
+    // .min(1, "Approver is required"),
+  });
+  
+  type ICreateLeaveRequest = z.infer<typeof CreateLeaveRequestSchema>;
 
-export const useLeaveRequestForm = () => {
   const form = useForm<z.infer<typeof CreateLeaveRequestSchema>>({
     resolver: zodResolver(CreateLeaveRequestSchema),
     defaultValues: {
@@ -264,25 +273,45 @@ export const useLeaveRequestForm = () => {
     router.push("/attendance/leave-request");
   };
 
+   const { mutate: createLeaveMutationEmployee, isPending: isPendingCreateLeaveEmployee } =
+    useMutation({
+      mutationFn: (params: IMutateLeaveRequest) => createLeaveEmployee(params),
+      onSuccess: () => {
+        toast.success("Create leave successfully!");
+        queryClient.invalidateQueries({ queryKey: ["leaves"] });
+        router.push("/ess/leave");
+      },
+      onError: (error: any) => {
+        handleMutationError(error);
+      },
+    });
+
   const onSubmit = (data: ICreateLeaveRequest) => {
     const requestPayload: IMutateLeaveRequest = {
-      user_id: Number(data.user_id),
       leave_type_id: Number(data.leave_type_id),
       start_date: dayjs(data.start_date).format("YYYY-MM-DD"),
       end_date: dayjs(data.end_date).format("YYYY-MM-DD"),
       reason: data.reason,
       attachment: data.attachments?.[0]?.type || "",
-      approvers: data.approvers.map((approver) => ({
-        id: Number(approver.id),
-        user_id: Number(approver.user_id),
-        approver_type: "Leave",
-      })),
+
+      ...(!isEmployee && {
+        user_id: Number(data.user_id),
+        approvers: data.approvers?.map((approver) => ({
+          id: Number(approver.id),
+          user_id: Number(approver.user_id),
+          approver_type: "Leave",
+        })),
+      }),
     };
 
     if (isEditMode) {
       updateLeaveMutation(requestPayload);
     } else {
-      createLeaveMutation(requestPayload);
+      if(isEmployee){
+        createLeaveMutationEmployee(requestPayload)
+      }else{
+        createLeaveMutation(requestPayload);
+      }
     }
   };
 

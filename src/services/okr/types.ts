@@ -9,6 +9,7 @@ export interface IOKRResponse {
   status_label: string;
   tenant_id: number;
   objectives_count: number;
+  overall_progress: string;
   created_by: {
     id: number;
     name: string;
@@ -115,6 +116,7 @@ export interface IOKRDetailsResponse {
   objectives_count: number;
   objectives: IOKRObjective[];
   key_results: IOKRKeyResultsSummary;
+  overall_progress: string;
   created_at: string;
   updated_at: string;
 }

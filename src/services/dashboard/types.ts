@@ -297,3 +297,16 @@ export interface AgeListData {
     name:          string;
     position:      string;
 }
+
+export interface PayrollTrendResponse {
+    data:    PayrollTrendResponseDt[];
+    message: string;
+    status:  string;
+}
+
+export interface PayrollTrendResponseDt {
+    allowance:    string;
+    month:        string;
+    overtime:     string;
+    total_salary: string;
+}

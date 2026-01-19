@@ -1,19 +1,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // components/leave-request/components/LeaveTable.tsx
-"use client";
+'use client';
 
-import * as React from "react";
-import { DataTable } from "@/components/tables/data-table";
-import { ColumnDef } from "@tanstack/react-table";
-import { PaginationState } from "@tanstack/react-table";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { cn, stringAvatar } from "@/lib/utils";
+import * as React from 'react';
+import { DataTable } from '@/components/tables/data-table';
+import { CellContext, ColumnDef } from '@tanstack/react-table';
+import { PaginationState } from '@tanstack/react-table';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { cn, stringAvatar } from '@/lib/utils';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from '@/components/ui/dropdown-menu';
 import {
   CircleCheckBigIcon,
   CircleXIcon,
@@ -24,17 +24,17 @@ import {
   Plus,
   Trash,
   XCircle,
-} from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+} from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import {
   formatDateRange,
   formatDayDifference,
   getStatusOvertime,
-} from "@/lib/helpers";
-import dayjs from "dayjs";
-import { ILeaveResponse } from "@/services/employees/leave/types";
-import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
+} from '@/lib/helpers';
+import dayjs from 'dayjs';
+import { ILeaveResponse } from '@/services/employees/leave/types';
+import { Button } from '@/components/ui/button';
+import { useRouter } from 'next/navigation';
 
 interface Props {
   data: ILeaveResponse[] | undefined;
@@ -46,9 +46,10 @@ interface Props {
   loading: boolean;
   onSelectLeave: (leave: ILeaveResponse) => void;
   onOpenModal: (
-    modal: "reject" | "approve" | "delete" | "detail" | "edit",
+    modal: 'reject' | 'approve' | 'delete' | 'detail' | 'edit',
   ) => void;
   onNavigateAdd: () => void;
+  isEmployee: boolean;
 }
 
 export default function LeaveTable({
@@ -60,44 +61,49 @@ export default function LeaveTable({
   onSelectLeave,
   onOpenModal,
   onNavigateAdd,
+  isEmployee,
 }: Props) {
   const router = useRouter();
   const columns: ColumnDef<ILeaveResponse>[] = React.useMemo(
     () => [
+      ...(!isEmployee
+        ? [
+            {
+              accessorKey: 'user.name',
+              header: 'Name',
+              cell: ({ row }: CellContext<ILeaveResponse, unknown>) => (
+                <div className="flex gap-4 items-center min-w-[150px]">
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage src={row.original.user?.avatar_url ?? ''} />
+                    <AvatarFallback className="text-primary-hover bg-primary-background text-base font-medium">
+                      {stringAvatar(row.original.user?.name ?? '')}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col">
+                    <span className="font-semibold text-foreground text-sm">
+                      {row.original.user?.name}
+                    </span>
+                    <span className="text-text-secondary">
+                      #{row.original.user?.id}
+                    </span>
+                  </div>
+                </div>
+              ),
+            },
+            {
+              accessorKey: 'leave_type.name',
+              header: 'Leave',
+              size: 200,
+            },
+          ]
+        : []),
       {
-        accessorKey: "user.name",
-        header: "Name",
-        cell: ({ row }) => (
-          <div className="flex gap-4 items-center min-w-[150px]">
-            <Avatar className="h-10 w-10">
-              <AvatarImage src={`${row.original.user?.avatar_url}`} />
-              <AvatarFallback className="text-primary-hover bg-primary-background text-base font-medium">
-                {stringAvatar(row.original.user?.name ?? "")}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex flex-col">
-              <span className="font-semibold text-foreground text-sm">
-                {row.original.user?.name}
-              </span>
-              <span className="text-text-secondary">
-                #{row.original.user?.id}
-              </span>
-            </div>
-          </div>
-        ),
-      },
-      {
-        accessorKey: "leave_type.name",
-        header: "Leave",
-        size: 200,
-      },
-      {
-        accessorKey: "duration",
-        header: "Duration",
+        accessorKey: 'duration',
+        header: 'Duration',
         size: 300,
         cell: ({ row }) => {
           const leave = row.original;
-          if (!leave) return "-";
+          if (!leave) return '-';
 
           return (
             <div className="flex flex-col w-max-2xl">
@@ -112,24 +118,24 @@ export default function LeaveTable({
         },
       },
       {
-        accessorKey: "reason",
-        header: "Reason",
+        accessorKey: 'reason',
+        header: 'Reason',
         size: 200,
       },
       {
-        accessorKey: "notes",
-        header: "Notes",
+        accessorKey: 'notes',
+        header: 'Notes',
         size: 200,
-        cell: ({ row }) => row.original.notes || "-",
+        cell: ({ row }) => row.original.notes || '-',
       },
       {
-        accessorKey: "status",
-        header: "Status",
+        accessorKey: 'status',
+        header: 'Status',
         size: 160,
         cell: ({ row }) => {
           const status = row.original.status;
           const { variant, className, label } = getStatusOvertime(status);
-          if (!row.original.status) return "-";
+          if (!row.original.status) return '-';
 
           return (
             <Badge variant={variant} className={className}>
@@ -139,21 +145,21 @@ export default function LeaveTable({
         },
       },
       {
-        accessorKey: "updated_at",
-        header: "Last Update",
+        accessorKey: 'updated_at',
+        header: 'Last Update',
         size: 200,
         cell: ({ row }) => (
           <div className="flex flex-col">
-            <span>{dayjs(row.original.updated_at).format("MMMM D, YYYY")}</span>
+            <span>{dayjs(row.original.updated_at).format('MMMM D, YYYY')}</span>
             <span className="text-sm text-text-disabled">
-              {dayjs(row.original.updated_at).format("HH:mm")}
+              {dayjs(row.original.updated_at).format('HH:mm')}
             </span>
           </div>
         ),
       },
       {
-        accessorKey: "menu",
-        header: "",
+        accessorKey: 'menu',
+        header: '',
         cell: ({ row }) => {
           const leave = row.original;
 
@@ -169,7 +175,7 @@ export default function LeaveTable({
                   <button
                     onClick={() => {
                       onSelectLeave(leave);
-                      onOpenModal("detail");
+                      onOpenModal('detail');
                     }}
                     className="flex gap-2 w-full text-left"
                   >
@@ -178,59 +184,63 @@ export default function LeaveTable({
                   </button>
                 </DropdownMenuItem>
 
-                {leave.status === 1 && (
+                {!isEmployee && (
                   <>
-                    <DropdownMenuItem asChild>
-                      <button
-                        onClick={() => {
-                          onSelectLeave(leave);
-                          onOpenModal("approve");
-                        }}
-                        className="flex gap-2 w-full text-left"
-                      >
-                        <Clock4Icon className="w-4 h-4" />
-                        Approve Request
-                      </button>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <button
-                        onClick={() => {
-                          onSelectLeave(leave);
-                          onOpenModal("reject");
-                        }}
-                        className="flex gap-2 w-full text-left"
-                      >
-                        <XCircle className="w-4 h-4" />
-                        Reject Request
-                      </button>
-                    </DropdownMenuItem>
+                    {leave.status === 1 && (
+                      <>
+                        <DropdownMenuItem asChild>
+                          <button
+                            onClick={() => {
+                              onSelectLeave(leave);
+                              onOpenModal('approve');
+                            }}
+                            className="flex gap-2 w-full text-left"
+                          >
+                            <Clock4Icon className="w-4 h-4" />
+                            Approve Request
+                          </button>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <button
+                            onClick={() => {
+                              onSelectLeave(leave);
+                              onOpenModal('reject');
+                            }}
+                            className="flex gap-2 w-full text-left"
+                          >
+                            <XCircle className="w-4 h-4" />
+                            Reject Request
+                          </button>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <button
+                            onClick={() =>
+                              router.push(
+                                `/attendance/leave-request/edit/${leave.id}`,
+                              )
+                            }
+                            className="flex gap-2 w-full text-left"
+                          >
+                            <Edit3 className="w-4 h-4" />
+                            Edit Overtime Request
+                          </button>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <button
+                            onClick={() => {
+                              onSelectLeave(leave);
+                              onOpenModal('delete');
+                            }}
+                            className="flex gap-2 w-full text-left text-red-600"
+                          >
+                            <Trash className="w-4 h-4 text-red-600" />
+                            Delete Request
+                          </button>
+                        </DropdownMenuItem>
+                      </>
+                    )}
                   </>
                 )}
-
-                <DropdownMenuItem asChild>
-                  <button
-                    onClick={() =>
-                      router.push(`/attendance/leave-request/edit/${leave.id}`)
-                    }
-                    className="flex gap-2 w-full text-left"
-                  >
-                    <Edit3 className="w-4 h-4" />
-                    Edit Overtime Request
-                  </button>
-                </DropdownMenuItem>
-
-                <DropdownMenuItem asChild>
-                  <button
-                    onClick={() => {
-                      onSelectLeave(leave);
-                      onOpenModal("delete");
-                    }}
-                    className="flex gap-2 w-full text-left text-red-600"
-                  >
-                    <Trash className="w-4 h-4 text-red-600" />
-                    Delete Request
-                  </button>
-                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           );

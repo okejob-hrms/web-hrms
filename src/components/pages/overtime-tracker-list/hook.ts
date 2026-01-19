@@ -2,14 +2,14 @@
 
 import * as React from "react";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { deleteOvertime, getOvertime, putOvertime, putOvertimeStatus } from "@/services/overtime";
+import { addOvertime, deleteOvertime, getOvertime, getOvertimeEmployee, putOvertime, putOvertimeeEmployee, putOvertimeStatus } from "@/services/overtime";
 import { PaginationState } from "@tanstack/react-table";
 import { toast } from "sonner";
 import { Filters } from "./types";
 import { OvertimeListItem, RequestOvertime, RequestOvertimeStatus } from "@/services/overtime/types";
 import dayjs from "dayjs";
 
-export function useOvertime() {
+export function useOvertime(isEmployee: boolean) {
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: 0,
     pageSize: 10,
@@ -18,6 +18,7 @@ export function useOvertime() {
   const [openApprove, setOpenApprove] = React.useState(false);
   const [openDelete, setOpenDelete] = React.useState(false);
   const [openReject, setOpenReject] = React.useState(false);
+  const [openAdd, setOpenAdd] = React.useState(false);
   const [openEdit, setOpenEdit] = React.useState(false);
   const [selectedData, setSelectedData] = React.useState<OvertimeListItem>();
 
@@ -41,6 +42,19 @@ export function useOvertime() {
     placeholderData: keepPreviousData,
     refetchOnMount: "always",
     refetchOnWindowFocus: true,
+    enabled: !isEmployee,
+  });
+
+  const {
+    data: overtimeDataEmployee,
+    refetch: refetchOvertimeEmployee,
+  } = useQuery({
+    queryKey: ["overtimeEmployee", pagination, filters.search, filters.date, filters.status],
+    queryFn: () => getOvertimeEmployee(pagination, filters),
+    placeholderData: keepPreviousData,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
+    enabled: !!isEmployee,
   });
   
   const { mutate: updateStatus } = useMutation({
@@ -74,6 +88,23 @@ export function useOvertime() {
       toast.error('Failed update overtime request');
     }
   });
+
+  const { mutate: updateOvertimeEmployee } = useMutation({
+    mutationFn: ({ id, payload }: { id: number; payload: RequestOvertime }) =>
+      putOvertimeeEmployee(id, payload),
+    onSuccess: () => {
+      toast.success('Success update overtime request');
+      setOpenApprove(false);
+      setOpenReject(false);
+      setOpenDetail(false);
+      setOpenEdit(false);
+      setOpenAdd(false);
+      refetchOvertimeEmployee();
+    },
+    onError: () => {
+      toast.error('Failed update overtime request');
+    }
+  });
   
   const { mutate: removeOvertime } = useMutation({
     mutationFn: (id: number) => deleteOvertime(id),
@@ -86,6 +117,23 @@ export function useOvertime() {
       toast.error("Failed delete overtime");
     },
   });
+
+  const { mutate: mutateAddOvertime, isPending: isPendingCreate } =
+    useMutation({
+      mutationFn: (params: RequestOvertime) => addOvertime(params),
+      onSuccess: () => {
+        toast.success('Success create overtime request');
+        setOpenApprove(false);
+        setOpenReject(false);
+        setOpenDetail(false);
+        setOpenEdit(false);
+        setOpenAdd(false);
+        refetchOvertimeEmployee();
+      },
+      onError: () => {
+        toast.error('Failed update overtime request');
+      },
+    });
 
   const handleApprove = () => {
     if (!selectedId) return;
@@ -116,7 +164,21 @@ export function useOvertime() {
       end_time: data.end_time.slice(0, 5),
     };
 
-    updateOvertime({ id: Number(selectedId), payload: dataConvert });
+    if(isEmployee){
+      updateOvertimeEmployee({ id: Number(selectedId), payload: dataConvert });
+    }else{
+      updateOvertime({ id: Number(selectedId), payload: dataConvert });
+    }
+  }
+
+  const handleAdd = (data: RequestOvertime) => {
+    const dataConvert: RequestOvertime = {
+      ...data,
+      start_time: data.start_time.slice(0, 5),
+      end_time: data.end_time.slice(0, 5),
+    };
+
+    mutateAddOvertime(dataConvert);
   }
 
   return {
@@ -143,5 +205,9 @@ export function useOvertime() {
     openEdit,
     setOpenEdit,
     handleEdit,
+    overtimeDataEmployee,
+    openAdd,
+    setOpenAdd,
+    handleAdd,
   };
 }

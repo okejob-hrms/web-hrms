@@ -118,7 +118,7 @@ export const menus: Record<string, MenuItem[]> = {
         },
       ],
     },
-    { name: "Mobile & ESS", value: "settings/mobile-ess" },
+    // { name: "Mobile & ESS", value: "settings/mobile-ess" },
   ],
   performance: [
     { name: "Self Assessment", value: "performance/self-assessment" },

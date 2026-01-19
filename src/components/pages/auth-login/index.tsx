@@ -47,13 +47,25 @@ export default function AuthLogin() {
       if (res.status === 'success') {
         localStorage.setItem('token', res.data.token);
         localStorage.setItem('user', JSON.stringify(res.data.user));
+        localStorage.setItem('user_role', JSON.stringify(res.data.roles));
 
         if (res.data.user.is_first_login) {
           toast.success('Login successful. This is your first login.');
           router.push('/auth/change-password');
         } else {
+          const roles = res.data.roles || [];
+
+          const isEmployee = roles.some((role) =>
+            role.toLowerCase().includes('employee'),
+          );
+
+          if (isEmployee) {
+            router.push('/ess');
+          } else {
+            router.push('/dashboard?overview=offboarding-active');
+          }
+
           toast.success('Login successful!');
-          router.push('/dashboard?overview=offboarding-active');
         }
       } else {
         toast.error(res.message || 'Login failed, please try again.');

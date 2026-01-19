@@ -6,13 +6,14 @@ import {
 } from "@/lib/types";
 import {
   ILeaveDetails,
+  ILeaveEmployeeResponse,
   ILeaveResponse,
   ILeaveSummary,
   IMutateLeaveRequest,
   IMutateLeaveStatus,
   IUserLeaveBalanceResponse,
 } from "./types";
-import { api } from "@/lib/api";
+import { api, apiEmployee } from "@/lib/api";
 import { PaginationState } from "@tanstack/react-table";
 
 export const getLeaves = async (
@@ -145,6 +146,63 @@ export const updateStatusLeave = async (
       `employee/leaves/${id}/action`,
       { json: params },
     );
+    return response.json();
+  } catch (error: any) {
+    if (error.name === "HTTPError") {
+      const errorResponse = await error.response.json();
+      const enhancedError = new Error(error.message);
+      (enhancedError as any).response = {
+        json: () => Promise.resolve(errorResponse),
+        status: error.response.status,
+      };
+      throw enhancedError;
+    }
+    throw error;
+  }
+};
+
+
+// EMPLOYEE
+
+export const getLeavesEmployee = async (
+  pagination?: PaginationState,
+  filters?: { search?: string; date?: string; status?: number },
+): Promise<ILeaveEmployeeResponse> => {
+  const searchParams: Record<string, string> = {};
+
+  if (pagination) {
+    const page = pagination.pageIndex + 1;
+    const per_page = pagination.pageSize;
+    searchParams.page = page.toString();
+    searchParams.per_page = per_page.toString();
+  }
+
+  if (filters?.status !== undefined) {
+    searchParams.status = filters.status.toString();
+  }
+
+  if (filters?.search) {
+    searchParams.search = filters.search;
+  }
+
+  if (filters?.date) {
+    searchParams.date = filters.date;
+  }
+
+  const response = await apiEmployee.get<ILeaveResponse>("emdash/my-leave", {
+    searchParams,
+  });
+
+  return response.json();
+};
+
+export const createLeaveEmployee = async (
+  params: IMutateLeaveRequest,
+): Promise<ApiResponse<PaginatedResponse<ILeaveResponse>>> => {
+  try {
+    const response = await apiEmployee.post<
+      ApiResponse<PaginatedResponse<ILeaveResponse>>
+    >("emdash/my-leave", { json: params });
     return response.json();
   } catch (error: any) {
     if (error.name === "HTTPError") {
