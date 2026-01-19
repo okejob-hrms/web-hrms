@@ -28,7 +28,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const isDashboard = ['/dashboard', '/ess', '/ess/'];
   const removeBg = isDashboard.includes(pathname);
   const isEmployee = (roles: string[]) =>
-    roles.some((role: string) => role.toLowerCase() !== 'employee');
+    roles.some((role: string) => role.toLowerCase() === 'employee');
 
   const [isEmployeeState, setIsEmployeeState] = useState(false);
 
