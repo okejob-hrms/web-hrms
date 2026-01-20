@@ -1,11 +1,12 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import { SectionLeave } from './section-leave';
-import { SectionAssessment } from './section-assessment';
-import { SectionOrganization } from './section-org';
-import { SectionOvertime } from './section-overtime';
-import { SectionOffboarding } from './section-offboarding';
+import * as React from "react";
+import { SectionLeave } from "./section-leave";
+import { SectionAssessment } from "./section-assessment";
+import { SectionOrganization } from "./section-org";
+import { SectionOvertime } from "./section-overtime";
+import { SectionOffboarding } from "./section-offboarding";
+import { SectionOkr } from "./section-okr";
 
 type EssOverviewProps = {
   overview?: string;
@@ -14,17 +15,17 @@ type EssOverviewProps = {
 export default function EssOverview({ overview }: EssOverviewProps) {
   const content = React.useMemo(() => {
     switch (overview) {
-      case 'leave':
+      case "leave":
         return <SectionLeave />;
-      case 'okr':
-        return <SectionAssessment />;
-      case 'organization':
+      case "okr":
+        return <SectionOkr />;
+      case "organization":
         return <SectionOrganization />;
-      case 'assessment':
+      case "assessment":
         return <SectionAssessment />;
-      case 'overtime':
+      case "overtime":
         return <SectionOvertime />;
-      case 'offboarding':
+      case "offboarding":
         return <SectionOffboarding />;
       default:
         return <SectionLeave />;
