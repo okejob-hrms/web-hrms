@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import { AttendanceLeaveRequestForm } from '@/components/pages/attendance-leave-request-form';
+import * as React from "react";
+import { AttendanceLeaveRequestForm } from "@/components/pages/attendance-leave-request-form";
 
 export const DetailLeaveForm = () => {
   return (

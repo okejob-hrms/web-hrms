@@ -127,6 +127,7 @@ export const PerformanceSelfAssessmentForm = React.memo(
                     <Button
                       variant="ghost"
                       onClick={() => handleDeleteAssessmentForm(index)}
+                      type="button"
                     >
                       <Image
                         src="/icons/deleteOutlined.svg"

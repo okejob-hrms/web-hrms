@@ -15,6 +15,7 @@ export interface IFormTemplate {
 export interface IFormGroup {
   id: string;
   name: string;
+  order?: number;
   metadata: {
     score_weight: number;
     score_weight_type: string;
@@ -32,17 +33,26 @@ export interface IFormGroup {
     deleted_at: string | null;
     description: string | null;
     metadata: Record<string, any> | null;
+    competency_levels?:
+      | {
+          id: number;
+          dimensions: string;
+          level: string;
+          name: string;
+          description: string;
+        }[]
+      | null;
   }[];
 }
 
 export interface IFormTemplateParams {
   form_id?: number;
   group_id?: number;
-  label: string;
-  type: string;
-  options: string[];
-  is_required: boolean;
-  order: number;
+  label?: string;
+  type?: string;
+  options?: string[];
+  is_required?: boolean;
+  order?: number;
 }
 
 export interface IFormField {
@@ -85,4 +95,29 @@ export interface IMutateFormRequest {
   name: string;
   type: number; // 1: Exit Interview, 2: Self Assessment, 3: Supervisor Assesment
   description?: string;
+}
+
+export interface IFieldResponse {
+  id: number;
+  form_id: number;
+  label: string;
+  type: string;
+  options: any;
+  is_required: boolean;
+  order: number;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+  description: string | null;
+  metadata: Record<string, any> | null;
+  field_group_id: number;
+  competency_levels?:
+    | {
+        id: number;
+        dimensions: string;
+        level: string;
+        name: string;
+        description: string;
+      }[]
+    | null;
 }

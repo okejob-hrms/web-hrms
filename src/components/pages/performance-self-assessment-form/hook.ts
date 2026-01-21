@@ -4,7 +4,7 @@
 import { useDebounce } from "@/hooks/use-debounce";
 import { getEmployees } from "@/services/employees";
 import { getAllForm } from "@/services/form";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { PaginationState } from "@tanstack/react-table";
 import { useRouter, useParams } from "next/navigation";
 import * as React from "react";
@@ -30,6 +30,7 @@ export interface AssessmentFormItem {
 export const usePerformanceSelfAssessmentForm = () => {
   const router = useRouter();
   const params = useParams();
+  const queryClient = useQueryClient();
   const form = useForm();
   const [assessmentForms, setAssessmentForms] = React.useState<
     AssessmentFormItem[]
@@ -167,6 +168,9 @@ export const usePerformanceSelfAssessmentForm = () => {
     useMutation({
       mutationFn: createSelfAssessment,
       onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: ["self-assessment-detail", periodId],
+        });
         toast.success("Self-assessment created successfully!");
         router.push("/performance/self-assessment");
       },
@@ -198,6 +202,9 @@ export const usePerformanceSelfAssessmentForm = () => {
     useMutation({
       mutationFn: (params: any) => updateSelfAssessment(periodId!, params),
       onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: ["self-assessment-detail", periodId],
+        });
         toast.success("Self-assessment updated successfully!");
         router.push("/performance/self-assessment");
       },

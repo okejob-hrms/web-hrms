@@ -7,6 +7,7 @@ import {
   IMutateFormRequest,
   IMutateFieldRequest,
   IFormGroup,
+  IFieldResponse,
 } from "./types";
 
 export const getAllForm = async (): Promise<
@@ -31,11 +32,10 @@ export const getAllForm = async (): Promise<
 
 export const getFields = async (
   params: IFormTemplateParams,
-): Promise<PaginatedResponse<IFormTemplate>> => {
+): Promise<PaginatedResponse<IFieldResponse>> => {
   try {
-    const response = await api.get<PaginatedResponse<IFormTemplate>>(
-      `form/field`,
-      { json: params },
+    const response = await api.get<PaginatedResponse<IFieldResponse>>(
+      params.form_id ? `form/field?form_id=${params.form_id}` : `form/field`,
     );
     return response.json();
   } catch (error: any) {
