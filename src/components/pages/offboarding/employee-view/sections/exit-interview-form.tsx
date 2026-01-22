@@ -103,25 +103,29 @@ export const ExitInterviewForm = ({ formId, offboardingId }: ExitInterviewFormPr
   };
 
   return (
-    <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 max-w-4xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-slate-900">Exit Interview Form</h1>
-      </div>
-
-      <FormProvider {...methods}>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          <OffboardingFormBuilder fields={formFields || []} />
-          <div className="flex justify-end gap-3 pt-8 border-t">
-            <Button 
-              type="submit" 
-              className="bg-[#336192] hover:bg-[#264a70] text-white px-8"
-              disabled={mutation.isPending}
-            >
-              {mutation.isPending ? "Submitting..." : "Submit Form"}
-            </Button>
+     <div className="min-h-screen bg-white p-6">
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 max-w-4xl mx-auto">
+          <div className="mb-8">
+            <h1 className="text-2xl font-bold text-slate-900">Exit Interview Form</h1>
           </div>
-        </form>
-      </FormProvider>
+
+          <FormProvider {...methods}>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+              <OffboardingFormBuilder fields={formFields || []} />
+              <div className="flex justify-end gap-3 pt-8 border-t">
+                <Button 
+                  type="submit" 
+                  className="bg-[#336192] hover:bg-[#264a70] text-white px-8"
+                  disabled={mutation.isPending}
+                >
+                  {mutation.isPending ? "Submitting..." : "Submit Form"}
+                </Button>
+              </div>
+            </form>
+          </FormProvider>
+        </div>
+      </div>
     </div>
   );
 };

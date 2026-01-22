@@ -194,37 +194,41 @@ export default function WorkHandover() {
     []
   );
   return (
-    <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6">
-      <div className="flex md:flex-row flex-col justify-between w-full md:items-center items-start gap-4">
-        <h2 className="font-semibold text-xl">Work & Responsibility Handover</h2>
-        <Button onClick={handleAdd}>
-          <Plus className="mr-2 h-4 w-4" /> Add
-        </Button>
+    <div className="min-h-screen bg-white p-6">
+      <div className="max-w-4xl mx-auto">
+        <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6">
+          <div className="flex md:flex-row flex-col justify-between w-full md:items-center items-start gap-4">
+            <h2 className="font-semibold text-xl">Work & Responsibility Handover</h2>
+            <Button onClick={handleAdd}>
+              <Plus className="mr-2 h-4 w-4" /> Add
+            </Button>
+          </div>
+
+          <DataTable 
+            columns={columns} 
+            data={handoverItems} 
+            loading={handoverLoading} 
+          />
+
+          <WorkHandoverFormModal
+            open={openFormModal}
+            onOpenChange={setOpenFormModal}
+            onSubmit={handleSubmit}
+            initialData={selectedHandover}
+            employeesOptions={employeesOptions}
+            searchEmployee={searchEmployee}
+            setSearchEmployee={setSearchEmployee}
+            isSubmitting={mutation.isPending}
+          />
+
+          <DeleteHandoverDialog
+            open={openDeleteModal}
+            onOpenChange={setOpenDeleteModal}
+            onDelete={() => deleteId && deleteMutation.mutate(deleteId)}
+            isLoading={deleteMutation.isPending}
+          />
+        </div>
       </div>
-
-      <DataTable 
-        columns={columns} 
-        data={handoverItems} 
-        loading={handoverLoading} 
-      />
-
-      <WorkHandoverFormModal
-        open={openFormModal}
-        onOpenChange={setOpenFormModal}
-        onSubmit={handleSubmit}
-        initialData={selectedHandover}
-        employeesOptions={employeesOptions}
-        searchEmployee={searchEmployee}
-        setSearchEmployee={setSearchEmployee}
-        isSubmitting={mutation.isPending}
-      />
-
-      <DeleteHandoverDialog
-        open={openDeleteModal}
-        onOpenChange={setOpenDeleteModal}
-        onDelete={() => deleteId && deleteMutation.mutate(deleteId)}
-        isLoading={deleteMutation.isPending}
-      />
     </div>
   );
 }
