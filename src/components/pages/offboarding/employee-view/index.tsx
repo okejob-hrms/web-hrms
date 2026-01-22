@@ -16,33 +16,6 @@ interface Task {
   status: OffboardingStatus;
 }
 
-const tasks: Task[] = [
-  {
-    id: 'exit-interview',
-    title: "Exit Interview Form",
-    description: "Please complete your exit interview to help us understand your experience.",
-    status: 'active',
-  },
-  {
-    id: 'work-handover',
-    title: "Work & Responsibilities Handover",
-    description: "Transfer your current responsibilities to ensure a smooth transition.",
-    status: 'active',
-  },
-  {
-    id: 'document-handover',
-    title: "Document Handover",
-    description: "Make sure all necessary files are shared before your last day.",
-    status: 'active',
-  },
-  {
-    id: 'equipment',
-    title: "Equipment & Facility Return",
-    description: "HR will handle the return list for your assigned equipment and facilities. Please make sure all items are ready for collection.",
-    status: 'pending'
-  },
-];
-
 export const OffboardingEmployeeCard = () => {
 
   const { 
@@ -85,8 +58,15 @@ export const OffboardingEmployeeCard = () => {
           {offboardingProgress?.map((task, index) => {
             const isCompleted = task.is_completed;
             const slug = getSlugByType(task.type);
-            
             const isActive = !isCompleted && offboardingData?.status === 1;
+
+            const isEquipment = task.type === 'equipment_facility_return';
+            const isExitForm = task.type === 'exit_interview_form';
+            const isHandover = task.type === 'work_handover' || task.type === 'document_handover';
+
+            const shouldShowButton = !isEquipment && !(isExitForm && isCompleted);
+
+            const buttonLabel = (isHandover && isCompleted) ? 'Edit' : 'Start';
 
             return (
               <div key={task.id} className="relative flex items-start">
@@ -99,28 +79,31 @@ export const OffboardingEmployeeCard = () => {
                 </div>
 
                 <div className="ml-6 flex-1 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div className="max-w-md">
-                    <h3 className={cn(
-                      "font-bold text-base",
-                      isCompleted ? "text-slate-500" : "text-[#2B5783]"
-                    )}>
-                      {task.label}
-                    </h3>
-                    <p className="text-sm text-slate-400 mt-1 leading-relaxed">
-                      {task.description}
-                    </p>
-                  </div>
+                    <div className="max-w-md">
+                      <h3 className={cn(
+                        "font-bold text-base",
+                        isCompleted ? "text-slate-500" : "text-[#2B5783]"
+                      )}>
+                        {task.label}
+                      </h3>
+                      <p className="text-sm text-slate-400 mt-1 leading-relaxed">
+                        {task.description}
+                      </p>
+                    </div>
 
-                  {task.type !== 'equipment_facility_return' && !isCompleted && (
-                    <Button 
-                      variant="default" 
-                      className="min-w-[120px] bg-[#336192] hover:bg-[#264a70] text-white font-semibold"
-                      onClick={() => router.push(`/ess/offboarding/${slug}`)}
-                    >
-                      Start
-                    </Button>
-                  )}
-                </div>
+                    {shouldShowButton && (
+                      <Button 
+                        variant={isCompleted ? "outline" : "default"} 
+                        className={cn(
+                          "min-w-[120px] font-semibold",
+                          !isCompleted ? "bg-[#336192] hover:bg-[#264a70] text-white" : "border-[#336192] text-[#336192] hover:bg-slate-50"
+                        )}
+                        onClick={() => router.push(`/ess/offboarding/${slug}`)}
+                      >
+                        {buttonLabel}
+                      </Button>
+                    )}
+                  </div>
               </div>
             );
           })}

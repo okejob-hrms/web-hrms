@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { OffboardingFormBuilder } from './form-builder';
 import { useESS } from '@/components/pages/ess/hook';
 import { IExitFormRequest, ISubmissionForm } from '@/services/form/types';
-import { postSubmitExitInterview } from '@/services/form';
+import { postSubmitExitInterview } from '@/services/offboarding-employee';
 
 interface ExitInterviewFormProps {
   formId?: number;
@@ -31,6 +31,7 @@ export const ExitInterviewForm = ({ formId, offboardingId }: ExitInterviewFormPr
     mutationFn: (body: IExitFormRequest) => postSubmitExitInterview(body, offboardingId!),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["offboardingStatus"] });
+      queryClient.invalidateQueries({ queryKey: ["offboardingProgress"] });
       toast.success("Exit interview submitted successfully"); //
       router.push('/ess/offboarding');
     },
@@ -94,6 +95,8 @@ export const ExitInterviewForm = ({ formId, offboardingId }: ExitInterviewFormPr
 
         return { field_id: fieldId, value, additional_data: additionalData };
       });
+
+    console.log("SUBMISSION", submissions)
 
     mutation.mutate({ submissions });
   };

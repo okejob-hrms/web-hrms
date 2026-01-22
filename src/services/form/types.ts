@@ -114,6 +114,7 @@ export interface IRecipientRequest {
 }
 
 export interface IHandoverItemRequest {
+  id: number | null | undefined
   category: "work" | "document" | "equipment" | "facility";
   name: string;
   recipients: IRecipientRequest[];

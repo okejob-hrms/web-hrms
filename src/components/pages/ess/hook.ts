@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getAttendanceStat, getAttStat, getAttStatList } from '@/services/dashboard';
 import { PaginatedResponse } from '@/lib/types';
 import { PaginationState } from '@tanstack/react-table';
-import { getOffboarding, getOffboardingProgress } from '@/services/offboarding-employee';
+import { getHandoverItems, getOffboarding, getOffboardingProgress } from '@/services/offboarding-employee';
 import { getFields } from '@/services/form';
 import { getEmployees } from '@/services/employees';
 import { useDebounce } from '@/hooks/use-debounce';
@@ -96,6 +96,25 @@ export function useESS({
     gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
+
+  const { 
+    data: handoverResponse, 
+    isLoading: handoverLoading,
+    refetch: refetchHandover 
+  } = useQuery({
+    queryKey: ['handoverItems', 'work'],
+    queryFn: () => getHandoverItems({category: 'work'}),
+    enabled: !!offboardingResponse?.data?.id,
+  });
+
+  const { 
+    data: documentHandoverResponse, 
+    isLoading: documentHandoverLoading 
+  } = useQuery({
+    queryKey: ['handoverItems', 'document'],
+    queryFn: () => getHandoverItems({category: 'document'}),
+    enabled: !!offboardingResponse?.data?.id,
+  });
   
 
 // ========== END ATTENDANCE
@@ -120,6 +139,11 @@ export function useESS({
     employees,
     isLoadingEmployees,
     searchEmployee,
-    setSearchEmployee
+    setSearchEmployee,
+    handoverItems: handoverResponse?.data || [],
+    handoverLoading: offboardingLoading || handoverLoading,
+    refetchHandover,
+    documentHandovers: documentHandoverResponse?.data || [], // Return document specific data
+    documentHandoverLoading,
   };
 }

@@ -19,9 +19,11 @@ import { Badge } from "@/components/ui/badge";
 import WorkHandoverFormModal from "./work-handover-modal";
 import { useESS } from "@/components/pages/ess/hook";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { IHandoverRequest } from "@/services/form/types";
-import { postSubmitHandover } from "@/services/form";
+import { IHandoverItemRequest, IHandoverRequest } from "@/services/form/types";
 import { toast } from "sonner";
+import { HandoverItem } from "@/services/offboarding-employee/types";
+import { deleteHandoverItem, submitHandover } from "@/services/offboarding-employee";
+import DeleteHandoverDialog from "./delete-handover-modal";
 
 export default function WorkHandover() {
 
@@ -31,31 +33,54 @@ export default function WorkHandover() {
     employees, 
     isLoadingEmployees,
     searchEmployee,
-    setSearchEmployee
+    setSearchEmployee,
+    handoverItems,
+    handoverLoading
   } = useESS();
 
   const { offboardingData } = useESS();
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
-    mutationFn: (request: IHandoverRequest) => 
-      postSubmitHandover(offboardingData?.id!, request),
+    mutationFn: (request: IHandoverItemRequest) => submitHandover(request),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["offboardingStatus"] });
       queryClient.invalidateQueries({ queryKey: ["offboardingProgress"] });
-      toast.success("Handover item added successfully");
+      queryClient.invalidateQueries({ queryKey: ["handoverItems", "work"] });
+      
+      toast.success(`Handover item ${selectedHandover?.id ? 'updated' : 'added'} successfully`);
       setOpenFormModal(false);
     },
     onError: (error: any) => {
       toast.error("Failed to submit handover");
-      console.error(error);
     }
   });
+
+  const [deleteId, setDeleteId] = React.useState<number | null>(null);
+  const [openDeleteModal, setOpenDeleteModal] = React.useState(false);
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => deleteHandoverItem(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["handoverItems", "work"] });
+      queryClient.invalidateQueries({ queryKey: ["offboardingProgress"] });
+      toast.success("Handover item deleted successfully");
+      setOpenDeleteModal(false);
+    },
+    onError: () => toast.error("Failed to delete item"),
+  });
+
+  const confirmDelete = (id: number) => {
+    setDeleteId(id);
+    setOpenDeleteModal(true);
+  };
+
   const [selectedHandover, setSelectedHandover] = React.useState<any | null>(null);
 
   const employeesOptions = React.useMemo(() => {
     return employees?.data?.data?.map((emp: any) => ({
       label: emp.name,
-      value: emp.id.toString(),
+      value: emp.user_id.toString(),
       image: emp.image_url
     })) || [];
   }, [employees]);
@@ -65,54 +90,51 @@ export default function WorkHandover() {
     setOpenFormModal(true);
   };
 
-  const handleEdit = (data: any) => {
+  const handleEdit = (data: HandoverItem) => {
     setSelectedHandover({
-      works: data.works || "",
-      handover_to_user_ids: data.handover_users?.map((u: any) => u.id.toString()) || [],
+      id: data.id,
+      works: data.name || "",
+      handover_to_user_ids: data.recipients?.map((r) => r.user_id.toString()) || [], // The API uses 'recipients'
     });
     setOpenFormModal(true);
   };
 
   const handleSubmit = (data: { works: string; handover_to_user_ids: string[] }) => {
-    const request: IHandoverRequest = {
-      data: [
-        {
-          category: "work",
-          name: data.works,
-          recipients: data.handover_to_user_ids.map((id) => ({
-            user_id: parseInt(id),
-            status: 1,
-          })),
-        },
-      ],
+    const request: IHandoverItemRequest = {
+      id: selectedHandover?.id || null, 
+      category: "work",
+      name: data.works,
+      recipients: data.handover_to_user_ids.map((id) => ({
+        user_id: parseInt(id),
+        status: 1,
+      })),
     };
 
     mutation.mutate(request);
   };
-  const columns: ColumnDef<any>[] = React.useMemo(
+  const columns: ColumnDef<HandoverItem>[] = React.useMemo(
     () => [
       {
-        accessorKey: "leave_type.works",
+        accessorKey: "name", // Matches "Project Alpha Documentation asd"
         header: "Works",
-        size: 200,
+        size: 250,
       },
       {
-        accessorKey: "user.handoverTo",
+        id: "handover_to",
         header: "Handed Over To",
         cell: ({ row }) => {
-          const handovers = row.original.handover_users || []; // Assuming an array comes from API
+          const recipients = row.original.recipients || [];
           
           return (
             <div className="flex -space-x-2 overflow-hidden">
-              {handovers.map((user: any, i: number) => (
+              {recipients.map((recipient, i) => (
                 <Avatar key={i} className="inline-block h-8 w-8 ring-2 ring-white">
-                  <AvatarImage src={user.avatar_url} />
-                  <AvatarFallback>{stringAvatar(user.name)}</AvatarFallback>
+                  <AvatarFallback>{stringAvatar(recipient.user.name)}</AvatarFallback>
                 </Avatar>
               ))}
-              {handovers.length > 3 && (
+              {recipients.length > 3 && (
                 <div className="flex items-center justify-center h-8 w-8 rounded-full bg-gray-100 text-xs font-medium ring-2 ring-white">
-                  +{handovers.length - 3}
+                  +{recipients.length - 3}
                 </div>
               )}
             </div>
@@ -125,8 +147,8 @@ export default function WorkHandover() {
         size: 160,
         cell: ({ row }) => {
           const status = row.original.status;
-          const { variant, className, label } = getStatusOvertime(status);
-          if (!row.original.status) return "-";
+          const label = row.original.status_label;
+          const { variant, className } = getStatusOvertime(status);
 
           return (
             <Badge variant={variant} className={className}>
@@ -148,31 +170,28 @@ export default function WorkHandover() {
           </div>
         ),
       },
-     {
-        accessorKey: "menu",
-        header: "",
+      {
+        id: "actions",
         cell: ({ row }) => (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="p-1 hover:bg-gray-100 rounded">
-                <Ellipsis className="text-grayscale-30" />
-              </button>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <Ellipsis className="h-4 w-4" />
+              </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => handleEdit(row.original)}>
-                <Edit3 className="w-4 h-4 mr-2" />
-                Edit
+                <Edit3 className="w-4 h-4 mr-2" /> Edit
               </DropdownMenuItem>
-              <DropdownMenuItem className="text-red-600">
-                <Trash className="w-4 h-4 mr-2" />
-                Delete
+              <DropdownMenuItem onClick={() => confirmDelete(row.original.id)}>
+                <Trash className="w-4 h-4 mr-2" /> Delete
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         ),
       },
     ],
-    [],
+    []
   );
   return (
     <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6">
@@ -183,7 +202,11 @@ export default function WorkHandover() {
         </Button>
       </div>
 
-      <DataTable columns={columns} data={[]} />
+      <DataTable 
+        columns={columns} 
+        data={handoverItems} 
+        loading={handoverLoading} 
+      />
 
       <WorkHandoverFormModal
         open={openFormModal}
@@ -193,7 +216,14 @@ export default function WorkHandover() {
         employeesOptions={employeesOptions}
         searchEmployee={searchEmployee}
         setSearchEmployee={setSearchEmployee}
-        isSubmitting={false}
+        isSubmitting={mutation.isPending}
+      />
+
+      <DeleteHandoverDialog
+        open={openDeleteModal}
+        onOpenChange={setOpenDeleteModal}
+        onDelete={() => deleteId && deleteMutation.mutate(deleteId)}
+        isLoading={deleteMutation.isPending}
       />
     </div>
   );
