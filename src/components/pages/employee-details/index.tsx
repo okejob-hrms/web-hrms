@@ -44,7 +44,7 @@ export function Tab({ data }: TabProps) {
     {
       name: "Payroll",
       value: "payroll",
-      content: <PayrollDetail />,
+      content: <PayrollDetail userId={data.user_id} />,
       icon: <Icon name="debit" size={18} color="currentColor" />,
     },
     {

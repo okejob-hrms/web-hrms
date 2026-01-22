@@ -5,9 +5,13 @@ import {
   IMutateSelfAssessmentRequest,
   ISelfAssessmentDetailResponse,
   IEmployeeSelfAssessmentResponse,
+  IAssessmentSubmission,
+  IMutateEmployeeSelfAssessmentRequest,
 } from "./types";
 import { api } from "@/lib/api";
 import { PaginationState } from "@tanstack/react-table";
+
+const ESS_API = "https://api.okejobhub.fun/api";
 
 export const getSelfAssessments = async (
   pagination?: PaginationState,
@@ -119,6 +123,102 @@ export const updateSelfAssessment = async (
     const response = await api.put<ApiResponse<ISelfAssessmentResponse>>(
       `employee/self-assessments/${id}`,
       { json: params },
+    );
+    return response.json();
+  } catch (error: any) {
+    if (error.name === "HTTPError") {
+      const errorResponse = await error.response.json();
+      const enhancedError = new Error(error.message);
+      (enhancedError as any).response = {
+        json: () => Promise.resolve(errorResponse),
+        status: error.response.status,
+      };
+      throw enhancedError;
+    }
+    throw error;
+  }
+};
+
+export const getEmployeeSelfAssessments = async (
+  pagination?: PaginationState,
+  filters?: { search?: string; date?: string; status?: number },
+): Promise<PaginatedResponse<IEmployeeSelfAssessmentResponse>> => {
+  const searchParams: Record<string, string> = {};
+
+  if (pagination) {
+    const page = pagination.pageIndex + 1;
+    const per_page = pagination.pageSize;
+    searchParams.page = page.toString();
+    searchParams.per_page = per_page.toString();
+  }
+
+  if (filters?.status !== undefined) {
+    searchParams.status = filters.status.toString();
+  }
+
+  if (filters?.search) {
+    searchParams.search = filters.search;
+  }
+
+  if (filters?.date) {
+    searchParams.date = filters.date;
+  }
+
+  const response = await api.get<
+    PaginatedResponse<IEmployeeSelfAssessmentResponse>
+  >("ess/self-assessment", {
+    prefixUrl: ESS_API,
+    searchParams,
+  });
+
+  return response.json();
+};
+
+export const getEmployeeSelfAssessmentDetail = async (
+  id: number,
+): Promise<PaginatedResponse<IAssessmentSubmission>> => {
+  const response = await api.get<PaginatedResponse<IAssessmentSubmission>>(
+    `ess/self-assessment/${id}/submission`,
+    {
+      prefixUrl: ESS_API,
+    },
+  );
+
+  return response.json();
+};
+
+export const submitEmployeeSelfAssessment = async (
+  id: number,
+  params: IMutateEmployeeSelfAssessmentRequest,
+): Promise<ApiResponse<ISelfAssessmentResponse>> => {
+  try {
+    const response = await api.post<ApiResponse<ISelfAssessmentResponse>>(
+      `ess/self-assessment/${id}/submission`,
+      { prefixUrl: ESS_API, json: params },
+    );
+    return response.json();
+  } catch (error: any) {
+    if (error.name === "HTTPError") {
+      const errorResponse = await error.response.json();
+      const enhancedError = new Error(error.message);
+      (enhancedError as any).response = {
+        json: () => Promise.resolve(errorResponse),
+        status: error.response.status,
+      };
+      throw enhancedError;
+    }
+    throw error;
+  }
+};
+
+export const validateEmployeeSelfAssessment = async (
+  id: number,
+  params: IMutateEmployeeSelfAssessmentRequest,
+): Promise<ApiResponse<ISelfAssessmentResponse>> => {
+  try {
+    const response = await api.post<ApiResponse<ISelfAssessmentResponse>>(
+      `ess/self-assessment/${id}/submission/validate`,
+      { prefixUrl: ESS_API, json: params },
     );
     return response.json();
   } catch (error: any) {

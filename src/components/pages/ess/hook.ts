@@ -58,7 +58,7 @@ export function useESS({
     error: offboardingProgressError, 
   } = useQuery({
     queryKey: ['offboardingProgress', offboardingResponse?.data?.id], 
-    queryFn: () => getOffboardingProgress(offboardingResponse?.data?.id || 1),
+    queryFn: () => getOffboardingProgress(offboardingResponse?.data?.id),
     enabled: !!offboardingResponse?.data?.id,
     retry: false,
   });

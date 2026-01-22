@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import EssOverviewDetail from '@/components/pages/ess/sections/overview/detail';
+import * as React from "react";
+import EssOverviewDetail from "@/components/pages/ess/sections/overview/detail";
 
 export default function EssDetail({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ id: string; slug: string }>;
 }) {
-  const { slug } = React.use(params);
+  const { id, slug } = React.use(params);
   return (
     <div className="font-sans min-h-screen">
-      <EssOverviewDetail overview={slug} />
+      <EssOverviewDetail section={id} id={slug} />
     </div>
   );
 }

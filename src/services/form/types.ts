@@ -15,6 +15,7 @@ export interface IFormTemplate {
 export interface IFormGroup {
   id: string;
   name: string;
+  order?: number;
   metadata: {
     score_weight: number;
     score_weight_type: string;
@@ -32,6 +33,15 @@ export interface IFormGroup {
     deleted_at: string | null;
     description: string | null;
     metadata: Record<string, any> | null;
+    competency_levels?:
+      | {
+          id: number;
+          dimensions: string;
+          level: string;
+          name: string;
+          description: string;
+        }[]
+      | null;
   }[];
 }
 
@@ -97,7 +107,6 @@ export interface IMutateFormRequest {
   description?: string;
 }
 
-
 export interface ISubmissionForm {
   field_id: number;
   value: any;
@@ -122,4 +131,28 @@ export interface IHandoverItemRequest {
 
 export interface IHandoverRequest {
   data: IHandoverItemRequest[];
+}
+export interface IFieldResponse {
+  id: number;
+  form_id: number;
+  label: string;
+  type: string;
+  options: any;
+  is_required: boolean;
+  order: number;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+  description: string | null;
+  metadata: Record<string, any> | null;
+  field_group_id: number;
+  competency_levels?:
+    | {
+        id: number;
+        dimensions: string;
+        level: string;
+        name: string;
+        description: string;
+      }[]
+    | null;
 }

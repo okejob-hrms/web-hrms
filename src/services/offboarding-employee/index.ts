@@ -25,7 +25,7 @@ export const getOffboarding = async (): Promise<ApiResponse<OffboardingData>> =>
   }
 };
 
-export const getOffboardingProgress = async (id: number): Promise<ApiResponse<OffboardingProgressStep[]>> => {
+export const getOffboardingProgress = async (id?: number): Promise<ApiResponse<OffboardingProgressStep[]>> => {
   try {
     const response = await api.get<ApiResponse<OffboardingProgressStep[]>>(
       `employee/offboardings/${id}/progress`,

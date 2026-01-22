@@ -6,16 +6,17 @@ import { RadioForm } from '@/components/ui/radio-group';
 import { RangeForm } from '@/components/ui/range-form';
 import { SelectForm } from '@/components/ui/select-form';
 import { TextAreaForm } from '@/components/ui/textarea';
-import { FormFieldData } from '@/services/form/types';
+import { FormFieldData, IFieldResponse } from '@/services/form/types';
 import { useFormContext } from "react-hook-form";
 
-export function OffboardingFormBuilder({ fields }: { fields: FormFieldData[] }) {
+export function OffboardingFormBuilder({ fields }: { fields: IFieldResponse[] }) {
   const { clearErrors } = useFormContext();
   return (
     <div className="space-y-10">
       {fields.map((field) => {
         const fieldName = `field_${field.id}`;
         const labelWithOrder = `${field.order}. ${field.label}`;
+        
         const selectOptions = Array.isArray(field.options) 
           ? field.options.map((opt: string) => ({ label: opt, value: opt }))
           : [];

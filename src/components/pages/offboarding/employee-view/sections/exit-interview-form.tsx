@@ -60,20 +60,21 @@ export const ExitInterviewForm = ({ formId, offboardingId }: ExitInterviewFormPr
     }
   });
 
-  // Initialization logic
+  const fields = React.useMemo(() => formFields || [], [formFields]);
+
   const defaultValues = React.useMemo(() => {
-    if (!formFields) return {};
-    return formFields.reduce((acc, field) => {
+    if (!fields.length) return {};
+    return fields.reduce((acc, field) => {
       const fieldName = `field_${field.id}`;
       acc[fieldName] = field.type === 'checkbox' ? {} : "";
       return acc;
     }, {} as any);
-  }, [formFields]);
+  }, [fields]);
 
   React.useEffect(() => {
-    if (formFields) reset(defaultValues);
+    if (fields.length > 0) reset(defaultValues);
     if (!formId) router.back();
-  }, [formFields, reset, defaultValues, formId, router]);
+  }, [fields, reset, defaultValues, formId, router]);
 
   const onSubmit = (formData: any) => {
     const submissions: ISubmissionForm[] = Object.keys(formData)

@@ -44,6 +44,26 @@ export interface ISelfAssessmentResponse {
   creator: IUser;
 }
 
+export interface IEmployeeSelfAssessmentResponse {
+  id: number;
+  form_id: number;
+  period: string;
+  status: string;
+  due_date: string;
+  team_member: {
+    id: number;
+    form_id: number;
+    user_name: string;
+    job_position_name: string;
+    job_level_name: string;
+    department_name: string;
+    submitted_at: string | null;
+    validated_at: string | null;
+    photo_profile: string;
+    status_label: string;
+  }[];
+}
+
 export interface IFormAssignment {
   form_id: number;
   users: number[];
@@ -55,6 +75,15 @@ export interface IMutateSelfAssessmentRequest {
   start_date: string;
   end_date: string;
   forms: IFormAssignment[];
+}
+
+export interface IMutateEmployeeSelfAssessmentRequest {
+  status?: string;
+  submissions: {
+    field_id: number;
+    value: string;
+    additional_data: any | null;
+  }[];
 }
 
 export interface IAssessmentInfo {
