@@ -55,6 +55,16 @@ export interface IFormTemplateParams {
   order?: number;
 }
 
+export interface FormFieldData {
+  id: number;
+  type: 'checkbox' | 'range' | 'textarea' | 'text' | 'select' | 'radio';
+  label: string;
+  order: number;
+  is_required: boolean;
+  options?: any;
+  metadata?: any;
+}
+
 export interface IFormField {
   label: string;
   type?: "text" | "textarea" | "checkbox" | "range" | string;
@@ -97,6 +107,31 @@ export interface IMutateFormRequest {
   description?: string;
 }
 
+export interface ISubmissionForm {
+  field_id: number;
+  value: any;
+  additional_data?: any;
+}
+
+export interface IExitFormRequest {
+  submissions: ISubmissionForm[];
+}
+
+export interface IRecipientRequest {
+  user_id: number;
+  status: number;
+}
+
+export interface IHandoverItemRequest {
+  id: number | null | undefined
+  category: "work" | "document" | "equipment" | "facility";
+  name: string;
+  recipients: IRecipientRequest[];
+}
+
+export interface IHandoverRequest {
+  data: IHandoverItemRequest[];
+}
 export interface IFieldResponse {
   id: number;
   form_id: number;
