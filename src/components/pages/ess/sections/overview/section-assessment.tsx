@@ -10,6 +10,34 @@ import { IEmployeeSelfAssessmentResponse } from "@/services/employees/self-asses
 import dayjs from "dayjs";
 import Link from "next/link";
 import { Eye } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+
+const getStatusBadgeVariant = (status: string | null | undefined) => {
+  if (!status) return "secondary";
+  const lowerStatus = status.toLowerCase();
+  if (
+    lowerStatus.includes("completed") ||
+    lowerStatus.includes("approved") ||
+    lowerStatus.includes("done")
+  ) {
+    return "default";
+  }
+  if (
+    lowerStatus.includes("pending") ||
+    lowerStatus.includes("in progress") ||
+    lowerStatus.includes("draft")
+  ) {
+    return "outline";
+  }
+  if (
+    lowerStatus.includes("rejected") ||
+    lowerStatus.includes("overdue") ||
+    lowerStatus.includes("expired")
+  ) {
+    return "destructive";
+  }
+  return "secondary";
+};
 
 export const SectionAssessment = () => {
   const columns: ColumnDef<IEmployeeSelfAssessmentResponse>[] = [
@@ -44,7 +72,12 @@ export const SectionAssessment = () => {
     {
       accessorKey: "status",
       header: "Status",
-      cell: ({ row }) => row.original.status ?? "-",
+      cell: ({ row }) => {
+        const status = row.original.status;
+        return (
+          <Badge variant={getStatusBadgeVariant(status)}>{status ?? "-"}</Badge>
+        );
+      },
     },
     {
       accessorKey: "menu",
