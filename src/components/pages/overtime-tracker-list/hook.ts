@@ -63,6 +63,7 @@ export function useOvertime(isEmployee: boolean) {
     onSuccess: () => {
       toast.success('Success update overtime status');
       queryClient.invalidateQueries({ queryKey: ['overtime'] });
+      queryClient.invalidateQueries({ queryKey: ['overtimeEmployee'] });
       setOpenApprove(false);
       setOpenReject(false);
       setOpenDetail(false);

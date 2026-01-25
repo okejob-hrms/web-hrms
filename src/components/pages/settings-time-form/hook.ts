@@ -200,6 +200,7 @@ export function useCompanyForm() {
       updateAttendanceTime(branch ?? "", mapToApiPayload(values)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["attendanceConfig"] });
+      queryClient.invalidateQueries({ queryKey: ["workingSchedule"] });
       toast.success("Update attendance time successful.");
       router.push("/settings/time-attendance/attendance-configuration");
     },

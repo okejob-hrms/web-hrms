@@ -76,9 +76,9 @@ export default function AssessementModal({
                 <SelectValue placeholder="Select source" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Offboarding">Offboarding</SelectItem>
-                <SelectItem value="Self Assessment">Self Assessment</SelectItem>
-                <SelectItem value="Supervisor Assessment">
+                <SelectItem value="offboarding">Offboarding</SelectItem>
+                <SelectItem value="self_assessment">Self Assessment</SelectItem>
+                <SelectItem value="supervisor_assessment">
                   Supervisor Assessment
                 </SelectItem>
               </SelectContent>
@@ -101,7 +101,11 @@ export default function AssessementModal({
                 <SelectValue placeholder="Select form source" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Form 1">Form 1</SelectItem>
+                {hook.dataForm?.data.map((item) => (
+                  <SelectItem key={item.id} value={String(item.id)}>
+                    {item.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -123,8 +127,8 @@ export default function AssessementModal({
                   <SelectValue placeholder="Select rows" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Question">Question</SelectItem>
-                  <SelectItem value="Answer Option">Answer Option</SelectItem>
+                  <SelectItem value="question">Question</SelectItem>
+                  <SelectItem value="answer_Option">Answer Option</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -145,8 +149,8 @@ export default function AssessementModal({
                   <SelectValue placeholder="Select columns" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Question">Question</SelectItem>
-                  <SelectItem value="Answer Option">Answer Option</SelectItem>
+                  <SelectItem value="question">Question</SelectItem>
+                  <SelectItem value="answer_Option">Answer Option</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -167,11 +171,11 @@ export default function AssessementModal({
                   <SelectValue placeholder="Select summary" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="SUM">SUM</SelectItem>
-                  <SelectItem value="AVERAGE">AVERAGE</SelectItem>
-                  <SelectItem value="MAX">MAX</SelectItem>
-                  <SelectItem value="MIN">MIN</SelectItem>
-                  <SelectItem value="COUNT">COUNT</SelectItem>
+                  <SelectItem value="sum">SUM</SelectItem>
+                  <SelectItem value="average">AVERAGE</SelectItem>
+                  <SelectItem value="max">MAX</SelectItem>
+                  <SelectItem value="min">MIN</SelectItem>
+                  <SelectItem value="count">COUNT</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -193,8 +197,8 @@ export default function AssessementModal({
                 <SelectValue placeholder="Select visualization" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Table">Table</SelectItem>
-                <SelectItem value="Chart">Chart</SelectItem>
+                <SelectItem value="table">Table</SelectItem>
+                <SelectItem value="chart">Chart</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -206,7 +210,14 @@ export default function AssessementModal({
               Cancel
             </Button>
 
-            <Button variant="default" onClick={() => onOpenChange(false)}>
+            <Button
+              variant="default"
+              onClick={() => {
+                onOpenChange(false);
+                hook.onSubmit();
+              }}
+              disabled={hook.isPendingAddWidget}
+            >
               Create
             </Button>
           </div>

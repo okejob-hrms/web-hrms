@@ -310,3 +310,26 @@ export interface PayrollTrendResponseDt {
     overtime:     string;
     total_salary: string;
 }
+
+export interface RequestWidget {
+  label: string;
+  measurement: string;
+  form_id: number;
+  rows: string;
+  columns: string;
+  data_summary: string;
+  visualization: string;
+}
+
+export interface ResponseWidget {
+  status: string;
+  message: string;
+  data: DashboardSummaryItem[];
+}
+
+export interface DashboardSummaryItem {
+  label: string;
+  summary_type: string;
+  rows: string[];
+  columns: number[];
+}

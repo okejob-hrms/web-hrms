@@ -209,6 +209,7 @@ export const useLeaveRequestForm = (isEmployee?: boolean) => {
       onSuccess: () => {
         toast.success("Create leave successfully!");
         queryClient.invalidateQueries({ queryKey: ["leaves"] });
+        queryClient.invalidateQueries({ queryKey: ["leavesEmployee"] });
         router.push("/attendance/leave-request");
       },
       onError: (error: any) => {
@@ -223,6 +224,7 @@ export const useLeaveRequestForm = (isEmployee?: boolean) => {
       onSuccess: () => {
         toast.success("Update leave successfully!");
         queryClient.invalidateQueries({ queryKey: ["leaves"] });
+        queryClient.invalidateQueries({ queryKey: ["leavesEmployee"] });
         queryClient.invalidateQueries({ queryKey: ["leave-detail", leaveId] });
         router.push("/attendance/leave-request");
       },

@@ -2,13 +2,12 @@
 
 import React, { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getAttendanceStat, getAttStat, getAttStatList } from '@/services/dashboard';
-import { PaginatedResponse } from '@/lib/types';
 import { PaginationState } from '@tanstack/react-table';
 import { getHandoverItems, getOffboarding, getOffboardingProgress } from '@/services/offboarding-employee';
 import { getFields } from '@/services/form';
 import { getEmployees } from '@/services/employees';
 import { useDebounce } from '@/hooks/use-debounce';
+import { getAttendanceDashboardEmployee, getWaitingDashboardEmployee } from '@/services/ess';
 
 export interface USEESSProps {
   formId?: number;
@@ -20,27 +19,24 @@ export function useESS({
   const [openFormModal, setOpenFormModal] = React.useState(false);
   const [searchEmployee, setSearchEmployee] = React.useState("");
   const debouncedEmployee = useDebounce(searchEmployee, 300);
-  const [pagination, setPagination] = useState<PaginationState>({
-    pageIndex: 0,
-    pageSize: 10,
-  });
   const [filter, setFilter] = useState({
     start_date: "",
     end_date: "",
-    branch_id: "",
-    department_id: "",
   });
 
-// ==========  ATTENDANCE
+// ==========  DASHBOARD
   const { data: attendanceStat, isLoading: attendanceStatLoading } = useQuery({
     queryKey: ['attendanceStat', filter],
-    queryFn: () => getAttendanceStat(filter),
+    queryFn: () => getAttendanceDashboardEmployee(filter),
   });
 
-  const { data: attStat, isLoading: attStatLoading } = useQuery({
-    queryKey: ['attStat', filter],
-    queryFn: () => getAttStat(filter),
+  const { data: waitingStat, isLoading: waitingStatLoading } = useQuery({
+    queryKey: ['waitingStat'],
+    queryFn: () => getWaitingDashboardEmployee(),
   });
+
+// ========== END DASHBOARD
+
 
   const { 
     data: offboardingResponse, 
@@ -116,16 +112,11 @@ export function useESS({
     enabled: !!offboardingResponse?.data?.id,
   });
   
-
-// ========== END ATTENDANCE
-
   return {
     filter,
     setFilter,
     attendanceStat,
     attendanceStatLoading,
-    attStat,
-    attStatLoading,
     offboardingData: offboardingResponse?.data,
     offboardingLoading,
     offboardingProgress: offboardingProgressResponse?.data,
@@ -145,5 +136,7 @@ export function useESS({
     refetchHandover,
     documentHandovers: documentHandoverResponse?.data || [], // Return document specific data
     documentHandoverLoading,
+    waitingStat,
+    waitingStatLoading,
   };
 }

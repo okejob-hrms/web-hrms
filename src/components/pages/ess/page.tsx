@@ -22,20 +22,23 @@ import { Bell, Clock } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
+import dayjs from 'dayjs';
 
 export const EssPage = () => {
   const dashboardAnalytics = useESS();
   const router = useRouter();
   const { offboardingData, offboardingLoading } = useESS();
 
-  const lineData = dashboardAnalytics.attendanceStat?.data.map((item) => ({
-    month: item.month,
-    onTime: item.on_time,
-    late: item.late,
-    absent: item.absent,
-    overtime: item.overtime,
-    leave: item.leave,
-  }));
+  const lineData = dashboardAnalytics.attendanceStat?.data.trend.map(
+    (item) => ({
+      month: item.date,
+      onTime: item.ontime,
+      late: item.late,
+      absent: item.absent,
+      overtime: item.overtime,
+      leave: item.leave,
+    }),
+  );
 
   const lineTitle = ['On Time', 'Late', 'Absent', 'Overtime', 'Leave'];
   const lineColor = ['#18618B', '#FFB84D', '#C964A2', '#64C9B1', '#367839'];
@@ -43,31 +46,24 @@ export const EssPage = () => {
   const pannel = [
     {
       title: 'On Time',
-      value: dashboardAnalytics.attStat?.data.on_time.today ?? 0,
+      value: dashboardAnalytics.attendanceStat?.data.summary.total_ontime ?? 0,
     },
     {
       title: 'Late Clock In',
-      value: dashboardAnalytics.attStat?.data.late_clock_in.today ?? 0,
-    },
-    {
-      title: 'Early Clock In',
-      value: dashboardAnalytics.attStat?.data.early_clock_in.today ?? 0,
-    },
-    {
-      title: 'Early Clock Out',
-      value: dashboardAnalytics.attStat?.data.early_clock_out.today ?? 0,
+      value: dashboardAnalytics.attendanceStat?.data.summary?.total_late ?? 0,
     },
     {
       title: 'Overtime',
-      value: dashboardAnalytics.attStat?.data.overtime.today ?? 0,
+      value:
+        dashboardAnalytics.attendanceStat?.data.summary?.total_overtime ?? 0,
     },
     {
       title: 'Absent',
-      value: dashboardAnalytics.attStat?.data.absent.today ?? 0,
+      value: dashboardAnalytics.attendanceStat?.data.summary?.total_absent ?? 0,
     },
     {
       title: 'Leave',
-      value: dashboardAnalytics.attStat?.data.leave.today ?? 0,
+      value: dashboardAnalytics.attendanceStat?.data.summary?.total_leave ?? 0,
     },
   ];
 
@@ -149,11 +145,15 @@ export const EssPage = () => {
               <div className="text-gray-500">
                 Let’s wrap things up smoothly before you leave
               </div>
-              <Button onClick={() => router.push('/ess/offboarding')} variant="default">Start Offboarding Process</Button>
+              <Button
+                onClick={() => router.push('/ess/offboarding')}
+                variant="default"
+              >
+                Start Offboarding Process
+              </Button>
             </div>
           </div>
         )}
-        
 
         <div className="grid grid-cols-1 space-y-6 sm:grid-cols-3 md:gap-6">
           <div className="col-span-3 md:col-span-2 space-y-3 bg-white p-4 rounded-xl shadow-sm">
@@ -207,7 +207,7 @@ export const EssPage = () => {
               </div>
             </div>
 
-            {dashboardAnalytics.attStatLoading ? (
+            {dashboardAnalytics.attendanceStatLoading ? (
               <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                 <Skeleton className="h-32" />
                 <Skeleton className="h-32" />
@@ -216,7 +216,7 @@ export const EssPage = () => {
                 <Skeleton className="h-32" />
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {pannel.map((item, id) => (
                   <DashboardInfo
                     key={id}
@@ -239,94 +239,104 @@ export const EssPage = () => {
               </CardHeader>
               <CardContent className="space-y-4 max-h-[300px] overflow-y-scroll">
                 {/* Overtime */}
-                <div className="border rounded-lg p-4 space-y-2">
-                  <p className="font-medium text-sm">Overtime Request</p>
-                  <div className="flex items-center justify-between">
-                    <p className="font-semibold">Tuesday, 5</p>
-                    <Badge
-                      variant="secondary"
-                      className="flex items-center gap-1 bg-yellow-50 border-yellow-800 text-yellow-800"
-                    >
-                      <Clock className="w-3 h-3" /> Waiting for Approval
-                    </Badge>
-                  </div>
-                  <Separator />
-                  <div className="text-sm">
-                    <div className="space-y-2">
-                      <div className="text-muted-foreground">Duration</div>
-                      <span className="font-medium text-foreground">
-                        5h 0m
-                      </span>{' '}
-                      (05:00 PM - 10:00 PM)
-                    </div>
-                    <div className="space-y-2">
-                      <div className="text-muted-foreground">Notes</div>
-                      <span className="font-medium text-foreground">
-                        Machine Troubleshooting
-                      </span>
-                    </div>
-                  </div>
-                </div>
+                {dashboardAnalytics.waitingStatLoading ? (
+                  <Skeleton className="h-80" />
+                ) : (
+                  <>
+                    {dashboardAnalytics.waitingStat?.data.overtimes.map(
+                      (item, key) => (
+                        <div
+                          key={key}
+                          className="border rounded-lg p-4 space-y-2"
+                        >
+                          <p className="font-medium text-sm">
+                            Overtime Request
+                          </p>
+                          <div className="flex items-center justify-between">
+                            <p className="font-semibold">
+                              {dayjs(item.created_at).format('MMMM D, YYYY') ||
+                                '-'}
+                            </p>
+                            <Badge
+                              variant="secondary"
+                              className="flex items-center gap-1 bg-yellow-50 border-yellow-800 text-yellow-800"
+                            >
+                              <Clock className="w-3 h-3" /> Waiting for Approval
+                            </Badge>
+                          </div>
+                          <Separator />
+                          <div className="text-sm">
+                            <div className="space-y-2">
+                              <div className="text-muted-foreground">
+                                Duration
+                              </div>
+                              <span className="font-medium text-foreground">
+                                5h 0m
+                              </span>{' '}
+                              (05:00 PM - 10:00 PM)
+                            </div>
+                            <div className="space-y-2">
+                              <div className="text-muted-foreground">Notes</div>
+                              <span className="font-medium text-foreground">
+                                Machine Troubleshooting
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      ),
+                    )}
+                  </>
+                )}
 
                 {/* Leave */}
-                <div className="border rounded-lg p-4 space-y-2">
-                  <p className="font-medium text-sm">Leave Request</p>
-                  <div className="flex items-center justify-between">
-                    <p className="font-semibold">Tuesday, 6</p>
-                    <Badge
-                      variant="secondary"
-                      className="flex items-center gap-1 bg-yellow-50 border-yellow-800 text-yellow-800"
-                    >
-                      <Clock className="w-3 h-3" /> Waiting for Approval
-                    </Badge>
-                  </div>
-                  <Separator />
-                  <div className="text-sm">
-                    <div className="space-y-2">
-                      <div className="text-muted-foreground">Duration</div>
-                      <span className="font-medium text-foreground">
-                        Dec 21, 2025 - Dec 23, 2025
-                      </span>{' '}
-                      (3 Days)
-                    </div>
-                    <div className="space-y-2">
-                      <div className="text-muted-foreground">Notes</div>
-                      <span className="font-medium text-foreground">
-                        Annual Leave
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Leave */}
-                <div className="border rounded-lg p-4 space-y-2">
-                  <p className="font-medium text-sm">Leave Request</p>
-                  <div className="flex items-center justify-between">
-                    <p className="font-semibold">Tuesday, 6</p>
-                    <Badge
-                      variant="secondary"
-                      className="flex items-center gap-1 bg-yellow-50 border-yellow-800 text-yellow-800"
-                    >
-                      <Clock className="w-3 h-3" /> Waiting for Approval
-                    </Badge>
-                  </div>
-                  <Separator />
-                  <div className="text-sm">
-                    <div className="space-y-2">
-                      <div className="text-muted-foreground">Duration</div>
-                      <span className="font-medium text-foreground">
-                        Dec 21, 2025 - Dec 23, 2025
-                      </span>{' '}
-                      (3 Days)
-                    </div>
-                    <div className="space-y-2">
-                      <div className="text-muted-foreground">Notes</div>
-                      <span className="font-medium text-foreground">
-                        Annual Leave
-                      </span>
-                    </div>
-                  </div>
-                </div>
+                {dashboardAnalytics.waitingStatLoading ? (
+                  <Skeleton className="h-80" />
+                ) : (
+                  <>
+                    {dashboardAnalytics.waitingStat?.data.leaves.map(
+                      (item, key) => (
+                        <div
+                          key={key}
+                          className="border rounded-lg p-4 space-y-2"
+                        >
+                          <p className="font-medium text-sm">
+                            Overtime Request
+                          </p>
+                          <div className="flex items-center justify-between">
+                            <p className="font-semibold">
+                              {dayjs(item.created_at).format('MMMM D, YYYY') ||
+                                '-'}
+                            </p>
+                            <Badge
+                              variant="secondary"
+                              className="flex items-center gap-1 bg-yellow-50 border-yellow-800 text-yellow-800"
+                            >
+                              <Clock className="w-3 h-3" /> Waiting for Approval
+                            </Badge>
+                          </div>
+                          <Separator />
+                          <div className="text-sm">
+                            <div className="space-y-2">
+                              <div className="text-muted-foreground">
+                                Duration
+                              </div>
+                              <span className="font-medium text-foreground">
+                                5h 0m
+                              </span>{' '}
+                              (05:00 PM - 10:00 PM)
+                            </div>
+                            <div className="space-y-2">
+                              <div className="text-muted-foreground">Notes</div>
+                              <span className="font-medium text-foreground">
+                                Machine Troubleshooting
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      ),
+                    )}
+                  </>
+                )}
               </CardContent>
             </Card>
 

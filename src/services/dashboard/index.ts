@@ -1,5 +1,5 @@
 import { api } from "@/lib/api";
-import { AdditionalList, AdditionalListDetail, AgeListDataResponse, AgeStatResponse, AttendanceStatResponse, AttListStatResponse, AttStatResponse, DataOffboardingTrendResponse, EmployeeStatResponse, ExperienceStatResponse, ExperienceTrend, ExpTrendListDataResponse, GenderStatResponse, OffboardingResponse, PayrollDashboardResponse, PayrollTrendResponse, PendingResponse } from "./types";
+import { AdditionalList, AdditionalListDetail, AgeListDataResponse, AgeStatResponse, AttendanceStatResponse, AttListStatResponse, AttStatResponse, DataOffboardingTrendResponse, EmployeeStatResponse, ExperienceStatResponse, ExperienceTrend, ExpTrendListDataResponse, GenderStatResponse, OffboardingResponse, PayrollDashboardResponse, PayrollTrendResponse, PendingResponse, RequestWidget, ResponseWidget } from "./types";
 import { PaginationState } from "@tanstack/react-table";
 
 export const getPendingStat = async (): Promise<PendingResponse> => {
@@ -445,3 +445,18 @@ export const getPayrollTrend = async (
 
   return response.json()
 }
+
+export const addWidgets = async (
+  payload: RequestWidget
+): Promise<ResponseWidget> => {
+  return api
+    .post(`dashboard/custom-dashboards`, {
+      json: payload,
+    })
+    .json<ResponseWidget>();
+};
+
+export const getWidgets = async (): Promise<ResponseWidget> => {
+  const response = await api.get<ResponseWidget>("dashboard/custom-dashboards");
+  return response.json();
+};
