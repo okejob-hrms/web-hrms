@@ -62,9 +62,11 @@ export function useDashboarAssessment() {
       columns: form.columns,
       data_summary: form.dataSummary,
       visualization: form.dataVisualization,
-      field_id: Number(form.fieldId),
+      ...(form.fieldId
+        ? { field_id: Number(form.fieldId) }
+        : {}),
     }
-      addWidget(payload);
+    addWidget(payload);
   }
 
   const { data: dataWidget, isLoading: loadingDataWidget, isError: errorDataWidget } = useQuery({
