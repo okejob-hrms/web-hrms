@@ -67,7 +67,7 @@ export const SectionAssessment = () => {
       accessorKey: "end_date",
       header: "End Date",
       cell: ({ row }) =>
-        dayjs(row.original.due_date).format("MM DD, YYYY") ?? "-",
+        dayjs(row.original.due_date).format("LL") ?? "-",
     },
     {
       accessorKey: "status",
