@@ -319,6 +319,7 @@ export interface RequestWidget {
   columns: string;
   data_summary: string;
   visualization: string;
+  field_id?: number;
 }
 
 export interface ResponseWidget {

@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useDashboarAssessment } from '../../hooks/assessment';
+import { RadioForm } from '@/components/ui/radio-group';
 
 interface AssessementModalProps {
   open: boolean;
@@ -110,6 +111,39 @@ export default function AssessementModal({
             </Select>
           </div>
 
+          <div className="space-y-2">
+            <Label>Form Field</Label>
+
+            <div className="space-y-3">
+              {hook.dataFormId?.data.map((item) => {
+                const value = String(item.id);
+
+                return (
+                  <label
+                    key={item.id}
+                    className="flex items-center gap-3 cursor-pointer rounded-lg border border-gray-200 px-4 py-3 hover:bg-gray-50"
+                  >
+                    <input
+                      type="radio"
+                      name="fieldId"
+                      value={value}
+                      checked={hooks.form.fieldId === value}
+                      onChange={() => {
+                        hooks.setForm((prev) => ({
+                          ...prev,
+                          fieldId: value,
+                        }));
+                      }}
+                      className="accent-blue-600"
+                    />
+
+                    <span className="text-sm">{item.label}</span>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <Label>Rows</Label>
@@ -128,7 +162,7 @@ export default function AssessementModal({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="question">Question</SelectItem>
-                  <SelectItem value="answer_Option">Answer Option</SelectItem>
+                  <SelectItem value="answer_option">Answer Option</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -150,7 +184,7 @@ export default function AssessementModal({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="question">Question</SelectItem>
-                  <SelectItem value="answer_Option">Answer Option</SelectItem>
+                  <SelectItem value="answer_option">Answer Option</SelectItem>
                 </SelectContent>
               </Select>
             </div>

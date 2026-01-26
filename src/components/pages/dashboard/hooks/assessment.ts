@@ -2,7 +2,7 @@
 
 import { addWidgets, getWidgets } from '@/services/dashboard';
 import { RequestWidget } from '@/services/dashboard/types';
-import { getAllForm } from '@/services/form';
+import { getAllForm, getFields } from '@/services/form';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -18,6 +18,7 @@ export function useDashboarAssessment() {
     columns: "",
     dataSummary: "",
     dataVisualization: "",
+    fieldId: "",
   });
 
   const {
@@ -27,6 +28,16 @@ export function useDashboarAssessment() {
     queryKey: ["forms"],
     queryFn: getAllForm,
   });
+
+  const {
+    data: dataFormId,
+    isLoading: loadingFormId
+  } = useQuery({
+    queryKey: ["formsId", form.formSource],
+    queryFn: () => getFields({form_id: Number(form.formSource)}),
+    enabled: !!form.formSource
+  });
+
 
   const { mutate: addWidget, isPending: isPendingAddWidget } =
     useMutation({
@@ -51,6 +62,7 @@ export function useDashboarAssessment() {
       columns: form.columns,
       data_summary: form.dataSummary,
       visualization: form.dataVisualization,
+      field_id: Number(form.fieldId),
     }
       addWidget(payload);
   }
@@ -71,6 +83,8 @@ export function useDashboarAssessment() {
     dataWidget,
     loadingDataWidget,
     errorDataWidget,
-    isPendingAddWidget
+    isPendingAddWidget,
+    dataFormId,
+    loadingFormId,
   };
 }
