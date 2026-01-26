@@ -64,7 +64,7 @@ const DocumentHandoverFormModal: React.FC<DocumentHandoverFormModalProps> = ({
       <DialogContent className="max-w-[500px] bg-white">
         <DialogHeader>
           <DialogTitle>
-            {initialData ? "Edit Work & Responsibilities Handover" : "Work & Responsibilities Handover"}
+            {initialData ? "Edit Document Handover" : "Document Handover"}
           </DialogTitle>
         </DialogHeader>
 
