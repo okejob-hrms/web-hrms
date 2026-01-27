@@ -234,7 +234,9 @@ export const EssPage = () => {
               <CardHeader className="pb-2">
                 <CardTitle className="font-bold text-xl text-gray-600">
                   Waiting For Approval{' '}
-                  <span className="text-muted-foreground">(4)</span>
+                  <span className="text-muted-foreground">
+                    ({dashboardAnalytics.waitingStat?.data.total})
+                  </span>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4 max-h-[300px] overflow-y-scroll">
