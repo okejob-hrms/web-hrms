@@ -13,6 +13,7 @@ import {
 
 import AssessementModal from './modal/assessment-modal';
 import { useDashboarAssessment } from '../hooks/assessment';
+import { DashboardSummaryItem } from '@/services/dashboard/types';
 
 /* ============================================================================
  * Helper: map API data -> chart data
@@ -52,6 +53,55 @@ const ChartBar = ({ data }: { data: { label: string; value: number }[] }) => {
   );
 };
 
+const ChartTable = ({ data }: { data: DashboardSummaryItem }) => {
+  return (
+    <div className="flex w-full px-4">
+      <div className="space-y-2 w-1/2 border-r border-border">
+        <div className="p-3 font-bold border-b border-border bg-gray-100/30">
+          Label
+        </div>
+        {data.rows.map((item, i) => {
+          return (
+            <div key={i} className="p-3">
+              {item}
+            </div>
+          );
+        })}
+      </div>
+      <div className="space-y-2 w-1/2">
+        <div className="p-3 font-bold border-b border-border bg-gray-100/30">
+          Value
+        </div>
+        {data.columns.map((item, i) => {
+          return (
+            <div key={i} className="p-3">
+              {item}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+    // <ResponsiveContainer width="100%" height={280}>
+    //   <ReBarChart data={data}>
+    //     <XAxis
+    //       dataKey="label"
+    //       stroke="#6b7280"
+    //       tickLine={false}
+    //       tick={{ fontSize: 13, fill: '#9ca3af' }}
+    //     />
+    //     <YAxis
+    //       stroke="#6b7280"
+    //       tickLine={false}
+    //       allowDecimals={false}
+    //       tick={{ fontSize: 13, fill: '#9ca3af' }}
+    //     />
+    //     <Tooltip />
+    //     <Bar dataKey="value" radius={[6, 6, 0, 0]} fill="#C964A2" />
+    //   </ReBarChart>
+    // </ResponsiveContainer>
+  );
+};
+
 /* ============================================================================
  * Main Component
  * ============================================================================
@@ -73,8 +123,11 @@ export const Assessment = () => {
               {/* Chart Title */}
               <div className="font-semibold mb-2 p-4">{item.label}</div>
 
-              {/* Chart */}
-              <ChartBar data={chartData} />
+              {item.visualization == 'table' ? (
+                <ChartTable data={item} />
+              ) : (
+                <ChartBar data={chartData} />
+              )}
             </div>
           );
         })}
@@ -94,11 +147,7 @@ export const Assessment = () => {
         </div>
       </div>
 
-      <AssessementModal
-        onOpenChange={hooks.setOpen}
-        open={hooks.open}
-        hook={hooks}
-      />
+      <AssessementModal hook={hooks} />
     </div>
   );
 };

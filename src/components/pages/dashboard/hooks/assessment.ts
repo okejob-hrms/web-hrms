@@ -46,10 +46,10 @@ export function useDashboarAssessment() {
       onSuccess: () => {
         toast.success("Add assessment successfully!");
         queryClient.invalidateQueries({ queryKey: ["widget"] });
+        setOpen(false);
       },
       onError: () => {
         toast.error("Add assessment failed!");
-        
       },
     });
 

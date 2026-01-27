@@ -333,4 +333,5 @@ export interface DashboardSummaryItem {
   summary_type: string;
   rows: string[];
   columns: number[];
+  visualization: string;
 }

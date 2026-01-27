@@ -19,24 +19,17 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useDashboarAssessment } from '../../hooks/assessment';
-import { RadioForm } from '@/components/ui/radio-group';
 
 interface AssessementModalProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
   hook: ReturnType<typeof useDashboarAssessment>;
 }
 
-export default function AssessementModal({
-  open,
-  onOpenChange,
-  hook,
-}: AssessementModalProps) {
+export default function AssessementModal({ hook }: AssessementModalProps) {
   const hooks = hook;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-screen sm:max-w-3xl p-6 rounded-2xl bg-white overflow-y-auto">
+    <Dialog open={hook.open} onOpenChange={hook.setOpen}>
+      <DialogContent className="w-screen sm:max-w-3xl max-h-90 p-6 rounded-2xl bg-white overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add Custom Chart Widget</DialogTitle>
         </DialogHeader>
@@ -116,32 +109,36 @@ export default function AssessementModal({
               <Label>Form Field</Label>
 
               <div className="space-y-3">
-                {hook.dataFormId?.data.map((item) => {
-                  const value = String(item.id);
+                {hook.dataFormId?.data
+                  .filter((item) =>
+                    ['checkbox', 'select', 'radio'].includes(item.type),
+                  )
+                  .map((item) => {
+                    const value = String(item.id);
 
-                  return (
-                    <label
-                      key={item.id}
-                      className={`flex items-center gap-3 cursor-pointer rounded-lg border border-gray-200 px-4 py-3 hover:bg-gray-50 ${item.type === 'range' && 'hidden'}`}
-                    >
-                      <input
-                        type="radio"
-                        name="fieldId"
-                        value={value}
-                        checked={hooks.form.fieldId === value}
-                        onChange={() => {
-                          hooks.setForm((prev) => ({
-                            ...prev,
-                            fieldId: value,
-                          }));
-                        }}
-                        className="accent-blue-600"
-                      />
+                    return (
+                      <label
+                        key={item.id}
+                        className={`flex items-center gap-3 cursor-pointer rounded-lg border border-gray-200 px-4 py-3 hover:bg-gray-50`}
+                      >
+                        <input
+                          type="radio"
+                          name="fieldId"
+                          value={value}
+                          checked={hooks.form.fieldId === value}
+                          onChange={() => {
+                            hooks.setForm((prev) => ({
+                              ...prev,
+                              fieldId: value,
+                            }));
+                          }}
+                          className="accent-blue-600"
+                        />
 
-                      <span className="text-sm">{item.label}</span>
-                    </label>
-                  );
-                })}
+                        <span className="text-sm">{item.label}</span>
+                      </label>
+                    );
+                  })}
               </div>
             </div>
           )}
@@ -242,14 +239,13 @@ export default function AssessementModal({
 
         <DialogFooter className="mt-6 flex justify-end items-center w-full">
           <div className="flex gap-3">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
+            <Button variant="outline" onClick={() => hook.setOpen(false)}>
               Cancel
             </Button>
 
             <Button
               variant="default"
               onClick={() => {
-                onOpenChange(false);
                 hook.onSubmit();
               }}
               disabled={hook.isPendingAddWidget}
