@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useRouter } from "next/navigation";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { getFields } from "@/services/form";
 import {
@@ -19,6 +20,7 @@ interface SectionAssessmentDetailProps {
 export const SectionAssessmentDetail: React.FC<
   SectionAssessmentDetailProps
 > = ({ assessmentId, formId }) => {
+  const router = useRouter();
   const { data: formDetail, isLoading: isLoadingForm } = useQuery({
     queryKey: ["form-detail", formId],
     queryFn: () => getFields({ form_id: formId! }),
@@ -36,6 +38,7 @@ export const SectionAssessmentDetail: React.FC<
       submitEmployeeSelfAssessment(Number(assessmentId), data),
     onSuccess: () => {
       toast.success("Assessment submitted successfully");
+      router.push("/ess/assessment");
     },
     onError: (error: any) => {
       if (error?.response) {
