@@ -1,5 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-// FileName: index.tsx
 'use client';
 
 import Image from 'next/image';
@@ -25,8 +23,6 @@ import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { EmployeeNode, NodeCardData } from './types';
 import DownloadButton from './sections/download-button';
-
-// --- NEW IMPORTS FOR FILTERING ---
 import { getEmployees } from '@/services/employees';
 import { useDebounce } from '@/hooks/use-debounce';
 import { Check, ChevronsUpDown, X } from 'lucide-react';
@@ -45,11 +41,9 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 
-// Dagre fixed sizes
 const nodeWidth = 220;
 const nodeHeight = 140;
 
-// --- FIXED: recreate dagre graph per layout call ---
 const getLayoutedElements = (
   nodes: Node[],
   edges: Edge[],
@@ -58,19 +52,14 @@ const getLayoutedElements = (
   const dagreGraph = new dagre.graphlib.Graph();
   dagreGraph.setDefaultEdgeLabel(() => ({}));
   dagreGraph.setGraph({ rankdir: direction });
-
   const isHorizontal = direction === 'LR';
-
   nodes.forEach((node: Node) => {
     dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
   });
-
   edges.forEach((edge) => {
     dagreGraph.setEdge(edge.source, edge.target);
   });
-
   dagre.layout(dagreGraph);
-
   const layoutedNodes = nodes.map((node) => {
     const layout = dagreGraph.node(node.id);
     return {
@@ -83,11 +72,9 @@ const getLayoutedElements = (
       sourcePosition: isHorizontal ? 'right' : 'bottom',
     };
   });
-
   return { nodes: layoutedNodes, edges };
 };
 
-// --- NODE TYPES ---
 const nodeTypes = { custom: CustomNode };
 
 interface OrganizationChartProps {
@@ -98,27 +85,32 @@ export default function OrganizationChart({
   isEmployee = false,
 }: OrganizationChartProps) {
   const router = useRouter();
-  const [user, setUser] = React.useState({ name: '', id: '' });
+  const [user, setUser] = React.useState<{ name: string; id: string } | null>(null);
+  const [isHydrated, setIsHydrated] = React.useState(false);
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
+  const [selectedLabel, setSelectedLabel] = useState('');
 
-  // Only access localStorage on the client side
-  React.useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const savedUser = localStorage.getItem('user');
-      setUser(savedUser ? JSON.parse(savedUser) : null);
+  useEffect(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        const savedUser = localStorage.getItem('user');
+        const parsedUser = savedUser ? JSON.parse(savedUser) : null;
+        setUser(parsedUser);
+
+        if (isEmployee && parsedUser?.id) {
+          setSelectedEmployeeId(parsedUser.profile_id);
+        }
+        setIsHydrated(true);
+      }
+    } catch {
+      setIsHydrated(true);
     }
   }, []);
 
-  // --- 1. FILTER STATE ---
-  const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState('');
-  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(
-    isEmployee ? user.id : null,
-  );
-  const [selectedLabel, setSelectedLabel] = useState('');
-
   const debouncedSearch = useDebounce(search, 300);
 
-  // --- 2. SEARCH QUERY ---
   const { data: employeeResults, isLoading: isSearching } = useQuery({
     queryKey: ['employees', 'search', debouncedSearch],
     queryFn: () =>
@@ -128,6 +120,7 @@ export default function OrganizationChart({
           : { per_page: 20 },
       ),
     staleTime: 5 * 60 * 1000,
+    enabled: isHydrated,
   });
 
   const employeeOptions = useMemo(() => {
@@ -139,7 +132,6 @@ export default function OrganizationChart({
     );
   }, [employeeResults?.data]);
 
-  // --- 3. CHART QUERY ---
   const {
     data: chartEmployees = [],
     isLoading,
@@ -151,22 +143,18 @@ export default function OrganizationChart({
       return flattenOrgData(response.data);
     },
     staleTime: 1000 * 60 * 5,
+    enabled: isHydrated && (isEmployee ? !!selectedEmployeeId : true),
   });
 
-  const [nodes, setNodes, onNodesChange] = useNodesState<Node<NodeCardData>>(
-    [],
-  );
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node<NodeCardData>>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
 
-  // --- 4. TRANSFORMATION + LAYOUT (Memoized for stability) ---
   const layoutResult = useMemo(() => {
     if (!chartEmployees || chartEmployees.length === 0) return null;
-
     const dataForNodes: NodeCardData[] = chartEmployees.map((emp) => ({
       employee: emp,
       isEditMode: false,
     }));
-
     const transformed = transformDataForFlow(dataForNodes);
     return getLayoutedElements(transformed.nodes, transformed.edges);
   }, [chartEmployees]);
@@ -177,7 +165,6 @@ export default function OrganizationChart({
       setEdges([]);
       return;
     }
-
     setNodes(layoutResult.nodes as Node<NodeCardData>[]);
     setEdges(layoutResult.edges);
   }, [layoutResult]);
@@ -186,13 +173,14 @@ export default function OrganizationChart({
     router.push('structure/edit');
   };
 
+  if (!isHydrated) return null;
+
   return (
     <ReactFlowProvider>
       <div className="font-sans min-h-screen">
         {!isEmployee ? (
           <div className="flex justify-between w-full items-center mb-3">
             <div className="flex flex-col sm:flex-row justify-between w-full items-start sm:items-center gap-4 sm:gap-0">
-              {/* LEFT SECTION */}
               <div className="flex gap-4 items-center flex-wrap">
                 <h2 className="font-semibold text-xl">
                   Organization Structure
@@ -208,7 +196,6 @@ export default function OrganizationChart({
                       className="w-[250px] justify-between bg-white"
                     >
                       {selectedLabel || 'Filter by employee'}
-
                       {selectedEmployeeId ? (
                         <div
                           onClick={(e) => {
@@ -226,7 +213,6 @@ export default function OrganizationChart({
                       )}
                     </Button>
                   </PopoverTrigger>
-
                   <PopoverContent className="w-[250px] p-0" align="start">
                     <Command shouldFilter={false}>
                       <CommandInput
@@ -234,7 +220,6 @@ export default function OrganizationChart({
                         value={search}
                         onValueChange={setSearch}
                       />
-
                       <CommandList>
                         {isSearching ? (
                           <div className="py-6 text-center text-sm text-muted-foreground">
@@ -273,11 +258,8 @@ export default function OrganizationChart({
                   </PopoverContent>
                 </Popover>
               </div>
-
-              {/* RIGHT ACTIONS */}
               <div className="flex flex-row gap-2">
                 <DownloadButton />
-
                 <Button onClick={handleEditClick} className="whitespace-nowrap">
                   <Image
                     src="/icons/edit.svg"
@@ -296,7 +278,6 @@ export default function OrganizationChart({
           </h2>
         )}
 
-        {/* CHART AREA */}
         <div style={{ width: '100%', height: '80vh' }}>
           {isError && <div>Failed to load organization chart</div>}
 
