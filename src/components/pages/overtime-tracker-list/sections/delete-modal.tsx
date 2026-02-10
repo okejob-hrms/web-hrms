@@ -29,7 +29,6 @@ export default function OvertimeDeleteModal({
 
     try {
       await onUpdate();
-      setIsOpen(false);
     } catch (error) {
       console.error('Error updating employee:', error);
     }

@@ -9,7 +9,53 @@ import { Filters } from "./types";
 import { OvertimeListItem, RequestOvertime, RequestOvertimeStatus } from "@/services/overtime/types";
 import dayjs from "dayjs";
 
+interface ApiErrorResponse {
+  status?: string;
+  message?: string;
+  error_code?: string | null;
+}
+
 export function useOvertime(isEmployee: boolean) {
+  const extractErrorMessage = async (error: unknown): Promise<string> => {
+    // fetch-style error
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "response" in error
+    ) {
+      const response = (error as { response?: Response }).response;
+
+      if (response && typeof response.json === "function") {
+        try {
+          const data = (await response.json()) as ApiErrorResponse;
+          return data.message ?? "Something went wrong";
+        } catch {
+          return "Something went wrong";
+        }
+      }
+    }
+
+    // axios-style error
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "response" in error
+    ) {
+      const data = (error as {
+        response?: { data?: ApiErrorResponse };
+      }).response?.data;
+
+      if (data?.message) return data.message;
+    }
+
+    // native Error
+    if (error instanceof Error) {
+      return error.message;
+    }
+
+    return "Something went wrong";
+  };
+
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: 0,
     pageSize: 10,
@@ -69,9 +115,10 @@ export function useOvertime(isEmployee: boolean) {
       setOpenDetail(false);
       setOpenEdit(false);
     },
-    onError: () => {
-      toast.error('Failed update overtime status');
-    }
+    onError: async (err) => {
+      const message = await extractErrorMessage(err);
+      toast.error(message);
+    },
   });
 
   const { mutate: updateOvertime } = useMutation({
@@ -85,9 +132,10 @@ export function useOvertime(isEmployee: boolean) {
       setOpenEdit(false);
       refetchOvertime();
     },
-    onError: () => {
-      toast.error('Failed update overtime request');
-    }
+    onError: async (err) => {
+      const message = await extractErrorMessage(err);
+      toast.error(message);
+    },
   });
 
   const { mutate: updateOvertimeEmployee } = useMutation({
@@ -102,9 +150,10 @@ export function useOvertime(isEmployee: boolean) {
       setOpenAdd(false);
       refetchOvertimeEmployee();
     },
-    onError: () => {
-      toast.error('Failed update overtime request');
-    }
+    onError: async (err) => {
+      const message = await extractErrorMessage(err);
+      toast.error(message);
+    },
   });
   
   const { mutate: removeOvertime } = useMutation({
@@ -114,8 +163,9 @@ export function useOvertime(isEmployee: boolean) {
       setOpenDelete(false);
       refetchOvertime();
     },
-    onError: () => {
-      toast.error("Failed delete overtime");
+    onError: async (err) => {
+      const message = await extractErrorMessage(err);
+      toast.error(message);
     },
   });
 
@@ -131,9 +181,10 @@ export function useOvertime(isEmployee: boolean) {
         setOpenAdd(false);
         refetchOvertimeEmployee();
       },
-      onError: () => {
-        toast.error('Failed update overtime request');
-      },
+    onError: async (err) => {
+      const message = await extractErrorMessage(err);
+      toast.error(message);
+    },
     });
 
   const handleApprove = () => {
@@ -159,11 +210,13 @@ export function useOvertime(isEmployee: boolean) {
 
   const handleEdit = (data: RequestOvertime) => {
     if (!selectedId) return;
+
     const dataConvert: RequestOvertime = {
       ...data,
       start_time: data.start_time.slice(0, 5),
       end_time: data.end_time.slice(0, 5),
     };
+
 
     if(isEmployee){
       updateOvertimeEmployee({ id: Number(selectedId), payload: dataConvert });

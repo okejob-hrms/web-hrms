@@ -36,7 +36,6 @@ export default function OvertimeAddModal({
 
     try {
       await onUpdate();
-      setIsOpen(false);
     } catch (error) {
       console.error('Error updating employee:', error);
     }

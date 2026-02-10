@@ -9,6 +9,7 @@ import { DatePicker } from '@/components/ui/date-picker';
 import { TextAreaForm } from '@/components/ui/textarea';
 import { Button, UploadButton } from '@/components/ui/button';
 import AppSkeleton from '@/components/partials/app-skeleton';
+import { Plus } from 'lucide-react';
 
 interface AttendanceLeaveRequestFormProps {
   isEmployee?: boolean;
@@ -32,7 +33,10 @@ export const AttendanceLeaveRequestForm = React.memo(
       valueTransformer,
       isEditMode,
       isLoadingDetail,
+      handleLogoChange,
     } = useLeaveRequestForm(isEmployee);
+
+    const fileInputRef = React.useRef<HTMLInputElement | null>(null);
 
     if (isEditMode && isLoadingDetail) {
       return <AppSkeleton />;
@@ -110,11 +114,30 @@ export const AttendanceLeaveRequestForm = React.memo(
               name="reason"
               className="md:col-span-2"
             />
-            <UploadButton
+            {/* <UploadButton
               key="1"
               name="attachments"
               label="Attachments"
               required={false}
+            /> */}
+            <div className="flex flex-col space-y-3">
+              <div className="mb-2 text-sm">Attachments</div>
+              <Button
+                variant="outline"
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="w-50"
+              >
+                <Plus />
+                Select Attachments
+              </Button>
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleLogoChange}
             />
           </form>
           <div className="flex gap-4 col-span-2">

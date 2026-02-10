@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useDebounce } from "@/hooks/use-debounce";
 import { ApiErrorResponse } from "@/lib/types";
+import { uploadAttachment } from "@/services/attachments";
 import { getEmployees } from "@/services/employees";
 import {
   createLeave,
@@ -29,11 +30,7 @@ export const useLeaveRequestForm = (isEmployee?: boolean) => {
     end_date: z.union([z.date(), z.string().min(1, "End date is required")]),
     reason: z.string().min(1, "Reason is required"),
     attachments: z
-      .array(
-        z.object({
-          type: z.string(),
-        }),
-      )
+      .string()
       .optional(),
     approvers: isEmployee 
       ? z.array(
@@ -60,7 +57,7 @@ export const useLeaveRequestForm = (isEmployee?: boolean) => {
       leave_type_id: "",
       start_date: dayjs(new Date()).format("YYYY-MM-DD").toString(),
       end_date: dayjs(new Date()).format("YYYY-MM-DD").toString(),
-      // attachments: [],
+      attachments: "",
       reason: "",
       approvers: [],
     },
@@ -148,9 +145,7 @@ export const useLeaveRequestForm = (isEmployee?: boolean) => {
           start_date: leaveData.start_date,
           end_date: leaveData.end_date,
           reason: leaveData.reason,
-          attachments: leaveData.attachment
-            ? [{ type: leaveData.attachment }]
-            : [],
+          attachments: leaveData.attachment ?? '',
           approvers: leaveData.approvers.map((approver) => ({
             id: approver.approver_id,
             user_id: approver.user_id,
@@ -272,7 +267,7 @@ export const useLeaveRequestForm = (isEmployee?: boolean) => {
   };
 
   const handleCancel = () => {
-    router.push("/attendance/leave-request");
+    router.back();
   };
 
    const { mutate: createLeaveMutationEmployee, isPending: isPendingCreateLeaveEmployee } =
@@ -294,7 +289,7 @@ export const useLeaveRequestForm = (isEmployee?: boolean) => {
       start_date: dayjs(data.start_date).format("YYYY-MM-DD"),
       end_date: dayjs(data.end_date).format("YYYY-MM-DD"),
       reason: data.reason,
-      attachment: data.attachments?.[0]?.type || "",
+      attachment: data.attachments || '',
 
       ...(!isEmployee && {
         user_id: Number(data.user_id),
@@ -319,6 +314,29 @@ export const useLeaveRequestForm = (isEmployee?: boolean) => {
 
   const isPending = isPendingCreateLeave || isPendingUpdateLeave;
 
+  const { mutate: uploadLogo, isPending: isUploadingLogo } = useMutation({
+    mutationFn: uploadAttachment,
+    onSuccess: (res) => {
+      const photoUrl = res.data.path;
+      form.setValue("attachments", photoUrl, { shouldValidate: true });
+    },
+    onError: (error) => {
+      toast.error(`Failed to upload image: ${error.message}`);
+    },
+  });
+
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      uploadLogo(file, {
+        onSuccess: (res) => {
+          const photoUrl = res.data.path;
+          form.setValue("attachments", photoUrl, { shouldValidate: true });
+        },
+      });
+    }
+  };
+
   return {
     form,
     isLoadingEmployees,
@@ -336,5 +354,8 @@ export const useLeaveRequestForm = (isEmployee?: boolean) => {
     isEditMode,
     isLoadingDetail,
     leaveId,
+    uploadLogo,
+    isUploadingLogo,
+    handleLogoChange
   };
 };
