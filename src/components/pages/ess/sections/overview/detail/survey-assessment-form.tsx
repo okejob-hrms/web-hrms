@@ -167,9 +167,11 @@ export const SurveyAssessmentForm: React.FC<SurveyAssessmentFormProps> = ({
       if (fieldDef?.type === "checkbox") {
         if (field.value) {
           defaults[fieldId] = {};
-          field.value.split(",").forEach((val) => {
-            defaults[fieldId][val.trim()] = true;
-          });
+          String(field.value)
+            .split(",")
+            .forEach((val) => {
+              defaults[fieldId][val.trim()] = true;
+            });
         }
       } else {
         defaults[fieldId] = field.value;

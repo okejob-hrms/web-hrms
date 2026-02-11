@@ -9,7 +9,8 @@ import { DatePicker } from '@/components/ui/date-picker';
 import { TextAreaForm } from '@/components/ui/textarea';
 import { Button, UploadButton } from '@/components/ui/button';
 import AppSkeleton from '@/components/partials/app-skeleton';
-import { Plus } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
+import Image from 'next/image';
 
 interface AttendanceLeaveRequestFormProps {
   isEmployee?: boolean;
@@ -34,6 +35,7 @@ export const AttendanceLeaveRequestForm = React.memo(
       isEditMode,
       isLoadingDetail,
       handleLogoChange,
+      isUploadingLogo,
     } = useLeaveRequestForm(isEmployee);
 
     const fileInputRef = React.useRef<HTMLInputElement | null>(null);
@@ -41,7 +43,7 @@ export const AttendanceLeaveRequestForm = React.memo(
     if (isEditMode && isLoadingDetail) {
       return <AppSkeleton />;
     }
-
+    console.log(form.watch('attachments'))
     return (
       <div className="font-sans md:px-[125px] px-4 space-y-4">
         <Form {...form}>
@@ -122,15 +124,41 @@ export const AttendanceLeaveRequestForm = React.memo(
             /> */}
             <div className="flex flex-col space-y-3">
               <div className="mb-2 text-sm">Attachments</div>
-              <Button
-                variant="outline"
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="w-50"
-              >
-                <Plus />
-                Select Attachments
-              </Button>
+              {isUploadingLogo ? (
+                <div className="text-sm text-gray-500">Uploading...</div>
+              ) : form.watch('attachments') ? (
+                <div className="relative w-fit">
+                  <Image
+                    src={`${process.env.NEXT_PUBLIC_FILE_URL}/${form.watch('attachments')}`}
+                    alt="Attachment Preview"
+                    className="object-cover rounded-md border"
+                    width={160}
+                    height={160}
+                  />
+                  <button
+                    type="button"
+                    onClick={() =>
+                      form.setValue('attachments', '', {
+                        shouldValidate: true,
+                      })
+                    }
+                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-md hover:bg-red-600 transition"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              ) : (
+                <Button
+                  variant="outline"
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-50"
+                  disabled={isPending}
+                >
+                  <Plus />
+                  Select Attachments
+                </Button>
+              )}
             </div>
             <input
               ref={fileInputRef}
@@ -140,7 +168,7 @@ export const AttendanceLeaveRequestForm = React.memo(
               onChange={handleLogoChange}
             />
           </form>
-          <div className="flex gap-4 col-span-2">
+          <div className="flex md:flex-row flex-col-reverse gap-4 col-span-2 md:mt-0 mt-10">
             <Button
               type="button"
               variant="outline"
