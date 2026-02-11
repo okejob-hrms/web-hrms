@@ -276,6 +276,7 @@ export const useLeaveRequestForm = (isEmployee?: boolean) => {
       onSuccess: () => {
         toast.success("Create leave successfully!");
         queryClient.invalidateQueries({ queryKey: ["leaves"] });
+        queryClient.invalidateQueries({ queryKey: ["leavesEmployee"] });
         router.push("/ess/leave");
       },
       onError: (error: any) => {
