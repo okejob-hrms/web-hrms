@@ -4,6 +4,7 @@ import './globals.css';
 import AppLayout from '@/components/partials/app-layout';
 import { TopLoadingBar } from '@/components/ui/top-loading-bar';
 import 'leaflet/dist/leaflet.css';
+import AppProvider from '@/components/provider/app-provider';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -31,8 +32,9 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#FBF9F9]`}
       >
         <TopLoadingBar />
-
-        <AppLayout>{children}</AppLayout>
+        <AppProvider>
+          <AppLayout>{children}</AppLayout>
+        </AppProvider>
       </body>
     </html>
   );
