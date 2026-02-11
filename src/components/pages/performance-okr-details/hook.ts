@@ -275,11 +275,11 @@ export const useOKRDetails = () => {
   }, [jobLevels?.data]);
 
   const frequencyOptions = [
-    { label: "Not Set", value: "0" },
-    { label: "Daily", value: "1" },
-    { label: "Weekly", value: "2" },
-    { label: "Monthly", value: "3" },
-    { label: "Quarterly", value: "4" },
+    // { label: "Not Set", value: "0" },
+    // { label: "Daily", value: "1" },
+    { label: "Weekly", value: "0" },
+    { label: "Monthly", value: "1" },
+    { label: "Quarterly", value: "2" },
   ];
 
   const formatOptions = [

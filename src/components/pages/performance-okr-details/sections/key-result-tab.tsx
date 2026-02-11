@@ -47,18 +47,18 @@ export const KeyResultTabs = ({
         >
           Quarterly
         </TabsTrigger>
-        <TabsTrigger
+        {/* <TabsTrigger
           className="bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-b-primary relative z-10 rounded-none border-0 data-[state=active]:text-primary data-[state=active]:font-semibold p-4"
           value="3"
         >
           Yearly
-        </TabsTrigger>
+        </TabsTrigger> */}
       </TabsList>
       <TabsContent value="4" />
       <TabsContent value="0" />
       <TabsContent value="1" />
       <TabsContent value="2" />
-      <TabsContent value="3" />
+      {/* <TabsContent value="3" /> */}
     </Tabs>
   );
 };
