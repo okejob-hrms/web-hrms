@@ -24,6 +24,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const noPaddingPages = ['/employee/organization/structure/edit']; // add more if needed
   const removePadding = noPaddingPages.includes(pathname);
   const isAuthPage = pathname.startsWith('/auth');
+  const isDocsPage = pathname.startsWith('/docs');
   const breadcrumbs = getBreadcrumbs(pathname);
   const isDashboard = ['/dashboard', '/ess', '/ess/'];
   const removeBg = isDashboard.includes(pathname);
@@ -88,7 +89,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {isAuthPage ? (
+      {isAuthPage || isDocsPage ? (
         <main className="w-full">
           {children}
           <Toaster closeButton richColors position="top-center" />
