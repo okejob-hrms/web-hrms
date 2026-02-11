@@ -1,6 +1,15 @@
-import type { NextConfig } from "next";
+import nextra from 'nextra'
+import type { NextConfig } from 'next'
+
+const withNextra = nextra({})
 
 const nextConfig: NextConfig = {
+  pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
+  turbopack: {
+    resolveAlias: {
+      'next-mdx-import-source-file': './src/mdx-components.tsx',
+    },
+  },
   images: {
     remotePatterns: [
       {
@@ -25,6 +34,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-};
+}
 
-export default nextConfig;
+export default withNextra(nextConfig)
