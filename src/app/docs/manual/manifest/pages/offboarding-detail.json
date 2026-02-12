@@ -1,0 +1,1 @@
+{"slug":"offboarding-detail","route":"/employee/off-boarding/{id}","controls":[{"number":1,"name":"Breadcrumb","selectorOrRef":"Off Boarding / id"},{"number":2,"name":"Back to list","selectorOrRef":"breadcrumb link to off-boarding"},{"number":3,"name":"Detail content or message","selectorOrRef":"main area (employee data or not-found message)"}]}

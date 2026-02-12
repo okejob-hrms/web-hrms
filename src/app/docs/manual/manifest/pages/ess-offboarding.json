@@ -1,0 +1,7 @@
+{
+  "slug": "ess-offboarding",
+  "route": "/ess/offboarding",
+  "controls": [
+    { "number": 1, "name": "Offboarding tasks message", "selectorOrRef": "complete your offboarding tasks card" }
+  ]
+}

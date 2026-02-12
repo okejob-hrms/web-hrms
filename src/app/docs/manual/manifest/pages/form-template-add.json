@@ -1,0 +1,1 @@
+{"slug":"form-template-add","route":"/settings/form-template/add","controls":[{"number":1,"name":"Edit","selectorOrRef":"Button"},{"number":2,"name":"Form Name, Form Usage","selectorOrRef":"Display"},{"number":3,"name":"Add Question","selectorOrRef":"Button"},{"number":4,"name":"Cancel","selectorOrRef":"Button"},{"number":5,"name":"Save","selectorOrRef":"Button"}]}

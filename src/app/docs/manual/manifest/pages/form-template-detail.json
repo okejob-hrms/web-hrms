@@ -1,0 +1,1 @@
+{"slug":"form-template-detail","route":"/settings/form-template/{id}","controls":[{"number":1,"name":"Form Name, Form Usage","selectorOrRef":"Display"},{"number":2,"name":"Groupings","selectorOrRef":"Questions read-only"},{"number":3,"name":"Edit Form","selectorOrRef":"Button"},{"number":4,"name":"Delete Form","selectorOrRef":"Button"}]}

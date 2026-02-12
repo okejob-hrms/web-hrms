@@ -1,0 +1,1 @@
+{"slug":"leave-management-edit","route":"/settings/leave-management/edit/1","controls":[{"number":1,"name":"Leave form","selectorOrRef":"Same as Add"},{"number":2,"name":"Cancel","selectorOrRef":"Button"},{"number":3,"name":"Save","selectorOrRef":"Button"}]}

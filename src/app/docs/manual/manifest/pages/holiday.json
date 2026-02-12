@@ -1,0 +1,1 @@
+{"slug":"holiday","route":"/settings/time-attendance/holiday","controls":[{"number":1,"name":"Add Holiday","selectorOrRef":"Button"},{"number":2,"name":"Holiday table","selectorOrRef":"Events, Date columns"},{"number":3,"name":"Row actions","selectorOrRef":"Open row actions per row"}]}

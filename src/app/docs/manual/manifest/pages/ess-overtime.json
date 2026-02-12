@@ -1,0 +1,13 @@
+{
+  "slug": "ess-overtime",
+  "route": "/ess/overtime",
+  "controls": [
+    { "number": 1, "name": "Waiting for approval", "selectorOrRef": "filter tab" },
+    { "number": 2, "name": "Approved", "selectorOrRef": "filter tab" },
+    { "number": 3, "name": "Rejected", "selectorOrRef": "filter tab" },
+    { "number": 4, "name": "Search", "selectorOrRef": "search by employee name" },
+    { "number": 5, "name": "Pick a date", "selectorOrRef": "date picker" },
+    { "number": 6, "name": "New Overtime Request", "selectorOrRef": "new overtime request button" },
+    { "number": 7, "name": "Overtime table", "selectorOrRef": "table (Overtime Date, Request Date, Duration, Notes, Status)" }
+  ]
+}

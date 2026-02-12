@@ -1,0 +1,8 @@
+{
+  "slug": "ess-okr",
+  "route": "/ess/okr",
+  "controls": [
+    { "number": 1, "name": "New OKR Cycle", "selectorOrRef": "new okr cycle button" },
+    { "number": 2, "name": "OKR table", "selectorOrRef": "table (Period, Start Date, End Date, Total OKR, Overall Achievement, Status, Last Update)" }
+  ]
+}
