@@ -39,3 +39,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# documentation-related stuffs
+/.playwright-mcp
+/agent-instructions
+/public/manual

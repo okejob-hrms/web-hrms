@@ -1,0 +1,19 @@
+{
+  "slug": "dashboard",
+  "route": "/dashboard",
+  "controls": [
+    { "number": 1, "name": "Tab: Pending Action Overview", "selectorOrRef": "tab pending-actions" },
+    { "number": 2, "name": "Tab: Analytics Dashboard", "selectorOrRef": "tab analytics" },
+    { "number": 3, "name": "Tab: Offboarding", "selectorOrRef": "tab offboarding" },
+    { "number": 4, "name": "Tab: Payroll", "selectorOrRef": "tab payroll" },
+    { "number": 5, "name": "Tab: Assessment Dashboard", "selectorOrRef": "tab assessment-dashboard" },
+    { "number": 6, "name": "Summary cards (Pending Action)", "selectorOrRef": "DashboardInfo cards" },
+    { "number": 7, "name": "Pending Action sidebar", "selectorOrRef": "AppSidebar Pending Action menu" },
+    { "number": 8, "name": "Main content (Pending Action)", "selectorOrRef": "main content area with list" },
+    { "number": 9, "name": "Expand icon (Analytics widgets)", "selectorOrRef": "Maximize2 button on widget" },
+    { "number": 10, "name": "Filters (Analytics/Offboarding/Payroll)", "selectorOrRef": "date, branch, department selects" },
+    { "number": 11, "name": "Eye icon (Offboarding table)", "selectorOrRef": "Eye button per row" },
+    { "number": 12, "name": "Add Custom Chart Widget (Assessment)", "selectorOrRef": "Plus card Assessment" },
+    { "number": 13, "name": "Expanded chart modal (Analytics)", "selectorOrRef": "modal after expand click" }
+  ]
+}

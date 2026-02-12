@@ -1,0 +1,1 @@
+{"slug":"form-template","route":"/settings/form-template","controls":[{"number":1,"name":"New Form","selectorOrRef":"Button"},{"number":2,"name":"Form table","selectorOrRef":"Form Name, Form Usage, Last Update"},{"number":3,"name":"Row actions","selectorOrRef":"Per row menu"}]}

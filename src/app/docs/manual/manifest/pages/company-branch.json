@@ -1,0 +1,1 @@
+{"slug":"company-branch","route":"/settings/company/company-branch","controls":[{"number":1,"name":"New Branch","selectorOrRef":"+ New Branch button"},{"number":2,"name":"Branch table","selectorOrRef":"table Company Name, Last Update, Is Primary"},{"number":3,"name":"Row menu","selectorOrRef":"row action button"}]}

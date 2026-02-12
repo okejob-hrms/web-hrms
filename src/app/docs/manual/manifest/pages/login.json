@@ -1,0 +1,12 @@
+{
+  "slug": "login",
+  "route": "/auth/login",
+  "controls": [
+    { "number": 1, "name": "Logo", "selectorOrRef": "logo image" },
+    { "number": 2, "name": "Email", "selectorOrRef": "email input" },
+    { "number": 3, "name": "Password", "selectorOrRef": "password input" },
+    { "number": 4, "name": "Show/hide password", "selectorOrRef": "password visibility toggle" },
+    { "number": 5, "name": "Reset Password", "selectorOrRef": "reset password link" },
+    { "number": 6, "name": "Sign in", "selectorOrRef": "submit button" }
+  ]
+}

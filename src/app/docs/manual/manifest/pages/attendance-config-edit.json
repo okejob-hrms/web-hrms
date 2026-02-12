@@ -1,0 +1,1 @@
+{"slug":"attendance-config-edit","route":"/settings/time-attendance/attendance-configuration/edit","controls":[{"number":1,"name":"Configuration form","selectorOrRef":"Fields for attendance rules"},{"number":2,"name":"Save or Submit","selectorOrRef":"Save button"},{"number":3,"name":"Cancel or Back","selectorOrRef":"Cancel or Back link"}]}

@@ -1,0 +1,1 @@
+{"slug":"salary-base","route":"/settings/salary-management/base-salary","controls":[{"number":1,"name":"Add Base Salary","selectorOrRef":"Button"},{"number":2,"name":"Base salary table","selectorOrRef":"Job Position, Job Level, Base Salary Amount, Effective Date, Last Update"},{"number":3,"name":"Row actions","selectorOrRef":"Open row actions"}]}
