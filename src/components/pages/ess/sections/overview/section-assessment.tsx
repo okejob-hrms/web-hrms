@@ -3,12 +3,12 @@
 import SelfAssessmentList from "@/components/pages/performance-self-assessment";
 import { getEmployeeSelfAssessments } from "@/services/employees/self-assessment";
 import * as React from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import DataTable from "@/components/tables/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { IEmployeeSelfAssessmentResponse } from "@/services/employees/self-assessment/types";
 import dayjs from "dayjs";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Eye } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
@@ -40,6 +40,15 @@ const getStatusBadgeVariant = (status: string | null | undefined) => {
 };
 
 export const SectionAssessment = () => {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+
+  const handleViewAssessment = (id: number, formId: number) => {
+    queryClient.invalidateQueries({ queryKey: ["form-detail", formId] });
+    queryClient.invalidateQueries({ queryKey: ["assessment-detail", id] });
+    router.push(`/ess/assessment/${id}?formId=${formId}`);
+  };
+
   const columns: ColumnDef<IEmployeeSelfAssessmentResponse>[] = [
     {
       accessorKey: "period",
@@ -83,13 +92,14 @@ export const SectionAssessment = () => {
       accessorKey: "menu",
       header: "",
       cell: ({ row }) => (
-        <Link
-          href={`/ess/assessment/${row.original.id}?formId=${row.original.form_id}`}
+        <div
+          onClick={() =>
+            handleViewAssessment(row.original.id, row.original.form_id)
+          }
+          className="p-1 hover:bg-gray-100 rounded-full transition-colors cursor-pointer flex items-center justify-center w-fit"
         >
-          <div className="p-1 hover:bg-gray-100 rounded-full transition-colors cursor-pointer flex items-center justify-center w-fit">
-            <Eye className="w-4 h-4 text-gray-500" />
-          </div>
-        </Link>
+          <Eye className="w-4 h-4 text-gray-500" />
+        </div>
       ),
     },
   ];

@@ -14,6 +14,7 @@ import {
   IMutateEmployeeSelfAssessmentRequest,
   IAssessmentSubmission,
 } from "@/services/employees/self-assessment/types";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface SurveyAssessmentFormProps {
   fields: IFieldResponse[];
@@ -153,6 +154,7 @@ export const SurveyAssessmentForm: React.FC<SurveyAssessmentFormProps> = ({
   isSubmitting = false,
   initialData,
 }) => {
+  const queryClient = useQueryClient();
   const defaultValues = React.useMemo(() => {
     if (!initialData?.data?.fields) {
       return {};
@@ -185,10 +187,10 @@ export const SurveyAssessmentForm: React.FC<SurveyAssessmentFormProps> = ({
   });
 
   React.useEffect(() => {
-    if (initialData) {
+    if (Object.keys(defaultValues).length > 0) {
       form.reset(defaultValues);
     }
-  }, [initialData, defaultValues, form]);
+  }, [defaultValues]);
 
   const handleFormSubmit = (status: number) => (data: any) => {
     if (onSubmit) {
@@ -219,6 +221,7 @@ export const SurveyAssessmentForm: React.FC<SurveyAssessmentFormProps> = ({
     } else {
       toast.success(status === 1 ? "Draft saved" : "Assessment submitted");
     }
+    queryClient.invalidateQueries({ queryKey: ["employee-self-assessment"] });
   };
 
   const sortedFields = React.useMemo(() => {

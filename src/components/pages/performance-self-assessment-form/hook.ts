@@ -341,6 +341,7 @@ export const usePerformanceSelfAssessmentForm = () => {
       } else {
         createAssessment(payload);
       }
+      queryClient.invalidateQueries({ queryKey: ["self-assessments"] });
     },
     [form, assessmentForms, createAssessment, updateAssessment, isEditMode],
   );
