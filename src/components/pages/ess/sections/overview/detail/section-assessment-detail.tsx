@@ -28,7 +28,7 @@ export const SectionAssessmentDetail: React.FC<
   });
 
   const { data: assessmentDetail, isLoading: isLoadingAssessment } = useQuery({
-    queryKey: ["assessment-detail", assessmentId],
+    queryKey: ["assessment-detail", Number(assessmentId)],
     queryFn: () => getEmployeeSelfAssessmentDetail(Number(assessmentId)),
     enabled: !!assessmentId,
   });
