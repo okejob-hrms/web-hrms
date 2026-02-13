@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
   turbopack: {
     resolveAlias: {
       'next-mdx-import-source-file': './src/mdx-components.tsx',
+      'private-next-root-dir': '.',
     },
   },
   images: {
