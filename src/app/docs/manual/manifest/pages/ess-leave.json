@@ -1,0 +1,12 @@
+{
+  "slug": "ess-leave",
+  "route": "/ess/leave",
+  "controls": [
+    { "number": 1, "name": "Waiting for approval", "selectorOrRef": "filter tab" },
+    { "number": 2, "name": "Approved", "selectorOrRef": "filter tab" },
+    { "number": 3, "name": "Rejected", "selectorOrRef": "filter tab" },
+    { "number": 4, "name": "Pick a date", "selectorOrRef": "date picker" },
+    { "number": 5, "name": "New Leave Request", "selectorOrRef": "new leave request button" },
+    { "number": 6, "name": "Leave Request table", "selectorOrRef": "table (Duration, Reason, Notes, Status, Last Update)" }
+  ]
+}

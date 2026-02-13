@@ -32,7 +32,9 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
 
     // Belum login
     if (!token) {
-      if (!pathname.startsWith('/auth')) {
+      const isPublicRoute =
+        pathname.startsWith('/auth') || pathname.startsWith('/docs');
+      if (!isPublicRoute) {
         router.replace('/auth/login');
       }
       return;
@@ -42,6 +44,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     if (
       isEmployeeOnly &&
       !pathname.startsWith('/auth') &&
+      !pathname.startsWith('/docs') &&
       !pathname.startsWith('/ess')
     ) {
       router.replace('/ess');

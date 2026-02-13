@@ -1,0 +1,14 @@
+{
+  "slug": "ess",
+  "route": "/ess",
+  "controls": [
+    { "number": 1, "name": "Quick Actions", "selectorOrRef": "quick actions section" },
+    { "number": 2, "name": "Leave Request", "selectorOrRef": "leave request button" },
+    { "number": 3, "name": "Overtime Request", "selectorOrRef": "overtime request button" },
+    { "number": 4, "name": "My OKR", "selectorOrRef": "my okr button" },
+    { "number": 5, "name": "Self Assessment", "selectorOrRef": "self assessment button" },
+    { "number": 6, "name": "Organization Structure", "selectorOrRef": "organization structure button" },
+    { "number": 7, "name": "Attendance Trend", "selectorOrRef": "attendance trend card" },
+    { "number": 8, "name": "Waiting For Approval", "selectorOrRef": "waiting for approval card" }
+  ]
+}

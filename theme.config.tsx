@@ -2,11 +2,17 @@ import { DocsThemeConfig } from 'nextra-theme-docs';
 
 const config: DocsThemeConfig = {
   logo: <span>HRMS Docs</span>,
-  project: {
-    link: 'https://github.com/okejob-hrms/web-hrms',
-  },
   footer: {
     text: 'OkeJobHub Documentation',
+  },
+  i18n: [
+    { locale: 'en', name: 'English' },
+    { locale: 'id', name: 'Bahasa Indonesia' },
+  ],
+  nextThemes: {
+    attribute: 'class',
+    defaultTheme: 'system',
+    enableSystem: true,
   },
 };
 

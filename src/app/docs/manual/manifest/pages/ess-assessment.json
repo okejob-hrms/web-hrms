@@ -1,0 +1,8 @@
+{
+  "slug": "ess-assessment",
+  "route": "/ess/assessment",
+  "controls": [
+    { "number": 1, "name": "Assessment table", "selectorOrRef": "table (Period, End Date, Status)" },
+    { "number": 2, "name": "View details", "selectorOrRef": "eye icon per row" }
+  ]
+}

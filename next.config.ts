@@ -4,10 +4,12 @@ import type { NextConfig } from 'next'
 const withNextra = nextra({})
 
 const nextConfig: NextConfig = {
+  devIndicators: false,
   pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
   turbopack: {
     resolveAlias: {
       'next-mdx-import-source-file': './src/mdx-components.tsx',
+      'private-next-root-dir': '.',
     },
   },
   images: {

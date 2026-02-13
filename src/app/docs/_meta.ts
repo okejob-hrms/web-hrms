@@ -1,4 +1,6 @@
 export default {
   "index": "Introduction",
-  "getting-started": "Getting Started"
+  "manual": "User Manual",
+  "workflows": "Workflows",
+  "faq": "FAQ"
 }

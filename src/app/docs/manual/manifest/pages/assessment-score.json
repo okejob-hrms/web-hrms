@@ -1,0 +1,1 @@
+{"slug":"assessment-score","route":"/settings/assessment-score","controls":[{"number":1,"name":"Add Score","selectorOrRef":"Button"},{"number":2,"name":"Score table","selectorOrRef":"Score Label, Score Range"},{"number":3,"name":"Row actions","selectorOrRef":"Open row actions"},{"number":4,"name":"Pagination","selectorOrRef":"Previous, Next"}]}
