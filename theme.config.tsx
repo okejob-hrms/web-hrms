@@ -1,6 +1,4 @@
-import { DocsThemeConfig } from 'nextra-theme-docs';
-
-const config: DocsThemeConfig = {
+const config = {
   logo: <span>HRMS Docs</span>,
   footer: {
     text: 'OkeJobHub Documentation',

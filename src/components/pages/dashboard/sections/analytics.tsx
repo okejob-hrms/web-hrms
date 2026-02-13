@@ -342,7 +342,7 @@ export const Analytics = () => {
           width={40}
         />
 
-        <Tooltip formatter={(value) => value.toLocaleString('id-ID')} />
+        <Tooltip formatter={(value) => value?.toLocaleString('id-ID')} />
 
         {/* Order follows stacking from bottom to top */}
         <Bar dataKey="value" stackId="a" name="" fill="#18618B" barSize={40} />

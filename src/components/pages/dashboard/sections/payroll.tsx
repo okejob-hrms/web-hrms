@@ -156,7 +156,7 @@ export const Payroll = () => {
               />
 
               <Tooltip
-                formatter={(value) => 'Rp ' + value.toLocaleString('id-ID')}
+                formatter={(value) => 'Rp ' + value?.toLocaleString('id-ID')}
               />
 
               <Legend />

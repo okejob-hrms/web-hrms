@@ -618,8 +618,8 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
                           ))}
                         </Pie>
                         <Tooltip
-                          formatter={(value: number, name: string) => [
-                            currency(value),
+                          formatter={(value?: number, name?: string) => [
+                            currency(value || 0),
                             name,
                           ]}
                         />

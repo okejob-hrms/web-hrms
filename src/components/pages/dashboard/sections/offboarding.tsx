@@ -286,7 +286,7 @@ export const Offboarding = () => {
           width={30}
         />
 
-        <Tooltip formatter={(v) => v.toLocaleString('id-ID')} />
+        <Tooltip formatter={(v) => v?.toLocaleString('id-ID')} />
         <Legend height={100} />
 
         {Object.entries(DEPT_MAP).map(([label, key]) => (
@@ -322,7 +322,7 @@ export const Offboarding = () => {
           width={30}
         />
 
-        <Tooltip formatter={(v) => v.toLocaleString('id-ID')} />
+        <Tooltip formatter={(v) => v?.toLocaleString('id-ID')} />
         <Legend height={100} />
 
         {Object.entries(JOB_LEVEL_MAP).map(([label, key]) => (
@@ -359,7 +359,7 @@ export const Offboarding = () => {
           width={30}
         />
 
-        <Tooltip formatter={(value) => value.toLocaleString('id-ID')} />
+        <Tooltip formatter={(value) => value?.toLocaleString('id-ID')} />
 
         <Legend height={100} />
         {Object.entries(BRANCH_MAP).map(([label, key]) => (
