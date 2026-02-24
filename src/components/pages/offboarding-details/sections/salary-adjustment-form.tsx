@@ -18,7 +18,7 @@ import {
   MutateFinalSalaryRequestSchema,
 } from "@/services/employees/offboardings/final-salary/types";
 import { toast } from "sonner";
-import { postFinalSalary } from "@/services/employees/offboardings/final-salary";
+import { getShowFinalSalary, postFinalSalary } from "@/services/employees/offboardings/final-salary";
 import { useRouter } from "next/navigation";
 import { ApiErrorResponse } from "@/lib/types";
 
@@ -43,6 +43,28 @@ export const SalaryAdjustmentForm = React.memo(function SalaryAdjustmentForm({
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
+
+  const { data: salaryData } = useQuery({
+    queryKey: ["final-salary", offboarding_id],
+    queryFn: () => getShowFinalSalary(offboarding_id),
+    enabled: !!offboarding_id,
+  });
+
+  React.useEffect(() => {
+    if (salaryData?.data) {
+      form.reset({
+        ...defaultFinalSalaryAdjustmentForm,
+        base_salary: Number(salaryData.data.base_salary ?? 0),
+        salary_nett: Number(salaryData.data.salary_nett ?? 0),
+        overtime_amount: salaryData.data.overtime_amount ? Number(salaryData.data.overtime_amount) : null,
+        bonus_amount: salaryData.data.bonus_amount ? Number(salaryData.data.bonus_amount) : null,
+        reimbursement_amount: salaryData.data.reimbursement_amount ? Number(salaryData.data.reimbursement_amount) : null,
+        deduction_amount: salaryData.data.deduction_amount ? Number(salaryData.data.deduction_amount) : null,
+        notes: salaryData.data.notes ?? null,
+      } as any);
+    }
+  }, [salaryData?.data, form]);
+
 
   const allowanceTypesOptions = React.useMemo(() => {
     if (allowanceTypes?.data) {

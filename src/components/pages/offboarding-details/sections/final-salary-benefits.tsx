@@ -36,7 +36,6 @@ export const FinalSalaryBenefits = React.memo(function FinalSalaryBenefits({
     enabled: !!offboarding_id,
   });
 
-  console.log("data salary", salary?.data);
 
   return (
     <div className="space-y-4 w-full">

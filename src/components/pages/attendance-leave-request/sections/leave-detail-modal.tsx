@@ -226,13 +226,17 @@ export default function LeaveDetailModal({
               </div>
               <div className="col-span-2">
                 <div className="text-sm text-gray-500">Attachments</div>
-                <Link
-                  href={`${process.env.NEXT_PUBLIC_FILE_URL}/${data.attachment}`}
-                  className="underline text-primary text-base"
-                  target="_blank"
-                >
-                  {data?.attachment || '-'}
-                </Link>
+                {data?.attachment ? (
+                  <Link
+                    href={`${process.env.NEXT_PUBLIC_FILE_URL}/${data.attachment}`}
+                    className="underline text-primary text-base"
+                    target="_blank"
+                  >
+                    {data.attachment}
+                  </Link>
+                ) : (
+                  <span>-</span>
+                )}
               </div>
               <div className="col-span-2">
                 <div className="text-sm text-gray-500">Approvers</div>
