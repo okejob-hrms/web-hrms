@@ -113,7 +113,6 @@ const quillFormats = [
   "underline",
   "strike",
   "list",
-  "bullet",
   "indent",
   "link",
 ];
