@@ -51,7 +51,7 @@ export default function OvertimeEditModal({
         <AlertDialogContent className="max-w-md mx-auto bg-white rounded-lg shadow-lg p-6">
           <AlertDialogHeader className="text-center items-center justify-center">
             <AlertDialogTitle className="text-lg text-center font-semibold text-black mb-2">
-              Edit Overtime Request
+              Edit Leave Request
             </AlertDialogTitle>
           </AlertDialogHeader>
           <div className="flex flex-col items-center justify-center">

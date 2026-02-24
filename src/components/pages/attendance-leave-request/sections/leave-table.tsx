@@ -222,7 +222,7 @@ export default function LeaveTable({
                             className="flex gap-2 w-full text-left"
                           >
                             <Edit3 className="w-4 h-4" />
-                            Edit Overtime Request
+                            Edit Leave Request
                           </button>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
