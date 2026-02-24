@@ -187,7 +187,7 @@ export default function SettingsScore() {
   return (
     <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6">
       <div className="flex flex-col sm:flex-row sm:gap-4 justify-between">
-        <h2 className="font-semibold text-xl">Score Treshold</h2>
+        <h2 className="font-semibold text-xl">Score Threshold</h2>
         <Button
           className="flex flex-row items-center gap-2"
           onClick={() => {
@@ -214,7 +214,7 @@ export default function SettingsScore() {
         <DialogContent className="max-w-md bg-white">
           <DialogHeader>
             <DialogTitle>
-              {editing ? 'Edit Score Treshold' : 'Set Up Score Treshold'}
+              {editing ? 'Edit Score Threshold' : 'Set Up Score Threshold'}
             </DialogTitle>
           </DialogHeader>
 

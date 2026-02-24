@@ -113,7 +113,7 @@ export const menus: Record<string, MenuItem[]> = {
           value: "settings/competencies",
         },
         {
-          name: "Assessment Score Treshold",
+          name: "Assessment Score Threshold",
           value: "settings/assessment-score",
         },
       ],

@@ -204,7 +204,7 @@ export default function SettingsHoliday() {
         <DialogContent className="max-w-md bg-white">
           <DialogHeader>
             <DialogTitle>
-              {editing ? 'Edit holiday Treshold' : 'Set Up holiday Treshold'}
+              {editing ? 'Edit holiday Threshold' : 'Set Up holiday Threshold'}
             </DialogTitle>
           </DialogHeader>
 
