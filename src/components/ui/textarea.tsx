@@ -54,6 +54,7 @@ function TextAreaForm({
           <FormControl>
             <Textarea
               {...field}
+              value={field.value ?? ""}
               placeholder={placeholder}
               className={cn("min-h-32", inputClassName)}
               disabled={props.disabled}

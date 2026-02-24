@@ -38,11 +38,11 @@ export const OffboardingTab = React.memo(function OffboardingTab({
     <Tabs
       orientation="vertical"
       defaultValue={tabs[0].value}
-      className="w-full flex flex-row items-start gap-4 justify-center"
+      className="w-full flex flex-col md:flex-row items-start gap-4 justify-center"
     >
-      <div className="flex flex-col gap-4 border border-grayscale-10 rounded-b-sm rounded-md p-4 min-w-fit">
+      <div className="flex flex-col gap-4 border border-grayscale-10 rounded-b-sm rounded-md p-4 w-full md:min-w-fit md:w-auto">
         <p className="font-semibold text-gray-900 text-xs">Completion</p>
-        <TabsList className="grid grid-cols-1 p-0 bg-transparent h-fit">
+        <TabsList className="grid grid-cols-1 p-0 bg-transparent h-fit w-full">
           {tabs.map((tab) => (
             <TabsTrigger
               key={tab.value}
@@ -54,12 +54,12 @@ export const OffboardingTab = React.memo(function OffboardingTab({
           ))}
         </TabsList>
       </div>
-      <div className="flex items-center justify-center w-full">
+      <div className="flex items-start md:items-center justify-center w-full overflow-x-auto">
         {tabs.map((tab) => (
           <TabsContent
             key={tab.value}
             value={tab.value}
-            className="flex items-center justify-center h-full"
+            className="flex items-start md:items-center justify-center h-full w-full"
           >
             {tab.children}
           </TabsContent>

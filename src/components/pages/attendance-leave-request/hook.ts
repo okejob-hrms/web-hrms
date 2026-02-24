@@ -64,7 +64,7 @@ export function useLeaveRequest(isEmployee?: boolean) {
     queryKey: ["leaves", pagination, filters],
     queryFn: () => getLeaves(pagination, filters),
     placeholderData: keepPreviousData,
-    enabled: !isEmployee 
+    enabled: !isEmployee
   });
 
   //employee Section
@@ -75,7 +75,7 @@ export function useLeaveRequest(isEmployee?: boolean) {
     queryKey: ["leavesEmployee", pagination, filters],
     queryFn: () => getLeavesEmployee(pagination, filters),
     placeholderData: keepPreviousData,
-    enabled: !!isEmployee 
+    enabled: !!isEmployee
   });
 
   const leavesEmployeePagination: PaginatedResponse<ILeaveEmployeeResponse> = {
@@ -194,18 +194,22 @@ export function useLeaveRequest(isEmployee?: boolean) {
   );
 
   const handleApprove = React.useCallback(() => {
+    const savedUser = localStorage.getItem('user');
+    const parsedUser = savedUser ? JSON.parse(savedUser) : null;
     if (!selectedId) return;
     updateStatus({
       id: Number(selectedId),
-      payload: { action: "approve" },
+      payload: { action: "approve", approver_id: parsedUser?.id },
     });
   }, [selectedId, updateStatus]);
 
   const handleReject = React.useCallback(() => {
+    const savedUser = localStorage.getItem('user');
+    const parsedUser = savedUser ? JSON.parse(savedUser) : null;
     if (!selectedId) return;
     updateStatus({
       id: Number(selectedId),
-      payload: { action: "reject" },
+      payload: { action: "reject", approver_id: parsedUser?.id },
     });
   }, [selectedId, updateStatus]);
 

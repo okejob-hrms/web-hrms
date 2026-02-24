@@ -214,30 +214,30 @@ export const ExitInterviewForm = React.memo(function ExitInterviewForm({
         throw new Error("Details not available");
       }
       const answerPayload: AnswerPayload = {
-        form_id: details.form_id,
-        submitted_by: details.user_id,
+        form_id: details.data.form_id,
+        submitted_by: details.data.user_id,
       };
       return getAnswerSubmissionOffboarding(offboarding_id, answerPayload);
     },
-    enabled: !!details?.form_id && !!details?.user_id,
+    enabled: !!details?.data.form_id && !!details?.data.user_id,
   });
 
   const { data: forms, isLoading: isLoadingForms } = useQuery({
-    queryKey: ["form", details?.form_id],
+    queryKey: ["form", details?.data.form_id],
     queryFn: () => {
-      if (!details?.form_id) {
+      if (!details?.data.form_id) {
         throw new Error("Form ID not available");
       }
-      return getFormById(details.form_id);
+      return getFormById(details.data.form_id);
     },
-    enabled: !!details?.form_id,
+    enabled: !!details?.data.form_id,
   });
 
   const onSubmit = async (data: unknown) => {
     console.log("Form data:", data);
   };
 
-  const shouldShowAlert = !answer && details?.user?.name;
+  const shouldShowAlert = !answer && details?.data.user.name;
   const formGroups = forms?.data?.groups || [];
 
   if (isLoadingDetails || isLoadingForms || isLoadingAnswer) {
@@ -251,7 +251,7 @@ export const ExitInterviewForm = React.memo(function ExitInterviewForm({
   return (
     <div className="w-full flex flex-col gap-4">
       {shouldShowAlert && (
-        <AlertProcess name={details.user.name} offboardingId={offboarding_id} />
+        <AlertProcess name={details.data.user.name} offboardingId={offboarding_id} />
       )}
 
       <Form {...form}>

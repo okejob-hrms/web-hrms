@@ -199,6 +199,7 @@ export const KeyResultTab = () => {
                     type="number"
                     defaultValue={data.target}
                     className="h-8 text-sm"
+                    disabled
                   />
                 </div>
               </div>

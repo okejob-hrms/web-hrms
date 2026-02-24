@@ -25,15 +25,15 @@ export default function OffboardingSalaryAdjustmentPage({
     queryFn: () => getDetailOffboarding(numericId),
     enabled: !!numericId,
   });
-
   const {
     data: employeeDetails,
     isLoading: isLoadingEmployeeDetails,
     isError: isErrorEmployeeDetails,
   } = useQuery({
-    queryKey: ["employee-detail", offboardingDetails!.user_id],
-    queryFn: () => getEmployeeDetailByUserId(offboardingDetails!.user_id),
-    enabled: !!offboardingDetails!.user_id,
+    queryKey: ["employee-detail", offboardingDetails?.data?.user_id],
+    queryFn: () =>
+      getEmployeeDetailByUserId(offboardingDetails?.data?.user_id as number),
+    enabled: !!offboardingDetails?.data?.user_id,
   });
 
   if (isLoadingOffboardingDetails || isLoadingEmployeeDetails) {
@@ -52,7 +52,7 @@ export default function OffboardingSalaryAdjustmentPage({
   return (
     <div className="font-sans min-h-screen space-y-4">
       <EmployeeDetailsSection
-        offboardingDetails={offboardingDetails}
+        offboardingDetails={offboardingDetails.data}
         employeeDetails={employeeDetails.data}
       />
       <SalaryAdjustmentForm offboarding_id={id} />

@@ -43,6 +43,7 @@ const SelectForm: React.FC<OptionFormProps> = ({
   className,
   modalChildren,
   type,
+  required,
 }) => {
   const { control } = useFormContext();
   return (
@@ -59,6 +60,7 @@ const SelectForm: React.FC<OptionFormProps> = ({
             {label && (
               <FormLabel className={cn("text-sm font-normal", labelClassName)}>
                 {label}
+                {required && <span className="text-error">*</span>}
                 {isOptional && (
                   <span className="text-text-disabled"> (optional)</span>
                 )}
@@ -306,6 +308,7 @@ const SelectEmployeeForm: React.FC<OptionFormProps> = ({
   type,
   searchValue: externalSearchValue,
   onSearchChange: externalOnSearchChange,
+  required,
 }) => {
   const { control } = useFormContext();
   const [internalSearchValue, setInternalSearchValue] = React.useState("");
@@ -346,6 +349,7 @@ const SelectEmployeeForm: React.FC<OptionFormProps> = ({
             {label && (
               <FormLabel className={cn("text-sm font-normal", labelClassName)}>
                 {label}
+                {required && <span className="text-error">*</span>}
                 {isOptional && (
                   <span className="text-text-disabled"> (optional)</span>
                 )}

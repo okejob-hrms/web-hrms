@@ -46,6 +46,16 @@ export const useLeaveRequestForm = (isEmployee?: boolean) => {
         }),
       ),
     // .min(1, "Approver is required"),
+  }).superRefine((data, ctx) => {
+    if (data.start_date && data.end_date) {
+      if (new Date(data.end_date) < new Date(data.start_date)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "End date must be on or after start date",
+          path: ["end_date"],
+        });
+      }
+    }
   });
   
   type ICreateLeaveRequest = z.infer<typeof CreateLeaveRequestSchema>;

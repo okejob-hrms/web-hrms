@@ -175,7 +175,7 @@ export default function LeaveTable({
                   <button
                     onClick={() => {
                       onSelectLeave(leave);
-                      onOpenModal('detail');
+                      setTimeout(() => onOpenModal('detail'), 0);
                     }}
                     className="flex gap-2 w-full text-left"
                   >
@@ -192,7 +192,7 @@ export default function LeaveTable({
                           <button
                             onClick={() => {
                               onSelectLeave(leave);
-                              onOpenModal('approve');
+                              setTimeout(() => onOpenModal('approve'), 0);
                             }}
                             className="flex gap-2 w-full text-left"
                           >
@@ -204,7 +204,7 @@ export default function LeaveTable({
                           <button
                             onClick={() => {
                               onSelectLeave(leave);
-                              onOpenModal('reject');
+                              setTimeout(() => onOpenModal('reject'), 0);
                             }}
                             className="flex gap-2 w-full text-left"
                           >
@@ -222,14 +222,14 @@ export default function LeaveTable({
                             className="flex gap-2 w-full text-left"
                           >
                             <Edit3 className="w-4 h-4" />
-                            Edit Overtime Request
+                            Edit Leave Request
                           </button>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
                           <button
                             onClick={() => {
                               onSelectLeave(leave);
-                              onOpenModal('delete');
+                              setTimeout(() => onOpenModal('delete'), 0);
                             }}
                             className="flex gap-2 w-full text-left text-red-600"
                           >
