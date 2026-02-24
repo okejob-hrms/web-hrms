@@ -67,7 +67,7 @@ export const InterviewScheduleForm = React.memo(function InterviewScheduleForm({
 
   return (
     <div className="grid items-start w-full gap-4">
-      <Alert className="flex items-center border border-primary-border bg-primary-background">
+      <Alert className="flex flex-col md:flex-row items-center border border-primary-border bg-primary-background">
         <div>
           <AlertTitle className="text-primary font-semibold text-lg">
             Set Up Exit Interview Schedule

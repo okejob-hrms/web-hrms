@@ -75,8 +75,8 @@ export const createInitiateOffboarding = (
 
 export const getDetailOffboarding = (
   offboarding_id: number,
-): Promise<IOffboardingDetailResponse> => {
-  const response = api.get<IOffboardingDetailResponse>(
+): Promise<ApiResponse<IOffboardingDetailResponse>> => {
+  const response = api.get<ApiResponse<IOffboardingDetailResponse>>(
     `employee/offboardings/${offboarding_id}`,
   );
   return response.json();

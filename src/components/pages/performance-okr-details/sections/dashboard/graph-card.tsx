@@ -50,9 +50,9 @@ export function OKRKeyResultCard({ kr, cycleId }: Props) {
             <CardTitle className="text-[14px] font-bold text-[#2D3748] leading-tight">
               {kr.name}
             </CardTitle>
-            <p className="text-[10px] text-gray-400">
+            {/* <p className="text-[10px] text-gray-400">
               Last Update 12/12/2025 05:00 PM
-            </p>
+            </p> */}
           </div>
         </div>
 

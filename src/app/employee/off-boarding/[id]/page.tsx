@@ -30,11 +30,11 @@ export default function OffboardingSalaryAdjustmentPage({
     isLoading: isLoadingEmployeeDetails,
     isError: isErrorEmployeeDetails,
   } = useQuery({
-    queryKey: ["employee-detail", offboardingDetails?.user_id],
-    queryFn: () => getEmployeeDetailByUserId(offboardingDetails!.user_id),
-    enabled: !!offboardingDetails?.user_id,
+    queryKey: ["employee-detail", offboardingDetails?.data.user_id],
+    queryFn: () => getEmployeeDetailByUserId(offboardingDetails!.data.user_id),
+    enabled: !!offboardingDetails?.data.user_id,
   });
-
+  
   if (isLoadingOffboardingDetails) {
     return <AppSkeleton />;
   }
@@ -52,9 +52,9 @@ export default function OffboardingSalaryAdjustmentPage({
   }
 
   return (
-    <div className="font-sans min-h-screen space-y-4">
+    <div className="font-sans min-h-screen space-y-4 p-4 md:p-6">
       <EmployeeDetailsSection
-        offboardingDetails={offboardingDetails}
+        offboardingDetails={offboardingDetails.data}
         employeeDetails={employeeDetails.data}
       />
       <OffboardingTab offboarding_id={id} />

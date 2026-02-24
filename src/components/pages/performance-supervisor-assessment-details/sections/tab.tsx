@@ -34,7 +34,7 @@ export const SupervisorAssessmentTab = React.memo(
               <TabsTrigger
                 key={tab.value}
                 value={tab.value}
-                className="border-l-2 border-t-0 border-b-0 border-r-0 border-transparent justify-start rounded-none data-[state=active]:shadow-none data-[state=active]:border-primary py-1.5"
+                className="border-l-2 border-t-0 border-b-0 border-r-0 border-transparent justify-start rounded-none data-[state=active]:shadow-none data-[state=active]:border-primary py-1.5 text-ellipsis"
               >
                 {tab.name}
               </TabsTrigger>
