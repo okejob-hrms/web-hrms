@@ -45,6 +45,8 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
   const { data, isLoading } = useQuery({
     queryKey: ["employee-detail", employee_profile_id],
     queryFn: () => getEmployeeDetail(employee_profile_id),
+    refetchOnMount: "always",
+    staleTime: 0,
   });
   const employeeDetails = data?.data;
 
@@ -55,6 +57,7 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
       onSuccess: () => {
         toast.success("Edit employee successfully!");
         queryClient.invalidateQueries({ queryKey: ["employees"] });
+        queryClient.invalidateQueries({ queryKey: ["employee-detail", employee_profile_id] });
         router.push("/employee/employee-management");
       },
       onError: (error: any) => {
@@ -145,7 +148,7 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
   );
 
   React.useEffect(() => {
-    if (employeeDetails && !isDataLoaded) {
+    if (employeeDetails) {
       const socialMediaAccounts = employeeDetails.social_media_accounts || [];
       const validSocialMedia =
         socialMediaAccounts.length > 0
@@ -233,7 +236,7 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
         setIsDataLoaded(true);
       }, 0);
     }
-  }, [employeeDetails, isDataLoaded, form]);
+  }, [employeeDetails, form]);
 
   const onSubmit = React.useCallback(
     (values: z.infer<typeof employeeManagementFormScheme> | any) => {
@@ -293,11 +296,9 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
           country_code: values.country_code || "",
         };
 
-        const conditionalParams: Partial<IMutateEmployeeRequests> = {};
-
-        if (values.team_member) {
-          conditionalParams.team_id = Number(values.team_member);
-        }
+        const conditionalParams: Partial<IMutateEmployeeRequests> = {
+          team_id: values.team_member ? Number(values.team_member) : undefined,
+        };
 
         if (hasValidSocialMediaAccounts(validSocialMedia)) {
           conditionalParams.social_media_accounts = validSocialMedia;
