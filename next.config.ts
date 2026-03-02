@@ -4,6 +4,7 @@ import type { NextConfig } from 'next'
 const withNextra = nextra({})
 
 const nextConfig: NextConfig = {
+  output: 'standalone',
   devIndicators: false,
   pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
   turbopack: {
