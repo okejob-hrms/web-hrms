@@ -188,6 +188,7 @@ export interface IScheduleResponse {
     employee_id: number;
     employee_code: string;
     avatar_url: string | null;
+    photo_profile_url: string | null;
   }[];
   updated_at: string;
   created_at: string;
