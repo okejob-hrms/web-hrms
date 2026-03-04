@@ -1,0 +1,10 @@
+{
+  "slug": "ess-organization",
+  "route": "/ess/organization",
+  "controls": [
+    { "number": 1, "name": "Organization structure area", "selectorOrRef": "chart or tree display" },
+    { "number": 2, "name": "Zoom 100%", "selectorOrRef": "zoom label" },
+    { "number": 3, "name": "Zoom out", "selectorOrRef": "zoom out button" },
+    { "number": 4, "name": "Zoom in", "selectorOrRef": "zoom in button" }
+  ]
+}

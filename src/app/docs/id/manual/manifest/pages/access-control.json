@@ -1,0 +1,1 @@
+{"slug":"access-control","route":"/settings/access-control","controls":[{"number":1,"name":"New Role","selectorOrRef":"+ New Role button"},{"number":2,"name":"Role table","selectorOrRef":"table Role Name, Last Update"},{"number":3,"name":"Row menu","selectorOrRef":"row action button"}]}

@@ -1,0 +1,1 @@
+{"slug":"offboarding-salary-adjustment","route":"/employee/off-boarding/{id}/salary-adjustment","controls":[{"number":1,"name":"Breadcrumb / Back","selectorOrRef":"navigation to return"},{"number":2,"name":"Salary adjustment form","selectorOrRef":"form fields for salary adjustment"},{"number":3,"name":"Submit or Save","selectorOrRef":"submit button"}]}
