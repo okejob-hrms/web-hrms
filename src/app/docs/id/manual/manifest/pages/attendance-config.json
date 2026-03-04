@@ -1,0 +1,1 @@
+{"slug":"attendance-config","route":"/settings/time-attendance/attendance-configuration","controls":[{"number":1,"name":"Edit Attendance Configuration","selectorOrRef":"Edit button"},{"number":2,"name":"Configuration display","selectorOrRef":"Current attendance rules or form"}]}
