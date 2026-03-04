@@ -69,15 +69,10 @@ export default function SettingsAttendanceConfiguration() {
         const day = row.original.day;
         const allRows = table.getRowModel().rows;
         const sameDayRows = allRows.filter((r) => r.original.day === day);
-
         const firstRowId = sameDayRows[0].id;
-
+        // Return only content: DataTable wraps in TableCell + div; raw <td> would cause invalid nesting (div > td).
         if (row.id === firstRowId) {
-          return (
-            <td rowSpan={sameDayRows.length} className="px-4 py-2">
-              {day}
-            </td>
-          );
+          return day;
         }
         return null;
       },

@@ -1,0 +1,1 @@
+{"slug":"competencies","route":"/settings/competencies","controls":[{"number":1,"name":"New Performance Competency","selectorOrRef":"Button"},{"number":2,"name":"Competencies table","selectorOrRef":"Code, Competencies, Description"},{"number":3,"name":"Row actions","selectorOrRef":"Per row"},{"number":4,"name":"Pagination","selectorOrRef":"Previous, Next"}]}

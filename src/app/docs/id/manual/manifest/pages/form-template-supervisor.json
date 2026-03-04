@@ -1,0 +1,1 @@
+{"slug":"form-template-supervisor","route":"/settings/form-template/supervisor-assessment","controls":[{"number":1,"name":"Form Details","selectorOrRef":"Form Name, Form Usage"},{"number":2,"name":"Add Question","selectorOrRef":"Button"},{"number":3,"name":"Cancel","selectorOrRef":"Button"},{"number":4,"name":"Save","selectorOrRef":"Button"}]}

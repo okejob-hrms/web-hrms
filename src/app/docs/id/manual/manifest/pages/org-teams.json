@@ -1,0 +1,1 @@
+{"slug":"org-teams","route":"/employee/organization/teams","controls":[{"number":1,"name":"New Team","selectorOrRef":"+ New Team button"},{"number":2,"name":"Teams table","selectorOrRef":"table Team Name, Description, Last Update"},{"number":3,"name":"Row actions","selectorOrRef":"Open row actions per row"},{"number":4,"name":"Pagination","selectorOrRef":"pagination"}]}
