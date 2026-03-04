@@ -6,8 +6,6 @@ import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { stringAvatar } from "@/lib/utils";
-import { Skeleton } from "@/components/ui/skeleton";
-import { getEmployeeDetailByUserId } from "@/services/employees";
 import { AssessmentScheduleForm } from "./assessment-schedule-form";
 import { getScheduleDetail } from "@/services/performances/supervisor-assessment";
 
@@ -32,23 +30,6 @@ const EmployeeProfile = React.memo(function EmployeeProfile({
 }: {
   data: IParticipant;
 }) {
-  const {
-    data: employeeDetail,
-    isLoading,
-    isError,
-  } = useQuery({
-    queryKey: ["employee-detail", data.employee_id],
-    queryFn: () => getEmployeeDetailByUserId(data.employee_id),
-  });
-
-  if (isLoading) {
-    return <Skeleton className="h-4 w-32" />;
-  }
-
-  // if (isError || !employeeDetail?.data?.user?.name) {
-  //   return <span className="text-gray-400">-</span>;
-  // }
-
   return (
     <div className="flex gap-1 items-center min-w-0">
       <Avatar className="h-5 w-5 flex-shrink-0">
@@ -65,12 +46,6 @@ const EmployeeProfile = React.memo(function EmployeeProfile({
         <span className="text-black truncate text-sm sm:text-base">
           {data.name}
         </span>
-        {employeeDetail && employeeDetail?.data && (
-          <span className="text-text-disabled text-xs sm:text-sm truncate">
-            ({employeeDetail?.data?.id}){" "}
-            {employeeDetail?.data?.employment?.job_position?.name}
-          </span>
-        )}
       </div>
     </div>
   );

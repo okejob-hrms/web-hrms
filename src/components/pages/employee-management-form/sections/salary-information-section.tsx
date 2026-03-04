@@ -59,8 +59,9 @@ export const SalaryInformationSection = React.memo(
     React.useEffect(() => {
       if (baseSalary?.data?.[0]?.amount) {
         setValue("base_salary", baseSalary.data[0].amount);
+      } else {
+        setValue("base_salary", 0);
       }
-      setValue("base_salary", 0);
     }, [baseSalary?.data, setValue]);
 
     const allowanceTypesOptions = React.useMemo(() => {

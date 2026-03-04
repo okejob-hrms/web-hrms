@@ -1,0 +1,9 @@
+{
+  "slug": "mail-confirm",
+  "route": "/auth/mail-confirm",
+  "controls": [
+    { "number": 1, "name": "Back", "selectorOrRef": "back link" },
+    { "number": 2, "name": "Resend Email", "selectorOrRef": "resend email link" },
+    { "number": 3, "name": "Continue", "selectorOrRef": "continue button" }
+  ]
+}

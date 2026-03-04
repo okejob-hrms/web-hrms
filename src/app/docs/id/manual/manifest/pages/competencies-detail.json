@@ -1,0 +1,1 @@
+{"slug":"competencies-detail","route":"/settings/competencies/{id}","controls":[{"number":1,"name":"Edit","selectorOrRef":"Button/link"},{"number":2,"name":"Competency Code, Name, Description","selectorOrRef":"Display"},{"number":3,"name":"Add Level","selectorOrRef":"Button"},{"number":4,"name":"Level table","selectorOrRef":"Dimensions, Level, Level Name, Description"}]}

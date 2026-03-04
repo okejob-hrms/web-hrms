@@ -1,0 +1,1 @@
+{"slug":"salary-deduction","route":"/settings/salary-management/deduction","controls":[{"number":1,"name":"Set Up Salary Deduction","selectorOrRef":"Button"},{"number":2,"name":"Deduction table","selectorOrRef":"Deduction Name, Type, Employer/Employee Contribution, Effective Date/To, Last Update"},{"number":3,"name":"Row actions","selectorOrRef":"Open row actions"}]}
