@@ -77,9 +77,9 @@ export interface IMutateEmployeeRequests {
   bpjs?: string | null;
   citizen_id_address: string;
   residential_address: string;
-  hobby: string;
-  achievement: string;
-  personal_description: string;
+  hobby?: string | null;
+  achievement?: string | null;
+  personal_description?: string | null;
   photo_profile?: string | null;
   social_media_accounts?: {
     type: string;
