@@ -271,7 +271,7 @@ export const PersonalInformationSection = React.memo(
 
           <TextAreaForm name="citizen_id_address" label="Citizen ID Address" />
           <TextAreaForm name="residential_address" label="Residental Address" />
-          <InputForm name="hobby" label="Hobby" required />
+          <InputForm name="hobby" label="Hobby" />
 
           <TextAreaForm
             name="achievement"
