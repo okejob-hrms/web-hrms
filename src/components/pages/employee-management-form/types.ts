@@ -22,12 +22,13 @@ export const employeeManagementFormScheme = z.object({
   bpjs: z.string().optional().nullable(),
   citizen_id_address: z.string().min(1, "required"),
   residential_address: z.string().min(1, "required"),
-  hobby: z.string().min(1, "required"),
+  hobby: z.string().optional().nullable(),
   achievement: z
     .string()
-    .min(1, "required")
-    .max(255, "The achievement field must not be greater than 255 characters."),
-  personal_description: z.string().min(1, "required"),
+    .max(255, "The achievement field must not be greater than 255 characters.")
+    .optional()
+    .nullable(),
+  personal_description: z.string().optional().nullable(),
 
   social_media_accounts: z
     .array(
@@ -70,7 +71,12 @@ export const employeeManagementFormScheme = z.object({
       }),
     )
     .superRefine((attachments, ctx) => {
-      const optionalTypes = ["other"];
+      const optionalTypes = [
+        "other",
+        "npwp",
+        "health_insurance_card",
+        "driver_license",
+      ];
       attachments.forEach((att, index) => {
         if (!optionalTypes.includes(att.type) && att.path.trim() === "") {
           ctx.addIssue({
