@@ -26,6 +26,7 @@ import { Filters } from "./types";
 import { useDebounce } from "@/hooks/use-debounce";
 import { Skeleton } from "@/components/ui/skeleton";
 import Image from "next/image";
+import { EmployeeImportDialog } from "./sections/import/import-dialog";
 
 export const columns: ColumnDef<IEmployeeResponse>[] = [
   {
@@ -156,6 +157,7 @@ export default function EmployeeManagementList() {
     job_position_ids: [],
     search: "",
   });
+  const [isImportOpen, setIsImportOpen] = React.useState(false);
 
   const debouncedFilters = useDebounce(filters, 300);
   const queryParams = React.useMemo(
@@ -212,12 +214,31 @@ export default function EmployeeManagementList() {
               {employees?.data.total !== 1 ? "s" : ""}
             </Badge>
           </div>
-          <Button
-            onClick={() => router.push("/employee/employee-management/add")}
-          >
-            + New Employee
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setIsImportOpen(true)}
+              className="flex gap-2"
+            >
+              <Image
+                src="/icons/attachmentBlue.svg"
+                height={16}
+                width={16}
+                alt="icon-import"
+              />
+              Import
+            </Button>
+            <Button
+              onClick={() => router.push("/employee/employee-management/add")}
+            >
+              + New Employee
+            </Button>
+          </div>
         </div>
+        <EmployeeImportDialog
+          open={isImportOpen}
+          onOpenChange={setIsImportOpen}
+        />
         {isLoading ? (
           <div className="flex flex-col gap-4 items-center w-full">
             <Skeleton className="h-12 w-full" />
