@@ -1,14 +1,21 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { api, apiUpload } from "@/lib/api";
 
-export interface IImportReportError {
-  row?: number;
-  message?: string;
+export interface IImportRecordData {
+  [key: string]: any;
 }
 
-export interface IPaginatedErrors {
+export interface IImportRecord {
+  row: number;
+  status: string;
+  data: IImportRecordData;
+  error: string | null;
+  field: string | null;
+}
+
+export interface IPaginatedRecords {
   current_page: number;
-  data: IImportReportError[];
+  data: IImportRecord[];
   first_page_url: string;
   from: number;
   last_page: number;
@@ -35,7 +42,12 @@ export interface IImportReportResponse {
     total_rows: number;
     success_rows: number;
     failed_rows: number;
-    errors: IPaginatedErrors;
+    records: IPaginatedRecords;
+    errors?: any[];
+    started_at?: string;
+    finished_at?: string;
+    duration_ms?: number;
+    errors_summary?: Record<string, any>;
   };
 }
 

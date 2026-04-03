@@ -10,7 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { IPaginatedErrors } from "@/services/employees/import-service";
+import { IPaginatedRecords } from "@/services/employees/import-service";
 import {
   Pagination,
   PaginationContent,
@@ -21,22 +21,39 @@ import {
 } from "@/components/ui/pagination";
 
 interface ImportPreviewTableProps {
-  paginatedErrors: IPaginatedErrors;
+  paginatedRecords: IPaginatedRecords;
   onPageChange: (page: number) => void;
 }
 
-export function ImportPreviewTable({ paginatedErrors, onPageChange }: ImportPreviewTableProps) {
-  const errors = paginatedErrors?.data || [];
-  const current_page = paginatedErrors?.current_page || 1;
-  const last_page = paginatedErrors?.last_page || 1;
+const isInvalidCell = (key: string, errorField: string | null) => {
+  if (!errorField || errorField.trim() === "") return false;
+  if (key === errorField) return true;
+  return false;
+};
 
-  if (errors.length === 0) {
+const formatColumnName = (key: string) => {
+  return key
+    .split('_')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+};
+
+export function ImportPreviewTable({ paginatedRecords, onPageChange }: ImportPreviewTableProps) {
+  const records = paginatedRecords?.data || [];
+  const current_page = paginatedRecords?.current_page || 1;
+  const last_page = paginatedRecords?.last_page || 1;
+
+  if (records.length === 0) {
     return (
       <div className="p-8 text-center text-sm text-grayscale-90">
-        No errors found in the import file.
+        No records found.
       </div>
     );
   }
+
+  const dataColumns = records.length > 0 && records[0].data 
+    ? Object.keys(records[0].data) 
+    : [];
 
   const handlePrevious = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -50,22 +67,56 @@ export function ImportPreviewTable({ paginatedErrors, onPageChange }: ImportPrev
 
   return (
     <div className="space-y-4">
-      <Table>
-        <TableHeader className="bg-grayscale-10">
-          <TableRow>
-            <TableHead className="font-semibold text-grayscale-90 whitespace-nowrap w-[100px]">Row</TableHead>
-            <TableHead className="font-semibold text-grayscale-90 whitespace-nowrap">Error Message</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {errors.map((error, index) => (
-            <TableRow key={index}>
-              <TableCell className="font-medium text-grayscale-90">{error.row ?? "-"}</TableCell>
-              <TableCell className="text-error font-medium">{error.message || "Unknown error"}</TableCell>
+      <div className="overflow-x-auto w-full">
+        <Table>
+          <TableHeader className="bg-grayscale-10">
+            <TableRow>
+              <TableHead className="font-semibold text-grayscale-90 whitespace-nowrap min-w-[80px]">Row</TableHead>
+              <TableHead className="font-semibold text-grayscale-90 whitespace-nowrap min-w-[100px]">Status</TableHead>
+              {dataColumns.map(col => (
+                <TableHead key={col} className="font-semibold text-grayscale-90 whitespace-nowrap">
+                  {formatColumnName(col)}
+                </TableHead>
+              ))}
+              <TableHead className="font-semibold text-grayscale-90 whitespace-nowrap min-w-[250px]">Error Message</TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {records.map((record, index) => {
+              const isFailed = record.status === 'failed' || !!record.error;
+              
+              return (
+                <TableRow key={index} className={isFailed ? "bg-red-50/20" : ""}>
+                  <TableCell className="font-medium text-grayscale-90">{record.row ?? "-"}</TableCell>
+                  <TableCell>
+                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${isFailed ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
+                       {isFailed ? 'Failed' : 'Success'}
+                     </span>
+                  </TableCell>
+                  
+                  {dataColumns.map(col => {
+                    const value = record.data ? record.data[col] : null;
+                    const invalid = isFailed && isInvalidCell(col, record.field);
+                    
+                    return (
+                      <TableCell 
+                        key={col} 
+                        className={`whitespace-nowrap ${invalid ? 'bg-red-100 text-red-700 border border-red-200 font-medium rounded-md px-3 py-1 m-1 inline-block' : ''}`}
+                      >
+                        {value !== null && value !== undefined ? String(value) : "-"}
+                      </TableCell>
+                    );
+                  })}
+                  
+                  <TableCell className="text-error font-medium whitespace-nowrap">
+                    {record.error || "-"}
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </div>
       
       {last_page > 1 && (
         <Pagination className="justify-center py-4 border-t border-grayscale-20">
