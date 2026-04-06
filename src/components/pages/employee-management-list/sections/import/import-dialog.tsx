@@ -139,7 +139,7 @@ export function EmployeeImportDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={cn("sm:max-w-xl transition-all duration-300 bg-white", step === "result" && "sm:max-w-4xl")}>
+      <DialogContent className={cn("sm:max-w-xl transition-all duration-300 bg-white", step === "result" && "sm:max-w-[95vw]")}>
         <DialogHeader>
           <DialogTitle>Import Employee</DialogTitle>
         </DialogHeader>
@@ -229,11 +229,11 @@ export function EmployeeImportDialog({
                 </div>
               </div>
 
-              {report.errors && report.errors.data && report.errors.data.length > 0 && (
+              {report.records && report.records.data && report.records.data.length > 0 && (
                 <div className="space-y-3">
-                  <h3 className="text-sm font-semibold text-grayscale-90">Error Details</h3>
-                  <div className="border border-grayscale-20 rounded-md">
-                   <ImportPreviewTable paginatedErrors={report.errors} onPageChange={handlePageChange} />
+                  <h3 className="text-sm font-semibold text-grayscale-90">Import Details</h3>
+                  <div className="border border-grayscale-20 rounded-md overflow-x-auto">
+                   <ImportPreviewTable paginatedRecords={report.records} onPageChange={handlePageChange} />
                   </div>
                 </div>
               )}
