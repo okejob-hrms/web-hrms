@@ -36,13 +36,11 @@ export const PersonalInformationSection = React.memo(
     const fileInputRef = React.useRef<HTMLInputElement>(null);
 
     React.useEffect(() => {
-      const photoUrl = watch("photo_profile");
+      const photoUrl = watch("photo_profile_url");
       if (photoUrl) {
-        setPreviewPhotoProfile(
-          `${process.env.NEXT_PUBLIC_FILE_URL}/${photoUrl}`,
-        );
+        setPreviewPhotoProfile(photoUrl);
       }
-    }, [watch("photo_profile")]);
+    }, [watch("photo_profile_url")]);
 
     React.useEffect(() => {
       const accounts = watch("social_media_accounts");
@@ -56,6 +54,7 @@ export const PersonalInformationSection = React.memo(
         mutationFn: uploadAttachment,
         onSuccess: (res) => {
           setValue("photo_profile", res.data.path);
+          setValue("photo_profile_url", res.data.url);
           setPreviewPhotoProfile(res.data.url);
           setLoadingPhotoProfile(false);
         },
