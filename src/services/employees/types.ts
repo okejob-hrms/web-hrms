@@ -147,6 +147,7 @@ export interface IEmployeeDetailsResponse {
   achievement: string;
   personal_description: string;
   photo_profile: string;
+  photo_profile_url: string;
   deleted_at: string | null;
   created_at: string;
   updated_at: string;
