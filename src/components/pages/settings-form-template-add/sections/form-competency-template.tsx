@@ -27,9 +27,10 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import {
   getPerformanceCompetencies,
+  getPerformanceCompetenciesDetail,
   getPerformanceCompetencyLevels,
 } from "@/services/performance-competency";
 import { TextAreaForm } from "@/components/ui/textarea";
@@ -131,24 +132,22 @@ export const LibraryForm = React.memo(function LibraryForm({
     [performanceCompetencies],
   );
 
-  const dimensionOptions = [
-    {
-      label: "A",
-      value: "A",
-    },
-    {
-      label: "B",
-      value: "B",
-    },
-    {
-      label: "C",
-      value: "C",
-    },
-    {
-      label: "D",
-      value: "D",
-    },
-  ];
+  const { data: competencyDetail } = useQuery({
+    queryKey: ["performance-competency-detail", selectedCompetencyId],
+    queryFn: () => getPerformanceCompetenciesDetail(Number(selectedCompetencyId)),
+    enabled: !!selectedCompetencyId,
+  });
+
+  const dimensionOptions = React.useMemo(() => {
+    const dimensions = competencyDetail?.data?.levels
+      ?.map((item) => item.dimensions)
+      .filter((value): value is string => !!value);
+    const uniqueDimensions = Array.from(new Set(dimensions ?? [])).sort();
+    return uniqueDimensions.map((dimension) => ({
+      label: dimension,
+      value: dimension,
+    }));
+  }, [competencyDetail]);
 
   const levelOptions = React.useMemo(
     () =>
@@ -209,6 +208,12 @@ export const LibraryForm = React.memo(function LibraryForm({
         shouldValidate: false,
         shouldDirty: true,
       });
+      if (prevCompetencyIdRef.current !== selectedCompetencyId) {
+        form.setValue(`${fieldPrefix}.metadata.dimension`, undefined, {
+          shouldValidate: false,
+          shouldDirty: true,
+        });
+      }
       prevCompetencyIdRef.current = selectedCompetencyId;
       prevDimensionRef.current = selectedDimension;
     }
