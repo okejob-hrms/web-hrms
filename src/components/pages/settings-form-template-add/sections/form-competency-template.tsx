@@ -27,12 +27,15 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import {
   getPerformanceCompetencies,
   getPerformanceCompetencyLevels,
 } from "@/services/performance-competency";
 import { TextAreaForm } from "@/components/ui/textarea";
+
+const OPTIONS_PER_PAGE = "20";
+const SCROLL_BOTTOM_THRESHOLD = 32;
 
 interface LibraryFormProps {
   groupIndex?: number;
@@ -50,6 +53,8 @@ export const LibraryForm = React.memo(function LibraryForm({
   const form = useFormContext();
   const [searchTerm, setSearchTerm] = React.useState("");
   const [open, setOpen] = React.useState(false);
+  const [levelOpen, setLevelOpen] = React.useState(false);
+  const [levelSearchTerm, setLevelSearchTerm] = React.useState("");
   const fieldPrefix =
     groupIndex !== undefined && fieldIndex !== undefined
       ? `groups.${groupIndex}.fields.${fieldIndex}`
@@ -60,29 +65,69 @@ export const LibraryForm = React.memo(function LibraryForm({
   const selectedDimension = form.watch(`${fieldPrefix}.metadata.dimension`);
   const watchedAnswerType = form.watch(`${fieldPrefix}.type`) || answerType;
 
-  const { data: performanceCompetencies, isLoading: isLoadingCompetencies } =
-    useQuery({
-      queryKey: ["performance-competencies"],
-      queryFn: () => getPerformanceCompetencies(),
-    });
+  const {
+    data: performanceCompetencies,
+    fetchNextPage: fetchNextCompetencyPage,
+    hasNextPage: hasNextCompetencyPage,
+    isFetchingNextPage: isFetchingNextCompetencyPage,
+  } = useInfiniteQuery({
+    queryKey: ["performance-competencies"],
+    queryFn: ({ pageParam }) =>
+      getPerformanceCompetencies({
+        page: String(pageParam),
+        per_page: OPTIONS_PER_PAGE,
+      }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      const pagination = lastPage?.data;
+      if (!pagination) return undefined;
+      if (pagination.next_page_url) return pagination.current_page + 1;
+      if (
+        pagination.last_page &&
+        pagination.current_page < pagination.last_page
+      ) {
+        return pagination.current_page + 1;
+      }
+      return undefined;
+    },
+  });
 
-  const { data: levels, isLoading: isLoadingLevels } = useQuery({
+  const {
+    data: levels,
+    fetchNextPage: fetchNextLevelPage,
+    hasNextPage: hasNextLevelPage,
+    isFetchingNextPage: isFetchingNextLevelPage,
+  } = useInfiniteQuery({
     queryKey: ["performance-levels", selectedCompetencyId, selectedDimension],
-    queryFn: () =>
+    queryFn: ({ pageParam }) =>
       getPerformanceCompetencyLevels({
         competency_id: selectedCompetencyId?.toString(),
         dimensions: selectedDimension,
         level: "",
+        page: String(pageParam),
+        per_page: OPTIONS_PER_PAGE,
       }),
+    initialPageParam: 1,
     enabled: !!selectedCompetencyId && !!selectedDimension,
+    getNextPageParam: (lastPage) => {
+      if (!lastPage) return undefined;
+      if (lastPage.next_page_url) return lastPage.current_page + 1;
+      if (lastPage.last_page && lastPage.current_page < lastPage.last_page) {
+        return lastPage.current_page + 1;
+      }
+      return undefined;
+    },
   });
 
   const competencyOptions = React.useMemo(
     () =>
-      performanceCompetencies?.data?.data?.map((item) => ({
-        value: item.id.toString(),
-        label: `[${item.code}] ${item.name}`,
-      })) || [],
+      performanceCompetencies?.pages.flatMap(
+        (page) =>
+          page?.data?.data?.map((item) => ({
+            value: item.id.toString(),
+            label: `[${item.code}] ${item.name}`,
+          })) ?? [],
+      ) ?? [],
     [performanceCompetencies],
   );
 
@@ -107,11 +152,48 @@ export const LibraryForm = React.memo(function LibraryForm({
 
   const levelOptions = React.useMemo(
     () =>
-      levels?.data?.map((item) => ({
-        value: item.id.toString(),
-        label: `[${item.level}] ${item.name}`,
-      })) || [],
+      levels?.pages.flatMap(
+        (page) =>
+          page?.data?.map((item) => ({
+            value: item.id.toString(),
+            label: `[${item.level}] ${item.name}`,
+          })) ?? [],
+      ) ?? [],
     [levels],
+  );
+
+  const handleCompetencyScroll = React.useCallback(
+    (e: React.UIEvent<HTMLDivElement>) => {
+      const target = e.currentTarget;
+      const reachedBottom =
+        target.scrollHeight - target.scrollTop - target.clientHeight <
+        SCROLL_BOTTOM_THRESHOLD;
+      if (
+        reachedBottom &&
+        hasNextCompetencyPage &&
+        !isFetchingNextCompetencyPage
+      ) {
+        fetchNextCompetencyPage();
+      }
+    },
+    [
+      hasNextCompetencyPage,
+      isFetchingNextCompetencyPage,
+      fetchNextCompetencyPage,
+    ],
+  );
+
+  const handleLevelScroll = React.useCallback(
+    (e: React.UIEvent<HTMLDivElement>) => {
+      const target = e.currentTarget;
+      const reachedBottom =
+        target.scrollHeight - target.scrollTop - target.clientHeight <
+        SCROLL_BOTTOM_THRESHOLD;
+      if (reachedBottom && hasNextLevelPage && !isFetchingNextLevelPage) {
+        fetchNextLevelPage();
+      }
+    },
+    [hasNextLevelPage, isFetchingNextLevelPage, fetchNextLevelPage],
   );
 
   const prevCompetencyIdRef = React.useRef(selectedCompetencyId);
@@ -195,7 +277,7 @@ export const LibraryForm = React.memo(function LibraryForm({
                         className="h-9"
                       />
                       <CommandEmpty>No competency found.</CommandEmpty>
-                      <CommandList>
+                      <CommandList onScroll={handleCompetencyScroll}>
                         <CommandGroup>
                           {filteredCompetencyOptions.map((option) => (
                             <CommandItem
@@ -221,6 +303,11 @@ export const LibraryForm = React.memo(function LibraryForm({
                               />
                             </CommandItem>
                           ))}
+                          {isFetchingNextCompetencyPage && (
+                            <div className="py-2 text-center text-xs text-muted-foreground">
+                              Loading more...
+                            </div>
+                          )}
                         </CommandGroup>
                       </CommandList>
                     </Command>
@@ -237,10 +324,95 @@ export const LibraryForm = React.memo(function LibraryForm({
         label="Dimension"
         options={dimensionOptions}
       />
-      <SelectForm
+      <FormField
+        control={form.control}
         name={`${fieldPrefix}.metadata.level_id`}
-        label="Level"
-        options={levelOptions}
+        render={({ field }) => {
+          const selectedOption = levelOptions.find(
+            (option) => option.value === field.value?.toString(),
+          );
+          const filteredLevelOptions =
+            levelSearchTerm === ""
+              ? levelOptions
+              : levelOptions.filter((option) =>
+                  option.label
+                    .toLowerCase()
+                    .includes(levelSearchTerm.toLowerCase()),
+                );
+          const disabled = !selectedCompetencyId || !selectedDimension;
+
+          return (
+            <FormItem>
+              <FormLabel className="text-sm font-normal">Level</FormLabel>
+              <FormControl>
+                <Popover open={levelOpen} onOpenChange={setLevelOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={levelOpen}
+                      disabled={disabled}
+                      className={cn(
+                        "w-full justify-between h-10 font-normal",
+                        !field.value && "text-muted-foreground",
+                      )}
+                    >
+                      <span className="truncate">
+                        {selectedOption?.label || "Select level"}
+                      </span>
+                      <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-full p-0" align="start">
+                    <Command filter={() => 1}>
+                      <CommandInput
+                        placeholder="Search level..."
+                        value={levelSearchTerm}
+                        onValueChange={setLevelSearchTerm}
+                        className="h-9"
+                      />
+                      <CommandEmpty>No level found.</CommandEmpty>
+                      <CommandList onScroll={handleLevelScroll}>
+                        <CommandGroup>
+                          {filteredLevelOptions.map((option) => (
+                            <CommandItem
+                              key={option.value}
+                              value={option.value}
+                              onSelect={() => {
+                                form.setValue(
+                                  `${fieldPrefix}.metadata.level_id`,
+                                  Number(option.value),
+                                );
+                                setLevelOpen(false);
+                                setLevelSearchTerm("");
+                              }}
+                            >
+                              {option.label}
+                              <Check
+                                className={cn(
+                                  "ml-auto h-4 w-4",
+                                  field.value?.toString() === option.value
+                                    ? "opacity-100"
+                                    : "opacity-0",
+                                )}
+                              />
+                            </CommandItem>
+                          ))}
+                          {isFetchingNextLevelPage && (
+                            <div className="py-2 text-center text-xs text-muted-foreground">
+                              Loading more...
+                            </div>
+                          )}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          );
+        }}
       />
 
       <SelectForm
