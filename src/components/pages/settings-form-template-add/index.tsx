@@ -197,7 +197,12 @@ export const SettingsFormTemplateAdd = React.memo(
             ) : (
               <div className="col-span-2 flex flex-col gap-4 items-center">
                 {groupFields.map((field, index) => (
-                  <GroupForm key={field.id} index={index} />
+                  <GroupForm
+                    key={field.id}
+                    index={index}
+                    onRemove={() => removeGroup(index)}
+                    canRemove={groupFields.length > 1}
+                  />
                 ))}
                 <Button
                   variant="ghost"

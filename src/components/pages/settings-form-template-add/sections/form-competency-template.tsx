@@ -19,6 +19,7 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { Check, ChevronDown } from "lucide-react";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 import {
   FormControl,
@@ -696,7 +697,23 @@ export const FormCompetencyTemplate = React.memo(
     }, [selectedType, answerType, groupIndex, fieldIndex, form]);
 
     return (
-      <div className="border border-grayscale-40 rounded-md p-4 space-y-4">
+      <div className="relative border border-grayscale-40 rounded-md p-4 space-y-4">
+        {onRemove && (
+          <Button
+            variant="ghost"
+            type="button"
+            onClick={onRemove}
+            className="absolute top-2 right-2 z-10"
+            aria-label="Remove question"
+          >
+            <Image
+              width={16}
+              height={16}
+              src="/icons/deleteOutlined.svg"
+              alt="trash"
+            />
+          </Button>
+        )}
         <RadioGroup
           value={selectedType}
           orientation="horizontal"
