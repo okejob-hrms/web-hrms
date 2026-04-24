@@ -37,6 +37,14 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async rewrites() {
+    return [
+      {
+        source: '/firebase-messaging-sw.js',
+        destination: '/api/firebase-sw',
+      },
+    ];
+  },
 }
 
 export default withNextra(nextConfig)
