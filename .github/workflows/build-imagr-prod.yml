@@ -12,6 +12,7 @@ env:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    environment: production
     permissions:
       contents: read
       packages: write
@@ -28,7 +29,7 @@ jobs:
           echo "Triggered by: ${{ github.actor }}"
           echo "Registry: ${{ env.REGISTRY }}"
           echo "Image name: ${{ env.IMAGE_NAME }}/app:latest"
-          echo "NEXT_PUBLIC_API_URL_PROD variable set: ${{ vars.NEXT_PUBLIC_API_URL_PROD != '' && 'yes' || 'no' }}"
+          echo "NEXT_PUBLIC_BASE_URL variable set: ${{ vars.NEXT_PUBLIC_BASE_URL != '' && 'yes' || 'no' }}"
           echo "=============================================="
 
       - name: Checkout repository
@@ -53,7 +54,10 @@ jobs:
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/app:latest
           build-args: |
-            NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL_PROD }}
+            NEXT_PUBLIC_FILE_URL=${{ vars.NEXT_PUBLIC_FILE_URL }}
+            NEXT_PUBLIC_BASE_URL=${{ vars.NEXT_PUBLIC_BASE_URL }}
+            NEXT_PUBLIC_BASE_URL_RECOGNITION=${{ vars.NEXT_PUBLIC_BASE_URL_RECOGNITION }}
+            BASE_URL_EMPLOYEE=${{ vars.BASE_URL_EMPLOYEE }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: linux/amd64

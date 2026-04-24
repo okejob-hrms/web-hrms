@@ -12,6 +12,7 @@ env:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    environment: staging
     permissions:
       contents: read
       packages: write
@@ -48,6 +49,10 @@ jobs:
             NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=${{ vars.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
             NEXT_PUBLIC_FIREBASE_APP_ID=${{ vars.NEXT_PUBLIC_FIREBASE_APP_ID }}
             NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=${{ vars.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID }}
+            NEXT_PUBLIC_FILE_URL=${{ vars.NEXT_PUBLIC_FILE_URL }}
+            NEXT_PUBLIC_BASE_URL=${{ vars.NEXT_PUBLIC_BASE_URL }}
+            NEXT_PUBLIC_BASE_URL_RECOGNITION=${{ vars.NEXT_PUBLIC_BASE_URL_RECOGNITION }}
+            BASE_URL_EMPLOYEE=${{ vars.BASE_URL_EMPLOYEE }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: linux/amd64
