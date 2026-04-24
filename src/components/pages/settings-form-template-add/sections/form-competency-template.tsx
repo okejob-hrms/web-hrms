@@ -38,6 +38,99 @@ import { TextAreaForm } from "@/components/ui/textarea";
 const OPTIONS_PER_PAGE = "20";
 const SCROLL_BOTTOM_THRESHOLD = 32;
 
+interface RangeConfigurationProps {
+  fieldPrefix: string;
+}
+
+const RangeConfiguration = React.memo(function RangeConfiguration({
+  fieldPrefix,
+}: RangeConfigurationProps) {
+  const form = useFormContext();
+  const minFromForm = form.watch(`${fieldPrefix}.options.min`);
+  const maxFromForm = form.watch(`${fieldPrefix}.options.max`);
+
+  const [minText, setMinText] = React.useState<string>(() =>
+    minFromForm !== undefined && minFromForm !== null ? String(minFromForm) : "1",
+  );
+  const [maxText, setMaxText] = React.useState<string>(() =>
+    maxFromForm !== undefined && maxFromForm !== null ? String(maxFromForm) : "8",
+  );
+
+  React.useEffect(() => {
+    if (minFromForm !== undefined && minFromForm !== null) {
+      const asString = String(minFromForm);
+      setMinText((prev) => (Number(prev) === minFromForm ? prev : asString));
+    }
+  }, [minFromForm]);
+
+  React.useEffect(() => {
+    if (maxFromForm !== undefined && maxFromForm !== null) {
+      const asString = String(maxFromForm);
+      setMaxText((prev) => (Number(prev) === maxFromForm ? prev : asString));
+    }
+  }, [maxFromForm]);
+
+  const commitValue = React.useCallback(
+    (key: "min" | "max", text: string, fallback: number) => {
+      const parsed = text.trim() === "" ? fallback : Number(text);
+      const safe = Number.isFinite(parsed) ? parsed : fallback;
+      form.setValue(`${fieldPrefix}.options.${key}`, safe, {
+        shouldValidate: false,
+        shouldDirty: true,
+      });
+      if (key === "min") {
+        setMinText(String(safe));
+      } else {
+        setMaxText(String(safe));
+      }
+    },
+    [fieldPrefix, form],
+  );
+
+  const handleChange = React.useCallback(
+    (key: "min" | "max", text: string) => {
+      if (key === "min") setMinText(text);
+      else setMaxText(text);
+
+      if (text.trim() === "") return;
+      const parsed = Number(text);
+      if (!Number.isFinite(parsed)) return;
+      form.setValue(`${fieldPrefix}.options.${key}`, parsed, {
+        shouldValidate: false,
+        shouldDirty: true,
+      });
+    },
+    [fieldPrefix, form],
+  );
+
+  return (
+    <div className="flex flex-col gap-2">
+      <p className="text-sm font-normal">
+        Range Configuration<span className="text-error">*</span>
+      </p>
+      <div className="flex gap-2 items-center">
+        <Input
+          className="w-20!"
+          type="number"
+          inputMode="numeric"
+          value={minText}
+          onChange={(e) => handleChange("min", e.target.value)}
+          onBlur={() => commitValue("min", minText, 1)}
+        />
+        <span>-</span>
+        <Input
+          className="w-20!"
+          type="number"
+          inputMode="numeric"
+          value={maxText}
+          onChange={(e) => handleChange("max", e.target.value)}
+          onBlur={() => commitValue("max", maxText, 8)}
+        />
+      </div>
+    </div>
+  );
+});
+
 interface LibraryFormProps {
   groupIndex?: number;
   fieldIndex?: number;
@@ -156,6 +249,7 @@ export const LibraryForm = React.memo(function LibraryForm({
           page?.data?.map((item) => ({
             value: item.id.toString(),
             label: `[${item.level}] ${item.name}`,
+            level: item.level,
           })) ?? [],
       ) ?? [],
     [levels],
@@ -226,9 +320,6 @@ export const LibraryForm = React.memo(function LibraryForm({
     );
   }, [searchTerm, competencyOptions]);
 
-  const minValue = form.watch(`${fieldPrefix}.options.min`) || 1;
-  const maxValue = form.watch(`${fieldPrefix}.options.max`) || 8;
-
   React.useEffect(() => {
     if (watchedAnswerType === "range" && fieldPrefix) {
       const currentOptions = form.getValues(`${fieldPrefix}.options`);
@@ -292,6 +383,11 @@ export const LibraryForm = React.memo(function LibraryForm({
                                 form.setValue(
                                   `${fieldPrefix}.metadata.competency_id`,
                                   Number(option.value),
+                                );
+                                form.setValue(
+                                  `${fieldPrefix}.label`,
+                                  option.label,
+                                  { shouldValidate: true, shouldDirty: true },
                                 );
                                 setOpen(false);
                                 setSearchTerm("");
@@ -388,6 +484,11 @@ export const LibraryForm = React.memo(function LibraryForm({
                                   `${fieldPrefix}.metadata.level_id`,
                                   Number(option.value),
                                 );
+                                form.setValue(
+                                  `${fieldPrefix}.metadata.level_value`,
+                                  Number(option.level),
+                                  { shouldValidate: true, shouldDirty: true },
+                                );
                                 setLevelOpen(false);
                                 setLevelSearchTerm("");
                               }}
@@ -431,37 +532,8 @@ export const LibraryForm = React.memo(function LibraryForm({
         onChange={(e) => onAnswerTypeChange?.(e.target.value)}
       />
 
-      {watchedAnswerType === "range" && (
-        <div className="flex flex-col gap-2">
-          <p className="text-sm font-normal">
-            Range Configuration<span className="text-error">*</span>
-          </p>
-          <div className="flex gap-2 items-center">
-            <Input
-              className="w-20!"
-              type="number"
-              value={minValue}
-              onChange={(e) =>
-                form.setValue(
-                  `${fieldPrefix}.options.min`,
-                  Number(e.target.value),
-                )
-              }
-            />
-            <span>-</span>
-            <Input
-              className="w-20!"
-              type="number"
-              value={maxValue}
-              onChange={(e) =>
-                form.setValue(
-                  `${fieldPrefix}.options.max`,
-                  Number(e.target.value),
-                )
-              }
-            />
-          </div>
-        </div>
+      {watchedAnswerType === "range" && fieldPrefix && (
+        <RangeConfiguration fieldPrefix={fieldPrefix} />
       )}
 
       <InputForm
@@ -489,8 +561,6 @@ export const CustomForm = React.memo(function CustomForm({
       ? `groups.${groupIndex}.fields.${fieldIndex}`
       : "";
 
-  const minValue = form.watch(`${fieldPrefix}.options.min`) || 1;
-  const maxValue = form.watch(`${fieldPrefix}.options.max`) || 8;
   const answerType = form.watch(`${fieldPrefix}.type`);
 
   React.useEffect(() => {
@@ -529,37 +599,8 @@ export const CustomForm = React.memo(function CustomForm({
         ]}
       />
 
-      {answerType === "range" && (
-        <div className="flex flex-col gap-2">
-          <p className="text-sm font-normal">
-            Range Configuration<span className="text-error">*</span>
-          </p>
-          <div className="flex gap-2 items-center">
-            <Input
-              className="w-20!"
-              type="number"
-              value={minValue}
-              onChange={(e) =>
-                form.setValue(
-                  `${fieldPrefix}.options.min`,
-                  Number(e.target.value),
-                )
-              }
-            />
-            <span>-</span>
-            <Input
-              className="w-20!"
-              type="number"
-              value={maxValue}
-              onChange={(e) =>
-                form.setValue(
-                  `${fieldPrefix}.options.max`,
-                  Number(e.target.value),
-                )
-              }
-            />
-          </div>
-        </div>
+      {answerType === "range" && fieldPrefix && (
+        <RangeConfiguration fieldPrefix={fieldPrefix} />
       )}
 
       <InputForm
@@ -604,36 +645,8 @@ export const FormCompetencyTemplate = React.memo(
       return existingType || "range";
     });
 
-    const competency_id = form.watch(
-      `groups.${groupIndex}.fields.${fieldIndex}.metadata.competency_id`,
-    );
-    const level_id = form.watch(
-      `groups.${groupIndex}.fields.${fieldIndex}.metadata.level_id`,
-    );
-
-    const competencyOptionsMap: Record<string, string> = {
-      "1": "Compensation & Benefits",
-      "2": "Communication",
-      "3": "Decision Making",
-      "4": "Initiative",
-      "5": "Organization Orientation",
-      "6": "Problem Solving",
-      "7": "Relationship Management",
-      "8": "Strategic Thinking",
-    };
-
-    const levelValueMap: Record<string, number> = {
-      "1": -1,
-      "2": 0,
-      "3": 1,
-      "4": 2,
-      "5": 3,
-    };
-
-    const prevSelectedTypeRef = React.useRef(selectedType);
-    const prevAnswerTypeRef = React.useRef(answerType);
-    const prevCompetencyIdRef = React.useRef(competency_id);
-    const prevLevelIdRef = React.useRef(level_id);
+    const prevSelectedTypeRef = React.useRef<string | null>(null);
+    const prevAnswerTypeRef = React.useRef<string | null>(null);
 
     React.useEffect(() => {
       if (groupIndex === undefined || fieldIndex === undefined) return;
@@ -672,32 +685,6 @@ export const FormCompetencyTemplate = React.memo(
         prevAnswerTypeRef.current = answerType;
       }
 
-      if (
-        prevCompetencyIdRef.current !== competency_id &&
-        selectedType === "library" &&
-        competency_id
-      ) {
-        const label = competencyOptionsMap[competency_id] || "";
-        form.setValue(`${fieldPrefix}.label`, label, {
-          shouldValidate: false,
-          shouldDirty: true,
-        });
-        prevCompetencyIdRef.current = competency_id;
-      }
-
-      if (
-        prevLevelIdRef.current !== level_id &&
-        level_id &&
-        levelValueMap[level_id] !== undefined
-      ) {
-        const levelValue = levelValueMap[level_id];
-        form.setValue(`${fieldPrefix}.metadata.level_value`, levelValue, {
-          shouldValidate: false,
-          shouldDirty: true,
-        });
-        prevLevelIdRef.current = level_id;
-      }
-
       const currentScoreWeightType = form.getValues(
         `${fieldPrefix}.metadata.score_weight_type`,
       );
@@ -706,17 +693,7 @@ export const FormCompetencyTemplate = React.memo(
           shouldValidate: false,
         });
       }
-    }, [
-      selectedType,
-      answerType,
-      competency_id,
-      level_id,
-      groupIndex,
-      fieldIndex,
-      form,
-      competencyOptionsMap,
-      levelValueMap,
-    ]);
+    }, [selectedType, answerType, groupIndex, fieldIndex, form]);
 
     return (
       <div className="border border-grayscale-40 rounded-md p-4 space-y-4">

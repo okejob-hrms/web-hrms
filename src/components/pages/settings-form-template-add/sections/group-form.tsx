@@ -19,10 +19,15 @@ export const GroupForm = React.memo(function GroupForm({ index }: Props) {
   const addQuestion = React.useCallback(() => {
     append({
       label: "",
-      type: "",
+      type: "range",
       is_required: false,
       order: fields.length,
-      options: [],
+      options: { min: 1, max: 8 },
+      metadata: {
+        type: "use_competency_library",
+        score_weight: 0,
+        score_weight_type: "percent",
+      },
     });
   }, [append, fields.length]);
 

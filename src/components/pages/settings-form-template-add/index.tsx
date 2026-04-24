@@ -59,6 +59,8 @@ export const SettingsFormTemplateAdd = React.memo(
       name: "groups.0.fields",
     });
 
+    const isCompetencyForm = formData?.type === 2;
+
     const addGroup = React.useCallback(() => {
       appendGroup({
         name: "Default Group",
@@ -69,24 +71,38 @@ export const SettingsFormTemplateAdd = React.memo(
         fields: [
           {
             label: "",
-            type: "",
+            type: isCompetencyForm ? "range" : "",
             is_required: false,
             order: 0,
-            options: [],
+            options: isCompetencyForm ? { min: 1, max: 8 } : [],
+            ...(isCompetencyForm && {
+              metadata: {
+                type: "use_competency_library",
+                score_weight: 0,
+                score_weight_type: "percent",
+              },
+            }),
           },
         ],
       });
-    }, [appendGroup]);
+    }, [appendGroup, isCompetencyForm]);
 
     const addField = React.useCallback(() => {
       appendField({
         label: "",
-        type: "",
+        type: isCompetencyForm ? "range" : "",
         is_required: false,
         order: fieldArray.length,
-        options: [],
+        options: isCompetencyForm ? { min: 1, max: 8 } : [],
+        ...(isCompetencyForm && {
+          metadata: {
+            type: "use_competency_library",
+            score_weight: 0,
+            score_weight_type: "percent",
+          },
+        }),
       });
-    }, [appendField, fieldArray.length]);
+    }, [appendField, fieldArray.length, isCompetencyForm]);
 
     const handleConfirmSubmit = React.useCallback(async () => {
       const isValid = await form.trigger();
