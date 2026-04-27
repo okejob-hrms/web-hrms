@@ -318,6 +318,28 @@ export function useFormTemplateAdd({
   const handleSubmit = async (values: TemplateFormSchema) => {
     setIsSubmitting(true);
     try {
+      const isCompetencyForm = Number(values.type) === 2;
+
+      const buildGroupsPayload = () =>
+        values.groups.map((group) => ({
+          name: group.name,
+          metadata: group.metadata,
+          fields: group.fields.map((field, index) => ({
+            label: field.label,
+            description: field.description,
+            type: field.type,
+            is_required: field.is_required,
+            order: index,
+            options: field.options,
+            metadata: isCompetencyForm
+              ? {
+                  ...field.metadata,
+                  type: field.metadata?.type || "use_competency_library",
+                }
+              : field.metadata,
+          })),
+        }));
+
       let result;
       if (editFormId) {
         console.log("values ", values);
@@ -334,24 +356,9 @@ export function useFormTemplateAdd({
         if (updateResponse.data && values.groups.length > 0) {
           const formId = updateResponse.data.id;
 
-          // Map all groups to the expected format
-          const groups = values.groups.map((group) => ({
-            name: group.name,
-            metadata: group.metadata,
-            fields: group.fields.map((field, index) => ({
-              label: field.label,
-              description: field.description,
-              type: field.type,
-              is_required: field.is_required,
-              order: index,
-              options: field.options,
-              metadata: field.metadata,
-            })),
-          }));
-
           await addFieldMutation.mutateAsync({
             form_id: formId,
-            groups: groups,
+            groups: buildGroupsPayload(),
           });
         }
 
@@ -369,24 +376,9 @@ export function useFormTemplateAdd({
         if (formResponse.data && values.groups.length > 0) {
           const formId = formResponse.data.id;
 
-          // Map all groups to the expected format
-          const groups = values.groups.map((group) => ({
-            name: group.name,
-            metadata: group.metadata,
-            fields: group.fields.map((field, index) => ({
-              label: field.label,
-              description: field.description,
-              type: field.type,
-              is_required: field.is_required,
-              order: index,
-              options: field.options,
-              metadata: field.metadata,
-            })),
-          }));
-
           await addFieldMutation.mutateAsync({
             form_id: formId,
-            groups: groups,
+            groups: buildGroupsPayload(),
           });
         }
 

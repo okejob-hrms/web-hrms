@@ -105,7 +105,7 @@ export const EmployeeDetail = React.memo(function EmployeeDetail({
             <Avatar className="h-20 w-20">
               <AvatarImage
                 className="size-20"
-                src={`${process.env.NEXT_PUBLIC_FILE_URL}/${data.photo_profile}`}
+                src={`${data.photo_profile_url}`}
                 alt={data.user.name}
               />
               <AvatarFallback className="text-base font-medium">

@@ -505,6 +505,10 @@ export const PersonalInformationDetail = React.memo(
             Employee Information
           </h2>
           <div className="flex flex-col">
+            <p className="text-sm text-text-disabled">Branch</p>
+            <p>{safeGet(data.branch?.name)}</p>
+          </div>
+          <div className="flex flex-col">
             <p className="text-sm text-text-disabled">Position</p>
             <p>{safeGet(data.employment?.job_position?.name)}</p>
           </div>

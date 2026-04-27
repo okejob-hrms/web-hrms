@@ -19,6 +19,7 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { Check, ChevronDown } from "lucide-react";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 import {
   FormControl,
@@ -27,12 +28,109 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import {
   getPerformanceCompetencies,
+  getPerformanceCompetenciesDetail,
   getPerformanceCompetencyLevels,
 } from "@/services/performance-competency";
 import { TextAreaForm } from "@/components/ui/textarea";
+
+const OPTIONS_PER_PAGE = "20";
+const SCROLL_BOTTOM_THRESHOLD = 32;
+
+interface RangeConfigurationProps {
+  fieldPrefix: string;
+}
+
+const RangeConfiguration = React.memo(function RangeConfiguration({
+  fieldPrefix,
+}: RangeConfigurationProps) {
+  const form = useFormContext();
+  const minFromForm = form.watch(`${fieldPrefix}.options.min`);
+  const maxFromForm = form.watch(`${fieldPrefix}.options.max`);
+
+  const [minText, setMinText] = React.useState<string>(() =>
+    minFromForm !== undefined && minFromForm !== null ? String(minFromForm) : "1",
+  );
+  const [maxText, setMaxText] = React.useState<string>(() =>
+    maxFromForm !== undefined && maxFromForm !== null ? String(maxFromForm) : "8",
+  );
+
+  React.useEffect(() => {
+    if (minFromForm !== undefined && minFromForm !== null) {
+      const asString = String(minFromForm);
+      setMinText((prev) => (Number(prev) === minFromForm ? prev : asString));
+    }
+  }, [minFromForm]);
+
+  React.useEffect(() => {
+    if (maxFromForm !== undefined && maxFromForm !== null) {
+      const asString = String(maxFromForm);
+      setMaxText((prev) => (Number(prev) === maxFromForm ? prev : asString));
+    }
+  }, [maxFromForm]);
+
+  const commitValue = React.useCallback(
+    (key: "min" | "max", text: string, fallback: number) => {
+      const parsed = text.trim() === "" ? fallback : Number(text);
+      const safe = Number.isFinite(parsed) ? parsed : fallback;
+      form.setValue(`${fieldPrefix}.options.${key}`, safe, {
+        shouldValidate: false,
+        shouldDirty: true,
+      });
+      if (key === "min") {
+        setMinText(String(safe));
+      } else {
+        setMaxText(String(safe));
+      }
+    },
+    [fieldPrefix, form],
+  );
+
+  const handleChange = React.useCallback(
+    (key: "min" | "max", text: string) => {
+      if (key === "min") setMinText(text);
+      else setMaxText(text);
+
+      if (text.trim() === "") return;
+      const parsed = Number(text);
+      if (!Number.isFinite(parsed)) return;
+      form.setValue(`${fieldPrefix}.options.${key}`, parsed, {
+        shouldValidate: false,
+        shouldDirty: true,
+      });
+    },
+    [fieldPrefix, form],
+  );
+
+  return (
+    <div className="flex flex-col gap-2">
+      <p className="text-sm font-normal">
+        Range Configuration<span className="text-error">*</span>
+      </p>
+      <div className="flex gap-2 items-center">
+        <Input
+          className="w-20!"
+          type="number"
+          inputMode="numeric"
+          value={minText}
+          onChange={(e) => handleChange("min", e.target.value)}
+          onBlur={() => commitValue("min", minText, 1)}
+        />
+        <span>-</span>
+        <Input
+          className="w-20!"
+          type="number"
+          inputMode="numeric"
+          value={maxText}
+          onChange={(e) => handleChange("max", e.target.value)}
+          onBlur={() => commitValue("max", maxText, 8)}
+        />
+      </div>
+    </div>
+  );
+});
 
 interface LibraryFormProps {
   groupIndex?: number;
@@ -50,6 +148,8 @@ export const LibraryForm = React.memo(function LibraryForm({
   const form = useFormContext();
   const [searchTerm, setSearchTerm] = React.useState("");
   const [open, setOpen] = React.useState(false);
+  const [levelOpen, setLevelOpen] = React.useState(false);
+  const [levelSearchTerm, setLevelSearchTerm] = React.useState("");
   const fieldPrefix =
     groupIndex !== undefined && fieldIndex !== undefined
       ? `groups.${groupIndex}.fields.${fieldIndex}`
@@ -60,58 +160,134 @@ export const LibraryForm = React.memo(function LibraryForm({
   const selectedDimension = form.watch(`${fieldPrefix}.metadata.dimension`);
   const watchedAnswerType = form.watch(`${fieldPrefix}.type`) || answerType;
 
-  const { data: performanceCompetencies, isLoading: isLoadingCompetencies } =
-    useQuery({
-      queryKey: ["performance-competencies"],
-      queryFn: () => getPerformanceCompetencies(),
-    });
+  const {
+    data: performanceCompetencies,
+    fetchNextPage: fetchNextCompetencyPage,
+    hasNextPage: hasNextCompetencyPage,
+    isFetchingNextPage: isFetchingNextCompetencyPage,
+  } = useInfiniteQuery({
+    queryKey: ["performance-competencies"],
+    queryFn: ({ pageParam }) =>
+      getPerformanceCompetencies({
+        page: String(pageParam),
+        per_page: OPTIONS_PER_PAGE,
+      }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      const pagination = lastPage?.data;
+      if (!pagination) return undefined;
+      if (pagination.next_page_url) return pagination.current_page + 1;
+      if (
+        pagination.last_page &&
+        pagination.current_page < pagination.last_page
+      ) {
+        return pagination.current_page + 1;
+      }
+      return undefined;
+    },
+  });
 
-  const { data: levels, isLoading: isLoadingLevels } = useQuery({
+  const {
+    data: levels,
+    fetchNextPage: fetchNextLevelPage,
+    hasNextPage: hasNextLevelPage,
+    isFetchingNextPage: isFetchingNextLevelPage,
+  } = useInfiniteQuery({
     queryKey: ["performance-levels", selectedCompetencyId, selectedDimension],
-    queryFn: () =>
+    queryFn: ({ pageParam }) =>
       getPerformanceCompetencyLevels({
         competency_id: selectedCompetencyId?.toString(),
         dimensions: selectedDimension,
         level: "",
+        page: String(pageParam),
+        per_page: OPTIONS_PER_PAGE,
       }),
+    initialPageParam: 1,
     enabled: !!selectedCompetencyId && !!selectedDimension,
+    getNextPageParam: (lastPage) => {
+      if (!lastPage) return undefined;
+      if (lastPage.next_page_url) return lastPage.current_page + 1;
+      if (lastPage.last_page && lastPage.current_page < lastPage.last_page) {
+        return lastPage.current_page + 1;
+      }
+      return undefined;
+    },
   });
 
   const competencyOptions = React.useMemo(
     () =>
-      performanceCompetencies?.data?.data?.map((item) => ({
-        value: item.id.toString(),
-        label: `[${item.code}] ${item.name}`,
-      })) || [],
+      performanceCompetencies?.pages.flatMap(
+        (page) =>
+          page?.data?.data?.map((item) => ({
+            value: item.id.toString(),
+            label: `[${item.code}] ${item.name}`,
+          })) ?? [],
+      ) ?? [],
     [performanceCompetencies],
   );
 
-  const dimensionOptions = [
-    {
-      label: "A",
-      value: "A",
-    },
-    {
-      label: "B",
-      value: "B",
-    },
-    {
-      label: "C",
-      value: "C",
-    },
-    {
-      label: "D",
-      value: "D",
-    },
-  ];
+  const { data: competencyDetail } = useQuery({
+    queryKey: ["performance-competency-detail", selectedCompetencyId],
+    queryFn: () => getPerformanceCompetenciesDetail(Number(selectedCompetencyId)),
+    enabled: !!selectedCompetencyId,
+  });
+
+  const dimensionOptions = React.useMemo(() => {
+    const dimensions = competencyDetail?.data?.levels
+      ?.map((item) => item.dimensions)
+      .filter((value): value is string => !!value);
+    const uniqueDimensions = Array.from(new Set(dimensions ?? [])).sort();
+    return uniqueDimensions.map((dimension) => ({
+      label: dimension,
+      value: dimension,
+    }));
+  }, [competencyDetail]);
 
   const levelOptions = React.useMemo(
     () =>
-      levels?.data?.map((item) => ({
-        value: item.id.toString(),
-        label: `[${item.level}] ${item.name}`,
-      })) || [],
+      levels?.pages.flatMap(
+        (page) =>
+          page?.data?.map((item) => ({
+            value: item.id.toString(),
+            label: `[${item.level}] ${item.name}`,
+            level: item.level,
+          })) ?? [],
+      ) ?? [],
     [levels],
+  );
+
+  const handleCompetencyScroll = React.useCallback(
+    (e: React.UIEvent<HTMLDivElement>) => {
+      const target = e.currentTarget;
+      const reachedBottom =
+        target.scrollHeight - target.scrollTop - target.clientHeight <
+        SCROLL_BOTTOM_THRESHOLD;
+      if (
+        reachedBottom &&
+        hasNextCompetencyPage &&
+        !isFetchingNextCompetencyPage
+      ) {
+        fetchNextCompetencyPage();
+      }
+    },
+    [
+      hasNextCompetencyPage,
+      isFetchingNextCompetencyPage,
+      fetchNextCompetencyPage,
+    ],
+  );
+
+  const handleLevelScroll = React.useCallback(
+    (e: React.UIEvent<HTMLDivElement>) => {
+      const target = e.currentTarget;
+      const reachedBottom =
+        target.scrollHeight - target.scrollTop - target.clientHeight <
+        SCROLL_BOTTOM_THRESHOLD;
+      if (reachedBottom && hasNextLevelPage && !isFetchingNextLevelPage) {
+        fetchNextLevelPage();
+      }
+    },
+    [hasNextLevelPage, isFetchingNextLevelPage, fetchNextLevelPage],
   );
 
   const prevCompetencyIdRef = React.useRef(selectedCompetencyId);
@@ -127,6 +303,12 @@ export const LibraryForm = React.memo(function LibraryForm({
         shouldValidate: false,
         shouldDirty: true,
       });
+      if (prevCompetencyIdRef.current !== selectedCompetencyId) {
+        form.setValue(`${fieldPrefix}.metadata.dimension`, undefined, {
+          shouldValidate: false,
+          shouldDirty: true,
+        });
+      }
       prevCompetencyIdRef.current = selectedCompetencyId;
       prevDimensionRef.current = selectedDimension;
     }
@@ -138,9 +320,6 @@ export const LibraryForm = React.memo(function LibraryForm({
       option.label.toLowerCase().includes(searchTerm.toLowerCase()),
     );
   }, [searchTerm, competencyOptions]);
-
-  const minValue = form.watch(`${fieldPrefix}.options.min`) || 1;
-  const maxValue = form.watch(`${fieldPrefix}.options.max`) || 8;
 
   React.useEffect(() => {
     if (watchedAnswerType === "range" && fieldPrefix) {
@@ -195,7 +374,7 @@ export const LibraryForm = React.memo(function LibraryForm({
                         className="h-9"
                       />
                       <CommandEmpty>No competency found.</CommandEmpty>
-                      <CommandList>
+                      <CommandList onScroll={handleCompetencyScroll}>
                         <CommandGroup>
                           {filteredCompetencyOptions.map((option) => (
                             <CommandItem
@@ -205,6 +384,11 @@ export const LibraryForm = React.memo(function LibraryForm({
                                 form.setValue(
                                   `${fieldPrefix}.metadata.competency_id`,
                                   Number(option.value),
+                                );
+                                form.setValue(
+                                  `${fieldPrefix}.label`,
+                                  option.label,
+                                  { shouldValidate: true, shouldDirty: true },
                                 );
                                 setOpen(false);
                                 setSearchTerm("");
@@ -221,6 +405,11 @@ export const LibraryForm = React.memo(function LibraryForm({
                               />
                             </CommandItem>
                           ))}
+                          {isFetchingNextCompetencyPage && (
+                            <div className="py-2 text-center text-xs text-muted-foreground">
+                              Loading more...
+                            </div>
+                          )}
                         </CommandGroup>
                       </CommandList>
                     </Command>
@@ -237,10 +426,100 @@ export const LibraryForm = React.memo(function LibraryForm({
         label="Dimension"
         options={dimensionOptions}
       />
-      <SelectForm
+      <FormField
+        control={form.control}
         name={`${fieldPrefix}.metadata.level_id`}
-        label="Level"
-        options={levelOptions}
+        render={({ field }) => {
+          const selectedOption = levelOptions.find(
+            (option) => option.value === field.value?.toString(),
+          );
+          const filteredLevelOptions =
+            levelSearchTerm === ""
+              ? levelOptions
+              : levelOptions.filter((option) =>
+                  option.label
+                    .toLowerCase()
+                    .includes(levelSearchTerm.toLowerCase()),
+                );
+          const disabled = !selectedCompetencyId || !selectedDimension;
+
+          return (
+            <FormItem>
+              <FormLabel className="text-sm font-normal">Level</FormLabel>
+              <FormControl>
+                <Popover open={levelOpen} onOpenChange={setLevelOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={levelOpen}
+                      disabled={disabled}
+                      className={cn(
+                        "w-full justify-between h-10 font-normal",
+                        !field.value && "text-muted-foreground",
+                      )}
+                    >
+                      <span className="truncate">
+                        {selectedOption?.label || "Select level"}
+                      </span>
+                      <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-full p-0" align="start">
+                    <Command filter={() => 1}>
+                      <CommandInput
+                        placeholder="Search level..."
+                        value={levelSearchTerm}
+                        onValueChange={setLevelSearchTerm}
+                        className="h-9"
+                      />
+                      <CommandEmpty>No level found.</CommandEmpty>
+                      <CommandList onScroll={handleLevelScroll}>
+                        <CommandGroup>
+                          {filteredLevelOptions.map((option) => (
+                            <CommandItem
+                              key={option.value}
+                              value={option.value}
+                              onSelect={() => {
+                                form.setValue(
+                                  `${fieldPrefix}.metadata.level_id`,
+                                  Number(option.value),
+                                );
+                                form.setValue(
+                                  `${fieldPrefix}.metadata.level_value`,
+                                  Number(option.level),
+                                  { shouldValidate: true, shouldDirty: true },
+                                );
+                                setLevelOpen(false);
+                                setLevelSearchTerm("");
+                              }}
+                            >
+                              {option.label}
+                              <Check
+                                className={cn(
+                                  "ml-auto h-4 w-4",
+                                  field.value?.toString() === option.value
+                                    ? "opacity-100"
+                                    : "opacity-0",
+                                )}
+                              />
+                            </CommandItem>
+                          ))}
+                          {isFetchingNextLevelPage && (
+                            <div className="py-2 text-center text-xs text-muted-foreground">
+                              Loading more...
+                            </div>
+                          )}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          );
+        }}
       />
 
       <SelectForm
@@ -254,37 +533,8 @@ export const LibraryForm = React.memo(function LibraryForm({
         onChange={(e) => onAnswerTypeChange?.(e.target.value)}
       />
 
-      {watchedAnswerType === "range" && (
-        <div className="flex flex-col gap-2">
-          <p className="text-sm font-normal">
-            Range Configuration<span className="text-error">*</span>
-          </p>
-          <div className="flex gap-2 items-center">
-            <Input
-              className="w-20!"
-              type="number"
-              value={minValue}
-              onChange={(e) =>
-                form.setValue(
-                  `${fieldPrefix}.options.min`,
-                  Number(e.target.value),
-                )
-              }
-            />
-            <span>-</span>
-            <Input
-              className="w-20!"
-              type="number"
-              value={maxValue}
-              onChange={(e) =>
-                form.setValue(
-                  `${fieldPrefix}.options.max`,
-                  Number(e.target.value),
-                )
-              }
-            />
-          </div>
-        </div>
+      {watchedAnswerType === "range" && fieldPrefix && (
+        <RangeConfiguration fieldPrefix={fieldPrefix} />
       )}
 
       <InputForm
@@ -312,8 +562,6 @@ export const CustomForm = React.memo(function CustomForm({
       ? `groups.${groupIndex}.fields.${fieldIndex}`
       : "";
 
-  const minValue = form.watch(`${fieldPrefix}.options.min`) || 1;
-  const maxValue = form.watch(`${fieldPrefix}.options.max`) || 8;
   const answerType = form.watch(`${fieldPrefix}.type`);
 
   React.useEffect(() => {
@@ -352,37 +600,8 @@ export const CustomForm = React.memo(function CustomForm({
         ]}
       />
 
-      {answerType === "range" && (
-        <div className="flex flex-col gap-2">
-          <p className="text-sm font-normal">
-            Range Configuration<span className="text-error">*</span>
-          </p>
-          <div className="flex gap-2 items-center">
-            <Input
-              className="w-20!"
-              type="number"
-              value={minValue}
-              onChange={(e) =>
-                form.setValue(
-                  `${fieldPrefix}.options.min`,
-                  Number(e.target.value),
-                )
-              }
-            />
-            <span>-</span>
-            <Input
-              className="w-20!"
-              type="number"
-              value={maxValue}
-              onChange={(e) =>
-                form.setValue(
-                  `${fieldPrefix}.options.max`,
-                  Number(e.target.value),
-                )
-              }
-            />
-          </div>
-        </div>
+      {answerType === "range" && fieldPrefix && (
+        <RangeConfiguration fieldPrefix={fieldPrefix} />
       )}
 
       <InputForm
@@ -427,36 +646,8 @@ export const FormCompetencyTemplate = React.memo(
       return existingType || "range";
     });
 
-    const competency_id = form.watch(
-      `groups.${groupIndex}.fields.${fieldIndex}.metadata.competency_id`,
-    );
-    const level_id = form.watch(
-      `groups.${groupIndex}.fields.${fieldIndex}.metadata.level_id`,
-    );
-
-    const competencyOptionsMap: Record<string, string> = {
-      "1": "Compensation & Benefits",
-      "2": "Communication",
-      "3": "Decision Making",
-      "4": "Initiative",
-      "5": "Organization Orientation",
-      "6": "Problem Solving",
-      "7": "Relationship Management",
-      "8": "Strategic Thinking",
-    };
-
-    const levelValueMap: Record<string, number> = {
-      "1": -1,
-      "2": 0,
-      "3": 1,
-      "4": 2,
-      "5": 3,
-    };
-
-    const prevSelectedTypeRef = React.useRef(selectedType);
-    const prevAnswerTypeRef = React.useRef(answerType);
-    const prevCompetencyIdRef = React.useRef(competency_id);
-    const prevLevelIdRef = React.useRef(level_id);
+    const prevSelectedTypeRef = React.useRef<string | null>(null);
+    const prevAnswerTypeRef = React.useRef<string | null>(null);
 
     React.useEffect(() => {
       if (groupIndex === undefined || fieldIndex === undefined) return;
@@ -495,32 +686,6 @@ export const FormCompetencyTemplate = React.memo(
         prevAnswerTypeRef.current = answerType;
       }
 
-      if (
-        prevCompetencyIdRef.current !== competency_id &&
-        selectedType === "library" &&
-        competency_id
-      ) {
-        const label = competencyOptionsMap[competency_id] || "";
-        form.setValue(`${fieldPrefix}.label`, label, {
-          shouldValidate: false,
-          shouldDirty: true,
-        });
-        prevCompetencyIdRef.current = competency_id;
-      }
-
-      if (
-        prevLevelIdRef.current !== level_id &&
-        level_id &&
-        levelValueMap[level_id] !== undefined
-      ) {
-        const levelValue = levelValueMap[level_id];
-        form.setValue(`${fieldPrefix}.metadata.level_value`, levelValue, {
-          shouldValidate: false,
-          shouldDirty: true,
-        });
-        prevLevelIdRef.current = level_id;
-      }
-
       const currentScoreWeightType = form.getValues(
         `${fieldPrefix}.metadata.score_weight_type`,
       );
@@ -529,20 +694,26 @@ export const FormCompetencyTemplate = React.memo(
           shouldValidate: false,
         });
       }
-    }, [
-      selectedType,
-      answerType,
-      competency_id,
-      level_id,
-      groupIndex,
-      fieldIndex,
-      form,
-      competencyOptionsMap,
-      levelValueMap,
-    ]);
+    }, [selectedType, answerType, groupIndex, fieldIndex, form]);
 
     return (
-      <div className="border border-grayscale-40 rounded-md p-4 space-y-4">
+      <div className="relative border border-grayscale-40 rounded-md p-4 space-y-4">
+        {onRemove && (
+          <Button
+            variant="ghost"
+            type="button"
+            onClick={onRemove}
+            className="absolute top-2 right-2 z-10"
+            aria-label="Remove question"
+          >
+            <Image
+              width={16}
+              height={16}
+              src="/icons/deleteOutlined.svg"
+              alt="trash"
+            />
+          </Button>
+        )}
         <RadioGroup
           value={selectedType}
           orientation="horizontal"
