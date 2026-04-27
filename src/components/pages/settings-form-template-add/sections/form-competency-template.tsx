@@ -28,7 +28,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import {
   getPerformanceCompetencies,
   getPerformanceCompetenciesDetail,
@@ -36,8 +36,63 @@ import {
 } from "@/services/performance-competency";
 import { TextAreaForm } from "@/components/ui/textarea";
 
-const OPTIONS_PER_PAGE = "20";
-const SCROLL_BOTTOM_THRESHOLD = 32;
+const OPTIONS_PER_PAGE = "100";
+
+const fetchAllCompetencies = async () => {
+  const firstPage = await getPerformanceCompetencies({
+    page: "1",
+    per_page: OPTIONS_PER_PAGE,
+  });
+  const pagination = firstPage.data;
+  const lastPage = pagination?.last_page ?? 1;
+  if (lastPage <= 1) {
+    return pagination?.data ?? [];
+  }
+  const remainingPages = await Promise.all(
+    Array.from({ length: lastPage - 1 }, (_, i) =>
+      getPerformanceCompetencies({
+        page: String(i + 2),
+        per_page: OPTIONS_PER_PAGE,
+      }),
+    ),
+  );
+  return [
+    ...(pagination?.data ?? []),
+    ...remainingPages.flatMap((page) => page?.data?.data ?? []),
+  ];
+};
+
+const fetchAllLevels = async (
+  competencyId: string,
+  dimensions: string,
+) => {
+  const firstPage = await getPerformanceCompetencyLevels({
+    competency_id: competencyId,
+    dimensions,
+    level: "",
+    page: "1",
+    per_page: OPTIONS_PER_PAGE,
+  });
+  const lastPage = firstPage?.last_page ?? 1;
+  if (lastPage <= 1) {
+    return firstPage?.data ?? [];
+  }
+  const remainingPages = await Promise.all(
+    Array.from({ length: lastPage - 1 }, (_, i) =>
+      getPerformanceCompetencyLevels({
+        competency_id: competencyId,
+        dimensions,
+        level: "",
+        page: String(i + 2),
+        per_page: OPTIONS_PER_PAGE,
+      }),
+    ),
+  );
+  return [
+    ...(firstPage?.data ?? []),
+    ...remainingPages.flatMap((page) => page?.data ?? []),
+  ];
+};
 
 interface RangeConfigurationProps {
   fieldPrefix: string;
@@ -162,67 +217,36 @@ export const LibraryForm = React.memo(function LibraryForm({
 
   const {
     data: performanceCompetencies,
-    fetchNextPage: fetchNextCompetencyPage,
-    hasNextPage: hasNextCompetencyPage,
-    isFetchingNextPage: isFetchingNextCompetencyPage,
-  } = useInfiniteQuery({
-    queryKey: ["performance-competencies"],
-    queryFn: ({ pageParam }) =>
-      getPerformanceCompetencies({
-        page: String(pageParam),
-        per_page: OPTIONS_PER_PAGE,
-      }),
-    initialPageParam: 1,
-    getNextPageParam: (lastPage) => {
-      const pagination = lastPage?.data;
-      if (!pagination) return undefined;
-      if (pagination.next_page_url) return pagination.current_page + 1;
-      if (
-        pagination.last_page &&
-        pagination.current_page < pagination.last_page
-      ) {
-        return pagination.current_page + 1;
-      }
-      return undefined;
-    },
+    refetch: refetchCompetencies,
+  } = useQuery({
+    queryKey: ["performance-competencies-all"],
+    queryFn: fetchAllCompetencies,
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 
-  const {
-    data: levels,
-    fetchNextPage: fetchNextLevelPage,
-    hasNextPage: hasNextLevelPage,
-    isFetchingNextPage: isFetchingNextLevelPage,
-  } = useInfiniteQuery({
-    queryKey: ["performance-levels", selectedCompetencyId, selectedDimension],
-    queryFn: ({ pageParam }) =>
-      getPerformanceCompetencyLevels({
-        competency_id: selectedCompetencyId?.toString(),
-        dimensions: selectedDimension,
-        level: "",
-        page: String(pageParam),
-        per_page: OPTIONS_PER_PAGE,
-      }),
-    initialPageParam: 1,
+  const { data: levels, refetch: refetchLevels } = useQuery({
+    queryKey: [
+      "performance-levels-all",
+      selectedCompetencyId,
+      selectedDimension,
+    ],
+    queryFn: () =>
+      fetchAllLevels(
+        selectedCompetencyId?.toString() ?? "",
+        selectedDimension ?? "",
+      ),
     enabled: !!selectedCompetencyId && !!selectedDimension,
-    getNextPageParam: (lastPage) => {
-      if (!lastPage) return undefined;
-      if (lastPage.next_page_url) return lastPage.current_page + 1;
-      if (lastPage.last_page && lastPage.current_page < lastPage.last_page) {
-        return lastPage.current_page + 1;
-      }
-      return undefined;
-    },
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 
   const competencyOptions = React.useMemo(
     () =>
-      performanceCompetencies?.pages.flatMap(
-        (page) =>
-          page?.data?.data?.map((item) => ({
-            value: item.id.toString(),
-            label: `[${item.code}] ${item.name}`,
-          })) ?? [],
-      ) ?? [],
+      performanceCompetencies?.map((item) => ({
+        value: item.id.toString(),
+        label: `[${item.code}] ${item.name}`,
+      })) ?? [],
     [performanceCompetencies],
   );
 
@@ -245,49 +269,32 @@ export const LibraryForm = React.memo(function LibraryForm({
 
   const levelOptions = React.useMemo(
     () =>
-      levels?.pages.flatMap(
-        (page) =>
-          page?.data?.map((item) => ({
-            value: item.id.toString(),
-            label: `[${item.level}] ${item.name}`,
-            level: item.level,
-          })) ?? [],
-      ) ?? [],
+      levels?.map((item) => ({
+        value: item.id.toString(),
+        label: `[${item.level}] ${item.name}`,
+        level: item.level,
+      })) ?? [],
     [levels],
   );
 
-  const handleCompetencyScroll = React.useCallback(
-    (e: React.UIEvent<HTMLDivElement>) => {
-      const target = e.currentTarget;
-      const reachedBottom =
-        target.scrollHeight - target.scrollTop - target.clientHeight <
-        SCROLL_BOTTOM_THRESHOLD;
-      if (
-        reachedBottom &&
-        hasNextCompetencyPage &&
-        !isFetchingNextCompetencyPage
-      ) {
-        fetchNextCompetencyPage();
+  const handleCompetencyOpenChange = React.useCallback(
+    (nextOpen: boolean) => {
+      setOpen(nextOpen);
+      if (nextOpen) {
+        refetchCompetencies();
       }
     },
-    [
-      hasNextCompetencyPage,
-      isFetchingNextCompetencyPage,
-      fetchNextCompetencyPage,
-    ],
+    [refetchCompetencies],
   );
 
-  const handleLevelScroll = React.useCallback(
-    (e: React.UIEvent<HTMLDivElement>) => {
-      const target = e.currentTarget;
-      const reachedBottom =
-        target.scrollHeight - target.scrollTop - target.clientHeight <
-        SCROLL_BOTTOM_THRESHOLD;
-      if (reachedBottom && hasNextLevelPage && !isFetchingNextLevelPage) {
-        fetchNextLevelPage();
+  const handleLevelOpenChange = React.useCallback(
+    (nextOpen: boolean) => {
+      setLevelOpen(nextOpen);
+      if (nextOpen && selectedCompetencyId && selectedDimension) {
+        refetchLevels();
       }
     },
-    [hasNextLevelPage, isFetchingNextLevelPage, fetchNextLevelPage],
+    [refetchLevels, selectedCompetencyId, selectedDimension],
   );
 
   const prevCompetencyIdRef = React.useRef(selectedCompetencyId);
@@ -348,7 +355,7 @@ export const LibraryForm = React.memo(function LibraryForm({
             <FormItem>
               <FormLabel className="text-sm font-normal">Competency</FormLabel>
               <FormControl>
-                <Popover open={open} onOpenChange={setOpen}>
+                <Popover open={open} onOpenChange={handleCompetencyOpenChange}>
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
@@ -374,7 +381,7 @@ export const LibraryForm = React.memo(function LibraryForm({
                         className="h-9"
                       />
                       <CommandEmpty>No competency found.</CommandEmpty>
-                      <CommandList onScroll={handleCompetencyScroll}>
+                      <CommandList>
                         <CommandGroup>
                           {filteredCompetencyOptions.map((option) => (
                             <CommandItem
@@ -405,11 +412,6 @@ export const LibraryForm = React.memo(function LibraryForm({
                               />
                             </CommandItem>
                           ))}
-                          {isFetchingNextCompetencyPage && (
-                            <div className="py-2 text-center text-xs text-muted-foreground">
-                              Loading more...
-                            </div>
-                          )}
                         </CommandGroup>
                       </CommandList>
                     </Command>
@@ -447,7 +449,7 @@ export const LibraryForm = React.memo(function LibraryForm({
             <FormItem>
               <FormLabel className="text-sm font-normal">Level</FormLabel>
               <FormControl>
-                <Popover open={levelOpen} onOpenChange={setLevelOpen}>
+                <Popover open={levelOpen} onOpenChange={handleLevelOpenChange}>
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
@@ -474,7 +476,7 @@ export const LibraryForm = React.memo(function LibraryForm({
                         className="h-9"
                       />
                       <CommandEmpty>No level found.</CommandEmpty>
-                      <CommandList onScroll={handleLevelScroll}>
+                      <CommandList>
                         <CommandGroup>
                           {filteredLevelOptions.map((option) => (
                             <CommandItem
@@ -505,11 +507,6 @@ export const LibraryForm = React.memo(function LibraryForm({
                               />
                             </CommandItem>
                           ))}
-                          {isFetchingNextLevelPage && (
-                            <div className="py-2 text-center text-xs text-muted-foreground">
-                              Loading more...
-                            </div>
-                          )}
                         </CommandGroup>
                       </CommandList>
                     </Command>
