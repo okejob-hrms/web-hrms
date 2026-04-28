@@ -28,6 +28,7 @@ import { Button } from '../ui/button';
 import useNetworkStatus from '@/hooks/use-network-status';
 import { Profile } from '../ui/profile';
 import { usePathname } from 'next/navigation';
+import { NotificationList } from './notification-list';
 
 interface BreadcrumbProps {
   items?: {
@@ -365,14 +366,7 @@ const Header = React.memo(function Header({ showBackNavigate }: HeaderProps) {
           )}
           {isOnline ? 'Offline' : 'Online'} Mode
         </Button> */}
-        <Button className="bg-background rounded-full size-8 p-0">
-          <Image
-            src="/icons/notification.svg"
-            alt="icon-notification"
-            width={20}
-            height={20}
-          />
-        </Button>
+        <NotificationList />
         <Separator orientation="vertical" className="hidden md:block" />
         <Profile user={user} />
       </div>
