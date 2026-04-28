@@ -59,6 +59,8 @@ export const SettingsFormTemplateAdd = React.memo(
       name: "groups.0.fields",
     });
 
+    const isCompetencyForm = formData?.type === 2;
+
     const addGroup = React.useCallback(() => {
       appendGroup({
         name: "Default Group",
@@ -69,24 +71,38 @@ export const SettingsFormTemplateAdd = React.memo(
         fields: [
           {
             label: "",
-            type: "",
+            type: isCompetencyForm ? "range" : "",
             is_required: false,
             order: 0,
-            options: [],
+            options: isCompetencyForm ? { min: 1, max: 8 } : [],
+            ...(isCompetencyForm && {
+              metadata: {
+                type: "use_competency_library",
+                score_weight: 0,
+                score_weight_type: "percent",
+              },
+            }),
           },
         ],
       });
-    }, [appendGroup]);
+    }, [appendGroup, isCompetencyForm]);
 
     const addField = React.useCallback(() => {
       appendField({
         label: "",
-        type: "",
+        type: isCompetencyForm ? "range" : "",
         is_required: false,
         order: fieldArray.length,
-        options: [],
+        options: isCompetencyForm ? { min: 1, max: 8 } : [],
+        ...(isCompetencyForm && {
+          metadata: {
+            type: "use_competency_library",
+            score_weight: 0,
+            score_weight_type: "percent",
+          },
+        }),
       });
-    }, [appendField, fieldArray.length]);
+    }, [appendField, fieldArray.length, isCompetencyForm]);
 
     const handleConfirmSubmit = React.useCallback(async () => {
       const isValid = await form.trigger();
@@ -107,17 +123,15 @@ export const SettingsFormTemplateAdd = React.memo(
           <h1 className="font-semibold text-lg text-black">
             {isEditMode ? "Edit Form Template" : "Form Details"}
           </h1>
-          {!isEditMode && (
-            <Button
-              type="button"
-              onClick={() => setOpenAdd(true)}
-              variant="ghost"
-              size="sm"
-              className="text-primary"
-            >
-              <Edit /> Edit
-            </Button>
-          )}
+          <Button
+            type="button"
+            onClick={() => setOpenAdd(true)}
+            variant="ghost"
+            size="sm"
+            className="text-primary"
+          >
+            <Edit /> Edit
+          </Button>
         </div>
         <FormProvider {...form}>
           <form className="grid grid-cols-2 gap-4">
@@ -181,7 +195,12 @@ export const SettingsFormTemplateAdd = React.memo(
             ) : (
               <div className="col-span-2 flex flex-col gap-4 items-center">
                 {groupFields.map((field, index) => (
-                  <GroupForm key={field.id} index={index} />
+                  <GroupForm
+                    key={field.id}
+                    index={index}
+                    onRemove={() => removeGroup(index)}
+                    canRemove={groupFields.length > 1}
+                  />
                 ))}
                 <Button
                   variant="ghost"
@@ -227,6 +246,15 @@ export const SettingsFormTemplateAdd = React.memo(
           open={openAdd}
           onOpenChange={setOpenAdd}
           onSave={handleSave}
+          isEditMode={isEditMode}
+          initialValues={
+            isEditMode && formData
+              ? {
+                  name: formData.name ?? "",
+                  type: formData.type?.toString() ?? "",
+                }
+              : undefined
+          }
         />
       </div>
     );

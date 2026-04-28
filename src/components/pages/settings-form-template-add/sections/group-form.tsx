@@ -1,15 +1,22 @@
 import { Button } from "@/components/ui/button";
 import { InputForm } from "@/components/ui/input";
 import { Plus } from "lucide-react";
+import Image from "next/image";
 import * as React from "react";
 import { useFieldArray, useFormContext } from "react-hook-form";
 import { FormCompetencyTemplate } from "./form-competency-template";
 
 interface Props {
   index: number;
+  onRemove?: () => void;
+  canRemove?: boolean;
 }
 
-export const GroupForm = React.memo(function GroupForm({ index }: Props) {
+export const GroupForm = React.memo(function GroupForm({
+  index,
+  onRemove,
+  canRemove = true,
+}: Props) {
   const form = useFormContext();
   const { fields, append, remove } = useFieldArray({
     control: form.control,
@@ -19,10 +26,15 @@ export const GroupForm = React.memo(function GroupForm({ index }: Props) {
   const addQuestion = React.useCallback(() => {
     append({
       label: "",
-      type: "",
+      type: "range",
       is_required: false,
       order: fields.length,
-      options: [],
+      options: { min: 1, max: 8 },
+      metadata: {
+        type: "use_competency_library",
+        score_weight: 0,
+        score_weight_type: "percent",
+      },
     });
   }, [append, fields.length]);
 
@@ -34,7 +46,23 @@ export const GroupForm = React.memo(function GroupForm({ index }: Props) {
   );
 
   return (
-    <div className="p-4 border border-primary-border rounded-md space-y-4 w-full flex flex-col items-center gap-4">
+    <div className="relative p-4 border border-primary-border rounded-md space-y-4 w-full flex flex-col items-center gap-4">
+      {canRemove && onRemove && (
+        <Button
+          variant="ghost"
+          type="button"
+          onClick={onRemove}
+          className="absolute top-2 right-2"
+          aria-label="Remove group"
+        >
+          <Image
+            width={16}
+            height={16}
+            src="/icons/deleteOutlined.svg"
+            alt="trash"
+          />
+        </Button>
+      )}
       <div className="grid md:grid-cols-7 grid-cols-1 gap-4 w-full">
         <InputForm
           name={`groups.${index}.name`}
