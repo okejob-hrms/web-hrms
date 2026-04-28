@@ -415,8 +415,18 @@ export function useFormTemplateAdd({
   }, [onCancel, form, router]);
 
   const handleSave = (e: IMutateFormRequest) => {
-    console.log("submit", e);
-    createFormMutation.mutate(e);
+    if (editFormId) {
+      updateFormMutation.mutate({
+        form_id: editFormId,
+        payload: {
+          name: e.name,
+          type: Number(e.type),
+          description: e.description ?? `Form template: ${e.name}`,
+        },
+      });
+    } else {
+      createFormMutation.mutate(e);
+    }
   };
 
   const isLoading =

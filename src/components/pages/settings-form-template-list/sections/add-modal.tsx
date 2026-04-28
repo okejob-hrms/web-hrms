@@ -20,6 +20,8 @@ interface FormAddModalProps {
     label: string;
     value: string;
   }[];
+  initialValues?: { name: string; type: string };
+  isEditMode?: boolean;
 }
 
 export const FormAddModal: React.FC<FormAddModalProps> = ({
@@ -27,11 +29,27 @@ export const FormAddModal: React.FC<FormAddModalProps> = ({
   onOpenChange,
   onSave,
   formOptions,
+  initialValues,
+  isEditMode,
 }) => {
-  const form = useForm();
+  const form = useForm({
+    defaultValues: { name: "", type: "" },
+  });
+
+  React.useEffect(() => {
+    if (open) {
+      form.reset({
+        name: initialValues?.name ?? "",
+        type: initialValues?.type ?? "",
+      });
+    }
+  }, [open, initialValues, form]);
 
   const handleSave = (): void => {
-    onSave({ name: form.getValues("name"), type: form.getValues("type") });
+    onSave({
+      name: form.getValues("name"),
+      type: Number(form.getValues("type")),
+    });
     handleClose();
   };
 
@@ -52,7 +70,7 @@ export const FormAddModal: React.FC<FormAddModalProps> = ({
       <DialogContent className="sm:max-w-[600px] p-0 bg-white">
         <DialogHeader className="px-6 pt-6 pb-4">
           <DialogTitle className="text-xl font-semibold">
-            Create New Form
+            {isEditMode ? "Edit Form" : "Create New Form"}
           </DialogTitle>
         </DialogHeader>
 
@@ -62,15 +80,17 @@ export const FormAddModal: React.FC<FormAddModalProps> = ({
               <InputForm name="name" label="Form Name" required />
             </div>
 
-            <div className="space-y-2">
-              <SelectForm
-                name="type"
-                label="Form Usage"
-                required
-                options={formOptions}
-                className="w-full"
-              />
-            </div>
+            {!isEditMode && (
+              <div className="space-y-2">
+                <SelectForm
+                  name="type"
+                  label="Form Usage"
+                  required
+                  options={formOptions}
+                  className="w-full"
+                />
+              </div>
+            )}
 
             <div className="flex justify-end gap-3 pt-2">
               <Button
