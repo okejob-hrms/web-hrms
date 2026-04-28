@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import Image from 'next/image';
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { formatDistanceToNow } from 'date-fns';
 import { LucideBell } from 'lucide-react';
@@ -44,20 +44,48 @@ export function NotificationList() {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
 
-  // Fetch notifications
-  const { data, isLoading, isError } = useQuery<NotificationResponse>({
+  const {
+    data,
+    isLoading,
+    isError,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery<NotificationResponse>({
     queryKey: ['notifications'],
-    queryFn: async () => {
-      return await api.get('user/notifications').json();
+    queryFn: async ({ pageParam = 1 }) => {
+      return await api.get(`user/notifications?page=${pageParam}`).json();
     },
-    // Refresh every 1 minute
+    getNextPageParam: (lastPage) => {
+      if (lastPage.meta.current_page < lastPage.meta.last_page) {
+        return lastPage.meta.current_page + 1;
+      }
+      return undefined;
+    },
+    initialPageParam: 1,
     refetchInterval: 60000,
   });
 
-  const notifications = data?.data || [];
+  const notifications = data?.pages.flatMap((page) => page.data) || [];
+
+  const observerRef = React.useRef<IntersectionObserver | null>(null);
+  const lastNotificationRef = React.useCallback(
+    (node: HTMLDivElement | null) => {
+      if (isFetchingNextPage) return;
+      if (observerRef.current) observerRef.current.disconnect();
+
+      observerRef.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && hasNextPage) {
+          fetchNextPage();
+        }
+      });
+
+      if (node) observerRef.current.observe(node);
+    },
+    [isFetchingNextPage, hasNextPage, fetchNextPage]
+  );
 
   const handleNotificationClick = (item: NotificationItem) => {
-    // Determine route based on notification code
     const code = item.data.code;
     let targetRoute = '';
 
@@ -96,10 +124,13 @@ export function NotificationList() {
       case 'PERFORMANCE_REMINDER':
       case 'PERFORMANCE_SUBMITTED':
       case 'PERFORMANCE_PUBLISHED':
+      case 'SELF_ASSESSMENT_REMINDER':
         targetRoute = '/performance/self-assessment';
         break;
+      case 'OFFBOARDING_VALIDATE_HANDOVER':
+        targetRoute = '/employee/off-boarding';
+        break;
       default:
-        // No predefined route mapping, stay put
         break;
     }
 
@@ -152,9 +183,10 @@ export function NotificationList() {
         ) : (
           <ScrollArea className="h-[350px] overflow-y-auto">
             <div className="flex flex-col">
-              {notifications.map((notification) => (
+              {notifications.map((notification, index) => (
                 <div
                   key={notification.id}
+                  ref={index === notifications.length - 1 ? lastNotificationRef : null}
                   onClick={() => handleNotificationClick(notification)}
                   className={cn(
                     "flex flex-col gap-1 p-4 text-sm cursor-pointer hover:bg-gray-50 transition-colors border-b last:border-0",
@@ -183,6 +215,11 @@ export function NotificationList() {
                   </TooltipProvider>
                 </div>
               ))}
+              {isFetchingNextPage && (
+                <div className="p-4 text-center text-xs text-gray-400">
+                  Loading more...
+                </div>
+              )}
             </div>
           </ScrollArea>
         )}
@@ -196,3 +233,4 @@ export function NotificationList() {
     </Popover>
   );
 }
+
