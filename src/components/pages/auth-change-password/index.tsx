@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,7 +15,7 @@ import {
   FormControl,
   FormMessage,
 } from '@/components/ui/form';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { postChangePassword } from '@/services/auth';
 import { toast } from 'sonner';
@@ -26,33 +26,26 @@ import { toast } from 'sonner';
 const formSchema = z
   .object({
     email: z.string().email('Invalid email address'),
-    password: z.string().min(6, 'Password must be at least 6 characters'),
-    password_confirmation: z
+    current_password: z
+      .string()
+      .min(6, 'Current password must be at least 6 characters'),
+    new_password: z.string().min(6, 'New password must be at least 6 characters'),
+    new_password_confirmation: z
       .string()
       .min(6, 'Password confirmation is required'),
-    token: z.string().min(1, 'Token is required'),
   })
-  .refine((data) => data.password === data.password_confirmation, {
+  .refine((data) => data.new_password === data.new_password_confirmation, {
     message: 'Passwords do not match',
-    path: ['password_confirmation'],
+    path: ['new_password_confirmation'],
   });
 
 export default function ChangePasswordPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
-
-  // -----------------------------
-  // Ambil query param dari asPath
-  // -----------------------------
-  const query = useMemo(() => {
-    if (typeof window === 'undefined') return { email: '', token: '' };
-    const params = new URLSearchParams(window.location.search);
-    return {
-      email: params.get('email') ?? '',
-      token: params.get('token') ?? '',
-    };
-  }, []);
+  const [storedEmail, setStoredEmail] = useState('');
 
   // -----------------------------
   // Form
@@ -60,24 +53,42 @@ export default function ChangePasswordPage() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: query.email,
-      password: '',
-      password_confirmation: '',
-      token: query.token,
+      email: '',
+      current_password: '',
+      new_password: '',
+      new_password_confirmation: '',
     },
     mode: 'onChange',
     reValidateMode: 'onChange',
   });
 
-  // Reset form kalau query berubah
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const rawUser = localStorage.getItem('user');
+    if (!rawUser) return;
+
+    try {
+      const user = JSON.parse(rawUser) as { email?: string };
+      if (user?.email) {
+        setStoredEmail(user.email);
+      }
+    } catch {
+      // Ignore malformed localStorage content.
+    }
+  }, []);
+
+  // Reset form ketika query/local storage berubah
+  useEffect(() => {
+    const emailFromQuery = searchParams.get('email') ?? '';
+    const resolvedEmail = emailFromQuery || storedEmail;
+
     form.reset({
-      email: query.email,
-      password: '',
-      password_confirmation: '',
-      token: query.token,
+      email: resolvedEmail,
+      current_password: '',
+      new_password: '',
+      new_password_confirmation: '',
     });
-  }, [query.email, query.token, form]);
+  }, [searchParams, storedEmail, form]);
 
   // -----------------------------
   // Mutation
@@ -94,7 +105,11 @@ export default function ChangePasswordPage() {
   });
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    mutation.mutate(values);
+    mutation.mutate({
+      current_password: values.current_password,
+      new_password: values.new_password,
+      new_password_confirmation: values.new_password_confirmation,
+    });
   };
 
   return (
@@ -132,33 +147,32 @@ export default function ChangePasswordPage() {
             )}
           />
 
-          {/* Hidden Token */}
+          {/* Current Password */}
           <FormField
             control={form.control}
-            name="token"
-            render={({ field }) => <input type="hidden" {...field} />}
-          />
-
-          {/* Password */}
-          <FormField
-            control={form.control}
-            name="password"
+            name="current_password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Password</FormLabel>
+                <FormLabel>Current Password</FormLabel>
                 <FormControl>
                   <div className="relative w-full">
                     <Input
-                      placeholder="Input your password"
-                      type={showPassword ? 'text' : 'password'}
+                      placeholder="Input your current password"
+                      type={showCurrentPassword ? 'text' : 'password'}
                       {...field}
                     />
                     <button
                       type="button"
-                      onClick={() => setShowPassword(!showPassword)}
+                      onClick={() =>
+                        setShowCurrentPassword(!showCurrentPassword)
+                      }
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
                     >
-                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      {showCurrentPassword ? (
+                        <EyeOff size={18} />
+                      ) : (
+                        <Eye size={18} />
+                      )}
                     </button>
                   </div>
                 </FormControl>
@@ -167,17 +181,49 @@ export default function ChangePasswordPage() {
             )}
           />
 
-          {/* Password Confirmation */}
+          {/* New Password */}
           <FormField
             control={form.control}
-            name="password_confirmation"
+            name="new_password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Password Confirmation</FormLabel>
+                <FormLabel>New Password</FormLabel>
                 <FormControl>
                   <div className="relative w-full">
                     <Input
-                      placeholder="Confirm your password"
+                      placeholder="Input your new password"
+                      type={showPassword ? 'text' : 'password'}
+                      {...field}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+                    >
+                      {showPassword ? (
+                        <EyeOff size={18} />
+                      ) : (
+                        <Eye size={18} />
+                      )}
+                    </button>
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* New Password Confirmation */}
+          <FormField
+            control={form.control}
+            name="new_password_confirmation"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>New Password Confirmation</FormLabel>
+                <FormControl>
+                  <div className="relative w-full">
+                    <Input
+                      placeholder="Confirm your new password"
                       type={showPasswordConfirm ? 'text' : 'password'}
                       {...field}
                     />
