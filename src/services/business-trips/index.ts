@@ -1,6 +1,12 @@
 import { api } from "@/lib/api";
 import { PaginationState } from "@tanstack/react-table";
-import { IBusinessTripListResponse } from "./types";
+import { ApiResponse } from "@/lib/types";
+import {
+  IBusinessTripActionRequest,
+  IBusinessTripDetailResponse,
+  IBusinessTripListResponse,
+  IBusinessTripResponse,
+} from "./types";
 
 export const getBusinessTrips = async (
   pagination?: PaginationState,
@@ -39,5 +45,42 @@ export const getBusinessTrips = async (
     { searchParams },
   );
 
+  return response.json();
+};
+
+export const getBusinessTripDetail = async (
+  id: number,
+): Promise<IBusinessTripDetailResponse> => {
+  const response = await api.get<IBusinessTripDetailResponse>(
+    `employee/business-trips/${id}`,
+  );
+  return response.json();
+};
+
+const normalizeNotes = (notes?: string | null): string | null => {
+  if (notes === undefined || notes === null) return null;
+  const trimmed = notes.trim();
+  return trimmed.length > 0 ? trimmed : null;
+};
+
+export const approveBusinessTrip = async (
+  id: number,
+  payload?: IBusinessTripActionRequest,
+): Promise<ApiResponse<IBusinessTripResponse>> => {
+  const response = await api.post<ApiResponse<IBusinessTripResponse>>(
+    `employee/business-trips/${id}/approve`,
+    { json: { notes: normalizeNotes(payload?.notes) } },
+  );
+  return response.json();
+};
+
+export const rejectBusinessTrip = async (
+  id: number,
+  payload?: IBusinessTripActionRequest,
+): Promise<ApiResponse<IBusinessTripResponse>> => {
+  const response = await api.post<ApiResponse<IBusinessTripResponse>>(
+    `employee/business-trips/${id}/reject`,
+    { json: { notes: normalizeNotes(payload?.notes) } },
+  );
   return response.json();
 };

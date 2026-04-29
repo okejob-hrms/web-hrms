@@ -38,3 +38,13 @@ export interface IBusinessTripListResponse {
   data: IBusinessTripResponse[];
   pagination: ApiPagination;
 }
+
+export interface IBusinessTripDetailResponse {
+  status: string;
+  message: string;
+  data: IBusinessTripResponse;
+}
+
+export interface IBusinessTripActionRequest {
+  notes?: string | null;
+}

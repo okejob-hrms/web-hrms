@@ -4,10 +4,17 @@ import * as React from "react";
 import dayjs from "dayjs";
 import { ColumnDef } from "@tanstack/react-table";
 import { PaginationState } from "@tanstack/react-table";
+import { CircleCheckBigIcon, Ellipsis, Eye, XCircle } from "lucide-react";
 
 import { DataTable } from "@/components/tables/data-table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   formatDateRange,
   formatDayDifference,
@@ -17,12 +24,16 @@ import { stringAvatar } from "@/lib/utils";
 import { ApiPagination } from "@/lib/types";
 import { IBusinessTripResponse } from "@/services/business-trips/types";
 
+import { BusinessTripModalKey } from "../hook";
+
 interface Props {
   data: IBusinessTripResponse[];
   apiPagination?: ApiPagination;
   paginationState: PaginationState;
   setPaginationState: React.Dispatch<React.SetStateAction<PaginationState>>;
   loading?: boolean;
+  onSelectTrip: (trip: IBusinessTripResponse) => void;
+  onOpenModal: (modal: BusinessTripModalKey) => void;
 }
 
 export default function BusinessTripTable({
@@ -31,9 +42,17 @@ export default function BusinessTripTable({
   paginationState,
   setPaginationState,
   loading,
+  onSelectTrip,
+  onOpenModal,
 }: Props) {
   const columns: ColumnDef<IBusinessTripResponse>[] = React.useMemo(
     () => [
+      {
+        accessorKey: "id",
+        header: "Trip ID",
+        size: 140,
+        cell: ({ row }) => `#${row.original.id}`,
+      },
       {
         accessorKey: "user.name",
         header: "Employee",
@@ -120,8 +139,70 @@ export default function BusinessTripTable({
             "-"
           ),
       },
+      {
+        accessorKey: "menu",
+        header: "",
+        size: 60,
+        cell: ({ row }) => {
+          const trip = row.original;
+          const isWaiting = trip.status === 0;
+
+          return (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="p-1 hover:bg-gray-100 rounded">
+                  <Ellipsis className="text-grayscale-30" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem asChild>
+                  <button
+                    onClick={() => {
+                      onSelectTrip(trip);
+                      setTimeout(() => onOpenModal("detail"), 0);
+                    }}
+                    className="flex gap-2 w-full text-left"
+                  >
+                    <Eye className="w-4 h-4" />
+                    Business Trip Details
+                  </button>
+                </DropdownMenuItem>
+
+                {isWaiting && (
+                  <>
+                    <DropdownMenuItem asChild>
+                      <button
+                        onClick={() => {
+                          onSelectTrip(trip);
+                          setTimeout(() => onOpenModal("approve"), 0);
+                        }}
+                        className="flex gap-2 w-full text-left"
+                      >
+                        <CircleCheckBigIcon className="w-4 h-4" />
+                        Approve Request
+                      </button>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <button
+                        onClick={() => {
+                          onSelectTrip(trip);
+                          setTimeout(() => onOpenModal("reject"), 0);
+                        }}
+                        className="flex gap-2 w-full text-left text-red-600"
+                      >
+                        <XCircle className="w-4 h-4 text-red-600" />
+                        Reject Request
+                      </button>
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          );
+        },
+      },
     ],
-    [],
+    [onSelectTrip, onOpenModal],
   );
 
   return (

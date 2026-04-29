@@ -5,6 +5,7 @@ import * as React from "react";
 import { useBusinessTrips } from "./hook";
 import BusinessTripFiltersSection from "./sections/business-trip-filters";
 import BusinessTripTable from "./sections/business-trip-table";
+import BusinessTripModals from "./sections/business-trip-modals";
 
 export default function BusinessTripList() {
   const {
@@ -15,6 +16,20 @@ export default function BusinessTripList() {
     filters,
     setFilters,
     loading,
+
+    modalState,
+    openModal,
+    closeModal,
+
+    selectTrip,
+
+    detail,
+    loadingDetail,
+
+    handleApprove,
+    handleReject,
+    isApproving,
+    isRejecting,
   } = useBusinessTrips();
 
   return (
@@ -31,6 +46,20 @@ export default function BusinessTripList() {
         paginationState={paginationState}
         setPaginationState={setPagination}
         loading={loading}
+        onSelectTrip={selectTrip}
+        onOpenModal={openModal}
+      />
+
+      <BusinessTripModals
+        modalState={modalState}
+        detail={detail}
+        loadingDetail={loadingDetail}
+        isApproving={isApproving}
+        isRejecting={isRejecting}
+        onCloseModal={closeModal}
+        onOpenModal={openModal}
+        onApprove={handleApprove}
+        onReject={handleReject}
       />
     </div>
   );
