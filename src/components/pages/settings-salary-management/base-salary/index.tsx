@@ -120,8 +120,8 @@ export default function SettingsBaseSalary() {
     {
       accessorKey: 'amount',
       header: 'Base Salary Amount',
-      cell: ({ row }) =>
-        `Rp ${Number(row.original.amount).toLocaleString('id-ID')}`,
+      cell: ({ row }) => `*************`,
+      // `Rp ${Number(row.original.amount).toLocaleString('id-ID')}`,
     },
     {
       accessorKey: 'effective_date',
@@ -450,7 +450,8 @@ export default function SettingsBaseSalary() {
             <div className="space-y-2">
               <Label>Base Salary Amount</Label>
               <Label className="font-semibold">
-                {`Rp ${Number(editing?.amount).toLocaleString('id-ID')}`}
+                *************
+                {/* {`Rp ${Number(editing?.amount).toLocaleString('id-ID')}`} */}
               </Label>
             </div>
 
