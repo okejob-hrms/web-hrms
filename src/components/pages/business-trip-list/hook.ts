@@ -75,6 +75,8 @@ export function useBusinessTrips() {
 
   const closeAllModals = React.useCallback(() => {
     setModalState({ detail: false, approve: false, reject: false });
+    setSelectedId(null);
+    setSelectedTrip(undefined);
   }, []);
 
   const handleMutationError = React.useCallback(
@@ -134,9 +136,6 @@ export function useBusinessTrips() {
 
   const closeModal = React.useCallback((modal: BusinessTripModalKey) => {
     setModalState((prev) => ({ ...prev, [modal]: false }));
-    if (modal === "detail") {
-      setSelectedId(null);
-    }
   }, []);
 
   const selectTrip = React.useCallback((trip: IBusinessTripResponse) => {
