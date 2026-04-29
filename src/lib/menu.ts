@@ -49,6 +49,7 @@ export const menus: Record<string, MenuItem[]> = {
     { name: "Attandance Tracker", value: "attendance/attendance-tracker" },
     { name: "Leave Request", value: "attendance/leave-request" },
     { name: "Overtime", value: "attendance/over-time" },
+    { name: "Business Trip", value: "attendance/business-trip" },
   ],
 
   payroll: [

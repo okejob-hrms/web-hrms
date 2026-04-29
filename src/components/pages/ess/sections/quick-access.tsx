@@ -3,6 +3,7 @@
 import {
   ClockPlusIcon,
   GitCompareArrowsIcon,
+  Plane,
   Target,
   UserStarIcon,
 } from 'lucide-react';
@@ -26,6 +27,11 @@ export const EssQuickActions = () => {
       title: 'My OKR',
       path: '/ess/okr',
       icon: <Target className="text-white" />,
+    },
+    {
+      title: 'Business Trip',
+      path: '/ess/business-trip',
+      icon: <Plane className="text-white" />,
     },
     {
       title: 'Self Assessment',
