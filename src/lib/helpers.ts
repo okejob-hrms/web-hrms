@@ -229,6 +229,39 @@ export function getStatusAttendance(status?: string): StatusConfig {
   return { variant, className, label: status };
 }
 
+export function getStatusBusinessTrip(status?: number): StatusConfig {
+  switch (status) {
+    case 0:
+      return {
+        variant: "secondary",
+        className: "bg-yellow-100 text-yellow-700",
+        label: "Waiting",
+      };
+    case 1:
+      return {
+        variant: "secondary",
+        className: "bg-green-100 text-green-700",
+        label: "Approved",
+      };
+    case 2:
+      return {
+        variant: "destructive",
+        label: "Rejected",
+      };
+    case 3:
+      return {
+        variant: "secondary",
+        className: "bg-gray-100 text-gray-700",
+        label: "Cancelled",
+      };
+    default:
+      return {
+        variant: "default",
+        label: "-",
+      };
+  }
+}
+
 export function getStatusOvertime(status?: number): StatusConfig {
   if (!status) {
     return {
