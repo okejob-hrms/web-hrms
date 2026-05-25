@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "postbuild": "node scripts/build-pagefind-index.mjs",
+    "docs:search": "node scripts/build-pagefind-index.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",
@@ -42,8 +44,8 @@
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.13",
     "embla-carousel-react": "^8.6.0",
-    "framer-motion": "^12.23.24",
     "firebase": "^10.12.2",
+    "framer-motion": "^12.23.24",
     "html-to-image": "^1.11.13",
     "html2pdf.js": "^0.12.1",
     "input-otp": "^1.4.2",
@@ -85,6 +87,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.0.7",
+    "pagefind": "^1.5.2",
     "tailwindcss": "^4",
     "tw-animate-css": "^1.3.6",
     "typescript": "^5"

@@ -17,6 +17,10 @@
 /.next/
 /out/
 
+# Nextra docs search (generated from MDX via scripts/build-pagefind-index.mjs)
+/public/_pagefind/
+.pagefind-source/
+
 # production
 /build
 
@@ -43,7 +47,8 @@ next-env.d.ts
 # documentation-related stuffs
 /.playwright-mcp
 /agent-instructions
-/scripts
+/scripts/*
+!/scripts/build-pagefind-index.mjs
 
 .claude
 .agents
