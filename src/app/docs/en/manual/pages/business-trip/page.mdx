@@ -1,0 +1,45 @@
+# Business Trip (HR / Admin)
+
+## Purpose
+
+Review and approve or reject employee business-trip requests across the organization. Filter by status, dates, or employee; open trip details from the row menu.
+
+If you cannot open this screen, use **Employee → Employee Attendance → Business Trip** after signing in.
+
+## Screenshot
+
+![Business Trip HR](/manual/pages/business-trip.png)
+
+## On this page
+
+1. **Status tabs** — All, Waiting, Approved, Rejected, or Cancelled trips.
+2. **Start Date** — Optional filter (from date).
+3. **End Date** — Optional filter (to date).
+4. **Employee** — Optional employee filter.
+5. **Business Trip table** — Lists trips with Trip ID, Employee, Duration, Destination, Reason, Status, Last Update (with paging when many rows exist).
+6. **Row actions menu** — Open actions for each row (Details; Approve/Reject while status is Waiting).
+7. **Business Trip Details** — Opens from the row menu or from details action; shows full trip info. For Waiting trips you can approve or reject (with confirmation and optional notes).
+
+## Controls
+
+| Number | Name | What it does | Notes |
+|--------|------|----------------|-------|
+| 1 | Status tabs | Narrow the list by status or show all. | Status labels shown in the table include Waiting, Approved, Rejected, Cancelled. |
+| 2 | Start Date | Filter trips from this date. | Optional; works with End Date if set. |
+| 3 | End Date | Filter trips up to this date. | Optional. |
+| 4 | Employee | Filter by one employee. | Optional combobox/search. |
+| 5 | Business Trip table | Browse all matching trips and paginate if needed. | Trip ID prefix may show as `#` in the UI. |
+| 6 | Row actions menu | **Business Trip Details**, or **Approve Request** / **Reject Request** for Waiting trips. | Approve/Reject opens confirmation; you can add an optional note. |
+| 7 | Detail / confirmations | Completes approve or reject; optional note on approve/reject dialogs. | After action, refresh or wait for list to reflect new status. |
+
+## Common tasks
+
+- **Approve a waiting trip** — Find the trip (use **Waiting** tab), open the row menu → **Approve Request**, confirm, optionally add a note → **Approve**.
+- **Reject a trip** — Same path with **Reject Request** → confirm → **Reject** with optional note.
+- **Inspect a trip without acting** — Open **Business Trip Details** from the row menu.
+
+## Troubleshooting
+
+- **Approve/Reject missing** — The trip must be **Waiting**. If you expect to approve and do not see the actions, ask your admin.
+- **Empty table** — No rows match filters; clear dates/employee or change the status tab.
+- **Wrong employee list** — Reset filters and refine **Employee** or date range again.
