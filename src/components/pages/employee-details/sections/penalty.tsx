@@ -18,6 +18,14 @@ import { PenaltyDetailModal } from "./penalty-detail-modal";
 import { EditPenaltyModal } from "./edit-penalty-modal";
 import { DeletePenaltyAlert } from "./delete-penalty-alert";
 import { useQueryClient } from "@tanstack/react-query";
+import { Badge } from "@/components/ui/badge";
+import { rupiahFormatter } from "@/lib/helpers";
+import {
+  formatPeriod,
+  getConditionLabel,
+  getTriggerLabel,
+  getAppliedAmount,
+} from "./penalty-utils";
 
 interface PenaltyDetailProps {
   userId: number;
@@ -51,17 +59,67 @@ export const PenaltyDetail = React.memo(function PenaltyDetail({
     {
       accessorKey: "name",
       header: "Name",
-      cell: ({ row }) => row.original.name ?? "-",
+      cell: ({ row }) => (
+        <div className="flex flex-col gap-0.5 max-w-[260px]">
+          <span className="font-medium text-grayscale-90">
+            {row.original.name ?? "-"}
+          </span>
+          {row.original.description ? (
+            <span className="text-xs text-grayscale-50 line-clamp-2">
+              {row.original.description}
+            </span>
+          ) : null}
+        </div>
+      ),
     },
     {
-      accessorKey: "description",
-      header: "Description",
-      cell: ({ row }) => row.original.description ?? "-",
+      accessorKey: "trigger_type",
+      header: "Trigger",
+      cell: ({ row }) => {
+        const trigger = row.original.meta?.trigger_type;
+        if (!trigger) return "-";
+        return (
+          <Badge variant="outline" className="font-normal">
+            {getTriggerLabel(trigger)}
+          </Badge>
+        );
+      },
     },
     {
-      accessorKey: "point",
-      header: "Point",
-      cell: ({ row }) => row.original.point ?? "-",
+      accessorKey: "condition_type",
+      header: "Condition",
+      cell: ({ row }) => (
+        <Badge variant="secondary" className="font-normal">
+          {getConditionLabel(row.original.condition_type)}
+        </Badge>
+      ),
+    },
+    {
+      accessorKey: "period",
+      header: "Period",
+      cell: ({ row }) => formatPeriod(row.original.period),
+    },
+    {
+      accessorKey: "amount",
+      header: "Amount",
+      cell: ({ row }) => {
+        const amount = getAppliedAmount(row.original);
+        if (amount === 0) {
+          return (
+            <Badge
+              variant="outline"
+              className="border-success text-success font-normal"
+            >
+              Tanpa Potongan
+            </Badge>
+          );
+        }
+        return (
+          <span className="font-medium text-error">
+            {rupiahFormatter(amount)}
+          </span>
+        );
+      },
     },
     {
       accessorKey: "valid_until",
@@ -71,26 +129,6 @@ export const PenaltyDetail = React.memo(function PenaltyDetail({
         if (!validUntil) return "-";
         const { date } = formatDateTime(validUntil);
         return date;
-      },
-    },
-    {
-      accessorKey: "created_at",
-      header: "Created At",
-      cell: ({ row }) => {
-        const createdAt = row.original.created_at;
-        if (!createdAt) return "-";
-        const { date, hour } = formatDateTime(createdAt);
-        return `${date} ${hour}`;
-      },
-    },
-    {
-      accessorKey: "updated_at",
-      header: "Updated At",
-      cell: ({ row }) => {
-        const updatedAt = row.original.updated_at;
-        if (!updatedAt) return "-";
-        const { date, hour } = formatDateTime(updatedAt);
-        return `${date} ${hour}`;
       },
     },
     {
