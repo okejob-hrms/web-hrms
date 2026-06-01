@@ -40,3 +40,20 @@ export interface IPenaltyRequest {
   description: string;
   valid_until: string | null;
 }
+
+export type PenaltyConditionType = "per_occurrence" | "monthly_aggregate";
+
+/** Filter for the `valid_until` column. */
+export type PenaltyValidityStatus = "active" | "expired";
+
+export interface IPenaltyListParams {
+  user_id?: number;
+  page?: number;
+  limit?: number;
+  /** Filter by condition type. */
+  condition_type?: PenaltyConditionType;
+  /** Filter by period, formatted as "YYYY-MM". */
+  period?: string;
+  /** Filter by validity status of `valid_until`. */
+  valid_status?: PenaltyValidityStatus;
+}
