@@ -1,17 +1,30 @@
 import * as React from "react";
 import { DataTable } from "@/components/tables/data-table";
-import { ColumnDef } from "@tanstack/react-table";
+import { ColumnDef, PaginationState } from "@tanstack/react-table";
 import { formatDateTime } from "@/lib/helpers";
 import { useQuery } from "@tanstack/react-query";
 import { getPenalties } from "@/services/employees/penalties";
-import { IPenaltyResponse } from "@/services/employees/penalties/types";
+import {
+  IPenaltyResponse,
+  PenaltyConditionType,
+  PenaltyValidityStatus,
+} from "@/services/employees/penalties/types";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Ellipsis } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Ellipsis, X } from "lucide-react";
 import Image from "next/image";
 import { AddPenaltyModal } from "./add-penalty-modal";
 import { PenaltyDetailModal } from "./penalty-detail-modal";
@@ -31,16 +44,83 @@ interface PenaltyDetailProps {
   userId: number;
 }
 
+interface PenaltyFilters {
+  condition_type: PenaltyConditionType | "all";
+  period: string;
+  valid_status: PenaltyValidityStatus | "all";
+}
+
+const DEFAULT_FILTERS: PenaltyFilters = {
+  condition_type: "all",
+  period: "",
+  valid_status: "all",
+};
+
 export const PenaltyDetail = React.memo(function PenaltyDetail({
   userId,
 }: PenaltyDetailProps) {
+  const [pagination, setPagination] = React.useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 10,
+  });
+  const [filters, setFilters] = React.useState<PenaltyFilters>(DEFAULT_FILTERS);
+
+  // Any filter change must send the user back to the first page, otherwise
+  // they could be stranded on a page that no longer exists in the new result set.
+  const updateFilter = React.useCallback(
+    <K extends keyof PenaltyFilters>(key: K, value: PenaltyFilters[K]) => {
+      setFilters((prev) => ({ ...prev, [key]: value }));
+      setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+    },
+    [],
+  );
+
+  const hasActiveFilter =
+    filters.condition_type !== "all" ||
+    filters.period !== "" ||
+    filters.valid_status !== "all";
+
+  const resetFilters = React.useCallback(() => {
+    setFilters(DEFAULT_FILTERS);
+    setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+  }, []);
+
+  const queryParams = React.useMemo(
+    () => ({
+      user_id: userId,
+      page: pagination.pageIndex + 1,
+      limit: pagination.pageSize,
+      condition_type:
+        filters.condition_type === "all" ? undefined : filters.condition_type,
+      period: filters.period || undefined,
+      valid_status:
+        filters.valid_status === "all" ? undefined : filters.valid_status,
+    }),
+    [userId, pagination, filters],
+  );
+
   const { data: penaltiesData, isLoading } = useQuery({
-    queryKey: ["employee-penalties", userId],
-    queryFn: () => getPenalties(userId),
+    queryKey: ["employee-penalties", queryParams],
+    queryFn: () => getPenalties(queryParams),
     enabled: !!userId,
   });
 
   const penalties = penaltiesData?.data ?? [];
+
+  const apiPagination = penaltiesData
+    ? {
+        current_page: penaltiesData.current_page,
+        per_page: penaltiesData.per_page,
+        total: penaltiesData.total,
+        last_page: penaltiesData.last_page ?? penaltiesData.current_page,
+        from: penaltiesData.from ?? 0,
+        to: penaltiesData.to ?? 0,
+        first: penaltiesData.first_page_url ?? "",
+        last: "",
+        prev: penaltiesData.prev_page_url ?? null,
+        next: penaltiesData.next_page_url ?? null,
+      }
+    : undefined;
 
   const queryClient = useQueryClient();
   const [selectedPenaltyId, setSelectedPenaltyId] = React.useState<
@@ -194,7 +274,69 @@ export const PenaltyDetail = React.memo(function PenaltyDetail({
         <h2 className="font-semibold text-xl">Penalties</h2>
         <AddPenaltyModal userId={userId} />
       </div>
-      <DataTable columns={columns} data={penalties} maxBodyHeight={500} />
+
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-1">
+        <Select
+          value={filters.condition_type}
+          onValueChange={(v) =>
+            updateFilter("condition_type", v as PenaltyConditionType | "all")
+          }
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Condition" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Semua Kondisi</SelectItem>
+            <SelectItem value="per_occurrence">Per Kejadian</SelectItem>
+            <SelectItem value="monthly_aggregate">Akumulasi Bulanan</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Input
+          type="month"
+          value={filters.period}
+          onChange={(e) => updateFilter("period", e.target.value)}
+          aria-label="Period"
+        />
+
+        <Select
+          value={filters.valid_status}
+          onValueChange={(v) =>
+            updateFilter("valid_status", v as PenaltyValidityStatus | "all")
+          }
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Valid Until" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Semua Status</SelectItem>
+            <SelectItem value="active">Masih Berlaku</SelectItem>
+            <SelectItem value="expired">Kadaluarsa</SelectItem>
+          </SelectContent>
+        </Select>
+        </div>
+
+        {hasActiveFilter && (
+          <Button
+            variant="ghost"
+            onClick={resetFilters}
+            className="flex items-center gap-1 text-text-secondary shrink-0"
+          >
+            <X className="w-4 h-4" />
+            Reset Filter
+          </Button>
+        )}
+      </div>
+
+      <DataTable
+        columns={columns}
+        data={penalties}
+        loading={isLoading}
+        apiPagination={apiPagination}
+        paginationState={pagination}
+        setPaginationState={setPagination}
+      />
 
       <PenaltyDetailModal
         penaltyId={selectedPenaltyId}

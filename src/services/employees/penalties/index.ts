@@ -1,13 +1,27 @@
 import { api } from "@/lib/api";
 import { ApiResponse, PaginatedResponse } from "@/lib/types";
-import { IPenaltyRequest, IPenaltyResponse } from "./types";
+import {
+  IPenaltyListParams,
+  IPenaltyRequest,
+  IPenaltyResponse,
+} from "./types";
 
-export const getPenalties = async (userId?: number) => {
+export const getPenalties = async (params?: IPenaltyListParams) => {
   try {
-    const url = userId
-      ? `employee/penalties?user_id=${userId}`
-      : `employee/penalties`;
-    const response = api.get<PaginatedResponse<IPenaltyResponse>>(url);
+    const searchParams: Record<string, string> = {};
+
+    if (params?.user_id) searchParams.user_id = String(params.user_id);
+    if (params?.page) searchParams.page = String(params.page);
+    if (params?.limit) searchParams.limit = String(params.limit);
+    if (params?.condition_type)
+      searchParams.condition_type = params.condition_type;
+    if (params?.period) searchParams.period = params.period;
+    if (params?.valid_status) searchParams.valid_status = params.valid_status;
+
+    const response = api.get<PaginatedResponse<IPenaltyResponse>>(
+      "employee/penalties",
+      { searchParams },
+    );
     return response.json();
   } catch (error: any) {
     if (error.name === "HTTPError") {
