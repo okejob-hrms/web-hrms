@@ -21,6 +21,8 @@
     { "path": "/attendance/leave-request", "slug": "leave-request", "title": "Leave Request List" },
     { "path": "/attendance/leave-request/add", "slug": "leave-request-add", "title": "Request Leave" },
     { "path": "/attendance/over-time", "slug": "overtime", "title": "Overtime" },
+    { "path": "/attendance/business-trip", "slug": "business-trip", "title": "Business Trip" },
+    { "path": "/ess/business-trip", "slug": "ess-business-trip", "title": "ESS Business Trip" },
     { "path": "/payroll/list", "slug": "payroll-list", "title": "Payrun List" },
     { "path": "/payroll/request", "slug": "payroll-request", "title": "Request Access" },
     { "path": "/performance/self-assessment", "slug": "self-assessment", "title": "Self Assessment List" },

@@ -1,0 +1,47 @@
+# ESS Business Trip
+
+## Purpose
+
+Submit and track your own business-trip requests from Employee Self-Service. Create new requests with destination and dates, monitor status (**Waiting**, **Approved**, **Rejected**, **Cancelled**), and cancel while still waiting.
+
+## Screenshot
+
+![ESS Business Trip](/manual/pages/ess-business-trip.png)
+
+## On this page
+
+1. **New Business Trip Request** — Opens a form to submit a trip (required Start Date, End Date, Destination, Reason).
+2. **Status tabs** — All, Waiting, Approved, Rejected, or Cancelled requests.
+3. **Start Date** — Optional filter for the list (date-only field).
+4. **End Date** — Optional filter for the list (date-only field).
+5. **My Business Trip table** — Your trips with Trip ID, Duration, Destination, Reason, Status, Last Update.
+6. **Row actions menu** — **View Details** always; **Cancel Request** appears only while status is Waiting.
+7. **New Business Trip Request modal** — Start Date (\*), End Date (\*), Destination (\*), Reason (\*) — Submit only when Valid (end date must be on or after start date).
+8. **Business Trip Details modal** — Read-only trip summary; optional **Cancel Request** footer while Waiting shows (also available from actions menu cancellation flow).
+9. **Cancel confirmation** — Confirms you want to cancel; request becomes **Cancelled** and cannot be undone from this screen alone.
+
+## Controls
+
+| Number | Name | What it does | Notes |
+|--------|------|----------------|-------|
+| 1 | New Business Trip Request | Opens the modal to create a request. | If you don't see this, ask your admin. |
+| 2 | Status tabs | Filter requests by lifecycle state. | Use **Waiting** for items pending employer action. |
+| 3 | Start Date filter | Limits list rows from this calendar date onward. | Optional. |
+| 4 | End Date filter | Limits list rows through this calendar date. | Optional. |
+| 5 | My Business Trip table | Reads your submissions and status in one grid. | Use pagination controls if visible at the bottom when many trips exist. |
+| 6 | Row actions menu | **View Details** opens the modal; **Cancel Request** removes a Waiting submission. | Cancel uses a confirmation dialog. |
+| 7 | Request modal | Fill required dates, destination city/location text, purpose text; **Submit** or **Cancel**. | Submit stays disabled until the form is valid. |
+| 8 | Details modal | Displays Trip ID, status, timeline (submitted vs approved timestamps when present), Reason, Notes, approver preview when supplied. | **Cancel Request** on Waiting trips opens step 9. |
+| 9 | Cancel confirmation | Acknowledges cancelling is permanent for that submission. | **Confirm Cancel** or **Back**. |
+
+## Common tasks
+
+- **Submit a new trip** — Click **New Business Trip Request**, complete all required fields (**Start Date**, **End Date**, **Destination**, **Reason**) ensuring end date ≥ start date → **Submit**.
+- **Withdraw before approval** — On a Waiting row → row menu → **Cancel Request** (or Details → Cancel) → **Confirm Cancel**.
+- **Check approval outcome** — Use **Approved** or **Rejected** tabs; **View Details** for Notes or approver information when shown.
+
+## Troubleshooting
+
+- **Submit disabled or validation error** — All fields must be filled; **End Date** cannot be before **Start Date**. Fix dates and retry.
+- **Cannot cancel** — Only Waiting trips allow cancel once submitted. Approved/Rejected trips require your HR policy (outside this guide).
+- **Status stuck on Waiting** — Your approver still needs to act; check with HR if it takes longer than expected.

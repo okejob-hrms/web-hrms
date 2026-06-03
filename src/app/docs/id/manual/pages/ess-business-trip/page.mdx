@@ -1,0 +1,47 @@
+# Business Trip ESS
+
+## Tujuan
+
+Ajukan dan lacak pengajuan perjalanan dinas Anda dari Layanan Mandiri Karyawan (ESS). Buat pengajuan baru dengan tujuan dan tanggal, pantau status (**Waiting**, **Approved**, **Rejected**, **Cancelled**), dan batalkan selama masih Waiting.
+
+## Tangkapan layar
+
+![Business Trip ESS](/manual/pages/ess-business-trip.png)
+
+## Di halaman ini
+
+1. **New Business Trip Request** — Membuka formulir pengajuan (Start Date, End Date, Destination, Reason wajib).
+2. **Tab status** — Semua, Waiting, Approved, Rejected, atau Cancelled.
+3. **Start Date** — Filter daftar (kolom tanggal).
+4. **End Date** — Filter daftar (kolom tanggal).
+5. **Tabel My Business Trip** — Perjalanan Anda: Trip ID, Duration, Destination, Reason, Status, Last Update.
+6. **Menu aksi baris** — **View Details** selalu ada; **Cancel Request** hanya saat Waiting.
+7. **Modal New Business Trip Request** — Start Date (\*), End Date (\*), Destination (\*), Reason (\*) — **Submit** hanya jika valid (tanggal akhir ≥ tanggal mulai).
+8. **Modal Business Trip Details** — Ringkasan baca-saja; **Cancel Request** di footer saat Waiting (juga dari alur menu batalkan).
+9. **Konfirmasi batalkan** — Membatalkan pengajuan; status menjadi **Cancelled** dan tidak dapat dibatalkan dari layar ini saja.
+
+## Kontrol
+
+| No | Nama | Fungsi | Catatan |
+|----|------|--------|---------|
+| 1 | New Business Trip Request | Membuka modal pembuatan pengajuan. | Jika tidak terlihat, tanyakan kepada admin. |
+| 2 | Tab status | Memfilter menurut status. | Gunakan **Waiting** untuk item yang menunggu HR. |
+| 3 | Filter Start Date | Membatasi daftar dari tanggal kalender ini. | Opsional. |
+| 4 | Filter End Date | Membatasi daftar sampai tanggal kalender ini. | Opsional. |
+| 5 | Tabel My Business Trip | Menampilkan semua pengajuan Anda. | Gunakan paginasi jika banyak baris. |
+| 6 | Menu aksi baris | **View Details** membuka modal; **Cancel Request** membatalkan pengajuan Waiting. | Batalkan memakai dialog konfirmasi. |
+| 7 | Modal pengajuan | Isi tanggal, tujuan, alasan; **Submit** atau **Cancel**. | Submit nonaktif sampai formulir valid. |
+| 8 | Modal detail | Trip ID, status, waktu, Reason, Notes, approver jika ada. | **Cancel Request** pada Waiting membuka langkah 9. |
+| 9 | Konfirmasi batalkan | Membatalkan tidak dapat diurungkan untuk pengajuan itu. | **Confirm Cancel** atau **Back**. |
+
+## Tugas umum
+
+- **Ajukan perjalanan baru** — Klik **New Business Trip Request**, isi semua kolom wajib, pastikan tanggal akhir ≥ tanggal mulai → **Submit**.
+- **Tarik sebelum disetujui** — Baris Waiting → menu → **Cancel Request** (atau Detail → Cancel) → **Confirm Cancel**.
+- **Cek hasil persetujuan** — Tab **Approved** atau **Rejected**; **View Details** untuk Notes atau approver.
+
+## Pemecahan masalah
+
+- **Submit nonaktif / error validasi** — Semua kolom harus diisi; **End Date** tidak boleh sebelum **Start Date**.
+- **Tidak bisa batalkan** — Hanya status Waiting yang bisa dibatalkan setelah dikirim.
+- **Status tetap Waiting** — Persetujuan masih menunggu HR; hubungi HR jika terlalu lama.

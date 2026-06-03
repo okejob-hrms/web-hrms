@@ -1,0 +1,45 @@
+# Business Trip (HR / Admin)
+
+## Tujuan
+
+Tinjau serta setujui atau tolak pengajuan perjalanan dinas karyawan di seluruh organisasi. Filter menurut status, tanggal, atau karyawan; buka detail perjalanan dari menu baris.
+
+Jika tidak bisa membuka layar ini, gunakan **Employee → Employee Attendance → Business Trip** setelah masuk.
+
+## Tangkapan layar
+
+![Business Trip HR](/manual/pages/business-trip.png)
+
+## Di halaman ini
+
+1. **Tab status** — Semua, Waiting, Approved, Rejected, atau Cancelled.
+2. **Start Date** — Filter opsional (tanggal mulai).
+3. **End Date** — Filter opsional (tanggal akhir).
+4. **Employee** — Filter karyawan opsional.
+5. **Tabel Business Trip** — Daftar perjalanan: Trip ID, Employee, Duration, Destination, Reason, Status, Last Update (dengan halaman jika banyak baris).
+6. **Menu aksi baris** — Aksi per baris (Detail; Setujui/Tolak saat status Waiting).
+7. **Business Trip Details** — Dibuka dari menu baris; menampilkan info lengkap. Untuk status Waiting Anda dapat menyetujui atau menolak (dengan konfirmasi dan catatan opsional).
+
+## Kontrol
+
+| No | Nama | Fungsi | Catatan |
+|----|------|--------|---------|
+| 1 | Tab status | Mempersempit daftar menurut status atau tampilkan semua. | Label di tabel: Waiting, Approved, Rejected, Cancelled. |
+| 2 | Start Date | Filter perjalanan dari tanggal ini. | Opsional; bisa digabung dengan End Date. |
+| 3 | End Date | Filter perjalanan sampai tanggal ini. | Opsional. |
+| 4 | Employee | Filter satu karyawan. | Combobox/pencarian opsional. |
+| 5 | Tabel Business Trip | Menelusuri semua perjalanan yang cocok; paginasi jika perlu. | Trip ID dapat ditampilkan dengan awalan `#`. |
+| 6 | Menu aksi baris | **Business Trip Details**, atau **Approve Request** / **Reject Request** untuk status Waiting. | Setujui/Tolak membuka konfirmasi; catatan opsional. |
+| 7 | Detail / konfirmasi | Menyelesaikan setujui atau tolak; catatan opsional di dialog. | Setelah tindakan, daftar diperbarui. |
+
+## Tugas umum
+
+- **Setujui perjalanan Waiting** — Tab **Waiting** → menu baris → **Approve Request** → konfirmasi, catatan opsional → **Approve**.
+- **Tolak perjalanan** — Jalur sama dengan **Reject Request** → **Reject** (catatan opsional).
+- **Lihat tanpa menindak** — Buka **Business Trip Details** dari menu baris.
+
+## Pemecahan masalah
+
+- **Setujui/Tolak tidak muncul** — Status harus **Waiting**. Jika Anda seharusnya bisa menyetujui tetapi tidak melihat aksi, tanyakan kepada admin.
+- **Tabel kosong** — Tidak ada baris yang cocok filter; kosongkan tanggal/karyawan atau ganti tab status.
+- **Daftar karyawan salah** — Reset filter dan perbaiki **Employee** atau rentang tanggal.

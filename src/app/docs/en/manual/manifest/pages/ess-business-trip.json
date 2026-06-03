@@ -1,0 +1,15 @@
+{
+  "slug": "ess-business-trip",
+  "route": "/ess/business-trip",
+  "controls": [
+    { "number": 1, "name": "New Business Trip Request", "selectorOrRef": "opens request form modal" },
+    { "number": 2, "name": "Status tabs", "selectorOrRef": "All, Waiting, Approved, Rejected, Cancelled" },
+    { "number": 3, "name": "Start Date filter", "selectorOrRef": "optional date input" },
+    { "number": 4, "name": "End Date filter", "selectorOrRef": "optional date input" },
+    { "number": 5, "name": "My Business Trip table", "selectorOrRef": "Trip ID, Duration, Destination, Reason, Status, Last Update" },
+    { "number": 6, "name": "Row actions menu", "selectorOrRef": "View Details; Cancel Request when Waiting" },
+    { "number": 7, "name": "New Business Trip Request modal", "selectorOrRef": "Start Date, End Date, Destination, Reason; Submit/Cancel; validation includes end on or after start" },
+    { "number": 8, "name": "Business Trip Details modal", "selectorOrRef": "trip info; Cancel Request when Waiting" },
+    { "number": 9, "name": "Cancel confirmation", "selectorOrRef": "confirm cancel when applicable" }
+  ]
+}

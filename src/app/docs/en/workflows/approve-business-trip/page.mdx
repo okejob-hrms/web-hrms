@@ -1,0 +1,29 @@
+# Approve or reject a business trip
+
+## When to use
+
+Use when you are HR/Admin (or similarly authorized) reviewing employee business-trip requests that are in **Waiting** status.
+
+## Prerequisites
+
+- Signed in account that can reach **Employee → Employee Attendance → Business Trip**.
+- At least one trip row with **Waiting** status is visible after filters/tab selection.
+
+## Steps
+
+1. Go to **[Business Trip](/docs/manual/pages/business-trip)** (menu: **Employee → Employee Attendance → Business Trip**).
+2. Optionally filter by status (**Waiting**) or tighten by **Employee** / date range before acting.
+3. Locate the submission in the grid; open the row ⋮ (**Row actions**) menu.
+4. Choose **Business Trip Details** to inspect destination, timeline, employee, Reason, Notes. From the detail dialog you can initiate **Approve** or **Reject** while it is still Waiting—or skip straight to approve/reject from the row menu (**Approve Request** / **Reject Request**).
+5. On the approve or reject confirmation screen, optionally add an explanatory **note**, then confirm **Approve** or **Reject** as appropriate.
+6. Wait for confirmation toast or list refresh — the badge should flip to **Approved** or **Rejected** and Waiting-only actions disappear for that trip.
+
+## Expected result
+
+The employee’s ESS view updates to Approved/Rejected accordingly; timestamps or notes entered by HR may surface in ESS **View Details**.
+
+## Common mistakes
+
+- **Approve/Reject missing** — The trip is not **Waiting** or your role lacks rights. Verify status & permissions with your admin.
+- **Mis-click** — Detail dialog **Approve**/`Reject` vs standalone row actions both lead to confirmations; cancelling the dialog preserves original status.
+- **Filtered away** — Remove Start/End Employee filters when you can't find the traveler.
