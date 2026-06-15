@@ -7,6 +7,7 @@ import { IDocument } from "@/lib/types";
 export interface IEmployeeResponse {
   id: number;
   user_id: number;
+  code: string;
   name: string;
   email: string;
   phone_number: string;
