@@ -114,7 +114,7 @@ export const EmployeeDetail = React.memo(function EmployeeDetail({
             </Avatar>
             <h3 className="text-lg font-semibold">{data.user.name}</h3>
             <p className="text-sm">
-              Employee ID <span className="font-semibold">{data.id}</span>
+              Employee ID <span className="font-semibold">{data.code}</span>
             </p>
             <Badge
               variant="default"
