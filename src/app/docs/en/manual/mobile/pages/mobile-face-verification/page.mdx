@@ -1,0 +1,42 @@
+# Mobile: Face Verification
+
+## Purpose
+
+**Face Verification** matches your face to your registered profile when you clock in or out. You take one front-camera photo; the app verifies it and then opens the attendance form.
+
+## Screenshot
+
+![Mobile: Face Verification](/manual/mobile/pages/mobile-face-verification.png)
+
+## On this page
+
+1. **Back** — Return to the previous screen.
+2. **Progress ring** — Circular indicator around your photo (neutral, loading, success, or error color).
+3. **Photo preview** — Shows your captured photo or a placeholder silhouette.
+4. **Instruction text** — Tells you to face the camera directly, or shows **Verifying…**, **Face Verification Success!**, or **Face Verification Failed!**
+5. **Take Photo** — Opens the front camera to capture your face.
+6. **Try Again** — Clears the failed attempt so you can take a new photo.
+
+## Controls
+
+| Number | Name | What it does | Notes |
+|--------|------|----------------|-------|
+| 1 | Back | Goes back one screen. | Cancels verification in progress. |
+| 2 | Progress ring | Visual status around the photo. | Turns green on success, red on failure. |
+| 3 | Photo preview | Displays the captured image. | Placeholder icon before you take a photo. |
+| 4 | Instruction text | Step guidance or result message. | Updates automatically during verify. |
+| 5 | Take Photo | Captures a front-facing photo. | Hidden while verifying or after success. |
+| 6 | Try Again | Retries after a failed match. | Shown only when verification fails. |
+
+## Common tasks
+
+- **Verify during clock-in** — From [Mobile: Location Confirmed](/docs/en/manual/mobile/pages/mobile-location-confirmed), tap **Start Verification**, take your photo, wait for success, then complete [Mobile: Attendance Form](/docs/en/manual/mobile/pages/mobile-attendance-form).
+- **Verify during clock-out** — Same steps after tapping **Clock Out** on Home.
+
+## Troubleshooting
+
+- **Face Verification Failed!** — Retake the photo with better lighting; face the camera directly; ensure you completed [Mobile: Face Registration](/docs/en/manual/mobile/pages/mobile-face-registration) with three photos.
+- **Verifying… takes long** — Check network connection; the app uploads the photo for matching.
+- **Never prompted for face** — Your company may not require face verification, or your profile may still need registration (**Register Your Face** on Location Confirmed).
+
+**Before you start:** You need a complete face profile (three registered photos). If not, use Face Registration first.

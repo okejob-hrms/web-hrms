@@ -1,0 +1,46 @@
+{
+  "slug": "mobile-leave-request",
+  "route": "/leave-request",
+  "platform": "mobile",
+  "screenshot": "/manual/mobile/pages/mobile-leave-request.png",
+  "prerequisites": [
+    "Employee A account",
+    "Local seed: pending + approved annual leave rows"
+  ],
+  "captureRecipe": "Login as Employee A → tap Leave Request tab",
+  "notes": "Recaptured 2026-06-15. Leave balance and Your Leave Request list show seeded rows.",
+  "capturedAt": "2026-06-15",
+  "captureAccount": "manual.mobile.empa@example.com",
+  "controls": [
+    {
+      "number": 1,
+      "name": "Leave Balance",
+      "selectorOrRef": "Leave Balance",
+      "notes": "Time off used vs remaining."
+    },
+    {
+      "number": 2,
+      "name": "New Leave Request",
+      "selectorOrRef": "New Leave Request",
+      "notes": "Create a new request."
+    },
+    {
+      "number": 3,
+      "name": "Your Leave Request",
+      "selectorOrRef": "Your Leave Request",
+      "notes": "Grouped list; tap a row for detail."
+    },
+    {
+      "number": 4,
+      "name": "Leave row",
+      "selectorOrRef": "manual-mobile-2026 Annual Leave",
+      "notes": "Shows status (Pending / Approved) and duration."
+    },
+    {
+      "number": 5,
+      "name": "Bottom navigation",
+      "selectorOrRef": "Bottom navigation",
+      "notes": "Switch tabs."
+    }
+  ]
+}

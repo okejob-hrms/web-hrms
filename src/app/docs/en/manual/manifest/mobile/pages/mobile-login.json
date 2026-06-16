@@ -1,0 +1,17 @@
+{
+  "slug": "mobile-login",
+  "route": "/login",
+  "platform": "mobile",
+  "screenshot": "/manual/mobile/pages/mobile-login.png",
+  "prerequisites": [],
+  "captureRecipe": "Log out if needed → land on login screen",
+  "notes": "Web equivalent: /auth/login",
+  "controls": [
+    { "number": 1, "name": "Logo", "selectorOrRef": "Logo" },
+    { "number": 2, "name": "Email", "selectorOrRef": "Enter your email" },
+    { "number": 3, "name": "Password", "selectorOrRef": "Enter your password" },
+    { "number": 4, "name": "Show/hide password", "selectorOrRef": "password visibility" },
+    { "number": 5, "name": "Reset Password", "selectorOrRef": "Reset Password" },
+    { "number": 6, "name": "Sign In", "selectorOrRef": "Sign In" }
+  ]
+}

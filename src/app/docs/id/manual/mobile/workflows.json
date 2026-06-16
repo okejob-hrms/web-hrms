@@ -1,0 +1,65 @@
+{
+  "platform": "mobile",
+  "workflows": [
+    {
+      "slug": "mobile-sign-in",
+      "title": "Sign in to the mobile app",
+      "relatedPages": ["mobile-login", "mobile-dashboard", "mobile-create-password"]
+    },
+    {
+      "slug": "mobile-reset-password",
+      "title": "Reset password on mobile",
+      "relatedPages": ["mobile-login", "mobile-reset-password", "mobile-reset-password-check-email", "mobile-reset-password-success"]
+    },
+    {
+      "slug": "mobile-clock-in",
+      "title": "Clock in on mobile",
+      "relatedPages": ["mobile-dashboard", "mobile-location-confirmed", "mobile-face-verification", "mobile-attendance-form"]
+    },
+    {
+      "slug": "mobile-clock-out",
+      "title": "Clock out on mobile",
+      "relatedPages": ["mobile-dashboard", "mobile-attendance-form"]
+    },
+    {
+      "slug": "mobile-request-leave",
+      "title": "Request leave on mobile",
+      "relatedPages": ["mobile-leave-request", "mobile-leave-request-form", "mobile-leave-detail"]
+    },
+    {
+      "slug": "mobile-request-overtime",
+      "title": "Request overtime on mobile",
+      "relatedPages": ["mobile-dashboard", "mobile-overtime-request"]
+    },
+    {
+      "slug": "mobile-view-payslip",
+      "title": "View payslip on mobile",
+      "relatedPages": ["mobile-profile", "mobile-payslip", "mobile-payslip-view", "mobile-payslip-view-request"]
+    },
+    {
+      "slug": "mobile-self-assessment",
+      "title": "Complete self assessment on mobile",
+      "relatedPages": ["mobile-performance", "mobile-self-assessment", "mobile-assessment-form"]
+    },
+    {
+      "slug": "mobile-okr",
+      "title": "Review OKR on mobile",
+      "relatedPages": ["mobile-performance", "mobile-okr-list", "mobile-okr", "mobile-okr-key-result"]
+    },
+    {
+      "slug": "mobile-approve-inbox",
+      "title": "Act on inbox item (supervisor)",
+      "relatedPages": ["mobile-inbox"]
+    },
+    {
+      "slug": "mobile-edit-profile",
+      "title": "Edit profile on mobile",
+      "relatedPages": ["mobile-profile", "mobile-profile-detail", "mobile-profile-edit"]
+    },
+    {
+      "slug": "mobile-offboarding-handover",
+      "title": "Complete offboarding handover on mobile",
+      "relatedPages": ["mobile-offboarding", "mobile-work-handover", "mobile-document-handover", "mobile-responsibility-handover"]
+    }
+  ]
+}

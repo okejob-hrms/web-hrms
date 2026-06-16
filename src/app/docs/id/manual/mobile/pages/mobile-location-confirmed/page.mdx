@@ -1,0 +1,42 @@
+# Mobile: Location Confirmed
+
+## Tujuan
+
+Setelah aplikasi memverifikasi posisi GPS Anda, **Location Confirmed** memberi tahu bahwa Anda berada dalam area kerja yang diizinkan dan mengajak Anda melanjutkan verifikasi wajah sebelum clock in atau clock out.
+
+## Tangkapan layar
+
+![Mobile: Location Confirmed](/manual/mobile/pages/mobile-location-confirmed.png)
+
+## Di halaman ini
+
+1. **Back** — Kembali ke Home (membatalkan upaya clock in atau clock out saat ini).
+2. **Location Confirmed** — Pesan sukses bahwa posisi Anda diterima.
+3. **Biometric illustration** — Petunjuk visual bahwa langkah berikutnya adalah verifikasi wajah.
+4. **Instruction text** — Menjelaskan bahwa verifikasi wajah diperlukan untuk kehadiran yang aman.
+5. **Start Verification** — Membuka [Mobile: Face Verification](/docs/manual/mobile/pages/mobile-face-verification) jika Anda sudah memiliki profil wajah terdaftar (tiga foto di sistem).
+6. **Register Your Face** — Membuka [Mobile: Face Registration](/docs/manual/mobile/pages/mobile-face-registration) jika Anda memiliki kurang dari tiga foto wajah terdaftar.
+
+## Kontrol
+
+| No | Nama | Fungsi | Catatan |
+|----|------|--------|---------|
+| 1 | Back | Kembali ke [Mobile: Home](/docs/manual/mobile/pages/mobile-dashboard). | Membatalkan aksi clock yang sedang berlangsung. |
+| 2 | Location Confirmed | Judul status. | Ditampilkan setelah validasi GPS berhasil. |
+| 3 | Biometric illustration | Ikon dekoratif. | Hanya tampilan. |
+| 4 | Instruction text | Menjelaskan langkah wajah. | Layar sama untuk clock in dan clock out. |
+| 5 | Start Verification | Melanjutkan ke verifikasi wajah. | Ditampilkan jika profil wajah lengkap (3 foto). |
+| 6 | Register Your Face | Melanjutkan ke pendaftaran wajah. | Ditampilkan jika Anda masih perlu mendaftarkan wajah. |
+
+## Tugas umum
+
+- **Lanjutkan setelah pemeriksaan lokasi clock in** — Ketuk **Start Verification** atau **Register Your Face**, selesaikan langkah wajah, lalu [Mobile: Attendance Form](/docs/manual/mobile/pages/mobile-attendance-form).
+- **Batalkan** — Ketuk **Back** untuk kembali ke Home tanpa menyimpan kehadiran.
+
+## Pemecahan masalah
+
+- **Anda tidak pernah sampai ke layar ini** — Izinkan izin lokasi untuk ESS CPS; berdiri di dalam radius yang diizinkan perusahaan; tunggu dialog "Verification in Progress" selesai. Jika muncul error jarak, mendekatlah ke lokasi kerja.
+- **Label tombol salah** — **Register Your Face** berarti Anda perlu menyelesaikan pendaftaran terlebih dahulu; **Start Verification** berarti profil Anda sudah siap.
+- **Layar tidak tersedia** — Perusahaan Anda mungkin menonaktifkan kehadiran mobile. Tanyakan admin Anda.
+
+**Sebelum memulai:** Anda tiba di sini secara otomatis setelah mengetuk **Clock In** atau **Clock Out** di Home dan lulus verifikasi lokasi.

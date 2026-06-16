@@ -1,0 +1,15 @@
+{
+  "slug": "mobile-attendance-form",
+  "route": "/attendance-form",
+  "platform": "mobile",
+  "screenshot": "/manual/mobile/pages/mobile-attendance-form.png",
+  "captureRecipe": "After location/face steps → attendance form",
+  "controls": [
+    { "number": 1, "name": "Back", "selectorOrRef": "Back" },
+    { "number": 2, "name": "Attendance summary card", "selectorOrRef": "AttendanceCardForm" },
+    { "number": 3, "name": "Shift", "selectorOrRef": "Shift", "notes": "Required on clock-in" },
+    { "number": 4, "name": "Notes", "selectorOrRef": "Notes" },
+    { "number": 5, "name": "Save Clock In", "selectorOrRef": "Save Clock In" },
+    { "number": 6, "name": "Save Clock Out", "selectorOrRef": "Save Clock Out" }
+  ]
+}

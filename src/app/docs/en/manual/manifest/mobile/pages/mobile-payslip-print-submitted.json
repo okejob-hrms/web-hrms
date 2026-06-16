@@ -1,0 +1,37 @@
+{
+  "slug": "mobile-payslip-print-submitted",
+  "route": "/payslip-print-submitted",
+  "platform": "mobile",
+  "screenshot": "/manual/mobile/pages/mobile-payslip-print-submitted.png",
+  "prerequisites": [
+    "Print request submitted or processed (print_access_status ≠ 0)"
+  ],
+  "captureRecipe": "My Payslip → period sheet → Print Request arrow → confirmation",
+  "notes": "Opened from bottom sheet when print status is no longer 'not requested'.",
+  "controls": [
+    {
+      "number": 1,
+      "name": "Back",
+      "selectorOrRef": "Back",
+      "notes": "Returns to payslip period sheet."
+    },
+    {
+      "number": 2,
+      "name": "Print Payslip Request",
+      "selectorOrRef": "Print Payslip Request",
+      "notes": "Screen heading."
+    },
+    {
+      "number": 3,
+      "name": "Payslip Print Request Submitted",
+      "selectorOrRef": "Payslip Print Request Submitted",
+      "notes": "Confirmation title after request is in progress."
+    },
+    {
+      "number": 4,
+      "name": "Status message",
+      "selectorOrRef": "We've received your request to print the payslip",
+      "notes": "Explains HR will process and notify when ready for pickup."
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "slug": "mobile-profile-detail",
+  "route": "/profile-detail",
+  "platform": "mobile",
+  "screenshot": "/manual/mobile/pages/mobile-profile-detail.png",
+  "prerequisites": ["Employee A account"],
+  "captureRecipe": "Profile tab → tap My Profile",
+  "notes": "Recaptured 2026-06-15.",
+  "capturedAt": "2026-06-15",
+  "captureAccount": "manual.mobile.empa@example.com",
+  "controls": [
+    {
+      "number": 1,
+      "name": "Back",
+      "selectorOrRef": "Back",
+      "notes": "Return to Profile tab."
+    },
+    {
+      "number": 2,
+      "name": "Profile header",
+      "selectorOrRef": "Manual Mobile Employee A",
+      "notes": "Name, employee ID, job title."
+    },
+    {
+      "number": 3,
+      "name": "Edit Profile",
+      "selectorOrRef": "Edit Profile",
+      "notes": "Open editable profile form."
+    },
+    {
+      "number": 4,
+      "name": "Personal Information",
+      "selectorOrRef": "Personal Information",
+      "notes": "Expand personal details section."
+    },
+    {
+      "number": 5,
+      "name": "Employee Information",
+      "selectorOrRef": "Employee Information",
+      "notes": "Expand job and employment details."
+    }
+  ]
+}

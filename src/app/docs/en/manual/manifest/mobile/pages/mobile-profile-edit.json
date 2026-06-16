@@ -1,0 +1,67 @@
+{
+  "slug": "mobile-profile-edit",
+  "route": "/profile-edit",
+  "platform": "mobile",
+  "screenshot": "/manual/mobile/pages/mobile-profile-edit.png",
+  "prerequisites": ["Employee A account"],
+  "captureRecipe": "Profile tab → My Profile → Edit Profile",
+  "notes": "Recaptured 2026-06-15. Scroll for additional fields below fold.",
+  "capturedAt": "2026-06-15",
+  "captureAccount": "manual.mobile.empa@example.com",
+  "controls": [
+    {
+      "number": 1,
+      "name": "Back",
+      "selectorOrRef": "Back",
+      "notes": "Return to profile detail."
+    },
+    {
+      "number": 2,
+      "name": "Select Image",
+      "selectorOrRef": "Select Image",
+      "notes": "Optional profile photo."
+    },
+    {
+      "number": 3,
+      "name": "Name",
+      "selectorOrRef": "Name *",
+      "notes": "Required text field."
+    },
+    {
+      "number": 4,
+      "name": "Email",
+      "selectorOrRef": "Email *",
+      "notes": "Required; may be read-only depending on policy."
+    },
+    {
+      "number": 5,
+      "name": "Phone Number",
+      "selectorOrRef": "Phone Number *",
+      "notes": "Country code + number."
+    },
+    {
+      "number": 6,
+      "name": "Gender",
+      "selectorOrRef": "Gender *",
+      "notes": "Male / Female radio options."
+    },
+    {
+      "number": 7,
+      "name": "Place of Birth",
+      "selectorOrRef": "Place of Birth *",
+      "notes": "Required text field."
+    },
+    {
+      "number": 8,
+      "name": "Born Date",
+      "selectorOrRef": "Born Date *",
+      "notes": "Date picker."
+    },
+    {
+      "number": 9,
+      "name": "Update Profile",
+      "selectorOrRef": "Update Profile",
+      "notes": "Save changes."
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+# Mobile: Edit Attendance
+
+## Tujuan
+
+**Edit Attendance Request** memungkinkan Anda mengirim koreksi untuk catatan kehadiran sebelumnya—sesuaikan waktu clock in atau clock out, shift, dan catatan. HR atau atasan Anda meninjau permintaan penyesuaian.
+
+## Tangkapan layar
+
+![Mobile: Edit Attendance](/manual/mobile/pages/mobile-attendance-edit.png)
+
+## Di halaman ini
+
+1. **Back** — Kembali ke [Mobile: Attendance & Overtime](/docs/manual/mobile/pages/mobile-attendance).
+2. **Submitted Record** — Ringkasan hanya baca dari kehadiran asli (tanggal, waktu, status).
+3. **Attendance Adjustment** — Kolom yang dapat diedit untuk koreksi Anda.
+4. **Clock In** — Pemilih waktu untuk clock in yang disesuaikan.
+5. **Clock Out** — Pemilih waktu untuk clock out yang disesuaikan.
+6. **Shift** — Dropdown untuk mengubah shift yang ditetapkan (jika shift tersedia).
+7. **Adjustment Notes** — Penjelasan wajib untuk perubahan.
+8. **Send Adjustment Request** — Mengirim koreksi untuk persetujuan.
+
+## Kontrol
+
+| No | Nama | Fungsi | Catatan |
+|----|------|--------|---------|
+| 1 | Back | Kembali ke riwayat kehadiran. | Perubahan yang belum disimpan hilang. |
+| 2 | Submitted Record | Menampilkan catatan seperti yang diajukan semula. | Termasuk chip status. |
+| 3 | Attendance Adjustment | Judul bagian untuk kolom yang dapat diedit. | Hanya tampilan. |
+| 4 | Clock In | Membuka pemilih waktu. | Clock out mungkin dihapus jika waktu bentrok. |
+| 5 | Clock Out | Membuka pemilih waktu. | Harus setelah clock in. |
+| 6 | Shift | Mendaftar shift kerja untuk tanggal tersebut. | Mungkin hanya baca jika shift tidak dapat diubah. |
+| 7 | Adjustment Notes | Teks yang menjelaskan alasan koreksi. | Wajib untuk pengiriman. |
+| 8 | Send Adjustment Request | Mengirim permintaan pembaruan. | Menampilkan toast sukses atau error. |
+
+## Tugas umum
+
+- **Perbaiki waktu clock out yang salah** — Buka catatan dari **Attendance and Overtime**, ubah **Clock Out**, jelaskan di **Adjustment Notes**, ketuk **Send Adjustment Request**.
+- **Perbaiki penugasan shift** — Ubah **Shift** dan waktu sesuai kebutuhan, lalu kirim.
+
+## Pemecahan masalah
+
+- **Update Failed** — Periksa pesan validasi di bawah kolom waktu; pastikan clock out setelah clock in.
+- **Shift tidak terdaftar** — HR mungkin perlu menetapkan shift untuk tanggal tersebut.
+- **Tidak ada ikon edit di riwayat** — Buka **Profile** → **Attendance and Overtime** dan gunakan pensil pada baris tanggal.
+
+**Sebelum memulai:** Anda memerlukan catatan kehadiran yang sudah ada. Buat dengan [clock in](/docs/workflows/mobile-clock-in) terlebih dahulu jika hari ini belum ada catatan.

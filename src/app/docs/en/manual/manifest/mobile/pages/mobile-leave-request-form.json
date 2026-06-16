@@ -1,0 +1,20 @@
+{
+  "slug": "mobile-leave-request-form",
+  "route": "/new-leave-request",
+  "platform": "mobile",
+  "screenshot": "/manual/mobile/pages/mobile-leave-request-form.png",
+  "prerequisites": ["Employee A account"],
+  "captureRecipe": "Leave Request tab → New Leave Request",
+  "notes": "Recaptured 2026-06-15.",
+  "capturedAt": "2026-06-15",
+  "captureAccount": "manual.mobile.empa@example.com",
+  "controls": [
+    { "number": 1, "name": "Back", "selectorOrRef": "Back", "notes": "Return to leave list." },
+    { "number": 2, "name": "Leave Type", "selectorOrRef": "Leave Type *", "notes": "Required dropdown." },
+    { "number": 3, "name": "Start Date", "selectorOrRef": "Start Date *", "notes": "Date picker." },
+    { "number": 4, "name": "End Date", "selectorOrRef": "End Date *", "notes": "Date picker." },
+    { "number": 5, "name": "Reason", "selectorOrRef": "Reason", "notes": "Optional text." },
+    { "number": 6, "name": "Upload File", "selectorOrRef": "Upload File", "notes": "Optional attachment." },
+    { "number": 7, "name": "Send Request", "selectorOrRef": "Send Request", "notes": "Submit leave request." }
+  ]
+}

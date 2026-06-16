@@ -1,0 +1,43 @@
+# Mobile: Attendance Form
+
+## Purpose
+
+The **Attendance Form** is the final step of clock-in or clock-out. Review your times and location, choose your shift (clock-in only), add notes, and submit to save today’s attendance.
+
+## Screenshot
+
+![Mobile: Attendance Form](/manual/mobile/pages/mobile-attendance-form.png)
+
+## On this page
+
+1. **Back** — Return to Home without submitting (discards this attempt).
+2. **Attendance summary card** — Date, clock-in time, clock-out time, duration, overtime, and verified location.
+3. **Shift** — Required dropdown to pick your working shift (clock-in only).
+4. **Notes** — Optional text area for comments.
+5. **Save Clock In** — Submits clock-in and returns to Home.
+6. **Save Clock Out** — Submits clock-out and returns to Home.
+
+## Controls
+
+| Number | Name | What it does | Notes |
+|--------|------|----------------|-------|
+| 1 | Back | Returns to [Mobile: Home](/docs/en/manual/mobile/pages/mobile-dashboard). | Does not save attendance. |
+| 2 | Attendance summary card | Shows date, times, duration, overtime, and GPS address. | Clock-out time may show “-” until you clock out. |
+| 3 | Shift | Opens a list of shifts for the day. | Required on clock-in; read-only on clock-out. |
+| 4 | Notes | Free-text notes sent with the record. | Optional. |
+| 5 | Save Clock In | Saves today’s clock-in. | Footer label on clock-in flow. |
+| 6 | Save Clock Out | Saves today’s clock-out. | Footer label on clock-out flow. |
+
+## Common tasks
+
+- **Finish clock-in** — Select a **Shift**, add **Notes** if needed, tap **Save Clock In**. You return to Home and **Clock Out** becomes available.
+- **Finish clock-out** — Review times and location, add **Notes** if needed, tap **Save Clock Out**.
+
+## Troubleshooting
+
+- **Please fill all required fields** — Choose a **Shift** on clock-in; ensure location verification completed.
+- **No active attendance found** (clock-out) — You must clock in successfully today before clocking out.
+- **Error toast on save** — Check network connection; ask HR if your shift is not listed.
+- **Returned to Home without saving** — Tap **Back** cancels; use the save button to record attendance.
+
+**Before you start:** Complete [Mobile: Location Confirmed](/docs/en/manual/mobile/pages/mobile-location-confirmed) and face verification (if required).

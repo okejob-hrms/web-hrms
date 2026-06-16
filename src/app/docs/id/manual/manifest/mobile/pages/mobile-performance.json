@@ -1,0 +1,43 @@
+{
+  "slug": "mobile-performance",
+  "route": "/performance",
+  "platform": "mobile",
+  "screenshot": "/manual/mobile/pages/mobile-performance.png",
+  "prerequisites": [
+    "Employee A account"
+  ],
+  "captureRecipe": "Login as Employee A → tap Performance tab",
+  "notes": "",
+  "controls": [
+    {
+      "number": 1,
+      "name": "OKR",
+      "selectorOrRef": "OKR",
+      "notes": "Objectives and key results."
+    },
+    {
+      "number": 2,
+      "name": "Self Assessment",
+      "selectorOrRef": "Self Assessment",
+      "notes": "Your assessment forms."
+    },
+    {
+      "number": 3,
+      "name": "Manager Assessment",
+      "selectorOrRef": "Manager Assessment",
+      "notes": "If you manage direct reports."
+    },
+    {
+      "number": 4,
+      "name": "Supervisor Assessment",
+      "selectorOrRef": "Supervisor Assessment",
+      "notes": "Supervisor review flows."
+    },
+    {
+      "number": 5,
+      "name": "Bottom navigation",
+      "selectorOrRef": "Bottom navigation",
+      "notes": "Switch tabs."
+    }
+  ]
+}

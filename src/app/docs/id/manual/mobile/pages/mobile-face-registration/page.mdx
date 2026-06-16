@@ -1,0 +1,48 @@
+# Mobile: Face Registration
+
+## Tujuan
+
+**Face Registration** mengumpulkan tiga foto kamera depan (depan, kanan, kiri) agar aplikasi dapat memverifikasi identitas Anda saat clock in atau clock out. Anda melihat layar ini jika profil Anda memiliki kurang dari tiga foto wajah.
+
+## Tangkapan layar
+
+![Mobile: Face Registration](/manual/mobile/pages/mobile-face-registration.png)
+
+## Di halaman ini
+
+1. **Back** — Kembali ke layar sebelumnya.
+2. **Progress ring** — Menunjukkan sejauh mana Anda menyelesaikan pendaftaran tiga foto.
+3. **Photo preview** — Menampilkan foto terbaru yang diambil dalam lingkaran.
+4. **Pose instruction** — Memberi tahu sudut yang harus dipegang (depan, kanan, atau kiri).
+5. **Pose icon** — Panduan visual untuk pose saat ini.
+6. **Take Front Photo** — Membuka kamera depan untuk foto pertama.
+7. **Take Right Photo** — Membuka kamera untuk foto kedua (setelah foto depan berhasil).
+8. **Take Left Photo** — Membuka kamera untuk foto ketiga.
+9. **Try Again** — Mengambil ulang langkah saat ini setelah unggahan atau verifikasi gagal.
+10. **Face Registration Success!** — Status sukses singkat sebelum aplikasi membuka formulir kehadiran.
+
+## Kontrol
+
+| No | Nama | Fungsi | Catatan |
+|----|------|--------|---------|
+| 1 | Back | Kembali satu layar. | Dapat membatalkan pendaftaran yang sedang berlangsung. |
+| 2 | Progress ring | Menunjukkan progres pendaftaran (1 dari 3, 2 dari 3, 3 dari 3). | Terisi saat setiap foto diterima. |
+| 3 | Photo preview | Menampilkan foto terbaru Anda. | Kosong sampai foto pertama diambil. |
+| 4 | Pose instruction | Panduan teks untuk sudut saat ini. | Berubah per langkah. |
+| 5 | Pose icon | Ilustrasi untuk depan / kanan / kiri. | Tersembunyi saat sukses atau gagal. |
+| 6–8 | Take … Photo | Membuka kamera perangkat. | Label tombol sesuai langkah saat ini. |
+| 9 | Try Again | Memulai ulang langkah yang gagal. | Ditampilkan setelah **Face Registration Failed!** |
+| 10 | Success message | Mengonfirmasi pendaftaran selesai. | Aplikasi melanjutkan ke formulir kehadiran secara otomatis. |
+
+## Tugas umum
+
+- **Daftarkan sebelum clock in pertama** — Dari [Mobile: Location Confirmed](/docs/manual/mobile/pages/mobile-location-confirmed), ketuk **Register Your Face**, ambil ketiga foto, lalu lanjutkan ke [Mobile: Attendance Form](/docs/manual/mobile/pages/mobile-attendance-form).
+- **Coba ulang foto yang gagal** — Ketuk **Try Again** dan ambil ulang foto dengan pencahayaan baik serta wajah di tengah.
+
+## Pemecahan masalah
+
+- **Registration failed** — Gunakan pencahayaan merata, singkirkan penghalang (masker, topi), dan pastikan izin kamera diizinkan.
+- **Uploading… macet** — Periksa koneksi jaringan Anda dan coba lagi.
+- **Diminta mendaftar lagi** — HR mungkin telah mengatur ulang profil wajah Anda; selesaikan ketiga foto sekali lagi.
+
+**Sebelum memulai:** Selesaikan verifikasi lokasi di [Mobile: Location Confirmed](/docs/manual/mobile/pages/mobile-location-confirmed).

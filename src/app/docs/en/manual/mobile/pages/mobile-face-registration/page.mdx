@@ -1,0 +1,48 @@
+# Mobile: Face Registration
+
+## Purpose
+
+**Face Registration** collects three front-camera photos (front, right, left) so the app can verify your identity when you clock in or out. You see this screen when you have fewer than three face photos on your profile.
+
+## Screenshot
+
+![Mobile: Face Registration](/manual/mobile/pages/mobile-face-registration.png)
+
+## On this page
+
+1. **Back** — Return to the previous screen.
+2. **Progress ring** — Shows how far you are through the three-photo registration.
+3. **Photo preview** — Displays the latest captured photo in a circle.
+4. **Pose instruction** — Tells you which angle to hold (front, right, or left).
+5. **Pose icon** — Visual guide for the current pose.
+6. **Take Front Photo** — Opens the front camera for the first photo.
+7. **Take Right Photo** — Opens the camera for the second photo (after front succeeds).
+8. **Take Left Photo** — Opens the camera for the third photo.
+9. **Try Again** — Retakes the current step after a failed upload or verification.
+10. **Face Registration Success!** — Brief success state before the app opens the attendance form.
+
+## Controls
+
+| Number | Name | What it does | Notes |
+|--------|------|----------------|-------|
+| 1 | Back | Goes back one screen. | May cancel registration in progress. |
+| 2 | Progress ring | Shows registration progress (1 of 3, 2 of 3, 3 of 3). | Fills as each photo is accepted. |
+| 3 | Photo preview | Shows your latest capture. | Empty until the first photo is taken. |
+| 4 | Pose instruction | Text guidance for the current angle. | Changes per step. |
+| 5 | Pose icon | Illustration for front / right / left. | Hidden on success or failure. |
+| 6–8 | Take … Photo | Opens the device camera. | Button label matches the current step. |
+| 9 | Try Again | Restarts the failed step. | Shown after **Face Registration Failed!** |
+| 10 | Success message | Confirms registration completed. | App proceeds to attendance form automatically. |
+
+## Common tasks
+
+- **Register before first clock-in** — From [Mobile: Location Confirmed](/docs/en/manual/mobile/pages/mobile-location-confirmed), tap **Register Your Face**, take all three photos, then continue to [Mobile: Attendance Form](/docs/en/manual/mobile/pages/mobile-attendance-form).
+- **Retry a failed photo** — Tap **Try Again** and retake the photo in good lighting with your face centered.
+
+## Troubleshooting
+
+- **Registration failed** — Use even lighting, remove obstructions (mask, hat), and ensure the camera permission is allowed.
+- **Uploading… stuck** — Check your network connection and try again.
+- **Asked to register again** — HR may have reset your face profile; complete all three photos once more.
+
+**Before you start:** Complete location verification on [Mobile: Location Confirmed](/docs/en/manual/mobile/pages/mobile-location-confirmed).

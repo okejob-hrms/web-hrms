@@ -1,0 +1,20 @@
+{
+  "slug": "mobile-overtime-request",
+  "route": "/overtime-request",
+  "platform": "mobile",
+  "screenshot": "/manual/mobile/pages/mobile-overtime-request.png",
+  "prerequisites": ["Employee A account"],
+  "captureRecipe": "Home → Overtime Request shortcut",
+  "notes": "Recaptured 2026-06-15.",
+  "capturedAt": "2026-06-15",
+  "captureAccount": "manual.mobile.empa@example.com",
+  "controls": [
+    { "number": 1, "name": "Back", "selectorOrRef": "Back", "notes": "Return to Home." },
+    { "number": 2, "name": "Request Date", "selectorOrRef": "Request Date *", "notes": "Date of overtime." },
+    { "number": 3, "name": "Start Time", "selectorOrRef": "Start Time *", "notes": "Time picker." },
+    { "number": 4, "name": "End Time", "selectorOrRef": "End Time *", "notes": "Time picker." },
+    { "number": 5, "name": "Duration", "selectorOrRef": "Duration", "notes": "Calculated hours." },
+    { "number": 6, "name": "Overtime Notes", "selectorOrRef": "Overtime Notes *", "notes": "Required notes." },
+    { "number": 7, "name": "Request Overtime", "selectorOrRef": "Request Overtime", "notes": "Submit request." }
+  ]
+}

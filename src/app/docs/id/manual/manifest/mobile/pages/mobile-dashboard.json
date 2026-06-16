@@ -1,0 +1,97 @@
+{
+  "slug": "mobile-dashboard",
+  "route": "/dashboard",
+  "platform": "mobile",
+  "screenshot": "/manual/mobile/pages/mobile-dashboard.png",
+  "prerequisites": [
+    "Employee A account"
+  ],
+  "captureRecipe": "Login as Employee A → Home tab (default after login)",
+  "notes": "Web equivalent: /ess — different UI",
+  "controls": [
+    {
+      "number": 1,
+      "name": "Company / branch",
+      "selectorOrRef": "Company / branch",
+      "notes": "Your assigned branch name."
+    },
+    {
+      "number": 2,
+      "name": "Employee name",
+      "selectorOrRef": "Employee name",
+      "notes": "Your display name."
+    },
+    {
+      "number": 3,
+      "name": "Job title",
+      "selectorOrRef": "Job title",
+      "notes": "Your position label."
+    },
+    {
+      "number": 4,
+      "name": "Today's date",
+      "selectorOrRef": "Today's date",
+      "notes": "Current date on Home."
+    },
+    {
+      "number": 5,
+      "name": "Clock In",
+      "selectorOrRef": "Clock In",
+      "notes": "Start attendance flow (location and face may apply)."
+    },
+    {
+      "number": 6,
+      "name": "Clock Out",
+      "selectorOrRef": "Clock Out",
+      "notes": "Enabled after you have clocked in today."
+    },
+    {
+      "number": 7,
+      "name": "Overtime Request",
+      "selectorOrRef": "Overtime Request",
+      "notes": "Shortcut to overtime request."
+    },
+    {
+      "number": 8,
+      "name": "New Leave Request",
+      "selectorOrRef": "New Leave Request",
+      "notes": "Shortcut to new leave form."
+    },
+    {
+      "number": 9,
+      "name": "Recent Activity",
+      "selectorOrRef": "Recent Activity",
+      "notes": "List of recent attendance/leave actions."
+    },
+    {
+      "number": 10,
+      "name": "Home tab",
+      "selectorOrRef": "Home tab",
+      "notes": "Bottom nav — Home (this screen)."
+    },
+    {
+      "number": 11,
+      "name": "Performance tab",
+      "selectorOrRef": "Performance tab",
+      "notes": "Bottom nav — Performance."
+    },
+    {
+      "number": 12,
+      "name": "Leave Request tab",
+      "selectorOrRef": "Leave Request tab",
+      "notes": "Bottom nav — Leave Request."
+    },
+    {
+      "number": 13,
+      "name": "Inbox tab",
+      "selectorOrRef": "Inbox tab",
+      "notes": "Bottom nav — Inbox."
+    },
+    {
+      "number": 14,
+      "name": "Profile tab",
+      "selectorOrRef": "Profile tab",
+      "notes": "Bottom nav — Profile."
+    }
+  ]
+}

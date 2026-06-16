@@ -1,0 +1,49 @@
+{
+  "slug": "mobile-payslip-view",
+  "route": "/payslip-view",
+  "platform": "mobile",
+  "screenshot": "/manual/mobile/pages/mobile-payslip-view.png",
+  "prerequisites": [
+    "View access granted for the payslip period (e.g. June 2026 via staging seeder)"
+  ],
+  "captureRecipe": "Profile → My Payslip → period row → View Payslip (granted) → detail",
+  "notes": "Scrollable payslip with earnings, deductions, and confidentiality notes.",
+  "controls": [
+    {
+      "number": 1,
+      "name": "Back",
+      "selectorOrRef": "Back",
+      "notes": "Returns to payslip period sheet."
+    },
+    {
+      "number": 2,
+      "name": "Payslip June 2026",
+      "selectorOrRef": "Payslip June 2026",
+      "notes": "Screen title; period label matches selected row."
+    },
+    {
+      "number": 3,
+      "name": "Payroll Details",
+      "selectorOrRef": "Payroll Details",
+      "notes": "Header for employee and period summary."
+    },
+    {
+      "number": 4,
+      "name": "Earnings",
+      "selectorOrRef": "Earnings",
+      "notes": "Basic salary, overtime, and other earnings."
+    },
+    {
+      "number": 5,
+      "name": "Take Home Pay",
+      "selectorOrRef": "Take Home Pay",
+      "notes": "Net amount after deductions."
+    },
+    {
+      "number": 6,
+      "name": "Notes",
+      "selectorOrRef": "Notes",
+      "notes": "Confidentiality disclaimer at bottom of scroll."
+    }
+  ]
+}

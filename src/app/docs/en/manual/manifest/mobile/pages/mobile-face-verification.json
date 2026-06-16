@@ -1,0 +1,15 @@
+{
+  "slug": "mobile-face-verification",
+  "route": "/face-verification",
+  "platform": "mobile",
+  "screenshot": "/manual/mobile/pages/mobile-face-verification.png",
+  "captureRecipe": "Location Confirmed → Start Verification → initial step",
+  "controls": [
+    { "number": 1, "name": "Back", "selectorOrRef": "Back" },
+    { "number": 2, "name": "Progress ring", "selectorOrRef": "CircularProgressIndicator" },
+    { "number": 3, "name": "Photo preview", "selectorOrRef": "CircleAvatar" },
+    { "number": 4, "name": "Instruction text", "selectorOrRef": "instruction" },
+    { "number": 5, "name": "Take Photo", "selectorOrRef": "Take Photo" },
+    { "number": 6, "name": "Try Again", "selectorOrRef": "Try Again" }
+  ]
+}

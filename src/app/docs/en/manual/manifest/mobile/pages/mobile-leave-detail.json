@@ -1,0 +1,18 @@
+{
+  "slug": "mobile-leave-detail",
+  "route": "/leave-request/:id",
+  "platform": "mobile",
+  "screenshot": "/manual/mobile/pages/mobile-leave-detail.png",
+  "prerequisites": ["Employee A account", "Local seed: pending leave row"],
+  "captureRecipe": "Leave Request tab → tap pending leave row",
+  "notes": "Recaptured 2026-06-15. Shows manual-mobile-2026 Annual Leave pending with supervisor approver.",
+  "capturedAt": "2026-06-15",
+  "captureAccount": "manual.mobile.empa@example.com",
+  "controls": [
+    { "number": 1, "name": "Back", "selectorOrRef": "Back", "notes": "Return to leave list." },
+    { "number": 2, "name": "Leave Type", "selectorOrRef": "Leave Type", "notes": "Type and status badge." },
+    { "number": 3, "name": "Duration", "selectorOrRef": "Duration", "notes": "Date range and day count." },
+    { "number": 4, "name": "Reason", "selectorOrRef": "Reason", "notes": "Request reason text." },
+    { "number": 5, "name": "Approval", "selectorOrRef": "Approval", "notes": "Approver name." }
+  ]
+}

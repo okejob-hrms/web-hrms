@@ -1,0 +1,32 @@
+{
+  "slug": "mobile-inbox",
+  "route": "/inbox",
+  "platform": "mobile",
+  "screenshot": "/manual/mobile/pages/mobile-inbox.png",
+  "prerequisites": [
+    "Supervisor account",
+    "Pending inbox item if possible"
+  ],
+  "captureRecipe": "Login as Supervisor → tap Inbox tab",
+  "notes": "",
+  "controls": [
+    {
+      "number": 1,
+      "name": "Inbox list",
+      "selectorOrRef": "Inbox list",
+      "notes": "Items awaiting your action."
+    },
+    {
+      "number": 2,
+      "name": "Inbox item",
+      "selectorOrRef": "Inbox item",
+      "notes": "Open to approve or reject."
+    },
+    {
+      "number": 3,
+      "name": "Bottom navigation",
+      "selectorOrRef": "Bottom navigation",
+      "notes": "Switch tabs."
+    }
+  ]
+}

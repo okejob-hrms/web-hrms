@@ -1,0 +1,17 @@
+{
+  "slug": "mobile-attendance-edit",
+  "route": "/edit-attendance/:id",
+  "platform": "mobile",
+  "screenshot": "/manual/mobile/pages/mobile-attendance-edit.png",
+  "captureRecipe": "Attendance history → edit icon on a record",
+  "controls": [
+    { "number": 1, "name": "Back", "selectorOrRef": "Back" },
+    { "number": 2, "name": "Submitted Record", "selectorOrRef": "Submitted Record" },
+    { "number": 3, "name": "Attendance Adjustment", "selectorOrRef": "Attendance Adjustment" },
+    { "number": 4, "name": "Clock In", "selectorOrRef": "Clock In" },
+    { "number": 5, "name": "Clock Out", "selectorOrRef": "Clock Out" },
+    { "number": 6, "name": "Shift", "selectorOrRef": "Shift" },
+    { "number": 7, "name": "Adjustment Notes", "selectorOrRef": "Adjustment Notes" },
+    { "number": 8, "name": "Send Adjustment Request", "selectorOrRef": "Send Adjustment Request" }
+  ]
+}

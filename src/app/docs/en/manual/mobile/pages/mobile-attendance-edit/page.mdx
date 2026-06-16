@@ -1,0 +1,46 @@
+# Mobile: Edit Attendance
+
+## Purpose
+
+**Edit Attendance Request** lets you submit a correction to a past attendance record—adjust clock-in or clock-out times, shift, and notes. HR or your supervisor reviews the adjustment request.
+
+## Screenshot
+
+![Mobile: Edit Attendance](/manual/mobile/pages/mobile-attendance-edit.png)
+
+## On this page
+
+1. **Back** — Return to [Mobile: Attendance & Overtime](/docs/en/manual/mobile/pages/mobile-attendance).
+2. **Submitted Record** — Read-only summary of the original attendance (date, times, status).
+3. **Attendance Adjustment** — Editable fields for your correction.
+4. **Clock In** — Time picker for adjusted clock-in.
+5. **Clock Out** — Time picker for adjusted clock-out.
+6. **Shift** — Dropdown to change the assigned shift (when shifts are available).
+7. **Adjustment Notes** — Required explanation for the change.
+8. **Send Adjustment Request** — Submits the correction for approval.
+
+## Controls
+
+| Number | Name | What it does | Notes |
+|--------|------|----------------|-------|
+| 1 | Back | Returns to attendance history. | Unsaved edits are lost. |
+| 2 | Submitted Record | Shows the record as originally filed. | Includes status chip. |
+| 3 | Attendance Adjustment | Section heading for editable fields. | Display only. |
+| 4 | Clock In | Opens time picker. | Clearing clock-out may happen if times conflict. |
+| 5 | Clock Out | Opens time picker. | Must be after clock-in. |
+| 6 | Shift | Lists working shifts for that date. | May be read-only if shift cannot change. |
+| 7 | Adjustment Notes | Text explaining why you are correcting. | Required for submission. |
+| 8 | Send Adjustment Request | Sends the update request. | Shows success or error toast. |
+
+## Common tasks
+
+- **Fix a wrong clock-out time** — Open the record from **Attendance and Overtime**, change **Clock Out**, explain in **Adjustment Notes**, tap **Send Adjustment Request**.
+- **Fix shift assignment** — Change **Shift** and times as needed, then submit.
+
+## Troubleshooting
+
+- **Update Failed** — Check validation messages under the time fields; ensure clock-out is after clock-in.
+- **Shift not listed** — HR may need to assign shifts for that date.
+- **No edit icon on history** — Open **Profile** → **Attendance and Overtime** and use the pencil on the date row.
+
+**Before you start:** You need an existing attendance record. Create one by [clocking in](/docs/en/workflows/mobile-clock-in) first if today has no record yet.

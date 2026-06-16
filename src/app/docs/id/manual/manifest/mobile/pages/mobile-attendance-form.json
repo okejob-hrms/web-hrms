@@ -1,0 +1,37 @@
+{
+  "slug": "mobile-attendance-form",
+  "route": "/attendance-form",
+  "platform": "mobile",
+  "screenshot": "/manual/mobile/pages/mobile-attendance-form.png",
+  "prerequisites": [
+    "MANUAL_CAPTURE_BYPASS=true for dev capture"
+  ],
+  "captureRecipe": "Complete location/face steps → attendance form (bypass: Continue from Location Confirmed)",
+  "notes": "",
+  "controls": [
+    {
+      "number": 1,
+      "name": "Screen content",
+      "selectorOrRef": "Screen content",
+      "notes": "Main area for this screen."
+    },
+    {
+      "number": 2,
+      "name": "Back",
+      "selectorOrRef": "Back",
+      "notes": "Return to previous screen if shown."
+    },
+    {
+      "number": 3,
+      "name": "Primary action",
+      "selectorOrRef": "Primary action",
+      "notes": "Main button for this task."
+    },
+    {
+      "number": 4,
+      "name": "Bottom navigation",
+      "selectorOrRef": "Bottom navigation",
+      "notes": "Visible on main tabs only."
+    }
+  ]
+}

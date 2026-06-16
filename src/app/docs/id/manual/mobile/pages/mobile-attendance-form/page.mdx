@@ -1,0 +1,43 @@
+# Mobile: Attendance Form
+
+## Tujuan
+
+**Attendance Form** adalah langkah terakhir clock in atau clock out. Tinjau waktu dan lokasi Anda, pilih shift (hanya clock in), tambahkan catatan, dan kirim untuk menyimpan kehadiran hari ini.
+
+## Tangkapan layar
+
+![Mobile: Attendance Form](/manual/mobile/pages/mobile-attendance-form.png)
+
+## Di halaman ini
+
+1. **Back** — Kembali ke Home tanpa mengirim (membuang percobaan ini).
+2. **Attendance summary card** — Tanggal, waktu clock in, waktu clock out, durasi, lembur, dan lokasi terverifikasi.
+3. **Shift** — Dropdown wajib untuk memilih shift kerja Anda (hanya clock in).
+4. **Notes** — Area teks opsional untuk komentar.
+5. **Save Clock In** — Mengirim clock in dan kembali ke Home.
+6. **Save Clock Out** — Mengirim clock out dan kembali ke Home.
+
+## Kontrol
+
+| No | Nama | Fungsi | Catatan |
+|----|------|--------|---------|
+| 1 | Back | Kembali ke [Mobile: Home](/docs/manual/mobile/pages/mobile-dashboard). | Tidak menyimpan kehadiran. |
+| 2 | Attendance summary card | Menampilkan tanggal, waktu, durasi, lembur, dan alamat GPS. | Waktu clock out mungkin menampilkan "-" sampai Anda clock out. |
+| 3 | Shift | Membuka daftar shift untuk hari itu. | Wajib saat clock in; hanya baca saat clock out. |
+| 4 | Notes | Catatan teks bebas dikirim bersama catatan. | Opsional. |
+| 5 | Save Clock In | Menyimpan clock in hari ini. | Label footer pada alur clock in. |
+| 6 | Save Clock Out | Menyimpan clock out hari ini. | Label footer pada alur clock out. |
+
+## Tugas umum
+
+- **Selesaikan clock in** — Pilih **Shift**, tambahkan **Notes** jika perlu, ketuk **Save Clock In**. Anda kembali ke Home dan **Clock Out** menjadi tersedia.
+- **Selesaikan clock out** — Tinjau waktu dan lokasi, tambahkan **Notes** jika perlu, ketuk **Save Clock Out**.
+
+## Pemecahan masalah
+
+- **Please fill all required fields** — Pilih **Shift** saat clock in; pastikan verifikasi lokasi selesai.
+- **No active attendance found** (clock out) — Anda harus clock in berhasil hari ini sebelum clock out.
+- **Error toast saat menyimpan** — Periksa koneksi jaringan; tanyakan HR jika shift Anda tidak terdaftar.
+- **Kembali ke Home tanpa menyimpan** — Ketuk **Back** membatalkan; gunakan tombol simpan untuk mencatat kehadiran.
+
+**Sebelum memulai:** Selesaikan [Mobile: Location Confirmed](/docs/manual/mobile/pages/mobile-location-confirmed) dan verifikasi wajah (jika diwajibkan).

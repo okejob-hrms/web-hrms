@@ -1,0 +1,37 @@
+{
+  "slug": "mobile-manager-assessment",
+  "route": "/manager-assessment",
+  "platform": "mobile",
+  "screenshot": "/manual/mobile/pages/mobile-manager-assessment.png",
+  "prerequisites": [
+    "Manager role data"
+  ],
+  "captureRecipe": "Performance → Manager Assessment entry",
+  "notes": "",
+  "controls": [
+    {
+      "number": 1,
+      "name": "Screen content",
+      "selectorOrRef": "Screen content",
+      "notes": "Main area for this screen."
+    },
+    {
+      "number": 2,
+      "name": "Back",
+      "selectorOrRef": "Back",
+      "notes": "Return to previous screen if shown."
+    },
+    {
+      "number": 3,
+      "name": "Primary action",
+      "selectorOrRef": "Primary action",
+      "notes": "Main button for this task."
+    },
+    {
+      "number": 4,
+      "name": "Bottom navigation",
+      "selectorOrRef": "Bottom navigation",
+      "notes": "Visible on main tabs only."
+    }
+  ]
+}
