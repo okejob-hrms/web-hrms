@@ -1,0 +1,47 @@
+{
+  "slug": "mobile-login",
+  "route": "/login",
+  "platform": "mobile",
+  "screenshot": "/manual/mobile/pages/mobile-login.png",
+  "prerequisites": [],
+  "captureRecipe": "Log out if needed → land on login screen",
+  "notes": "Web equivalent: /auth/login",
+  "controls": [
+    {
+      "number": 1,
+      "name": "Logo",
+      "selectorOrRef": "Logo",
+      "notes": "Display only."
+    },
+    {
+      "number": 2,
+      "name": "Email",
+      "selectorOrRef": "Email",
+      "notes": "Work email registered in HRMS."
+    },
+    {
+      "number": 3,
+      "name": "Password",
+      "selectorOrRef": "Password",
+      "notes": "At least 6 characters."
+    },
+    {
+      "number": 4,
+      "name": "Show/hide password",
+      "selectorOrRef": "Show/hide password",
+      "notes": "Toggle visibility."
+    },
+    {
+      "number": 5,
+      "name": "Reset Password",
+      "selectorOrRef": "Reset Password",
+      "notes": "Opens reset-password flow."
+    },
+    {
+      "number": 6,
+      "name": "Sign In",
+      "selectorOrRef": "Sign In",
+      "notes": "Submits login; disabled while signing in."
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "slug": "mobile-leave-request",
+  "route": "/leave-request",
+  "platform": "mobile",
+  "screenshot": "/manual/mobile/pages/mobile-leave-request.png",
+  "prerequisites": [
+    "Employee A account"
+  ],
+  "captureRecipe": "Login as Employee A → tap Leave Request tab",
+  "notes": "",
+  "controls": [
+    {
+      "number": 1,
+      "name": "Leave list",
+      "selectorOrRef": "Leave list",
+      "notes": "Your leave requests."
+    },
+    {
+      "number": 2,
+      "name": "Add / New leave",
+      "selectorOrRef": "Add / New leave",
+      "notes": "Create a new request."
+    },
+    {
+      "number": 3,
+      "name": "Bottom navigation",
+      "selectorOrRef": "Bottom navigation",
+      "notes": "Switch tabs."
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "slug": "mobile-face-registration",
+  "route": "/face-registration",
+  "platform": "mobile",
+  "screenshot": "/manual/mobile/pages/mobile-face-registration.png",
+  "captureRecipe": "Location Confirmed → Register Your Face → initial registration step",
+  "controls": [
+    { "number": 1, "name": "Back", "selectorOrRef": "Back" },
+    { "number": 2, "name": "Progress ring", "selectorOrRef": "CircularProgressIndicator" },
+    { "number": 3, "name": "Photo preview", "selectorOrRef": "CircleAvatar" },
+    { "number": 4, "name": "Pose instruction", "selectorOrRef": "instruction text" },
+    { "number": 5, "name": "Pose icon", "selectorOrRef": "instruction asset" },
+    { "number": 6, "name": "Take Front Photo", "selectorOrRef": "Take Front Photo" },
+    { "number": 7, "name": "Take Right Photo", "selectorOrRef": "Take Right Photo" },
+    { "number": 8, "name": "Take Left Photo", "selectorOrRef": "Take Left Photo" },
+    { "number": 9, "name": "Try Again", "selectorOrRef": "Try Again" },
+    { "number": 10, "name": "Success message", "selectorOrRef": "Face Registration Success!" }
+  ]
+}

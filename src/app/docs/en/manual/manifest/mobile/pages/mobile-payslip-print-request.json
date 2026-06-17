@@ -1,0 +1,43 @@
+{
+  "slug": "mobile-payslip-print-request",
+  "route": "/payslip-print-request",
+  "platform": "mobile",
+  "screenshot": "/manual/mobile/pages/mobile-payslip-print-request.png",
+  "prerequisites": [
+    "Payslip period with print access not yet granted"
+  ],
+  "captureRecipe": "Profile → My Payslip → period → Print Request → Request Access",
+  "notes": "Password required before submitting print request.",
+  "controls": [
+    {
+      "number": 1,
+      "name": "Back",
+      "selectorOrRef": "Back",
+      "notes": "Returns to payslip period sheet."
+    },
+    {
+      "number": 2,
+      "name": "Print Payslip Request",
+      "selectorOrRef": "Print Payslip Request",
+      "notes": "Screen heading."
+    },
+    {
+      "number": 3,
+      "name": "Enter Your Password to Continue",
+      "selectorOrRef": "Enter Your Password to Continue",
+      "notes": "Security prompt before print request."
+    },
+    {
+      "number": 4,
+      "name": "Password field",
+      "selectorOrRef": "Password field",
+      "notes": "Account password; required to submit."
+    },
+    {
+      "number": 5,
+      "name": "Send Print Request",
+      "selectorOrRef": "Send Print Request",
+      "notes": "Submits the print request to HR."
+    }
+  ]
+}

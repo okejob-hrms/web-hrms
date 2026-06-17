@@ -1,0 +1,42 @@
+# Mobile: Face Verification
+
+## Tujuan
+
+**Face Verification** mencocokkan wajah Anda dengan profil terdaftar saat clock in atau clock out. Anda mengambil satu foto kamera depan; aplikasi memverifikasinya lalu membuka formulir kehadiran.
+
+## Tangkapan layar
+
+![Mobile: Face Verification](/manual/mobile/pages/mobile-face-verification.png)
+
+## Di halaman ini
+
+1. **Back** — Kembali ke layar sebelumnya.
+2. **Progress ring** — Indikator melingkar di sekitar foto Anda (warna netral, loading, sukses, atau error).
+3. **Photo preview** — Menampilkan foto yang diambil atau siluet placeholder.
+4. **Instruction text** — Meminta Anda menghadap kamera langsung, atau menampilkan **Verifying…**, **Face Verification Success!**, atau **Face Verification Failed!**
+5. **Take Photo** — Membuka kamera depan untuk menangkap wajah Anda.
+6. **Try Again** — Menghapus percobaan gagal agar Anda dapat mengambil foto baru.
+
+## Kontrol
+
+| No | Nama | Fungsi | Catatan |
+|----|------|--------|---------|
+| 1 | Back | Kembali satu layar. | Membatalkan verifikasi yang sedang berlangsung. |
+| 2 | Progress ring | Status visual di sekitar foto. | Berubah hijau saat sukses, merah saat gagal. |
+| 3 | Photo preview | Menampilkan gambar yang diambil. | Ikon placeholder sebelum Anda mengambil foto. |
+| 4 | Instruction text | Panduan langkah atau pesan hasil. | Diperbarui otomatis selama verifikasi. |
+| 5 | Take Photo | Mengambil foto menghadap depan. | Tersembunyi saat memverifikasi atau setelah sukses. |
+| 6 | Try Again | Mencoba ulang setelah kecocokan gagal. | Hanya ditampilkan saat verifikasi gagal. |
+
+## Tugas umum
+
+- **Verifikasi saat clock in** — Dari [Mobile: Location Confirmed](/docs/manual/mobile/pages/mobile-location-confirmed), ketuk **Start Verification**, ambil foto, tunggu sukses, lalu selesaikan [Mobile: Attendance Form](/docs/manual/mobile/pages/mobile-attendance-form).
+- **Verifikasi saat clock out** — Langkah yang sama setelah mengetuk **Clock Out** di Home.
+
+## Pemecahan masalah
+
+- **Face Verification Failed!** — Ambil ulang foto dengan pencahayaan lebih baik; hadapkan wajah langsung ke kamera; pastikan Anda menyelesaikan [Mobile: Face Registration](/docs/manual/mobile/pages/mobile-face-registration) dengan tiga foto.
+- **Verifying… lama** — Periksa koneksi jaringan; aplikasi mengunggah foto untuk pencocokan.
+- **Tidak pernah diminta verifikasi wajah** — Perusahaan Anda mungkin tidak mewajibkan verifikasi wajah, atau profil Anda masih perlu pendaftaran (**Register Your Face** di Location Confirmed).
+
+**Sebelum memulai:** Anda memerlukan profil wajah lengkap (tiga foto terdaftar). Jika belum, gunakan Face Registration terlebih dahulu.

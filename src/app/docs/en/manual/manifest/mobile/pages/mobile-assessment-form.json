@@ -1,0 +1,34 @@
+{
+  "slug": "mobile-assessment-form",
+  "route": "/assessment-form",
+  "platform": "mobile",
+  "screenshot": "/manual/mobile/pages/mobile-assessment-form.png",
+  "prerequisites": [
+    "Employee A account",
+    "Local seed: manual-mobile-2026 self-assessment period"
+  ],
+  "captureRecipe": "Performance → Self Assessment → tap manual-mobile-2026 2026 row",
+  "notes": "Recaptured 2026-06-15. Self-assessment questionnaire form for seeded period.",
+  "capturedAt": "2026-06-15",
+  "captureAccount": "manual.mobile.empa@example.com",
+  "controls": [
+    {
+      "number": 1,
+      "name": "Back",
+      "selectorOrRef": "Back",
+      "notes": "Return to Self Assessment list."
+    },
+    {
+      "number": 2,
+      "name": "Assessment form",
+      "selectorOrRef": "Assessment form",
+      "notes": "Questions and rating fields for the period."
+    },
+    {
+      "number": 3,
+      "name": "Submit / Save",
+      "selectorOrRef": "Submit",
+      "notes": "Save or submit your self-assessment when complete."
+    }
+  ]
+}

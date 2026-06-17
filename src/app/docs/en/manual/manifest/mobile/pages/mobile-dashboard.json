@@ -1,0 +1,27 @@
+{
+  "slug": "mobile-dashboard",
+  "route": "/dashboard",
+  "platform": "mobile",
+  "screenshot": "/manual/mobile/pages/mobile-dashboard.png",
+  "prerequisites": ["Employee A account", "Local seed: overtime pending in Recent Activity"],
+  "captureRecipe": "Login as Employee A → Home tab (default after login)",
+  "notes": "Recaptured 2026-06-15 with local backend + manual:seed-staging-mobile. Web equivalent: /ess — different UI.",
+  "capturedAt": "2026-06-15",
+  "captureAccount": "manual.mobile.empa@example.com",
+  "controls": [
+    { "number": 1, "name": "Company / branch", "selectorOrRef": "branch label" },
+    { "number": 2, "name": "Employee name", "selectorOrRef": "employee name" },
+    { "number": 3, "name": "Job title", "selectorOrRef": "job title" },
+    { "number": 4, "name": "Today's date", "selectorOrRef": "date" },
+    { "number": 5, "name": "Clock In", "selectorOrRef": "Clock In" },
+    { "number": 6, "name": "Clock Out", "selectorOrRef": "Clock Out" },
+    { "number": 7, "name": "Overtime Request", "selectorOrRef": "Overtime Request" },
+    { "number": 8, "name": "New Leave Request", "selectorOrRef": "New Leave Request" },
+    { "number": 9, "name": "Recent Activity", "selectorOrRef": "Recent Activity" },
+    { "number": 10, "name": "Home tab", "selectorOrRef": "Home Tab 1 of 5" },
+    { "number": 11, "name": "Performance tab", "selectorOrRef": "Performance Tab 2 of 5" },
+    { "number": 12, "name": "Leave Request tab", "selectorOrRef": "Leave Request Tab 3 of 5" },
+    { "number": 13, "name": "Inbox tab", "selectorOrRef": "Inbox Tab 4 of 5" },
+    { "number": 14, "name": "Profile tab", "selectorOrRef": "Profile Tab 5 of 5" }
+  ]
+}

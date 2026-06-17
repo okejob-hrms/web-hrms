@@ -1,0 +1,43 @@
+{
+  "slug": "mobile-profile",
+  "route": "/profile",
+  "platform": "mobile",
+  "screenshot": "/manual/mobile/pages/mobile-profile.png",
+  "prerequisites": [
+    "Employee A account"
+  ],
+  "captureRecipe": "Login as Employee A → tap Profile tab",
+  "notes": "",
+  "controls": [
+    {
+      "number": 1,
+      "name": "Profile header",
+      "selectorOrRef": "Profile header",
+      "notes": "Photo and summary."
+    },
+    {
+      "number": 2,
+      "name": "Employee details",
+      "selectorOrRef": "Employee details",
+      "notes": "View personal and job info."
+    },
+    {
+      "number": 3,
+      "name": "Payslip",
+      "selectorOrRef": "Payslip",
+      "notes": "Open payslip list if available."
+    },
+    {
+      "number": 4,
+      "name": "Log Out",
+      "selectorOrRef": "Log Out",
+      "notes": "Sign out of the mobile app."
+    },
+    {
+      "number": 5,
+      "name": "Bottom navigation",
+      "selectorOrRef": "Bottom navigation",
+      "notes": "Switch between main tabs."
+    }
+  ]
+}

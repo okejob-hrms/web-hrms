@@ -1,0 +1,37 @@
+{
+  "slug": "mobile-face-registration",
+  "route": "/face-registration",
+  "platform": "mobile",
+  "screenshot": "/manual/mobile/pages/mobile-face-registration.png",
+  "prerequisites": [
+    "Employee without full face profile"
+  ],
+  "captureRecipe": "Clock in flow → Register Your Face (user with fewer than 3 faces)",
+  "notes": "Optional bypass path",
+  "controls": [
+    {
+      "number": 1,
+      "name": "Screen content",
+      "selectorOrRef": "Screen content",
+      "notes": "Main area for this screen."
+    },
+    {
+      "number": 2,
+      "name": "Back",
+      "selectorOrRef": "Back",
+      "notes": "Return to previous screen if shown."
+    },
+    {
+      "number": 3,
+      "name": "Primary action",
+      "selectorOrRef": "Primary action",
+      "notes": "Main button for this task."
+    },
+    {
+      "number": 4,
+      "name": "Bottom navigation",
+      "selectorOrRef": "Bottom navigation",
+      "notes": "Visible on main tabs only."
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "slug": "mobile-location-confirmed",
+  "route": "/location-confirmed",
+  "platform": "mobile",
+  "screenshot": "/manual/mobile/pages/mobile-location-confirmed.png",
+  "captureRecipe": "Home → Clock In → after location verify → Location Confirmed",
+  "controls": [
+    { "number": 1, "name": "Back", "selectorOrRef": "Back" },
+    { "number": 2, "name": "Location Confirmed", "selectorOrRef": "Location Confirmed heading" },
+    { "number": 3, "name": "Biometric illustration", "selectorOrRef": "biometric icon" },
+    { "number": 4, "name": "Instruction text", "selectorOrRef": "face verification instruction" },
+    { "number": 5, "name": "Start Verification", "selectorOrRef": "Start Verification", "notes": "When face profile has 3 photos" },
+    { "number": 6, "name": "Register Your Face", "selectorOrRef": "Register Your Face", "notes": "When face profile incomplete" }
+  ]
+}

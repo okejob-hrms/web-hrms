@@ -1,0 +1,42 @@
+# Mobile: Location Confirmed
+
+## Purpose
+
+After the app verifies your GPS position, **Location Confirmed** tells you that you are within the allowed work area and prompts you to continue with face verification before clocking in or out.
+
+## Screenshot
+
+![Mobile: Location Confirmed](/manual/mobile/pages/mobile-location-confirmed.png)
+
+## On this page
+
+1. **Back** — Return to Home (cancels the current clock-in or clock-out attempt).
+2. **Location Confirmed** — Success message that your position was accepted.
+3. **Biometric illustration** — Visual cue that the next step is face verification.
+4. **Instruction text** — Explains that face verification is required for secure attendance.
+5. **Start Verification** — Opens [Mobile: Face Verification](/docs/en/manual/mobile/pages/mobile-face-verification) when you already have a registered face profile (three photos on file).
+6. **Register Your Face** — Opens [Mobile: Face Registration](/docs/en/manual/mobile/pages/mobile-face-registration) when you have fewer than three face photos registered.
+
+## Controls
+
+| Number | Name | What it does | Notes |
+|--------|------|----------------|-------|
+| 1 | Back | Returns to [Mobile: Home](/docs/en/manual/mobile/pages/mobile-dashboard). | Cancels the in-progress clock action. |
+| 2 | Location Confirmed | Status heading. | Shown after GPS validation succeeds. |
+| 3 | Biometric illustration | Decorative icon. | Display only. |
+| 4 | Instruction text | Describes the face step. | Same screen for clock-in and clock-out. |
+| 5 | Start Verification | Continues to face verification. | Shown when your face profile is complete (3 photos). |
+| 6 | Register Your Face | Continues to face registration. | Shown when you still need to register your face. |
+
+## Common tasks
+
+- **Continue after clock-in location check** — Tap **Start Verification** or **Register Your Face**, then complete the face step and [Mobile: Attendance Form](/docs/en/manual/mobile/pages/mobile-attendance-form).
+- **Cancel** — Tap **Back** to return to Home without saving attendance.
+
+## Troubleshooting
+
+- **You never reach this screen** — Allow location permission for ESS CPS; stand inside your company’s allowed radius; wait for the “Verification in Progress” dialog to finish. If you see a distance error, move closer to the work site.
+- **Wrong button label** — **Register Your Face** means you need to complete registration first; **Start Verification** means your profile is ready.
+- **Screen not available** — Your company may disable mobile attendance. Ask your admin.
+
+**Before you start:** You arrive here automatically after tapping **Clock In** or **Clock Out** on Home and passing location verification.

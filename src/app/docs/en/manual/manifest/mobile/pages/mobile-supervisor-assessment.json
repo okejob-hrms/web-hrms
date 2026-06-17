@@ -1,0 +1,33 @@
+{
+  "slug": "mobile-supervisor-assessment",
+  "route": "/supervisor-assessment",
+  "platform": "mobile",
+  "screenshot": "/manual/mobile/pages/mobile-supervisor-assessment.png",
+  "prerequisites": [
+    "Supervisor account"
+  ],
+  "captureRecipe": "Login as Supervisor → Performance tab → Supervisor Assessment",
+  "notes": "Recaptured 2026-06-15. Empty state: no supervisor assessments in local seed. Detail/form/schedule screens need additional seed data.",
+  "capturedAt": "2026-06-15",
+  "captureAccount": "manual.mobile.supervisor@example.com",
+  "controls": [
+    {
+      "number": 1,
+      "name": "Screen title",
+      "selectorOrRef": "Supervisor Assessment",
+      "notes": "List of assessments to conduct as supervisor."
+    },
+    {
+      "number": 2,
+      "name": "Back",
+      "selectorOrRef": "Back",
+      "notes": "Return to Performance hub."
+    },
+    {
+      "number": 3,
+      "name": "Empty state",
+      "selectorOrRef": "No supervisor assessments found.",
+      "notes": "Shown when no assessments are assigned."
+    }
+  ]
+}

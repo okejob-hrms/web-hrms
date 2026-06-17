@@ -1,0 +1,18 @@
+{
+  "slug": "mobile-attendance",
+  "route": "/attendance",
+  "platform": "mobile",
+  "screenshot": "/manual/mobile/pages/mobile-attendance.png",
+  "captureRecipe": "Profile → Attendance and Overtime → Attendance tab",
+  "controls": [
+    { "number": 1, "name": "Back", "selectorOrRef": "Back" },
+    { "number": 2, "name": "Attendance tab", "selectorOrRef": "Attendance" },
+    { "number": 3, "name": "Overtime tab", "selectorOrRef": "Overtime" },
+    { "number": 4, "name": "Month selector", "selectorOrRef": "MonthSelector" },
+    { "number": 5, "name": "Summary stats", "selectorOrRef": "stat boxes" },
+    { "number": 6, "name": "Attendance heading", "selectorOrRef": "Attendance" },
+    { "number": 7, "name": "Filter", "selectorOrRef": "filter button" },
+    { "number": 8, "name": "Attendance record row", "selectorOrRef": "AttendanceCard" },
+    { "number": 9, "name": "Edit icon", "selectorOrRef": "edit icon" }
+  ]
+}

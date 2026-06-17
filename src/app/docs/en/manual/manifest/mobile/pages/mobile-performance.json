@@ -1,0 +1,46 @@
+{
+  "slug": "mobile-performance",
+  "route": "/performance",
+  "platform": "mobile",
+  "screenshot": "/manual/mobile/pages/mobile-performance.png",
+  "prerequisites": [
+    "Employee A account",
+    "Local seed: self-assessment period + OKR objective"
+  ],
+  "captureRecipe": "Login as Employee A → tap Performance tab",
+  "notes": "Recaptured 2026-06-15. Shows Self Assessment (due date), My OKR, Supervisor Assessment.",
+  "capturedAt": "2026-06-15",
+  "captureAccount": "manual.mobile.empa@example.com",
+  "controls": [
+    {
+      "number": 1,
+      "name": "Screen title",
+      "selectorOrRef": "Performance",
+      "notes": "Performance hub header."
+    },
+    {
+      "number": 2,
+      "name": "Self Assessment",
+      "selectorOrRef": "Self Assessment",
+      "notes": "Open your self-assessment form; due date shown when seeded."
+    },
+    {
+      "number": 3,
+      "name": "My OKR",
+      "selectorOrRef": "My OKR",
+      "notes": "Objectives and key results list."
+    },
+    {
+      "number": 4,
+      "name": "Supervisor Assessment",
+      "selectorOrRef": "Supervisor Assessment",
+      "notes": "Supervisor review entry (visible to employees)."
+    },
+    {
+      "number": 5,
+      "name": "Bottom navigation",
+      "selectorOrRef": "Bottom navigation",
+      "notes": "Switch tabs."
+    }
+  ]
+}

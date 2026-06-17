@@ -1,0 +1,19 @@
+{
+  "slug": "mobile-overtime-edit",
+  "route": "/edit-overtime/:id",
+  "platform": "mobile",
+  "screenshot": "/manual/mobile/pages/mobile-overtime-edit.png",
+  "prerequisites": ["Employee A account", "Local seed: pending overtime row"],
+  "captureRecipe": "Profile → Attendance and Overtime → Overtime tab → tap edit on pending row",
+  "notes": "Recaptured 2026-06-15.",
+  "capturedAt": "2026-06-15",
+  "captureAccount": "manual.mobile.empa@example.com",
+  "controls": [
+    { "number": 1, "name": "Back", "selectorOrRef": "Back", "notes": "Return to overtime list." },
+    { "number": 2, "name": "Request Date", "selectorOrRef": "Request Date *", "notes": "Editable date." },
+    { "number": 3, "name": "Start Time", "selectorOrRef": "Start Time *", "notes": "Editable start." },
+    { "number": 4, "name": "End Time", "selectorOrRef": "End Time *", "notes": "Editable end." },
+    { "number": 5, "name": "Overtime Notes", "selectorOrRef": "Overtime Notes *", "notes": "Editable notes." },
+    { "number": 6, "name": "Update", "selectorOrRef": "Update Overtime / Save", "notes": "Save changes." }
+  ]
+}

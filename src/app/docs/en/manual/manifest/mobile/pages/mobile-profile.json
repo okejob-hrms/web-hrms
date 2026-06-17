@@ -1,0 +1,57 @@
+{
+  "slug": "mobile-profile",
+  "route": "/profile",
+  "platform": "mobile",
+  "screenshot": "/manual/mobile/pages/mobile-profile.png",
+  "prerequisites": [
+    "Employee A account"
+  ],
+  "captureRecipe": "Login as Employee A → tap Profile tab",
+  "notes": "Recaptured 2026-06-15. Summary stats and menu rows (My Profile, Attendance and Overtime, My Payslip).",
+  "capturedAt": "2026-06-15",
+  "captureAccount": "manual.mobile.empa@example.com",
+  "controls": [
+    {
+      "number": 1,
+      "name": "Log Out",
+      "selectorOrRef": "Log Out",
+      "notes": "Sign out of the mobile app."
+    },
+    {
+      "number": 2,
+      "name": "Employee summary",
+      "selectorOrRef": "Manual Mobile Employee A",
+      "notes": "Name, employee ID, job title."
+    },
+    {
+      "number": 3,
+      "name": "Month summary",
+      "selectorOrRef": "June 2026",
+      "notes": "Attendance, time off, overtime counts."
+    },
+    {
+      "number": 4,
+      "name": "My Profile",
+      "selectorOrRef": "My Profile",
+      "notes": "Open profile detail."
+    },
+    {
+      "number": 5,
+      "name": "Attendance and Overtime",
+      "selectorOrRef": "Attendance and Overtime",
+      "notes": "Open attendance history."
+    },
+    {
+      "number": 6,
+      "name": "My Payslip",
+      "selectorOrRef": "My Payslip",
+      "notes": "Open payslip list."
+    },
+    {
+      "number": 7,
+      "name": "Bottom navigation",
+      "selectorOrRef": "Bottom navigation",
+      "notes": "Switch between main tabs."
+    }
+  ]
+}

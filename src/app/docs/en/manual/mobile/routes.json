@@ -1,0 +1,455 @@
+{
+  "platform": "mobile",
+  "routes": [
+    {
+      "slug": "mobile-splash",
+      "title": "Mobile: Splash",
+      "path": "/splash",
+      "section": "auth",
+      "requiresAuth": false,
+      "captureRecipe": "Cold start app → splash briefly visible before redirect to login or dashboard",
+      "prerequisites": [],
+      "notes": "May flash quickly when already logged in"
+    },
+    {
+      "slug": "mobile-login",
+      "title": "Mobile: Login",
+      "path": "/login",
+      "section": "auth",
+      "requiresAuth": false,
+      "captureRecipe": "Log out if needed → land on login screen",
+      "prerequisites": [],
+      "notes": "Web equivalent: /auth/login"
+    },
+    {
+      "slug": "mobile-reset-password",
+      "title": "Mobile: Reset Password",
+      "path": "/reset-password",
+      "section": "auth",
+      "requiresAuth": false,
+      "captureRecipe": "From login → tap Forgot password / reset link → reset email screen",
+      "prerequisites": [],
+      "notes": ""
+    },
+    {
+      "slug": "mobile-reset-password-check-email",
+      "title": "Mobile: Check Email",
+      "path": "/reset-password/check-email",
+      "section": "auth",
+      "requiresAuth": false,
+      "captureRecipe": "Submit email on reset password → check email confirmation screen",
+      "prerequisites": [],
+      "notes": "Nested route"
+    },
+    {
+      "slug": "mobile-create-password",
+      "title": "Mobile: Create Password",
+      "path": "/create-password",
+      "section": "auth",
+      "requiresAuth": false,
+      "captureRecipe": "First login or reset link → create password screen",
+      "prerequisites": ["First-login user or reset token flow"],
+      "notes": ""
+    },
+    {
+      "slug": "mobile-reset-password-success",
+      "title": "Mobile: Password Reset Success",
+      "path": "/reset-password/success",
+      "section": "auth",
+      "requiresAuth": false,
+      "captureRecipe": "Complete password reset flow → success screen",
+      "prerequisites": [],
+      "notes": ""
+    },
+    {
+      "slug": "mobile-dashboard",
+      "title": "Mobile: Home (Dashboard)",
+      "path": "/dashboard",
+      "section": "shell",
+      "requiresAuth": true,
+      "captureRecipe": "Login as Employee A → Home tab (default after login)",
+      "prerequisites": ["Employee A account"],
+      "notes": "Web equivalent: /ess — different UI"
+    },
+    {
+      "slug": "mobile-performance",
+      "title": "Mobile: Performance",
+      "path": "/performance",
+      "section": "shell",
+      "requiresAuth": true,
+      "captureRecipe": "Login as Employee A → tap Performance tab",
+      "prerequisites": ["Employee A account"],
+      "notes": ""
+    },
+    {
+      "slug": "mobile-leave-request",
+      "title": "Mobile: Leave Request",
+      "path": "/leave-request",
+      "section": "shell",
+      "requiresAuth": true,
+      "captureRecipe": "Login as Employee A → tap Leave Request tab",
+      "prerequisites": ["Employee A account"],
+      "notes": ""
+    },
+    {
+      "slug": "mobile-inbox",
+      "title": "Mobile: Inbox",
+      "path": "/inbox",
+      "section": "shell",
+      "requiresAuth": true,
+      "captureRecipe": "Login as Supervisor → tap Inbox tab",
+      "prerequisites": ["Supervisor account", "Pending inbox item if possible"],
+      "notes": ""
+    },
+    {
+      "slug": "mobile-profile",
+      "title": "Mobile: Profile",
+      "path": "/profile",
+      "section": "shell",
+      "requiresAuth": true,
+      "captureRecipe": "Login as Employee A → tap Profile tab",
+      "prerequisites": ["Employee A account"],
+      "notes": ""
+    },
+    {
+      "slug": "mobile-profile-detail",
+      "title": "Mobile: Profile Detail",
+      "path": "/profile-detail",
+      "section": "profile",
+      "requiresAuth": true,
+      "captureRecipe": "Profile tab → open profile detail",
+      "prerequisites": ["Employee A account"],
+      "notes": ""
+    },
+    {
+      "slug": "mobile-profile-edit",
+      "title": "Mobile: Edit Profile",
+      "path": "/profile-edit",
+      "section": "profile",
+      "requiresAuth": true,
+      "captureRecipe": "Profile detail → tap Edit",
+      "prerequisites": ["Employee A account"],
+      "notes": "Requires profile extra payload"
+    },
+    {
+      "slug": "mobile-attendance",
+      "title": "Mobile: Attendance & Overtime",
+      "path": "/attendance",
+      "section": "attendance",
+      "requiresAuth": true,
+      "captureRecipe": "Home → navigate to Attendance & Overtime history",
+      "prerequisites": ["Employee A account"],
+      "notes": ""
+    },
+    {
+      "slug": "mobile-location-confirmed",
+      "title": "Mobile: Location Confirmed",
+      "path": "/location-confirmed",
+      "section": "attendance",
+      "requiresAuth": true,
+      "captureRecipe": "Home → Clock in → after location verify → Location Confirmed (use MANUAL_CAPTURE_BYPASS for capture)",
+      "prerequisites": ["Employee A", "MANUAL_CAPTURE_BYPASS=true for dev capture"],
+      "notes": ""
+    },
+    {
+      "slug": "mobile-face-registration",
+      "title": "Mobile: Face Registration",
+      "path": "/face-registration",
+      "section": "attendance",
+      "requiresAuth": true,
+      "captureRecipe": "Clock in flow → Register Your Face (user with fewer than 3 faces)",
+      "prerequisites": ["Employee without full face profile"],
+      "notes": "Optional bypass path"
+    },
+    {
+      "slug": "mobile-face-verification",
+      "title": "Mobile: Face Verification",
+      "path": "/face-verification",
+      "section": "attendance",
+      "requiresAuth": true,
+      "captureRecipe": "Clock in → Location Confirmed → Start Verification",
+      "prerequisites": ["Employee A with 3+ registered faces or bypass"],
+      "notes": ""
+    },
+    {
+      "slug": "mobile-attendance-form",
+      "title": "Mobile: Attendance Form",
+      "path": "/attendance-form",
+      "section": "attendance",
+      "requiresAuth": true,
+      "captureRecipe": "Complete location/face steps → attendance form (bypass: Continue from Location Confirmed)",
+      "prerequisites": ["MANUAL_CAPTURE_BYPASS=true for dev capture"],
+      "notes": ""
+    },
+    {
+      "slug": "mobile-attendance-edit",
+      "title": "Mobile: Edit Attendance",
+      "path": "/edit-attendance/:id",
+      "section": "attendance",
+      "requiresAuth": true,
+      "captureRecipe": "Attendance history → tap a record → edit",
+      "prerequisites": ["Existing attendance record"],
+      "notes": "One page for edit screen type"
+    },
+    {
+      "slug": "mobile-leave-request-form",
+      "title": "Mobile: New Leave Request",
+      "path": "/new-leave-request",
+      "section": "leave",
+      "requiresAuth": true,
+      "captureRecipe": "Leave Request tab → tap add/new leave",
+      "prerequisites": ["Employee A account"],
+      "notes": ""
+    },
+    {
+      "slug": "mobile-leave-detail",
+      "title": "Mobile: Leave Detail",
+      "path": "/leave-request/:id",
+      "section": "leave",
+      "requiresAuth": true,
+      "captureRecipe": "Leave Request tab → tap an existing leave row",
+      "prerequisites": ["At least one leave request on account"],
+      "notes": ""
+    },
+    {
+      "slug": "mobile-overtime-request",
+      "title": "Mobile: Overtime Request",
+      "path": "/overtime-request",
+      "section": "leave",
+      "requiresAuth": true,
+      "captureRecipe": "Home or attendance area → open overtime request",
+      "prerequisites": ["Employee A account"],
+      "notes": ""
+    },
+    {
+      "slug": "mobile-overtime-edit",
+      "title": "Mobile: Edit Overtime",
+      "path": "/edit-overtime/:id",
+      "section": "leave",
+      "requiresAuth": true,
+      "captureRecipe": "Overtime list → tap record → edit",
+      "prerequisites": ["Existing overtime record"],
+      "notes": ""
+    },
+    {
+      "slug": "mobile-payslip",
+      "title": "Mobile: Payslip",
+      "path": "/payslip",
+      "section": "payslip",
+      "requiresAuth": true,
+      "captureRecipe": "Profile or menu path to Payslip list",
+      "prerequisites": ["Employee A with payslip data"],
+      "notes": ""
+    },
+    {
+      "slug": "mobile-payslip-view-request",
+      "title": "Mobile: Payslip View Request",
+      "path": "/payslip-view-request",
+      "section": "payslip",
+      "requiresAuth": true,
+      "captureRecipe": "Payslip list → select period → view request",
+      "prerequisites": ["Payslip data"],
+      "notes": "Requires extra payload"
+    },
+    {
+      "slug": "mobile-payslip-view",
+      "title": "Mobile: Payslip View",
+      "path": "/payslip-view",
+      "section": "payslip",
+      "requiresAuth": true,
+      "captureRecipe": "After view request approved or direct view → payslip detail",
+      "prerequisites": ["Payslip data"],
+      "notes": ""
+    },
+    {
+      "slug": "mobile-payslip-print-request",
+      "title": "Mobile: Payslip Print Request",
+      "path": "/payslip-print-request",
+      "section": "payslip",
+      "requiresAuth": true,
+      "captureRecipe": "Payslip detail → request print",
+      "prerequisites": ["Payslip data"],
+      "notes": ""
+    },
+    {
+      "slug": "mobile-payslip-print-submitted",
+      "title": "Mobile: Payslip Print Submitted",
+      "path": "/payslip-print-submitted",
+      "section": "payslip",
+      "requiresAuth": true,
+      "captureRecipe": "Submit print request → confirmation screen",
+      "prerequisites": ["Payslip data"],
+      "notes": ""
+    },
+    {
+      "slug": "mobile-self-assessment",
+      "title": "Mobile: Self Assessment",
+      "path": "/self-assessment",
+      "section": "performance",
+      "requiresAuth": true,
+      "captureRecipe": "Performance tab → Self Assessment",
+      "prerequisites": ["Active assessment period"],
+      "notes": "Requires extra list payload"
+    },
+    {
+      "slug": "mobile-assessment-form",
+      "title": "Mobile: Assessment Form",
+      "path": "/assessment-form",
+      "section": "performance",
+      "requiresAuth": true,
+      "captureRecipe": "Self Assessment → open an assessment",
+      "prerequisites": ["Active assessment"],
+      "notes": ""
+    },
+    {
+      "slug": "mobile-manager-assessment",
+      "title": "Mobile: Manager Assessment",
+      "path": "/manager-assessment",
+      "section": "performance",
+      "requiresAuth": true,
+      "captureRecipe": "Performance → Manager Assessment entry",
+      "prerequisites": ["Manager role data"],
+      "notes": ""
+    },
+    {
+      "slug": "mobile-assessment-manager-form",
+      "title": "Mobile: Manager Assessment Form",
+      "path": "/assessment-manager-form",
+      "section": "performance",
+      "requiresAuth": true,
+      "captureRecipe": "Manager assessment → select team member → form",
+      "prerequisites": ["Supervisor account", "Team assessment data"],
+      "notes": ""
+    },
+    {
+      "slug": "mobile-supervisor-assessment",
+      "title": "Mobile: Supervisor Assessment",
+      "path": "/supervisor-assessment",
+      "section": "performance",
+      "requiresAuth": true,
+      "captureRecipe": "Performance → Supervisor Assessment list",
+      "prerequisites": ["Supervisor account"],
+      "notes": ""
+    },
+    {
+      "slug": "mobile-supervisor-assessment-detail",
+      "title": "Mobile: Supervisor Assessment Detail",
+      "path": "/supervisor-assessment-detail",
+      "section": "performance",
+      "requiresAuth": true,
+      "captureRecipe": "Supervisor Assessment → tap one assessment",
+      "prerequisites": ["Supervisor account"],
+      "notes": ""
+    },
+    {
+      "slug": "mobile-supervisor-assessment-form",
+      "title": "Mobile: Supervisor Assessment Form",
+      "path": "/supervisor-assessment-form",
+      "section": "performance",
+      "requiresAuth": true,
+      "captureRecipe": "Supervisor assessment detail → open form for assessor",
+      "prerequisites": ["Supervisor account"],
+      "notes": ""
+    },
+    {
+      "slug": "mobile-supervisor-assessment-schedule",
+      "title": "Mobile: Supervisor Assessment Schedule",
+      "path": "/supervisor-assessment-schedule",
+      "section": "performance",
+      "requiresAuth": true,
+      "captureRecipe": "Supervisor flow → schedule interview screen",
+      "prerequisites": ["Supervisor account"],
+      "notes": ""
+    },
+    {
+      "slug": "mobile-okr-list",
+      "title": "Mobile: OKR List",
+      "path": "/okr-list",
+      "section": "performance",
+      "requiresAuth": true,
+      "captureRecipe": "Performance → OKR → list",
+      "prerequisites": ["OKR data for period"],
+      "notes": ""
+    },
+    {
+      "slug": "mobile-okr",
+      "title": "Mobile: OKR Detail",
+      "path": "/okr",
+      "section": "performance",
+      "requiresAuth": true,
+      "captureRecipe": "OKR list → tap one OKR",
+      "prerequisites": ["OKR data"],
+      "notes": ""
+    },
+    {
+      "slug": "mobile-okr-key-result",
+      "title": "Mobile: OKR Key Result",
+      "path": "/okr-key-result",
+      "section": "performance",
+      "requiresAuth": true,
+      "captureRecipe": "OKR detail → open a key result",
+      "prerequisites": ["OKR data"],
+      "notes": ""
+    },
+    {
+      "slug": "mobile-offboarding",
+      "title": "Mobile: Offboarding",
+      "path": "/offboarding",
+      "section": "offboarding",
+      "requiresAuth": true,
+      "captureRecipe": "Home offboarding card or entry → offboarding hub",
+      "prerequisites": ["Active offboarding on account"],
+      "notes": ""
+    },
+    {
+      "slug": "mobile-exit-form",
+      "title": "Mobile: Exit Form",
+      "path": "/exit-form",
+      "section": "offboarding",
+      "requiresAuth": true,
+      "captureRecipe": "Offboarding → Exit Form step",
+      "prerequisites": ["Active offboarding"],
+      "notes": ""
+    },
+    {
+      "slug": "mobile-exit-schedule",
+      "title": "Mobile: Exit Interview Schedule",
+      "path": "/exit-schedule",
+      "section": "offboarding",
+      "requiresAuth": true,
+      "captureRecipe": "Offboarding → schedule exit interview",
+      "prerequisites": ["Active offboarding"],
+      "notes": ""
+    },
+    {
+      "slug": "mobile-work-handover",
+      "title": "Mobile: Work Handover",
+      "path": "/work-handover",
+      "section": "offboarding",
+      "requiresAuth": true,
+      "captureRecipe": "Offboarding → Work Handover",
+      "prerequisites": ["Active offboarding"],
+      "notes": ""
+    },
+    {
+      "slug": "mobile-document-handover",
+      "title": "Mobile: Document Handover",
+      "path": "/document-handover",
+      "section": "offboarding",
+      "requiresAuth": true,
+      "captureRecipe": "Offboarding → Document Handover",
+      "prerequisites": ["Active offboarding"],
+      "notes": ""
+    },
+    {
+      "slug": "mobile-responsibility-handover",
+      "title": "Mobile: Responsibility Handover",
+      "path": "/responsibility-handover",
+      "section": "offboarding",
+      "requiresAuth": true,
+      "captureRecipe": "Offboarding → Responsibility handover assignee",
+      "prerequisites": ["Active offboarding"],
+      "notes": ""
+    }
+  ]
+}
