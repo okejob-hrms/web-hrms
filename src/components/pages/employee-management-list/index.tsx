@@ -46,7 +46,7 @@ export const columns: ColumnDef<IEmployeeResponse>[] = [
           <span className="font-semibold text-foreground text-sm">
             {row.original.name}
           </span>
-          <span className="text-text-secondary">{row.original.id}</span>
+          <span className="text-text-secondary">{row.original.code}</span>
         </div>
       </div>
     ),

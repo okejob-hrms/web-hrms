@@ -185,7 +185,7 @@ export const EmployeeDetailsSection = React.memo(
           </div>
           <div className="flex flex-col">
             <p className="text-sm text-text-disabled">Employee ID</p>
-            <p>{safeGet(offboardingDetails.user.id)}</p>
+            <p>{safeGet(offboardingDetails.user.code)}</p>
           </div>
           <div className="flex flex-col">
             <p className="text-sm text-text-disabled">Email</p>
