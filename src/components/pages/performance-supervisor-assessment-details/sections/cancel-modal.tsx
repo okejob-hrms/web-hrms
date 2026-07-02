@@ -15,12 +15,14 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: () => void;
+  isSubmitting?: boolean;
 }
 
 export const CancelModal: React.FC<Props> = ({
   open,
   onOpenChange,
   onSubmit,
+  isSubmitting = false,
 }) => {
   const handleClose = () => {
     onOpenChange(false);
@@ -56,8 +58,8 @@ export const CancelModal: React.FC<Props> = ({
           <Button variant="outline" onClick={handleClose}>
             Cancel
           </Button>
-          <Button onClick={onSubmit} className="bg-error text-white">
-            Cancel Assessment
+          <Button onClick={onSubmit} className="bg-error text-white" disabled={isSubmitting}>
+            {isSubmitting ? "Cancelling..." : "Cancel Assessment"}
           </Button>
         </DialogFooter>
       </DialogContent>

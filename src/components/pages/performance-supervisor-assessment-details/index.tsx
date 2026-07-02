@@ -20,6 +20,7 @@ export const SupervisorAssessmentDetails = React.memo(
       openCancelModal,
       setOpenCancelModal,
       onCancelAssessment,
+      isCancellingAssessment,
       openCompleteModal,
       setOpenCompleteModal,
       onCompleteAssessment,
@@ -58,6 +59,7 @@ export const SupervisorAssessmentDetails = React.memo(
           open={openCancelModal}
           onOpenChange={setOpenCancelModal}
           onSubmit={onCancelAssessment}
+          isSubmitting={isCancellingAssessment}
         />
         <CompleteModal
           id={id}

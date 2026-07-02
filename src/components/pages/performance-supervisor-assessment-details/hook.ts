@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  deleteSupervisorAssessment,
   getSupervisorAssessmentDetail,
   updateAssessmentStatus,
-  updateSupervisorAssessment,
 } from "@/services/performances/supervisor-assessment";
 import { getFormById } from "@/services/form";
 import { toast } from "sonner";
@@ -15,6 +15,7 @@ export const useSupervisorAssessmentDetails = (id: number) => {
   const [openCancelModal, setOpenCancelModal] = React.useState(false);
   const [openCompleteModal, setOpenCompleteModal] = React.useState(false);
   const router = useRouter();
+  const queryClient = useQueryClient();
   const {
     data: employeeDetails,
     isLoading: isLoadingEmployeeDetails,
@@ -45,9 +46,12 @@ export const useSupervisorAssessmentDetails = (id: number) => {
   const finalSubmission = employeeDetails?.data?.final_submission;
 
   const mutateCancelAssessment = useMutation({
-    mutationFn: (status: number) => updateAssessmentStatus(id, status),
+    mutationFn: () => deleteSupervisorAssessment(id),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["supervisor-assessments"] });
+      toast.success("Supervisor assessment cancelled successfully");
       setOpenCancelModal(false);
+      router.push("/performance/supervisor-assessment");
     },
     onError: (error: any) => {
       if (error?.response) {
@@ -56,26 +60,26 @@ export const useSupervisorAssessmentDetails = (id: number) => {
             .json()
             .then((errorData: ApiErrorResponse) => {
               toast.error(
-                errorData.message || "Failed to submit assessment process.",
+                errorData.message ||
+                  "Failed to cancel supervisor assessment.",
               );
             })
             .catch(() => {
-              toast.error("Failed to submit assessment process: Server error");
+              toast.error("Failed to cancel supervisor assessment: Server error");
             });
         } catch (parseError) {
-          toast.error("Failed to submit assessment process: Server error");
+          toast.error("Failed to cancel supervisor assessment: Server error");
         }
       } else {
         toast.error(
-          `Failed to submit assessment process: ${error.message || "Unknown error"}`,
+          `Failed to cancel supervisor assessment: ${error.message || "Unknown error"}`,
         );
       }
     },
   });
 
   const onCancelAssessment = () => {
-    mutateCancelAssessment.mutate(3);
-    setOpenCancelModal(false);
+    mutateCancelAssessment.mutate();
   };
 
   const mutateCompleteAssessment = useMutation({
@@ -127,6 +131,7 @@ export const useSupervisorAssessmentDetails = (id: number) => {
     openCancelModal,
     setOpenCancelModal,
     onCancelAssessment,
+    isCancellingAssessment: mutateCancelAssessment.isPending,
     openCompleteModal,
     setOpenCompleteModal,
     onCompleteAssessment,
