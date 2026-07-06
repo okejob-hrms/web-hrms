@@ -7,7 +7,6 @@ import {
 } from "@/components/ui/collapsible";
 import {
   IAssessmentField,
-  IAssessmentGroup,
 } from "@/services/employees/self-assessment/types";
 import { getFormById } from "@/services/form";
 import { IFormGroup } from "@/services/form/types";
@@ -21,38 +20,29 @@ interface OpenSections {
 interface AssessmentFormProps {
   formId: number;
   fields?: IAssessmentField[];
-  groups?: IAssessmentGroup[];
 }
 
 interface GroupFieldsMap {
   [groupId: number]: IFormGroup["fields"];
 }
 
+interface FormSection {
+  field_group_id: number;
+  name: string;
+}
+
 export const AssessmentForm: React.FC<AssessmentFormProps> = ({
   formId,
   fields,
-  groups,
 }) => {
   const [openSections, setOpenSections] = useState<OpenSections>({});
   const [groupFields, setGroupFields] = useState<GroupFieldsMap>({});
+  const [formSections, setFormSections] = useState<FormSection[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    if (groups && groups.length > 0) {
-      const initialOpenState = groups.reduce(
-        (acc, group) => ({
-          ...acc,
-          [group.field_group_id]: true,
-        }),
-        {},
-      );
-      setOpenSections(initialOpenState);
-    }
-  }, [groups]);
-
-  useEffect(() => {
     const fetchFormData = async () => {
-      if (!formId || !groups || groups.length === 0) {
+      if (!formId) {
         setLoading(false);
         return;
       }
@@ -63,15 +53,31 @@ export const AssessmentForm: React.FC<AssessmentFormProps> = ({
 
         if (response.data && response.data.groups) {
           const fieldsMap: GroupFieldsMap = {};
+          const sections: FormSection[] = [];
 
           response.data.groups.forEach((group: IFormGroup) => {
             const groupId = parseInt(group.id);
+            sections.push({
+              field_group_id: groupId,
+              name: group.name,
+            });
+
             if (group.fields && Array.isArray(group.fields)) {
               fieldsMap[groupId] = group.fields;
             }
           });
 
           setGroupFields(fieldsMap);
+          setFormSections(sections);
+          setOpenSections(
+            sections.reduce(
+              (acc, group) => ({
+                ...acc,
+                [group.field_group_id]: true,
+              }),
+              {},
+            ),
+          );
         }
       } catch (error) {
         console.error("Error fetching form data:", error);
@@ -81,7 +87,7 @@ export const AssessmentForm: React.FC<AssessmentFormProps> = ({
     };
 
     fetchFormData();
-  }, [formId, groups]);
+  }, [formId]);
 
   const toggleSection = (section: string | number): void => {
     setOpenSections((prev) => ({ ...prev, [section]: !prev[section] }));
@@ -94,7 +100,7 @@ export const AssessmentForm: React.FC<AssessmentFormProps> = ({
     );
   };
 
-  if (!groups || groups.length === 0) {
+  if (!formSections || formSections.length === 0) {
     return (
       <div className="w-full mx-auto p-6 text-center text-primary font-semibold">
         No assessment groups available
@@ -104,10 +110,10 @@ export const AssessmentForm: React.FC<AssessmentFormProps> = ({
 
   return (
     <div className="w-full mx-auto">
-      {loading || !groups || groups.length === 0 ? (
+      {loading ? (
         <Skeleton />
       ) : (
-        groups.map((group) => {
+        formSections.map((group) => {
           const fieldsForGroup = groupFields[group.field_group_id] || [];
 
           return (
