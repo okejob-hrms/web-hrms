@@ -30,8 +30,20 @@ import { Button } from '@/components/ui/button';
 import ExperienceModal from './modal/experience-modal';
 import AdditionalModal from './modal/additional-modal';
 import AgeModal from './modal/age-modal';
+import { useLocale, useTranslations } from 'next-intl';
+import { formatChartMonthLabel } from '@/lib/formatting';
+import { resolveLocale } from '@/lib/i18n/locale';
 
 export const Analytics = () => {
+  const t = useTranslations('dashboard');
+  const tAtt = useTranslations('attendance');
+  const tCommon = useTranslations('common');
+  const tEmployee = useTranslations('employee');
+  const locale = resolveLocale(useLocale());
+  const chartMonth = React.useCallback(
+    (period: string) => formatChartMonthLabel(period, locale, 'short'),
+    [locale],
+  );
   const dashboardAnalytics = useDashboardAnalytics();
 
   const {
@@ -54,7 +66,7 @@ export const Analytics = () => {
   const [openAge, setOpenAge] = React.useState(false);
 
   const lineData = attendanceStat?.data.map((item) => ({
-    month: item.month,
+    month: chartMonth(item.month),
     onTime: item.on_time,
     late: item.late,
     absent: item.absent,
@@ -62,7 +74,13 @@ export const Analytics = () => {
     leave: item.leave,
   }));
 
-  const lineTitle = ['On Time', 'Late', 'Absent', 'Overtime', 'Leave'];
+  const lineTitle = [
+    tAtt('onTime'),
+    t('late'),
+    tAtt('absent'),
+    tAtt('overtime'),
+    t('leave'),
+  ];
   const lineColor = ['#18618B', '#FFB84D', '#C964A2', '#64C9B1', '#367839'];
   const dougColor = [
     '#8CC8EB',
@@ -87,12 +105,12 @@ export const Analytics = () => {
 
   const experienceData = [
     {
-      name: 'Fresh Graduate',
+      name: t('freshGraduate'),
       value: experienceStat?.data.fresh_graduate,
       color: '#0A2636',
     },
     {
-      name: 'Experienced',
+      name: t('experienced'),
       value: experienceStat?.data.experienced,
       color: '#8CC9E8',
     },
@@ -489,7 +507,7 @@ export const Analytics = () => {
     <div className="font-sans min-h-screen flex flex-col space-y-6 py-6">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="space-y-1 col-span-1 md:col-span-2">
-          <div className="text-xs font-bold text-gray-600">Date Period</div>
+          <div className="text-xs font-bold text-gray-600">{t('datePeriod')}</div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
               type="date"
@@ -518,7 +536,7 @@ export const Analytics = () => {
           </div>
         </div>
         <div className="space-y-1">
-          <div className="text-xs font-bold text-gray-600">Branch</div>
+          <div className="text-xs font-bold text-gray-600">{t('branch')}</div>
           <Select
             value={filter.branch_id}
             onValueChange={(val) => {
@@ -529,7 +547,7 @@ export const Analytics = () => {
             }}
           >
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select branch" />
+              <SelectValue placeholder={t('selectBranch')} />
             </SelectTrigger>
             <SelectContent>
               {branchesData?.map((item, key) => {
@@ -543,7 +561,7 @@ export const Analytics = () => {
           </Select>
         </div>
         <div className="space-y-1">
-          <div className="text-xs font-bold text-gray-600">Departement</div>
+          <div className="text-xs font-bold text-gray-600">{tCommon('department')}</div>
           <Select
             value={filter.department_id}
             onValueChange={(val) => {
@@ -554,7 +572,7 @@ export const Analytics = () => {
             }}
           >
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select departement" />
+              <SelectValue placeholder={t('selectDepartment')} />
             </SelectTrigger>
             <SelectContent>
               {departmentData?.data.data.map((item, key) => {
@@ -574,10 +592,10 @@ export const Analytics = () => {
           <div className="flex items-center justify-between">
             <div className="flex gap-3 items-center">
               <h2 className="font-bold text-xl text-gray-600">
-                Attendance Trend
+                {t('attendanceTrend')}
               </h2>
               <div className="text-gray-400 text-sm">
-                Last Updated: December 4, 2025
+                {t('lastUpdatedOn', { date: 'December 4, 2025' })}
               </div>
               <RefreshCcw size={14} className="text-gray-700" />
             </div>
@@ -607,10 +625,10 @@ export const Analytics = () => {
           <div className="flex items-center justify-between">
             <div className="flex gap-3 items-center">
               <h2 className="font-bold text-xl text-gray-600">
-                Total Employees
+                {t('totalEmployees')}
               </h2>
               <div className="text-gray-400 text-sm">
-                Last Updated: December 4, 2025
+                {t('lastUpdatedOn', { date: 'December 4, 2025' })}
               </div>
               <RefreshCcw size={14} className="text-gray-700" />
             </div>
@@ -622,10 +640,10 @@ export const Analytics = () => {
           <div className="flex items-center justify-between">
             <div className="flex gap-3 items-center">
               <h2 className="font-bold text-xl text-gray-600">
-                Experience Level
+                {t('experienceLevel')}
               </h2>
               <div className="text-gray-400 text-sm">
-                Last Updated: December 4, 2025
+                {t('lastUpdatedOn', { date: 'December 4, 2025' })}
               </div>
               <RefreshCcw size={14} className="text-gray-700" />
             </div>
@@ -639,9 +657,9 @@ export const Analytics = () => {
         <div className="col-span-4 md:col-span-2 space-y-3 bg-white p-4 rounded-xl shadow-sm">
           <div className="flex items-center justify-between">
             <div className="flex gap-3 items-center">
-              <h2 className="font-bold text-xl text-gray-600">Age Spread</h2>
+              <h2 className="font-bold text-xl text-gray-600">{t('ageSpread')}</h2>
               <div className="text-gray-400 text-sm">
-                Last Updated: December 4, 2025
+                {t('lastUpdatedOn', { date: 'December 4, 2025' })}
               </div>
               <RefreshCcw size={14} className="text-gray-700" />
             </div>
@@ -660,9 +678,9 @@ export const Analytics = () => {
         <div className="col-span-4 md:col-span-2 space-y-3 bg-white p-4 rounded-xl shadow-sm">
           <div className="flex items-center justify-between">
             <div className="flex gap-3 items-center">
-              <h2 className="font-bold text-xl text-gray-600">Gender Spread</h2>
+              <h2 className="font-bold text-xl text-gray-600">{t('genderSpread')}</h2>
               <div className="text-gray-400 text-sm">
-                Last Updated: December 4, 2025
+                {t('lastUpdatedOn', { date: 'December 4, 2025' })}
               </div>
               <RefreshCcw size={14} className="text-gray-700" />
             </div>
@@ -673,7 +691,7 @@ export const Analytics = () => {
         <div className="col-span-4 md:col-span-1 space-y-3 bg-white p-4 rounded-xl shadow-sm">
           <div className="flex items-center justify-between">
             <div className="flex gap-3 items-center">
-              <h2 className="font-bold text-xl text-gray-600">Position</h2>
+              <h2 className="font-bold text-xl text-gray-600">{tCommon('position')}</h2>
             </div>
             <Button
               variant="link"
@@ -691,7 +709,7 @@ export const Analytics = () => {
         <div className="col-span-4 md:col-span-1 space-y-3 bg-white p-4 rounded-xl shadow-sm">
           <div className="flex items-center justify-between">
             <div className="flex gap-3 items-center">
-              <h2 className="font-bold text-xl text-gray-600">Teams</h2>
+              <h2 className="font-bold text-xl text-gray-600">{tEmployee('teams')}</h2>
             </div>
             <Button
               variant="link"
@@ -709,7 +727,7 @@ export const Analytics = () => {
         <div className="col-span-4 md:col-span-1 space-y-3 bg-white p-4 rounded-xl shadow-sm">
           <div className="flex items-center justify-between">
             <div className="flex gap-3 items-center">
-              <h2 className="font-bold text-xl text-gray-600">Job Level</h2>
+              <h2 className="font-bold text-xl text-gray-600">{tEmployee('jobLevel')}</h2>
             </div>
             <Button
               variant="link"
@@ -727,7 +745,7 @@ export const Analytics = () => {
         <div className="col-span-4 md:col-span-1 space-y-3 bg-white p-4 rounded-xl shadow-sm">
           <div className="flex items-center justify-between">
             <div className="flex gap-3 items-center">
-              <h2 className="font-bold text-xl text-gray-600">Departments</h2>
+              <h2 className="font-bold text-xl text-gray-600">{tEmployee('departments')}</h2>
             </div>
             <Button
               variant="link"

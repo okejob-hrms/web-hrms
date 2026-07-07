@@ -33,6 +33,7 @@ import EmployeeUpdateModal from './sections/edit-modal';
 import dynamic from 'next/dynamic';
 import { LocationBadge } from '@/components/ui/location-badge';
 import dayjs from 'dayjs';
+import { useTranslations } from 'next-intl';
 
 const MapPicker = dynamic(() => import('@/components/ui/map'), { ssr: false });
 
@@ -45,6 +46,8 @@ export default function AttendanceTrackerForm({
   id,
   slug,
 }: AttendanceTrackerFormProps) {
+  const t = useTranslations('attendance');
+  const tCommon = useTranslations('common');
   const {
     form,
     onSubmit,
@@ -72,24 +75,26 @@ export default function AttendanceTrackerForm({
     if (id && slug) {
       handleDetailData(id, slug);
     }
-  }, [id]);
+  }, [id, slug, handleDetailData]);
 
   const userId = form.watch('user_id');
   React.useEffect(() => {
     if (userId) {
       setSelectedId(userId);
     }
-  }, [userId]);
+  }, [userId, setSelectedId]);
+
+  const pageTitle = id ? t('editAttendanceRecord') : t('addAttendance');
 
   return (
     <div className="max-w-4xl mx-auto font-sans min-h-screen flex flex-col space-y-6 p-6 md:p-0">
-      <TitleContent label={`${id ? 'Edit' : 'Add'} Attendance Record`} />
+      <TitleContent label={pageTitle} />
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
           <div className="grid sm:grid-cols-2 grid-cols-1 gap-4">
             <SelectEmployeeForm
               name="user_id"
-              label="Employee Name"
+              label={t('employeeName')}
               required
               options={employeesOptions}
             />
@@ -98,7 +103,7 @@ export default function AttendanceTrackerForm({
           <div className="grid sm:grid-cols-4 grid-cols-1 gap-4">
             <DatePicker
               name="attendance_date"
-              label="Date"
+              label={tCommon('date')}
               onChangeExtra={(date) => {
                 if (date) setSelectedDate(dayjs(date).format('YYYY-MM-DD'));
               }}
@@ -109,7 +114,7 @@ export default function AttendanceTrackerForm({
               name="shift_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Shift</FormLabel>
+                  <FormLabel>{t('shift')}</FormLabel>
                   <FormControl>
                     <Select
                       onValueChange={(val) => field.onChange(Number(val))}
@@ -117,7 +122,7 @@ export default function AttendanceTrackerForm({
                       defaultValue={String(field.value)}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Select option" />
+                        <SelectValue placeholder={t('selectOption')} />
                       </SelectTrigger>
                       <SelectContent>
                         {shiftData?.data?.shifts?.map((item, i) => (
@@ -140,9 +145,13 @@ export default function AttendanceTrackerForm({
               name="clock_in_at"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Clock-In Time</FormLabel>
+                  <FormLabel>{t('clockInTime')}</FormLabel>
                   <FormControl>
-                    <Input type="time" {...field} />
+                    <Input
+                      type="time"
+                      aria-label={t('clockInTime')}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -153,9 +162,13 @@ export default function AttendanceTrackerForm({
               name="clock_out_at"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Clock-Out Time</FormLabel>
+                  <FormLabel>{t('clockOutTime')}</FormLabel>
                   <FormControl>
-                    <Input type="time" {...field} />
+                    <Input
+                      type="time"
+                      aria-label={t('clockOutTime')}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -164,7 +177,7 @@ export default function AttendanceTrackerForm({
           </div>
 
           <div className="grid sm:grid-cols-4 grid-cols-1 gap-2">
-            <FormLabel>Location</FormLabel>
+            <FormLabel>{t('location')}</FormLabel>
             <div className="col-span-4">
               {selectedMap.lat !== defaultMap.lat &&
                 selectedMap.lng !== defaultMap.lng && (
@@ -182,7 +195,7 @@ export default function AttendanceTrackerForm({
                 className="min-w-[100px]"
               >
                 <MapPinIcon />
-                Select Location
+                {t('selectLocation')}
               </Button>
             </div>
           </div>
@@ -192,9 +205,9 @@ export default function AttendanceTrackerForm({
             name="note"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Note</FormLabel>
+                <FormLabel>{tCommon('notes')}</FormLabel>
                 <FormControl>
-                  <Textarea rows={3} {...field} />
+                  <Textarea rows={3} aria-label={tCommon('notes')} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -208,7 +221,7 @@ export default function AttendanceTrackerForm({
               onClick={handleBack}
               className="min-w-[100px]"
             >
-              Cancel
+              {tCommon('cancel')}
             </Button>
             {id ? (
               <EmployeeUpdateModal
@@ -221,7 +234,7 @@ export default function AttendanceTrackerForm({
                 className="min-w-[100px]"
                 isLoading={isLoading}
               >
-                Save
+                {tCommon('save')}
               </Button>
             )}
           </div>
@@ -240,7 +253,7 @@ export default function AttendanceTrackerForm({
               onClick={() => setOpenMap(false)}
               className="min-w-[100px]"
             >
-              Cancel
+              {tCommon('cancel')}
             </Button>
             <Button
               type="button"
@@ -248,7 +261,7 @@ export default function AttendanceTrackerForm({
               className="min-w-[100px]"
               isLoading={isLoading}
             >
-              Save Location
+              {t('saveLocation')}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>

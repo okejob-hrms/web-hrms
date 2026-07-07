@@ -1,3 +1,5 @@
+'use client';
+
 import React from "react";
 import {
   AlertDialog,
@@ -10,6 +12,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 
 interface Props {
   onDelete: (e?: React.FormEvent) => void;
@@ -22,8 +25,10 @@ export default function FormDeleteModal({
   isOpen,
   setIsOpen,
 }: Props) {
+  const t = useTranslations('settings');
+  const tCommon = useTranslations('common');
+
   const handleDelete = async (e: React.MouseEvent) => {
-    console.log("Employee data updated");
     e.preventDefault();
     e.stopPropagation();
 
@@ -31,7 +36,7 @@ export default function FormDeleteModal({
       await onDelete();
       setIsOpen(false);
     } catch (error) {
-      console.error("Error updating employee:", error);
+      console.error("Error deleting form:", error);
     }
   };
 
@@ -47,10 +52,10 @@ export default function FormDeleteModal({
               alt="confirmation"
             />
             <AlertDialogTitle className="text-lg text-center font-semibold text-black mb-2">
-              Are you sure you want to delete this form?
+              {t('confirmDeleteForm')}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-sm text-center text-text-secondary">
-              This action cannot be undone
+              {t('actionCannotBeUndone')}
             </AlertDialogDescription>
           </AlertDialogHeader>
 
@@ -59,13 +64,13 @@ export default function FormDeleteModal({
               onClick={handleDelete}
               className="flex-1 bg-transparent text-red-500 rounded-md py-2 font-medium hover:bg-red-50"
             >
-              Delete Form
+              {t('deleteFormAction')}
             </AlertDialogAction>
             <AlertDialogCancel
               onClick={() => setIsOpen(false)}
               className="flex-1 border bg-primary text-white rounded-md py-2 font-medium"
             >
-              Cancel
+              {tCommon('cancel')}
             </AlertDialogCancel>
           </AlertDialogFooter>
         </AlertDialogContent>

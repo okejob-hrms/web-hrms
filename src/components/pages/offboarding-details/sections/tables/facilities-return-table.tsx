@@ -37,6 +37,12 @@ import * as React from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import DeleteDialog from "../modals/delete-modal";
+import { useTranslations } from "next-intl";
+import {
+  resolveOffboardingEquipmentStatusKey,
+  translateOffboardingHandoverStatus,
+  translateOffboardingHandoverStatusLabel,
+} from "@/lib/i18n/status";
 
 interface TableProps {
   offboarding_id: number;
@@ -55,6 +61,9 @@ export const FormModal = React.memo(function FormModal({
   open,
   onOpenChange,
 }: FormModalProps) {
+  const t = useTranslations("offboarding");
+  const tCommon = useTranslations("common");
+  const tStatus = useTranslations("status");
   const queryClient = useQueryClient();
   const isEditMode = !!editData;
 
@@ -71,13 +80,13 @@ export const FormModal = React.memo(function FormModal({
     mutationFn: (data: IEquipmentFacilityHandoverRequest) =>
       storeEquipmentFacilityHandover(offboarding_id, data),
     onSuccess: () => {
-      toast.success("Facility return created successfully");
+      toast.success(t("facilityReturnCreated"));
       form.reset();
       onOpenChange(false);
       queryClient.invalidateQueries({ queryKey: ["facility-handover"] });
     },
     onError: (error: any) => {
-      toast.error(error.message || "Failed to create facility return");
+      toast.error(error.message || t("facilityReturnCreateFailed"));
     },
   });
 
@@ -85,13 +94,13 @@ export const FormModal = React.memo(function FormModal({
     mutationFn: (data: IEquipmentFacilityHandoverRequest) =>
       updateEquipmentFacilityHandover(offboarding_id, data, editData!.id),
     onSuccess: () => {
-      toast.success("Facility return updated successfully");
+      toast.success(t("facilityReturnUpdated"));
       form.reset();
       onOpenChange(false);
       queryClient.invalidateQueries({ queryKey: ["facility-handover"] });
     },
     onError: (error: any) => {
-      toast.error(error.message || "Failed to update facility return");
+      toast.error(error.message || t("facilityReturnUpdateFailed"));
     },
   });
 
@@ -128,12 +137,25 @@ export const FormModal = React.memo(function FormModal({
 
   const isPending = createMutation.isPending || updateMutation.isPending;
 
+  const facilityStatusOptions = React.useMemo(
+    () =>
+      [1, 2, 3, 4, 5, 6, 7, 8, 9].map((value) => ({
+        value: String(value),
+        label: translateOffboardingHandoverStatus(
+          resolveOffboardingEquipmentStatusKey(value),
+          t,
+          tStatus,
+        ),
+      })),
+    [t, tStatus],
+  );
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-white md:min-w-5xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-lg sm:text-xl">
-            {isEditMode ? "Edit" : "Add"} Facilities Return
+            {isEditMode ? t("editFacilitiesReturn") : t("addFacilitiesReturn")}
           </DialogTitle>
         </DialogHeader>
         <Form {...form}>
@@ -141,23 +163,13 @@ export const FormModal = React.memo(function FormModal({
             className="space-y-4"
             onSubmit={form.handleSubmit(handleSubmit)}
           >
-            <InputForm label="Facility Name" name="name" required />
-            <TextAreaForm label="Notes" name="notes" required />
+            <InputForm label={t("facilityName")} name="name" required />
+            <TextAreaForm label={tCommon("notes")} name="notes" required />
             <SelectForm
               name="status"
-              label="Status"
+              label={tCommon("status")}
               required
-              options={[
-                { label: "Pending", value: "1" },
-                { label: "Waiting Approval", value: "2" },
-                { label: "Received", value: "3" },
-                { label: "Rejected", value: "4" },
-                { label: "Awaiting Return", value: "5" },
-                { label: "Returned", value: "6" },
-                { label: "Lost", value: "7" },
-                { label: "Damaged", value: "8" },
-                { label: "Cancelled", value: "9" },
-              ]}
+              options={facilityStatusOptions}
             />
             <DialogFooter className="flex flex-col sm:flex-row md:gap-4 sm:gap-0">
               <Button
@@ -167,14 +179,14 @@ export const FormModal = React.memo(function FormModal({
                 disabled={isPending}
                 className="w-full sm:w-auto order-2 sm:order-1"
               >
-                Cancel
+                {tCommon("cancel")}
               </Button>
               <Button
                 type="submit"
                 disabled={isPending || !form.formState.isValid}
                 className="w-full sm:w-auto order-1 sm:order-2"
               >
-                {isPending ? "Saving..." : "Save"}
+                {isPending ? tCommon("saving") : tCommon("save")}
               </Button>
             </DialogFooter>
           </form>
@@ -187,6 +199,9 @@ export const FormModal = React.memo(function FormModal({
 export const FacilitiesReturnTable = React.memo(function FacilitiesReturnTable({
   offboarding_id,
 }: TableProps) {
+  const t = useTranslations("offboarding");
+  const tCommon = useTranslations("common");
+  const tStatus = useTranslations("status");
   const [selectedItem, setSelectedItem] =
     React.useState<IWorkAndHandoverResponse | null>(null);
   const [isFormModalOpen, setFormModalOpen] = React.useState(false);
@@ -220,13 +235,13 @@ export const FacilitiesReturnTable = React.memo(function FacilitiesReturnTable({
       offboarding_id: number;
     }) => deleteHandoverAssetsReturn(params),
     onSuccess: () => {
-      toast.success("Facility return deleted successfully");
+      toast.success(t("facilityReturnDeleted"));
       setDeleteDialogOpen(false);
       setSelectedItem(null);
       queryClient.invalidateQueries({ queryKey: ["facility-handover"] });
     },
     onError: (error: any) => {
-      toast.error(error.message || "Failed to delete facility return");
+      toast.error(error.message || t("facilityReturnDeleteFailed"));
     },
   });
 
@@ -273,7 +288,7 @@ export const FacilitiesReturnTable = React.memo(function FacilitiesReturnTable({
     () => [
       {
         accessorKey: "name",
-        header: "Facility Name",
+        header: t("facilityName"),
         cell: ({ row }) => (
           <div className="min-w-[150px] max-w-[300px] break-words">
             {row.original.name}
@@ -282,7 +297,7 @@ export const FacilitiesReturnTable = React.memo(function FacilitiesReturnTable({
       },
       {
         accessorKey: "notes",
-        header: "Notes",
+        header: tCommon("notes"),
         cell: ({ row }) => (
           <div className="min-w-[150px] max-w-[300px] break-words">
             {row.original.notes}
@@ -291,7 +306,7 @@ export const FacilitiesReturnTable = React.memo(function FacilitiesReturnTable({
       },
       {
         accessorKey: "status",
-        header: "Status",
+        header: tCommon("status"),
         cell: ({ row }) => {
           const item = row.original;
           return (
@@ -305,7 +320,13 @@ export const FacilitiesReturnTable = React.memo(function FacilitiesReturnTable({
                     : "bg-error-background text-error-hover",
               )}
             >
-              {item.status_label}
+              {translateOffboardingHandoverStatusLabel(
+                item.status,
+                item.status_label,
+                resolveOffboardingEquipmentStatusKey,
+                t,
+                tStatus,
+              )}
             </div>
           );
         },
@@ -313,7 +334,7 @@ export const FacilitiesReturnTable = React.memo(function FacilitiesReturnTable({
       },
       {
         accessorKey: "received_at",
-        header: "Received Date",
+        header: t("receivedDate"),
         cell: ({ row }) => {
           return (
             <div className="min-w-[100px]">
@@ -339,7 +360,7 @@ export const FacilitiesReturnTable = React.memo(function FacilitiesReturnTable({
                     e.stopPropagation();
                   }}
                 >
-                  <span className="sr-only">Open menu</span>
+                  <span className="sr-only">{t("openMenu")}</span>
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
@@ -356,7 +377,7 @@ export const FacilitiesReturnTable = React.memo(function FacilitiesReturnTable({
                   }}
                 >
                   <Edit3 className="w-4 h-4" />
-                  <span>Edit</span>
+                  <span>{tCommon("edit")}</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 cursor-pointer select-none"
@@ -367,7 +388,7 @@ export const FacilitiesReturnTable = React.memo(function FacilitiesReturnTable({
                   }}
                 >
                   <Trash2 className="w-4 h-4" />
-                  <span>Delete</span>
+                  <span>{tCommon("delete")}</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -376,19 +397,19 @@ export const FacilitiesReturnTable = React.memo(function FacilitiesReturnTable({
         size: 80,
       },
     ],
-    [openDropdownId],
+    [openDropdownId, t, tCommon, tStatus],
   );
 
   return (
     <div className="flex flex-col gap-4 w-full">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-        <h4 className="font-semibold text-lg sm:text-xl">Facilities Return</h4>
+        <h4 className="font-semibold text-lg sm:text-xl">{t("facilitiesReturnTitle")}</h4>
         <Button
           className="w-full sm:w-fit flex items-center justify-center gap-2"
           onClick={handleAddNew}
         >
           <Plus className="w-4 h-4" />
-          Add New
+          {t("addNew")}
         </Button>
       </div>
 

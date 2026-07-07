@@ -19,6 +19,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { useTranslations } from "next-intl";
 
 interface ImportPreviewTableProps {
   paginatedRecords: IPaginatedRecords;
@@ -39,6 +40,8 @@ const formatColumnName = (key: string) => {
 };
 
 export function ImportPreviewTable({ paginatedRecords, onPageChange }: ImportPreviewTableProps) {
+  const t = useTranslations("employee");
+  const tCommon = useTranslations("common");
   const records = paginatedRecords?.data || [];
   const current_page = paginatedRecords?.current_page || 1;
   const last_page = paginatedRecords?.last_page || 1;
@@ -46,7 +49,7 @@ export function ImportPreviewTable({ paginatedRecords, onPageChange }: ImportPre
   if (records.length === 0) {
     return (
       <div className="p-8 text-center text-sm text-grayscale-90">
-        No records found.
+        {t("noImportRecords")}
       </div>
     );
   }
@@ -71,8 +74,8 @@ export function ImportPreviewTable({ paginatedRecords, onPageChange }: ImportPre
         <Table>
           <TableHeader className="bg-grayscale-10">
             <TableRow>
-              <TableHead className="font-semibold text-grayscale-90 whitespace-nowrap min-w-[80px]">Row</TableHead>
-              <TableHead className="font-semibold text-grayscale-90 whitespace-nowrap min-w-[100px]">Status</TableHead>
+              <TableHead className="font-semibold text-grayscale-90 whitespace-nowrap min-w-[80px]">{tCommon("row")}</TableHead>
+              <TableHead className="font-semibold text-grayscale-90 whitespace-nowrap min-w-[100px]">{t("importStatus")}</TableHead>
               {dataColumns.map(col => (
                 <TableHead key={col} className="font-semibold text-grayscale-90 whitespace-nowrap">
                   {formatColumnName(col)}
@@ -123,6 +126,7 @@ export function ImportPreviewTable({ paginatedRecords, onPageChange }: ImportPre
           <PaginationContent>
             <PaginationItem>
               <PaginationPrevious
+                label={tCommon("previous")}
                 href="#"
                 onClick={handlePrevious}
                 className={current_page <= 1 ? "pointer-events-none opacity-50" : ""}
@@ -135,6 +139,7 @@ export function ImportPreviewTable({ paginatedRecords, onPageChange }: ImportPre
             </PaginationItem>
             <PaginationItem>
               <PaginationNext
+                label={tCommon("next")}
                 href="#"
                 onClick={handleNext}
                 className={current_page >= last_page ? "pointer-events-none opacity-50" : ""}

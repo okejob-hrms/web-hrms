@@ -5,7 +5,8 @@ import * as React from 'react';
 import { Status, StatusIndicator, StatusLabel } from '../ui/shadcn-io/status';
 import { Separator } from '../ui/separator';
 import Link from 'next/link';
-import { Cloud, Menu, X } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 import {
   NavigationMenu,
@@ -29,47 +30,57 @@ import useNetworkStatus from '@/hooks/use-network-status';
 import { Profile } from '../ui/profile';
 import { usePathname } from 'next/navigation';
 import { NotificationList } from './notification-list';
+import { LanguageSwitch } from '@/components/shared/language-switch';
+import { toTitleCase } from '@/lib/menu';
+
+interface BreadcrumbItemData {
+  link: string;
+  key?: string | null;
+  segment: string;
+}
 
 interface BreadcrumbProps {
-  items?: {
-    label: string;
-    link: string;
-  }[];
+  items?: BreadcrumbItemData[];
 }
 
 interface HeaderProps {
   showBackNavigate: boolean;
 }
 
-const menuItems = [
+const NAV_ITEMS = [
   {
     name: 'dashboard',
-    label: 'Dashboard',
+    labelKey: 'dashboard',
     icon: '/icons/dashboard.svg',
     path: '/dashboard?overview=offboarding-active',
-    children: [],
+    children: [] as Array<{
+      labelKey: string;
+      descKey: string;
+      path: string;
+      icon: string;
+    }>,
   },
   {
     name: 'employee',
-    label: 'Employee',
+    labelKey: 'employee',
     icon: '/icons/employee.svg',
     path: '/employee',
     children: [
       {
-        label: 'Employee Management',
-        desc: 'Manage employee data, organization structure, and onboarding/offboarding processes',
+        labelKey: 'employeeManagement',
+        descKey: 'employeeManagementDesc',
         path: '/employee/employee-management',
         icon: '/icons/user02.svg',
       },
       {
-        label: 'Employee Attendance',
-        desc: 'Track employee attendance, timesheets, leave requests, and balances.',
+        labelKey: 'employeeAttendance',
+        descKey: 'employeeAttendanceDesc',
         path: '/attendance/attendance-tracker',
         icon: '/icons/clock.svg',
       },
       {
-        label: 'Payroll',
-        desc: 'Streamline salary calculations, benefits, and monthly payroll processing.',
+        labelKey: 'payroll',
+        descKey: 'payrollDesc',
         path: '/payroll/list',
         icon: '/icons/cash.svg',
       },
@@ -77,49 +88,21 @@ const menuItems = [
   },
   {
     name: 'performance',
-    label: 'Performance',
+    labelKey: 'performance',
     icon: '/icons/storeReport.svg',
     path: '/performance/self-assessment',
     children: [],
   },
-  // {
-  //   name: 'recruitment',
-  //   label: 'Recruitment',
-  //   icon: '/icons/recruitment.svg',
-  //   path: '/recruitment',
-  //   children: [],
-  // },
-  // {
-  //   name: 'training',
-  //   label: 'Training',
-  //   icon: '/icons/book.svg',
-  //   path: '/training',
-  //   children: [],
-  // },
-  // {
-  //   name: 'expenses',
-  //   label: 'Expenses',
-  //   icon: '/icons/cash.svg',
-  //   path: '/expenses',
-  //   children: [],
-  // },
-  // {
-  //   name: 'document',
-  //   label: 'Document',
-  //   icon: '/icons/documentSolid.svg',
-  //   path: '/document',
-  //   children: [],
-  // },
   {
     name: 'settings',
-    label: 'Settings',
+    labelKey: 'settings',
     icon: '/icons/gearSolid.svg',
     path: '/settings/access-control',
     children: [],
   },
   {
     name: 'ess',
-    label: 'ESS',
+    labelKey: 'ess',
     icon: '/icons/dashboard.svg',
     path: '/ess',
     children: [],
@@ -128,6 +111,7 @@ const menuItems = [
 
 const HeaderMenu = React.memo(function HeaderMenu() {
   const pathname = usePathname();
+  const t = useTranslations('nav');
   const [isMobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const [roles, setRoles] = React.useState<string[]>([]);
 
@@ -147,17 +131,8 @@ const HeaderMenu = React.memo(function HeaderMenu() {
     roles.length === 1 && String(roles[0]).toLowerCase() === 'employee';
 
   const displayedMenuItems = React.useMemo(() => {
-    if (!isEmployeeOnly) return menuItems;
-
-    return [
-      {
-        name: 'ess',
-        label: 'ESS',
-        icon: '/icons/dashboard.svg',
-        path: '/ess',
-        children: [],
-      },
-    ];
+    if (!isEmployeeOnly) return NAV_ITEMS;
+    return NAV_ITEMS.filter((item) => item.name === 'ess');
   }, [isEmployeeOnly]);
 
   const navigationMenuTriggerStyle = (isActive: boolean) =>
@@ -169,7 +144,6 @@ const HeaderMenu = React.memo(function HeaderMenu() {
 
   return (
     <div className="w-full bg-white border-b">
-      {/* Desktop Menu */}
       <div className="hidden md:block">
         <NavigationMenu viewport={false} className="w-full px-10 pt-2">
           <NavigationMenuList>
@@ -188,7 +162,7 @@ const HeaderMenu = React.memo(function HeaderMenu() {
                           height={20}
                           alt={`icon-${item.name}`}
                         />
-                        {item.label}
+                        {t(item.labelKey)}
                       </NavigationMenuTrigger>
                       <NavigationMenuContent className="bg-white opacity-100 z-[999]">
                         <ul className="grid gap-2 p-4 md:w-[300px]">
@@ -208,14 +182,14 @@ const HeaderMenu = React.memo(function HeaderMenu() {
                                       src={child.icon}
                                       width={20}
                                       height={20}
-                                      alt={`icon-${child.label}`}
+                                      alt={t(child.labelKey)}
                                     />
                                     <div className="space-y-2">
                                       <div className="font-bold text-gray-800 text-base">
-                                        {child.label}
+                                        {t(child.labelKey)}
                                       </div>
                                       <div className="text-gray-400 text-sm">
-                                        {child.desc}
+                                        {t(child.descKey)}
                                       </div>
                                     </div>
                                   </div>
@@ -238,7 +212,7 @@ const HeaderMenu = React.memo(function HeaderMenu() {
                           height={20}
                           alt={`icon-${item.name}`}
                         />
-                        {item.label}
+                        {t(item.labelKey)}
                       </Link>
                     </NavigationMenuLink>
                   )}
@@ -249,7 +223,6 @@ const HeaderMenu = React.memo(function HeaderMenu() {
         </NavigationMenu>
       </div>
 
-      {/* Mobile Menu Button */}
       <div className="flex md:hidden justify-between px-4 py-2">
         <Button
           variant="ghost"
@@ -260,7 +233,6 @@ const HeaderMenu = React.memo(function HeaderMenu() {
         </Button>
       </div>
 
-      {/* Mobile Menu Content */}
       {isMobileMenuOpen && (
         <div className="md:hidden bg-white px-4 pb-4 border-t">
           {displayedMenuItems.map((item) => (
@@ -279,7 +251,7 @@ const HeaderMenu = React.memo(function HeaderMenu() {
                   height={20}
                   alt={`icon-${item.name}`}
                 />
-                {item.label}
+                {t(item.labelKey)}
               </Link>
               {item.children.length > 0 && (
                 <div className="pl-6 space-y-2 mt-2">
@@ -292,7 +264,7 @@ const HeaderMenu = React.memo(function HeaderMenu() {
                         pathname === child.path && 'text-primary font-medium',
                       )}
                     >
-                      {child.label}
+                      {t(child.labelKey)}
                     </Link>
                   ))}
                 </div>
@@ -306,10 +278,10 @@ const HeaderMenu = React.memo(function HeaderMenu() {
 });
 
 const Header = React.memo(function Header({ showBackNavigate }: HeaderProps) {
-  const { isOnline, setOnline } = useNetworkStatus();
+  const { isOnline } = useNetworkStatus();
+  const t = useTranslations('common');
   const [user, setUser] = React.useState({ name: '' });
 
-  // Only access localStorage on the client side
   React.useEffect(() => {
     if (typeof window !== 'undefined') {
       const savedUser = localStorage.getItem('user');
@@ -323,23 +295,8 @@ const Header = React.memo(function Header({ showBackNavigate }: HeaderProps) {
         <div className="relative w-8 h-8 md:w-10 md:h-10">
           <Image src="/logo.png" alt="logo" fill className="object-cover" />
         </div>
-        <span className="font-semibold md:text-lg text-base">HRMS</span>
-
-        {showBackNavigate && (
-          <>
-            {/* <Button
-              variant="link"
-              onClick={() => window.history.back()}
-              className="flex items-center gap-2 text-dark"
-            >
-              <ChevronLeft
-                style={{ height: '28px', width: '28px' }}
-                className="text-blue-600"
-              />
-              <div className="text-xl">Back</div>
-            </Button> */}
-          </>
-        )}
+        <span className="font-semibold md:text-lg text-base">{t('appName')}</span>
+        {showBackNavigate && null}
       </div>
       <div className="items-center justify-end gap-2 md:gap-4 h-10 flex">
         <Status
@@ -349,23 +306,7 @@ const Header = React.memo(function Header({ showBackNavigate }: HeaderProps) {
           <StatusIndicator />
           <StatusLabel className="text-xs text-text-disabled" />
         </Status>
-        {/* <Button
-          variant="ghost"
-          onClick={() => setOnline((prev) => !prev)}
-          className="text-xs text-text-disabled md:flex hidden"
-        >
-          {isOnline ? (
-            <Image
-              src="/icons/offline.svg"
-              alt="icon-notification"
-              width={20}
-              height={20}
-            />
-          ) : (
-            <Cloud size={20} />
-          )}
-          {isOnline ? 'Offline' : 'Online'} Mode
-        </Button> */}
+        <LanguageSwitch showOnMobile />
         <NotificationList />
         <Separator orientation="vertical" className="hidden md:block" />
         <Profile user={user} />
@@ -377,6 +318,8 @@ const Header = React.memo(function Header({ showBackNavigate }: HeaderProps) {
 const HeaderBreadcumb = React.memo(function BreadcrumbWithCustomSeparator({
   items,
 }: BreadcrumbProps) {
+  const t = useTranslations('breadcrumb');
+
   return (
     <Breadcrumb className="w-full md:px-10 px-4 py-2 bg-white border-b">
       <BreadcrumbList>
@@ -392,20 +335,25 @@ const HeaderBreadcumb = React.memo(function BreadcrumbWithCustomSeparator({
             <span className="text-xs">/</span>
           </BreadcrumbSeparator>
         )}
-        {items?.map((item, index) => (
-          <div key={item.link} className="flex gap-2">
-            <BreadcrumbItem>
-              <BreadcrumbLink asChild>
-                <Link href={item.link}>{item.label}</Link>
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            {index != items.length - 1 && (
-              <BreadcrumbSeparator>
-                <span className="text-xs">/</span>
-              </BreadcrumbSeparator>
-            )}
-          </div>
-        ))}
+        {items?.map((item, index) => {
+          const label = item.key
+            ? t(item.key)
+            : toTitleCase(item.segment);
+          return (
+            <div key={item.link} className="flex gap-2">
+              <BreadcrumbItem>
+                <BreadcrumbLink asChild>
+                  <Link href={item.link}>{label}</Link>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              {index !== items.length - 1 && (
+                <BreadcrumbSeparator>
+                  <span className="text-xs">/</span>
+                </BreadcrumbSeparator>
+              )}
+            </div>
+          );
+        })}
       </BreadcrumbList>
     </Breadcrumb>
   );

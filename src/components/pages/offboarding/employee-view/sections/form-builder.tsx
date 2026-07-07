@@ -6,10 +6,13 @@ import { RadioForm } from '@/components/ui/radio-group';
 import { RangeForm } from '@/components/ui/range-form';
 import { SelectForm } from '@/components/ui/select-form';
 import { TextAreaForm } from '@/components/ui/textarea';
-import { FormFieldData, IFieldResponse } from '@/services/form/types';
+import { IFieldResponse } from '@/services/form/types';
 import { useFormContext } from "react-hook-form";
+import { useTranslations } from "next-intl";
 
 export function OffboardingFormBuilder({ fields }: { fields: IFieldResponse[] }) {
+  const t = useTranslations('offboarding');
+  const tCommon = useTranslations('common');
   const { clearErrors } = useFormContext();
   return (
     <div className="space-y-10">
@@ -65,8 +68,8 @@ export function OffboardingFormBuilder({ fields }: { fields: IFieldResponse[] })
                   <div className="mt-4">
                     <TextAreaForm
                       name={`${fieldName}_notes`}
-                      label="Notes"
-                      placeholder="Enter notes"
+                      label={tCommon("notes")}
+                      placeholder={t("enterNotes")}
                     />
                   </div>
                 )}
@@ -86,7 +89,7 @@ export function OffboardingFormBuilder({ fields }: { fields: IFieldResponse[] })
                     </FormLabel>
                     <TextAreaForm
                       name={fieldName}
-                      placeholder="Enter your response"
+                      placeholder={t("enterResponse")}
                       isOptional={!field.is_required}
                     />
                     {/* Ensure the internal component of TextAreaForm contains <FormMessage /> */}
@@ -109,7 +112,7 @@ export function OffboardingFormBuilder({ fields }: { fields: IFieldResponse[] })
                       name={fieldName}
                       options={selectOptions}
                       required={field.is_required}
-                      placeholder="Select one option"
+                      placeholder={t("selectOneOption")}
                       className="w-full"
                     />
                   </div>

@@ -64,7 +64,7 @@ jobs:
             NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=${{ vars.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
             NEXT_PUBLIC_FIREBASE_APP_ID=${{ vars.NEXT_PUBLIC_FIREBASE_APP_ID }}
             NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=${{ vars.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID }}
-            BASE_URL_EMPLOYEE=${{ vars.BASE_URL_EMPLOYEE }}
+            NEXT_PUBLIC_BASE_URL_EMPLOYEE=${{ vars.NEXT_PUBLIC_BASE_URL_EMPLOYEE || vars.BASE_URL_EMPLOYEE }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: linux/amd64

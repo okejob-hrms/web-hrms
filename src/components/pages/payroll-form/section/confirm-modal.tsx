@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import {
   AlertDialog,
@@ -10,6 +12,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
 
 interface Props {
   onUpdate: (e?: React.FormEvent) => void;
@@ -22,8 +25,10 @@ export default function PayrunApproveModal({
   isOpen,
   setIsOpen,
 }: Props) {
+  const t = useTranslations('payroll');
+  const tCommon = useTranslations('common');
+
   const handleUpdate = async (e: React.MouseEvent) => {
-    console.log('Payruns data updated');
     e.preventDefault();
     e.stopPropagation();
 
@@ -47,10 +52,10 @@ export default function PayrunApproveModal({
               alt="confirmation"
             />
             <AlertDialogTitle className="text-lg text-center font-semibold text-black mb-2">
-              Are you sure you want to finalize this payruns?
+              {t('confirmFinalizePayrun')}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-sm text-center text-text-secondary">
-              Please make sure all the details are correct before finalizing.
+              {t('confirmFinalizePayrunDesc')}
             </AlertDialogDescription>
           </AlertDialogHeader>
 
@@ -59,13 +64,13 @@ export default function PayrunApproveModal({
               onClick={() => setIsOpen(false)}
               className="flex-1 border text-primary border-primary bg-white hover:bg-blue-50 rounded-md py-2 font-medium"
             >
-              Cancel
+              {tCommon('cancel')}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleUpdate}
               className="flex-1 bg-primary text-white rounded-md py-2 font-medium"
             >
-              Approve
+              {tCommon('approve')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -73,6 +74,7 @@ export const FormKpi = ({
   searchKPI,
   onSearchKPIChange,
 }: FormKpiProps) => {
+  const t = useTranslations("performance");
   const handleSave = () => {
     const formData = form.getValues();
     const selectedKpi = kpiOptions.find(
@@ -297,7 +299,7 @@ export const FormKpi = ({
                 options={jobPositionOptions}
                 name="job_position_ids"
                 maxCount={3}
-                searchPlaceholder="Search Job Position"
+                searchPlaceholder={t("searchJobPosition")}
                 hideSelectAll
                 valueTransformer={(value) => Number(value)}
               /> */}
@@ -316,7 +318,7 @@ export const FormKpi = ({
                 options={jobLevelOptions}
                 name="job_level_ids"
                 maxCount={3}
-                searchPlaceholder="Search Job Level"
+                searchPlaceholder={t("searchJobLevel")}
                 hideSelectAll
                 valueTransformer={(value) => Number(value)}
               /> */}

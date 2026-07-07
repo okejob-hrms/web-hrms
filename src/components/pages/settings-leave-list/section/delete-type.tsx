@@ -1,3 +1,5 @@
+'use client';
+
 import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
@@ -6,6 +8,7 @@ import {
   AlertDialogFooter,
 } from '@/components/ui/alert-dialog';
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
 
 export default function LeaveTypeDelete({
   open,
@@ -18,24 +21,26 @@ export default function LeaveTypeDelete({
   onDelete: () => void;
   isLoading?: boolean;
 }) {
+  const t = useTranslations('settings');
+  const tCommon = useTranslations('common');
+
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent className="w-full max-w-md sm:max-w-md text-center bg-white">
         <div className="flex flex-col items-center justify-center mb-4">
-          {/* Warning Icon (SVG) */}
           <span className="mb-2">
             <Image
               src={'/icons/deleteContained.svg'}
               width={50}
               height={50}
-              alt={`icon-delete`}
+              alt="icon-delete"
             />
           </span>
           <AlertDialogTitle className="text-xl font-bold mb-2">
-            Are you sure you want to delete this leave type configuration?
+            {t('deleteLeaveTypeTitle')}
           </AlertDialogTitle>
           <div className="text-gray-600 text-sm mb-4">
-            Employees linked to this configuration may be affected
+            {t('deleteConfigurationDesc')}
           </div>
         </div>
         <AlertDialogFooter className="flex flex-row gap-4 w-full justify-center">
@@ -44,14 +49,14 @@ export default function LeaveTypeDelete({
             onClick={onDelete}
             isLoading={isLoading}
           >
-            Delete Configuration
+            {t('deleteConfiguration')}
           </Button>
           <Button
             className="w-1/2 bg-[#18618B] hover:bg-[#14506e] text-white font-medium py-2 rounded-lg"
             onClick={() => onOpenChange(false)}
             disabled={isLoading}
           >
-            Cancel
+            {tCommon('cancel')}
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

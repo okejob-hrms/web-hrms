@@ -6,7 +6,7 @@ import { AttendanceLeaveRequestForm } from "@/components/pages/attendance-leave-
 export const DetailLeaveForm = () => {
   return (
     <div className="font-sans min-h-screen flex flex-col py-6">
-      <AttendanceLeaveRequestForm isEmployee />;
+      <AttendanceLeaveRequestForm isEmployee />
     </div>
   );
 };

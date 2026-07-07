@@ -2,19 +2,23 @@
 
 import { Button } from "@/components/ui/button";
 import * as React from "react";
+import { useTranslations, useLocale } from "next-intl";
 import DepartmentModal from "./sections/edit-modal";
 import { DataTable } from "@/components/tables/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { RowActions } from "@/components/tables/row-actions";
 import { useIsMobile } from "@/hooks/use-mobile";
-// import { ArrowUp, ArrowDown, ChevronsUpDown } from "lucide-react";
 import { useTeamManagement } from "./hooks/useTeamManagement";
-import { formatDateTime } from "@/lib/helpers";
+import { formatDateTime } from "@/lib/formatting";
+import { resolveLocale } from "@/lib/i18n/locale";
 import DeleteTeamDialog from "./sections/delete-modal";
 import { TeamResponse } from "@/services/team/types";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function TeamManagementList() {
+  const t = useTranslations("employee");
+  const tCommon = useTranslations("common");
+  const locale = resolveLocale(useLocale());
   const {
     teams,
     isLoading,
@@ -33,75 +37,55 @@ export default function TeamManagementList() {
     setPagination,
   } = useTeamManagement();
 
-  const columns: ColumnDef<TeamResponse>[] = [
-    {
-      accessorKey: "name",
-      header: "Team Name",
-      size: 300,
-    },
-    {
-      accessorKey: "description",
-      header: "Description",
-      size: 480,
-    },
-    {
-      accessorKey: "lastUpdate",
-      header: ({}) => {
-        // const isSorted = column.getIsSorted();
-        // const SortIcon = () =>
-        //   isSorted === "asc" ? (
-        //     <ArrowUp className="w-3 h-3" />
-        //   ) : isSorted === "desc" ? (
-        //     <ArrowDown className="w-3 h-3" />
-        //   ) : (
-        //     <ChevronsUpDown className="w-3 h-3 opacity-50" />
-        //   );
+  const columns = React.useMemo<ColumnDef<TeamResponse>[]>(
+    () => [
+      {
+        accessorKey: "name",
+        header: t("teamName"),
+        size: 300,
+      },
+      {
+        accessorKey: "description",
+        header: tCommon("description"),
+        size: 480,
+      },
+      {
+        accessorKey: "lastUpdate",
+        header: tCommon("lastUpdate"),
+        size: 160,
+        cell: ({ row }) => {
+          const { date, hour } = formatDateTime(row.original.updated_at, locale);
 
-        return (
-          <div className="flex flex-row gap-2">
-            <span>Last Update</span>
-            {/* <button
-              type="button"
-              onClick={() => column.toggleSorting(isSorted === "asc")}
-              className="flex items-center gap-1"
-            >
-              <SortIcon />
-            </button> */}
-          </div>
-        );
+          return (
+            <div>
+              <span>{date}</span>
+              <br />
+              <span>{hour}</span>
+            </div>
+          );
+        },
       },
-      size: 160,
-      cell: ({ row }) => {
-        const { date, hour } = formatDateTime(row.original.updated_at);
-
-        return (
-          <div>
-            <span>{date}</span>
-            <br />
-            <span>{hour}</span>
-          </div>
-        );
+      {
+        id: "actions",
+        header: "",
+        size: 80,
+        cell: ({ row }) => {
+          const item = row.original;
+          return (
+            <RowActions
+              onEdit={() => {
+                handleEdit(item);
+              }}
+              onDelete={() => {
+                handleDeleteClick(item);
+              }}
+            />
+          );
+        },
       },
-    },
-    {
-      id: "actions",
-      header: "",
-      size: 80,
-      cell: ({ row }) => {
-        const item = row.original;
-        return (
-          <RowActions
-            onEdit={() => {
-              handleEdit(item);
-            }}
-            onDelete={() => {
-              handleDeleteClick(item);
-            }}
-          />
-        );
-      },
-    },
-  ];
+    ],
+    [t, tCommon, locale, handleEdit, handleDeleteClick],
+  );
 
   const isMobile = useIsMobile();
 
@@ -109,13 +93,11 @@ export default function TeamManagementList() {
     <div className="flex flex-col justify-between gap-6">
       <div className="rounded-md bg-white border shadow-sm border-grayscale-20 flex flex-col gap-4 p-6">
         <div className="flex flex-col sm:flex-row justify-between w-full items-start sm:items-center gap-4 sm:gap-0">
-          {/* Header Left */}
           <div className="flex gap-2 items-center flex-wrap">
-            <h2 className="font-semibold text-xl">Teams</h2>
+            <h2 className="font-semibold text-xl">{t("teams")}</h2>
           </div>
-          {/* Button */}
           <Button onClick={handleCreate} className="whitespace-nowrap">
-            + New Team
+            {t("newTeam")}
           </Button>
         </div>
         {isLoading ? (
@@ -136,7 +118,6 @@ export default function TeamManagementList() {
           />
         )}
       </div>
-      {/* Modals */}
       <DeleteTeamDialog
         open={isDeleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}

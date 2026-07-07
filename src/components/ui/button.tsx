@@ -1,4 +1,7 @@
+"use client";
+
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
@@ -134,6 +137,8 @@ function UploadButton({
   defaultFile,
   error,
 }: UploadButtonProps) {
+  const t = useTranslations("employee");
+  const tCommon = useTranslations("common");
   const ref = React.useRef<HTMLInputElement>(null);
   const [isInitialized, setIsInitialized] = React.useState(false);
 
@@ -222,7 +227,7 @@ function UploadButton({
         {isUploading ? (
           <>
             <Loader2 className="h-4 w-4 animate-spin" />
-            Uploading...
+            {tCommon("uploading")}
           </>
         ) : (
           <>
@@ -234,7 +239,7 @@ function UploadButton({
               height={18}
               className="text-primary"
             />
-            {preview ? "Change File" : "Upload File"}
+            {preview ? tCommon("changeFile") : t("uploadFile")}
           </>
         )}
       </Button>

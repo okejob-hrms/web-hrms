@@ -35,6 +35,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useTranslations } from 'next-intl';
 
 interface ExperienceModalProps {
   open: boolean;
@@ -45,6 +46,9 @@ export default function ExperienceModal({
   open,
   onOpenChange,
 }: ExperienceModalProps) {
+  const t = useTranslations('dashboard');
+  const tCommon = useTranslations('common');
+  const tPayroll = useTranslations('payroll');
   const {
     experienceStatDetail,
     experienceTrend,
@@ -73,12 +77,12 @@ export default function ExperienceModal({
 
   const experienceData = [
     {
-      name: 'Fresh Graduate',
+      name: t('freshGraduate'),
       value: experienceStatDetail?.data.fresh_graduate,
       color: '#0A2636',
     },
     {
-      name: 'Experienced',
+      name: t('experienced'),
       value: experienceStatDetail?.data.experienced,
       color: '#8CC9E8',
     },
@@ -90,13 +94,13 @@ export default function ExperienceModal({
     fresh_graduate: item.fresh_graduate,
   }));
 
-  const lineTitle = ['Experienced', 'Fresh Graduate'];
+  const lineTitle = [t('experienced'), t('freshGraduate')];
   const lineColor = ['#18618B', '#FFB84D'];
 
   const columns: ColumnDef<ExpTrendListData>[] = [
     {
       accessorKey: 'name',
-      header: 'Name',
+      header: tCommon('name'),
       cell: ({ row }) => (
         <div className="flex flex-col">
           <span className="font-semibold text-foreground text-sm">
@@ -108,19 +112,19 @@ export default function ExperienceModal({
     },
     {
       accessorKey: 'job_position',
-      header: 'Postion',
+      header: tCommon('position'),
     },
     {
       accessorKey: 'branch_name',
-      header: 'Branch',
+      header: t('branch'),
     },
     {
       accessorKey: 'experience_years',
-      header: 'Experience',
+      header: t('experience'),
     },
     {
       accessorKey: 'status',
-      header: 'Status',
+      header: tCommon('status'),
       size: 160,
       cell: ({ row }) => {
         const expert = row.original.experience_years > 0;
@@ -134,7 +138,7 @@ export default function ExperienceModal({
                 : 'bg-yellow-100 text-yellow-700'
             }
           >
-            {expert ? 'Expereienced' : 'Fresh Graduate'}
+            {expert ? t('experienced') : t('freshGraduate')}
           </Badge>
         );
       },
@@ -166,7 +170,7 @@ export default function ExperienceModal({
           <span className="text-xl font-semibold text-primary">
             {experienceStatDetail?.data.total}
           </span>
-          <span className="text-xs text-gray-400">Employees</span>
+          <span className="text-xs text-gray-400">{tCommon('employees')}</span>
         </div>
       </div>
 
@@ -234,12 +238,12 @@ export default function ExperienceModal({
     <Dialog open={open} onOpenChange={onCloseModal}>
       <DialogContent className="h-screen w-screen sm:max-w-7xl p-6 rounded-2xl bg-white overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Employee Experience Level</DialogTitle>
+          <DialogTitle>{t('employeeExperienceLevel')}</DialogTitle>
         </DialogHeader>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div className="space-y-1 col-span-1 md:col-span-2">
-            <div className="text-xs font-bold text-gray-600">Date Period</div>
+            <div className="text-xs font-bold text-gray-600">{t('datePeriod')}</div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
                 type="date"
@@ -268,7 +272,7 @@ export default function ExperienceModal({
             </div>
           </div>
           <div className="space-y-1">
-            <div className="text-xs font-bold text-gray-600">Branch</div>
+            <div className="text-xs font-bold text-gray-600">{t('branch')}</div>
             <Select
               value={filters.branch_id}
               onValueChange={(val) => {
@@ -279,7 +283,7 @@ export default function ExperienceModal({
               }}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select branch" />
+                <SelectValue placeholder={t('selectBranch')} />
               </SelectTrigger>
               <SelectContent>
                 {branchesData?.map((item, key) => {
@@ -293,7 +297,7 @@ export default function ExperienceModal({
             </Select>
           </div>
           <div className="space-y-1">
-            <div className="text-xs font-bold text-gray-600">Departement</div>
+            <div className="text-xs font-bold text-gray-600">{tCommon('department')}</div>
             <Select
               value={filters.department_id}
               onValueChange={(val) => {
@@ -304,7 +308,7 @@ export default function ExperienceModal({
               }}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select departement" />
+                <SelectValue placeholder={t('selectDepartment')} />
               </SelectTrigger>
               <SelectContent>
                 {departmentData?.data.data.map((item, key) => {
@@ -352,7 +356,7 @@ export default function ExperienceModal({
                     type="text"
                     className="w-full"
                     value={searchExp}
-                    placeholder="Search employee name"
+                    placeholder={tPayroll('searchEmployeeName')}
                     onChange={(e) => {
                       setSearchExp(e.target.value);
                     }}
@@ -384,7 +388,7 @@ export default function ExperienceModal({
         <DialogFooter className="mt-6 flex justify-between items-center w-full">
           <div className="flex gap-3">
             <Button variant="outline" onClick={() => onCloseModal()}>
-              Cancel
+              {tCommon('cancel')}
             </Button>
           </div>
         </DialogFooter>

@@ -1,4 +1,5 @@
-import React from "react";
+import React from 'react';
+import { useTranslations } from 'next-intl';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -8,8 +9,8 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import Image from "next/image";
+} from '@/components/ui/alert-dialog';
+import Image from 'next/image';
 
 interface Props {
   isOpen: boolean;
@@ -22,6 +23,9 @@ export default function LeaveApproveModal({
   onClose,
   onApprove,
 }: Props) {
+  const t = useTranslations('attendance');
+  const tCommon = useTranslations('common');
+
   const handleApprove = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -29,7 +33,7 @@ export default function LeaveApproveModal({
     try {
       await onApprove();
     } catch (error) {
-      console.error("Error approving leave:", error);
+      console.error('Error approving leave:', error);
     }
   };
 
@@ -44,10 +48,10 @@ export default function LeaveApproveModal({
             alt="confirmation"
           />
           <AlertDialogTitle className="text-lg text-center font-semibold text-black mb-2">
-            Are you sure you want to approve this leave request?
+            {t('confirmApproveLeave')}
           </AlertDialogTitle>
           <AlertDialogDescription className="text-sm text-center text-text-secondary">
-            Make sure all the details are correct before proceeding.
+            {t('confirmBeforeProceeding')}
           </AlertDialogDescription>
         </AlertDialogHeader>
 
@@ -56,13 +60,13 @@ export default function LeaveApproveModal({
             onClick={onClose}
             className="flex-1 border text-primary border-primary bg-white hover:bg-blue-50 rounded-md py-2 font-medium"
           >
-            Cancel
+            {tCommon('cancel')}
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={handleApprove}
             className="flex-1 bg-primary text-white rounded-md py-2 font-medium"
           >
-            Approve
+            {tCommon('approve')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

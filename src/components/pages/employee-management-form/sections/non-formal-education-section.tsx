@@ -46,6 +46,7 @@ import dayjs from "dayjs";
 import localizedFormat from "dayjs/plugin/localizedFormat";
 import { cn } from "@/lib/utils";
 import { ApiErrorResponse } from "@/lib/types";
+import { useTranslations } from "next-intl";
 
 dayjs.extend(localizedFormat);
 
@@ -130,6 +131,7 @@ const NonFormalEducationFormModal = ({
   onSuccess,
   buttonVariant = "default",
 }: NonFormalEducationFormModalProps) => {
+  const t = useTranslations("employee");
   const [internalOpen, setInternalOpen] = React.useState(false);
   const queryClient = useQueryClient();
 
@@ -173,7 +175,9 @@ const NonFormalEducationFormModal = ({
     }) => (isEdit ? putUpdateEducation(params) : postCreateEducation(params)),
     onSuccess: (res) => {
       toast.success(
-        `Non-formal education ${isEdit ? "updated" : "added"} successfully!`,
+        isEdit
+          ? t("nonFormalEducationUpdatedSuccess")
+          : t("nonFormalEducationAddedSuccess"),
       );
 
       queryClient.invalidateQueries({
@@ -191,20 +195,20 @@ const NonFormalEducationFormModal = ({
             .json()
             .then((errorData: ApiErrorResponse) => {
               toast.error(
-                errorData.message || "Failed to save non-formal education.",
+                errorData.message || t("nonFormalEducationSaveFailed"),
               );
             })
             .catch(() => {
-              toast.error("Failed to save non-formal education: Server error");
+              toast.error(t("nonFormalEducationSaveServerError"));
             });
         } catch (parseError) {
           toast.error(
-            "Failed to save non-formal education: Server error : " + parseError,
+            `${t("nonFormalEducationSaveServerError")} : ${parseError}`,
           );
         }
       } else {
         toast.error(
-          `Failed to save non-formal education: ${error.message || "Unknown error"}`,
+          `${t("nonFormalEducationSaveFailed")} ${error.message || ""}`,
         );
       }
     },
@@ -226,7 +230,7 @@ const NonFormalEducationFormModal = ({
         mutation.mutate(params);
       } catch (error) {
         console.error("Submit error:", error);
-        toast.error("Failed to submit form");
+        toast.error(t("nonFormalEducationSubmitFailed"));
       }
     },
     [isEdit, educationData?.id, employee_profile_id, mutation],
@@ -246,14 +250,14 @@ const NonFormalEducationFormModal = ({
             variant={buttonVariant}
             className={cn(buttonVariant === "outline" && "bg-white")}
           >
-            <Plus /> Add Non Formal Education
+            <Plus /> {t("addNonFormalEducation")}
           </Button>
         </DialogTrigger>
       )}
       <DialogContent className="bg-white md:min-w-5xl overflow-y-scroll max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>
-            {isEdit ? "Edit Non Formal Education" : "Add Non Formal Education"}
+            {isEdit ? t("editNonFormalEducation") : t("addNonFormalEducation")}
           </DialogTitle>
         </DialogHeader>
         <Form {...form}>
@@ -309,26 +313,31 @@ interface Props {
   employee_profile_id?: number;
 }
 
-const SectionHeader = ({ withAddButton, employee_profile_id }: Props) => (
+const SectionHeader = ({ withAddButton, employee_profile_id }: Props) => {
+  const t = useTranslations("employee");
+  return (
   <div
     className={withAddButton ? "flex justify-between items-center mb-4" : ""}
   >
     <h2
       className={`font-semibold text-lg leading-5 ${withAddButton ? "mb-3" : ""}`}
     >
-      Non Formal Education
+      {t("nonFormalEducation")}
     </h2>
     {withAddButton && (
       <NonFormalEducationFormModal employee_profile_id={employee_profile_id} />
     )}
   </div>
-);
+  );
+};
 
 export const NonFormalEducationSection = React.memo<Props>(
   function NonFormalEducationSection({
     withAddButton = false,
     employee_profile_id,
   }) {
+    const t = useTranslations("employee");
+    const tCommon = useTranslations("common");
     const queryClient = useQueryClient();
     const [editingEducation, setEditingEducation] =
       React.useState<IEducationResponse | null>(null);
@@ -353,7 +362,7 @@ export const NonFormalEducationSection = React.memo<Props>(
       mutationFn: ({ id }: { id: number }) =>
         deleteEducation({ id, employee_profile_id }),
       onSuccess: (_, variables) => {
-        toast.success("Non-formal education deleted successfully!");
+        toast.success(t("nonFormalEducationDeleteSuccess"));
         queryClient.invalidateQueries({
           queryKey: ["non-formal-educations", employee_profile_id || ""],
         });
@@ -361,9 +370,10 @@ export const NonFormalEducationSection = React.memo<Props>(
       onError: (error: any) => {
         console.error("Delete mutation error:", error);
         toast.error(
-          `Failed to delete non-formal education: ${
-            error?.response?.data?.message || error.message || "Unknown error"
-          }`,
+          t("nonFormalEducationDeleteFailed", {
+            message:
+              error?.response?.data?.message || error.message || tCommon("failed"),
+          }),
         );
       },
     });
@@ -378,9 +388,7 @@ export const NonFormalEducationSection = React.memo<Props>(
 
     const handleDelete = (educationId: number) => {
       if (
-        window.confirm(
-          "Are you sure you want to delete this non-formal education?",
-        )
+        window.confirm(t("nonFormalEducationDeleteConfirm"))
       ) {
         deleteMutation.mutate({ id: educationId });
       }
@@ -395,26 +403,26 @@ export const NonFormalEducationSection = React.memo<Props>(
       () => [
         {
           accessorKey: "institution",
-          header: "Institution",
+          header: t("institution"),
         },
         {
           accessorKey: "location",
-          header: "Location",
+          header: t("location"),
         },
         {
           accessorKey: "notes",
-          header: "Notes",
+          header: tCommon("notes"),
         },
         {
           accessorKey: "start_date",
-          header: "Start Date",
+          header: t("startDate"),
           cell: ({ row }) => (
             <span>{dayjs(row.original.start_date).format("LL")}</span>
           ),
         },
         {
           accessorKey: "graduation_date",
-          header: "Graduate Date",
+          header: t("graduateDate"),
           cell: ({ row }) => (
             <span>{dayjs(row.original.graduation_date).format("LL")}</span>
           ),
@@ -431,7 +439,7 @@ export const NonFormalEducationSection = React.memo<Props>(
           ),
         },
       ],
-      [],
+      [t, tCommon],
     );
 
     return (
@@ -469,12 +477,10 @@ export const NonFormalEducationSection = React.memo<Props>(
             noDataPlaceholder={
               <div className="border border-primary-border bg-primary-background rounded-md p-2 gap-1 mx-8 flex flex-col items-center justify-center">
                 <p className="text-primary font-semibold text-lg text-center">
-                  Complete Non-Formal Education Information
+                  {t("completeNonFormalEducation")}
                 </p>
                 <p className="text-base text-text-secondary text-center">
-                  Record workshops, certifications, and other non-formal
-                  learning to showcase the employee&apos;s skills and
-                  development.
+                  {t("completeNonFormalEducationDesc")}
                 </p>
                 <NonFormalEducationFormModal
                   buttonVariant="outline"

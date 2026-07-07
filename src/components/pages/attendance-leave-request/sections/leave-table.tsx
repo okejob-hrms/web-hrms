@@ -3,6 +3,8 @@
 'use client';
 
 import * as React from 'react';
+import { useLocale, useTranslations } from 'next-intl';
+import { resolveLocale } from '@/lib/i18n/locale';
 import { DataTable } from '@/components/tables/data-table';
 import { CellContext, ColumnDef } from '@tanstack/react-table';
 import { PaginationState } from '@tanstack/react-table';
@@ -25,7 +27,7 @@ import {
   Trash,
   XCircle,
 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { StatusBadge } from '@/components/shared/status-badge';
 import {
   formatDateRange,
   formatDayDifference,
@@ -64,13 +66,16 @@ export default function LeaveTable({
   isEmployee,
 }: Props) {
   const router = useRouter();
+  const locale = resolveLocale(useLocale());
+  const t = useTranslations('attendance');
+  const tCommon = useTranslations('common');
   const columns: ColumnDef<ILeaveResponse>[] = React.useMemo(
     () => [
       ...(!isEmployee
         ? [
             {
               accessorKey: 'user.name',
-              header: 'Name',
+              header: tCommon('name'),
               cell: ({ row }: CellContext<ILeaveResponse, unknown>) => (
                 <div className="flex gap-4 items-center min-w-[150px]">
                   <Avatar className="h-10 w-10">
@@ -92,14 +97,14 @@ export default function LeaveTable({
             },
             {
               accessorKey: 'leave_type.name',
-              header: 'Leave',
+              header: t('leaveColumn'),
               size: 200,
             },
           ]
         : []),
       {
         accessorKey: 'duration',
-        header: 'Duration',
+        header: tCommon('duration'),
         size: 300,
         cell: ({ row }) => {
           const leave = row.original;
@@ -108,10 +113,10 @@ export default function LeaveTable({
           return (
             <div className="flex flex-col w-max-2xl">
               <span>
-                {formatDayDifference(leave.start_date, leave.end_date)}
+                {formatDayDifference(leave.start_date, leave.end_date, locale)}
               </span>
               <span className="text-primary">
-                {formatDateRange(leave.start_date, leave.end_date)}
+                {formatDateRange(leave.start_date, leave.end_date, locale)}
               </span>
             </div>
           );
@@ -119,34 +124,32 @@ export default function LeaveTable({
       },
       {
         accessorKey: 'reason',
-        header: 'Reason',
+        header: t('reason'),
         size: 200,
       },
       {
         accessorKey: 'notes',
-        header: 'Notes',
+        header: tCommon('notes'),
         size: 200,
         cell: ({ row }) => row.original.notes || '-',
       },
       {
         accessorKey: 'status',
-        header: 'Status',
+        header: tCommon('status'),
         size: 160,
         cell: ({ row }) => {
           const status = row.original.status;
-          const { variant, className, label } = getStatusOvertime(status);
+          const { variant, className, key } = getStatusOvertime(status);
           if (!row.original.status) return '-';
 
           return (
-            <Badge variant={variant} className={className}>
-              {label}
-            </Badge>
+            <StatusBadge statusKey={key} variant={variant} className={className} />
           );
         },
       },
       {
         accessorKey: 'updated_at',
-        header: 'Last Update',
+        header: tCommon('lastUpdate'),
         size: 200,
         cell: ({ row }) => (
           <div className="flex flex-col">
@@ -180,7 +183,7 @@ export default function LeaveTable({
                     className="flex gap-2 w-full text-left"
                   >
                     <Eye className="w-4 h-4" />
-                    Leave Request Details
+                    {t('leaveRequestDetails')}
                   </button>
                 </DropdownMenuItem>
 
@@ -197,7 +200,7 @@ export default function LeaveTable({
                             className="flex gap-2 w-full text-left"
                           >
                             <Clock4Icon className="w-4 h-4" />
-                            Approve Request
+                            {t('approveRequest')}
                           </button>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
@@ -209,7 +212,7 @@ export default function LeaveTable({
                             className="flex gap-2 w-full text-left"
                           >
                             <XCircle className="w-4 h-4" />
-                            Reject Request
+                            {t('rejectRequest')}
                           </button>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
@@ -222,7 +225,7 @@ export default function LeaveTable({
                             className="flex gap-2 w-full text-left"
                           >
                             <Edit3 className="w-4 h-4" />
-                            Edit Leave Request
+                            {t('editLeaveRequest')}
                           </button>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
@@ -234,7 +237,7 @@ export default function LeaveTable({
                             className="flex gap-2 w-full text-left text-red-600"
                           >
                             <Trash className="w-4 h-4 text-red-600" />
-                            Delete Request
+                            {t('deleteRequest')}
                           </button>
                         </DropdownMenuItem>
                       </>
@@ -247,14 +250,14 @@ export default function LeaveTable({
         },
       },
     ],
-    [onSelectLeave, onOpenModal],
+    [isEmployee, locale, onNavigateAdd, onOpenModal, onSelectLeave, router, t, tCommon],
   );
   return (
     <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6">
       <div className="flex md:flex-row flex-col justify-between w-full md:items-center items-start gap-4">
-        <h2 className="font-semibold text-xl">Leave Request</h2>
+        <h2 className="font-semibold text-xl">{t('leaveRequest')}</h2>
         <Button onClick={onNavigateAdd}>
-          <Plus /> New Leave Request
+          <Plus /> {t('newLeaveRequest')}
         </Button>
       </div>
 

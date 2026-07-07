@@ -1,4 +1,7 @@
+"use client";
+
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { DetailLeaveForm } from "./detail-leave-form";
 import { SectionAssessmentDetail } from "./section-assessment-detail";
 
@@ -22,6 +25,7 @@ export default function EssOverviewDetail({
   const searchParams = useSearchParams();
   const formId = searchParams.get("formId");
   const { offboardingData } = useESS();
+  const t = useTranslations("ess");
 
   const content = React.useMemo(() => {
     if (section === "assessment" && id) {
@@ -47,7 +51,9 @@ export default function EssOverviewDetail({
         case 'document-handover':
           return <DocumentHandover />;
         default:
-          return <div className="p-10 text-center">Page not found</div>;
+          return (
+            <div className="p-10 text-center">{t("pageNotFound")}</div>
+          );
       }
     }
 
@@ -57,7 +63,7 @@ export default function EssOverviewDetail({
       default:
         return <DetailLeaveForm />;
     }
-  }, [overview, section, id]);
+  }, [overview, section, id, formId, offboardingData, t]);
 
   return <div className="font-sans min-h-screen flex flex-col">{content}</div>;
 }

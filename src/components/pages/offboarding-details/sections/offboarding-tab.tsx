@@ -1,5 +1,6 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { ExitInterviewForm } from "./exit-interview-form";
 import { WorkingAndAssets } from "./working-and-assets";
 import { FinalSalaryBenefits } from "./final-salary-benefits";
@@ -12,28 +13,34 @@ interface Props {
 export const OffboardingTab = React.memo(function OffboardingTab({
   offboarding_id,
 }: Props) {
-  const tabs = [
-    {
-      name: "Interview Schedule",
-      value: "interview-schedule",
-      children: <InterviewSchedule offboarding_id={offboarding_id} />,
-    },
-    {
-      name: "Exit Interview Form",
-      value: "exit-interview-form",
-      children: <ExitInterviewForm offboarding_id={offboarding_id} />,
-    },
-    {
-      name: "Work Handover & Asset Return",
-      value: "work-and-assets",
-      children: <WorkingAndAssets />,
-    },
-    {
-      name: "Final Salary & Benefits",
-      value: "completion",
-      children: <FinalSalaryBenefits offboarding_id={offboarding_id} />,
-    },
-  ];
+  const t = useTranslations("offboarding");
+
+  const tabs = React.useMemo(
+    () => [
+      {
+        name: t("tabInterviewSchedule"),
+        value: "interview-schedule",
+        children: <InterviewSchedule offboarding_id={offboarding_id} />,
+      },
+      {
+        name: t("tabExitInterviewForm"),
+        value: "exit-interview-form",
+        children: <ExitInterviewForm offboarding_id={offboarding_id} />,
+      },
+      {
+        name: t("tabWorkHandoverAssetReturn"),
+        value: "work-and-assets",
+        children: <WorkingAndAssets />,
+      },
+      {
+        name: t("tabFinalSalaryBenefits"),
+        value: "completion",
+        children: <FinalSalaryBenefits offboarding_id={offboarding_id} />,
+      },
+    ],
+    [offboarding_id, t],
+  );
+
   return (
     <Tabs
       orientation="vertical"
@@ -41,7 +48,7 @@ export const OffboardingTab = React.memo(function OffboardingTab({
       className="w-full flex flex-col md:flex-row items-start gap-4 justify-center"
     >
       <div className="flex flex-col gap-4 border border-grayscale-10 rounded-b-sm rounded-md p-4 w-full md:min-w-fit md:w-auto">
-        <p className="font-semibold text-gray-900 text-xs">Completion</p>
+        <p className="font-semibold text-gray-900 text-xs">{t("completion")}</p>
         <TabsList className="grid grid-cols-1 p-0 bg-transparent h-fit w-full">
           {tabs.map((tab) => (
             <TabsTrigger

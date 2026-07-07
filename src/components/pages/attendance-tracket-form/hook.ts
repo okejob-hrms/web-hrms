@@ -3,51 +3,70 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useRouter } from 'next/navigation';
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useRouter, usePathname } from 'next/navigation';
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { ShiftByDayResponse } from '@/services/settings/types';
-import { getShiftToday, getShiftTodayWithId } from '@/services/settings';
-import { useEffect, useMemo, useState } from 'react';
+import { getShiftTodayWithId } from '@/services/settings';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { getEmployees } from '@/services/employees';
 import dayjs from 'dayjs';
 import { toast } from 'sonner';
-import { getAttendanceDetail, getAttendanceDetailById, postAttendance, putAttendance } from '@/services/attendance';
+import {
+  getAttendanceDetailById,
+  postAttendance,
+  putAttendance,
+} from '@/services/attendance';
 import { AttendanceDetail } from '@/services/attendance/types';
-import { usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 
-// -------------------------
-// SCHEMA & TYPES
-// -------------------------
-const attendanceSchema = z.object({
-  user_id: z.string().min(1, "Employee is required"),
-  attendance_date: z.date(),
-  shift_id: z.number().min(1, "Shift is required"),
-  clock_in_at: z.string().min(1, "Clock-in time is required"),
-  clock_out_at: z.string().min(1, "Clock-out time is required"),
-  latitude: z.number().optional(),
-  longitude: z.number().optional(),
-  note: z.string().optional(),
-});
+export type AttendanceFormValues = {
+  user_id: string;
+  attendance_date: Date;
+  shift_id: number;
+  clock_in_at: string;
+  clock_out_at: string;
+  latitude?: number;
+  longitude?: number;
+  note?: string;
+};
 
-export type AttendanceFormValues = z.infer<typeof attendanceSchema>;
-
-
-type AttendancePayload = Omit<AttendanceFormValues, "attendance_date" | "user_id"> & {
+type AttendancePayload = Omit<
+  AttendanceFormValues,
+  'attendance_date' | 'user_id'
+> & {
   user_id: number;
   attendance_date: string;
 };
 
-// -------------------------
-// HOOK
-// -------------------------
 export function useAttendenceForm() {
+  const t = useTranslations('attendance');
   const pathname = usePathname();
   const isAddMode = pathname.endsWith('/add');
+
+  const attendanceSchema = useMemo(
+    () =>
+      z.object({
+        user_id: z.string().min(1, t('employeeRequired')),
+        attendance_date: z.date(),
+        shift_id: z.number().min(1, t('shiftRequired')),
+        clock_in_at: z.string().min(1, t('clockInRequired')),
+        clock_out_at: z.string().min(1, t('clockOutRequired')),
+        latitude: z.number().optional(),
+        longitude: z.number().optional(),
+        note: z.string().optional(),
+      }),
+    [t],
+  );
 
   const defaultMap = {
     lat: -6.2088,
     lng: 106.8456,
-  }
+  };
   const router = useRouter();
   const [openMap, setOpenMap] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -71,20 +90,26 @@ export function useAttendenceForm() {
   });
 
   const { data: employeesList } = useQuery({
-    queryKey: ["employees", {page: 1,
-      per_page: 50000,}],
-    queryFn: () => getEmployees({page: 1,
-      per_page: 50000,}),
+    queryKey: [
+      'employees',
+      {
+        page: 1,
+        per_page: 50000,
+      },
+    ],
+    queryFn: () =>
+      getEmployees({
+        page: 1,
+        per_page: 50000,
+      }),
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
-    refetchOnMount: "always",
+    refetchOnMount: 'always',
     refetchOnWindowFocus: true,
   });
 
-  const {
-    data: detailData,
-  } = useQuery({
-    queryKey: ["attendanceDetailById", selectedAttendance],
+  const { data: detailData } = useQuery({
+    queryKey: ['attendanceDetailById', selectedAttendance],
     queryFn: () => getAttendanceDetailById(selectedAttendance),
     enabled: !!selectedAttendance,
     placeholderData: keepPreviousData,
@@ -104,22 +129,22 @@ export function useAttendenceForm() {
 
   const mapResponseToForm = (data: AttendanceDetail): AttendanceFormValues => {
     return {
-      user_id: String(Number(selectedId)) ?? "",
+      user_id: String(Number(selectedId)) ?? '',
       attendance_date: dayjs(data.attendance_date).toDate(),
       shift_id: data.metadata.shift_id ?? 0,
-      clock_in_at: data.clock.in_at ?? "",
-      clock_out_at: data.clock.out_at ?? "",
+      clock_in_at: data.clock.in_at ?? '',
+      clock_out_at: data.clock.out_at ?? '',
       latitude: Number(data.location.latitude) ?? undefined,
       longitude: Number(data.location.longitude) ?? undefined,
-      note: data.notes ?? "",
+      note: data.notes ?? '',
     };
   };
 
   const form = useForm<AttendanceFormValues>({
     resolver: zodResolver(attendanceSchema),
-    defaultValues:{},
+    defaultValues: {},
   });
-  
+
   useEffect(() => {
     if (detailData?.data) {
       setSelectedDate(detailData.data.attendance_date);
@@ -132,52 +157,56 @@ export function useAttendenceForm() {
     }
   }, [detailData, form]);
 
-  const mutation = useMutation<unknown, unknown, { selectedId?: string; attendanceId:string; payload: AttendancePayload }>({
-    mutationFn: ({ selectedId, attendanceId,  payload }) => {
+  const mutation = useMutation<
+    unknown,
+    unknown,
+    { selectedId?: string; attendanceId: string; payload: AttendancePayload }
+  >({
+    mutationFn: ({ attendanceId, payload }) => {
       if (!isAddMode) {
-        console.log('update')
         return putAttendance(attendanceId, payload);
       }
-      console.log('create')
       return postAttendance(payload);
     },
-    onSuccess: (_) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['attendance'] });
-      toast.success(!isAddMode ? "Update attendance successful." : "Create attendance successful.");
+      toast.success(
+        isAddMode ? t('createAttendanceSuccess') : t('updateAttendanceSuccess'),
+      );
       setIsLoading(false);
       router.push('/attendance/attendance-tracker');
     },
-    onError: (_) => {
-      toast.error(!isAddMode ? "Update attendance failed." : "Create attendance failed.");
+    onError: () => {
+      toast.error(
+        isAddMode ? t('createAttendanceFailed') : t('updateAttendanceFailed'),
+      );
       setIsLoading(false);
     },
   });
 
-  // setter user default map base on branch
   useEffect(() => {
-  const subscription = form.watch((value, { name }) => {
-    if (name === 'user_id' && value.user_id) {
-      const selectedUser = employeesList?.data?.data.find(
-        (u) => String(u.user_id) === value.user_id
-      );
-      if (selectedUser?.branch.latitude && selectedUser?.branch.longitude) {
-        setSelectedMap({
-          lat: Number(selectedUser?.branch.latitude),
-          lng: Number(selectedUser?.branch.longitude),
-        });
+    const subscription = form.watch((value, { name }) => {
+      if (name === 'user_id' && value.user_id) {
+        const selectedUser = employeesList?.data?.data.find(
+          (u) => String(u.user_id) === value.user_id,
+        );
+        if (selectedUser?.branch.latitude && selectedUser?.branch.longitude) {
+          setSelectedMap({
+            lat: Number(selectedUser?.branch.latitude),
+            lng: Number(selectedUser?.branch.longitude),
+          });
+        }
       }
-    }
-  });
+    });
 
-  return () => subscription.unsubscribe();
-}, [form, employeesList, defaultMap]);
-
+    return () => subscription.unsubscribe();
+  }, [form, employeesList, defaultMap]);
 
   const onSubmit = (values: AttendanceFormValues) => {
     setIsLoading(true);
     let payload: AttendancePayload & { status?: number } = {
       ...values,
-      attendance_date: dayjs(values.attendance_date).format("YYYY-MM-DD"),
+      attendance_date: dayjs(values.attendance_date).format('YYYY-MM-DD'),
       user_id: Number(values.user_id),
     };
 
@@ -185,28 +214,30 @@ export function useAttendenceForm() {
       payload = { ...payload, status: 0 };
     }
 
-    mutation.mutate({ selectedId ,  attendanceId: String(detailData?.data.id), payload });
+    mutation.mutate({
+      selectedId,
+      attendanceId: String(detailData?.data.id),
+      payload,
+    });
   };
 
   const handleBack = () => {
     router.back();
-  }
+  };
 
   const handleSetMap = () => {
-    setMap(selectedMap)
+    setMap(selectedMap);
     setOpenMap(false);
-  }
+  };
 
-  const handleDetailData = (id: string, slug: string) => {
-    console.log(id,slug)
+  const handleDetailData = useCallback((id: string, slug: string) => {
     setSelectedId(id);
     setSelectedAttendance(slug);
-  }
-
+  }, []);
 
   return {
-    form, 
-    onSubmit, 
+    form,
+    onSubmit,
     handleBack,
     shiftData,
     setOpenMap,
@@ -221,6 +252,6 @@ export function useAttendenceForm() {
     setIsLoading,
     defaultMap,
     setSelectedDate,
-    setSelectedId
+    setSelectedId,
   };
 }

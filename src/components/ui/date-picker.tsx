@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useFormContext } from "react-hook-form";
+import { useTranslations } from "next-intl";
 import {
   FormControl,
   FormDescription,
@@ -38,6 +39,7 @@ export const DatePicker: React.FC<
   onChangeExtra,
   ...props
 }) => {
+  const tCommon = useTranslations("common");
   const { control, formState } = useFormContext();
   const [isOpen, setIsOpen] = React.useState(false);
 
@@ -84,7 +86,7 @@ export const DatePicker: React.FC<
                       {hasValue ? (
                         dayjs(props.value || field.value).format("ll")
                       ) : (
-                        <span>{placeholder ?? "Pick a date"}</span>
+                        <span>{placeholder ?? tCommon("pickDate")}</span>
                       )}
                       <CalendarIcon className="h-4 w-4 text-muted-foreground" />
                     </Button>
@@ -126,6 +128,7 @@ export const DatePicker: React.FC<
 };
 
 export const BasicDatePicker: React.FC<BasicDatePickerProps> = (props) => {
+  const tCommon = useTranslations("common");
   const [isOpen, setIsOpen] = React.useState(false);
   const hasValue = !!props.value;
 
@@ -148,7 +151,7 @@ export const BasicDatePicker: React.FC<BasicDatePickerProps> = (props) => {
               {hasValue ? (
                 dayjs(props.value).format("ll")
               ) : (
-                <span>{props.placeholder ?? "Pick a date"}</span>
+                <span>{props.placeholder ?? tCommon("pickDate")}</span>
               )}
               <CalendarIcon className="h-4 w-4 text-muted-foreground" />
             </Button>

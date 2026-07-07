@@ -1,5 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+"use client";
+
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { MoreHorizontalIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -74,11 +77,17 @@ function PaginationLink({
 
 function PaginationPrevious({
   className,
+  label = "Previous",
+  ariaLabel,
   ...props
-}: React.ComponentProps<typeof PaginationLink>) {
+}: React.ComponentProps<typeof PaginationLink> & {
+  label?: string;
+  ariaLabel?: string;
+}) {
+  const t = useTranslations("ui.pagination");
   return (
     <PaginationLink
-      aria-label="Go to previous page"
+      aria-label={ariaLabel ?? t("previousPageAria")}
       size="default"
       className={cn(
         "gap-1 px-2.5 sm:pl-2.5 rounded-sm border border-primary",
@@ -93,7 +102,7 @@ function PaginationPrevious({
         alt="arrow left"
       />
       <span className="hidden sm:block text-primary text-sm font-semibold">
-        Previous
+        {label}
       </span>
     </PaginationLink>
   );
@@ -101,11 +110,17 @@ function PaginationPrevious({
 
 function PaginationNext({
   className,
+  label = "Next",
+  ariaLabel,
   ...props
-}: React.ComponentProps<typeof PaginationLink>) {
+}: React.ComponentProps<typeof PaginationLink> & {
+  label?: string;
+  ariaLabel?: string;
+}) {
+  const t = useTranslations("ui.pagination");
   return (
     <PaginationLink
-      aria-label="Go to next page"
+      aria-label={ariaLabel ?? t("nextPageAria")}
       size="default"
       className={cn(
         "gap-1 px-2.5 sm:pr-2.5 rounded-sm border border-primary",
@@ -114,7 +129,7 @@ function PaginationNext({
       {...props}
     >
       <span className="hidden sm:block text-primary text-sm font-semibold">
-        Next
+        {label}
       </span>
       <Image
         src="/icons/arrowRight.svg"
@@ -130,6 +145,7 @@ function PaginationEllipsis({
   className,
   ...props
 }: React.ComponentProps<"span">) {
+  const t = useTranslations("ui.pagination");
   return (
     <span
       aria-hidden
@@ -138,7 +154,7 @@ function PaginationEllipsis({
       {...props}
     >
       <MoreHorizontalIcon className="size-4" />
-      <span className="sr-only">More pages</span>
+      <span className="sr-only">{t("morePages")}</span>
     </span>
   );
 }
@@ -147,6 +163,7 @@ function GeneralPagination<T = unknown>({
   pagination,
   table,
 }: PaginationProps<T>) {
+  const t = useTranslations("common");
   const { current_page, next_page_url, prev_page_url, next, prev } = pagination;
   const nextUrl = next_page_url ?? next;
   const prevUrl = prev_page_url ?? prev;
@@ -155,6 +172,7 @@ function GeneralPagination<T = unknown>({
       <PaginationContent>
         <PaginationItem>
           <PaginationPrevious
+            label={t("previous")}
             onClick={() => {
               if (prevUrl) table.previousPage();
             }}
@@ -201,6 +219,7 @@ function GeneralPagination<T = unknown>({
       <PaginationContent>
         <PaginationItem>
           <PaginationNext
+            label={t("next")}
             onClick={() => {
               if (nextUrl) table.nextPage();
             }}
@@ -223,6 +242,7 @@ function ApiGeneralPagination<T = unknown>({
   pagination,
   table,
 }: ApiPaginationProps<T>) {
+  const t = useTranslations("common");
   const { current_page, next, prev } = pagination;
   const hasNext = next !== null;
   const hasPrev = prev !== null;
@@ -232,6 +252,7 @@ function ApiGeneralPagination<T = unknown>({
       <PaginationContent>
         <PaginationItem>
           <PaginationPrevious
+            label={t("previous")}
             onClick={() => {
               if (hasPrev) table.previousPage();
             }}
@@ -263,6 +284,7 @@ function ApiGeneralPagination<T = unknown>({
       <PaginationContent>
         <PaginationItem>
           <PaginationNext
+            label={t("next")}
             onClick={() => {
               if (hasNext) table.nextPage();
             }}

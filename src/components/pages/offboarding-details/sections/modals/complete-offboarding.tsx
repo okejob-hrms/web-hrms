@@ -18,6 +18,7 @@ import { postCompleteOffboarding } from "@/services/employees/offboardings/compl
 import { ApiErrorResponse } from "@/lib/types";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 interface Props {
   offboardingId: number;
@@ -25,11 +26,13 @@ interface Props {
 
 export const CompleteOffboardingModal = React.memo(
   function CompleteOffboardingModal({ offboardingId }: Props) {
+    const t = useTranslations("offboarding");
+    const tCommon = useTranslations("common");
     const router = useRouter();
     const completeMutation = useMutation({
       mutationFn: () => postCompleteOffboarding(offboardingId),
       onSuccess: () => {
-        toast.success("Success complete offboarding process");
+        toast.success(t("completeOffboardingSuccess"));
         router.push("/employee/off-boarding");
       },
       onError: (error: any) => {
@@ -39,23 +42,22 @@ export const CompleteOffboardingModal = React.memo(
               .json()
               .then((errorData: ApiErrorResponse) => {
                 toast.error(
-                  errorData.message || "Failed to complete offboarding process",
+                  errorData.message || t("completeOffboardingFailed"),
                 );
               })
               .catch(() => {
                 toast.error(
-                  "Failed to complete offboarding process: Server error",
+                  `${t("completeOffboardingFailed")}: ${t("serverError")}`,
                 );
               });
           } catch (parseError) {
             toast.error(
-              "Failed to complete offboarding process: Server error : " +
-                parseError,
+              `${t("completeOffboardingFailed")}: ${t("serverError")} : ${parseError}`,
             );
           }
         } else {
           toast.error(
-            `Failed to complete offboarding process: ${error.message || "Unknown error"}`,
+            `${t("completeOffboardingFailed")}: ${error.message || t("unknownError")}`,
           );
         }
       },
@@ -63,7 +65,7 @@ export const CompleteOffboardingModal = React.memo(
     return (
       <AlertDialog>
         <AlertDialogTrigger asChild>
-          <Button variant="outline">Complete Offboarding Process</Button>
+          <Button variant="outline">{t("completeOffboardingProcess")}</Button>
         </AlertDialogTrigger>
         <AlertDialogContent className="bg-white">
           <AlertDialogHeader className="items-center">
@@ -71,23 +73,22 @@ export const CompleteOffboardingModal = React.memo(
               src="/icons/confirmation.svg"
               width={56}
               height={56}
-              alt="complete offboarding"
+              alt={t("completeOffboarding")}
             />
             <AlertDialogTitle className="text-center">
-              Are you sure you want to complete this offboarding process?
+              {t("completeOffboardingConfirmTitle")}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-center text-text-secondary">
-              Once confirmed, the employee’s access will be revoked and cannot
-              be restored.
+              {t("completeOffboardingConfirmDesc")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="w-full grid grid-cols-2">
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{tCommon("cancel")}</AlertDialogCancel>
             <AlertDialogAction
               className="bg-error text-white"
               onClick={() => completeMutation.mutate()}
             >
-              Complete Offboarding
+              {t("completeOffboarding")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

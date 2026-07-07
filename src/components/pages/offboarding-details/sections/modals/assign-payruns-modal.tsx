@@ -20,6 +20,7 @@ import { ApiErrorResponse } from "@/lib/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 
 interface Props {
   offboarding_id: number;
@@ -33,7 +34,9 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export const AssignPayrunsModal = React.memo(
-  function InitiateOffboardingEmployee({ offboarding_id, isEdit }: Props) {
+  function AssignPayrunsModal({ offboarding_id, isEdit }: Props) {
+    const t = useTranslations("offboarding");
+    const tCommon = useTranslations("common");
     const [open, setOpen] = React.useState(false);
 
     const form = useForm<FormValues>({
@@ -46,7 +49,7 @@ export const AssignPayrunsModal = React.memo(
     const mutation = useMutation({
       mutationFn: (date: string) => postAssignPayruns(offboarding_id, date),
       onSuccess: () => {
-        toast.success("Assign payruns successful");
+        toast.success(t("assignPayrunsSuccess"));
         setOpen(false);
         form.reset();
       },
@@ -57,19 +60,19 @@ export const AssignPayrunsModal = React.memo(
             error.response
               .json()
               .then((errorData: ApiErrorResponse) => {
-                toast.error(errorData.message || "Failed to assign payruns.");
+                toast.error(errorData.message || t("assignPayrunsFailed"));
               })
               .catch(() => {
-                toast.error("Failed to assign payruns: Server error");
+                toast.error(`${t("assignPayrunsFailed")}: ${t("serverError")}`);
               });
           } catch (parseError) {
             toast.error(
-              "Failed to assign payruns: Server error : " + parseError,
+              `${t("assignPayrunsFailed")}: ${t("serverError")} : ${parseError}`,
             );
           }
         } else {
           toast.error(
-            `Failed to assign payruns: ${error.message || "Unknown error"}`,
+            `${t("assignPayrunsFailed")}: ${error.message || t("unknownError")}`,
           );
         }
       },
@@ -101,22 +104,22 @@ export const AssignPayrunsModal = React.memo(
                 height={24}
                 alt="edit"
               />{" "}
-              Edit
+              {tCommon("edit")}
             </Button>
           ) : (
-            <Button className="w-fit">Assign to Payruns</Button>
+            <Button className="w-fit">{t("assignToPayruns")}</Button>
           )}
         </DialogTrigger>
         <DialogContent className="bg-white md:min-w-5xl overflow-y-scroll max-h-[90vh]">
           <DialogHeader>
-            <DialogTitle>Assign Final Salary & Benefit Payout</DialogTitle>
+            <DialogTitle>{t("assignFinalSalaryPayout")}</DialogTitle>
           </DialogHeader>
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <SelectForm
                 name="assign_payruns"
-                label="Assign Payruns"
+                label={t("assignPayruns")}
                 required
                 options={[
                   { label: "Juni 2025", value: "2025-06-01" },
@@ -135,14 +138,14 @@ export const AssignPayrunsModal = React.memo(
               <DialogFooter>
                 <DialogClose asChild>
                   <Button type="button" variant="outline">
-                    Cancel
+                    {tCommon("cancel")}
                   </Button>
                 </DialogClose>
                 <Button
                   type="submit"
                   disabled={mutation.isPending || !form.formState.isDirty}
                 >
-                  {mutation.isPending ? "Saving..." : "Save"}
+                  {mutation.isPending ? tCommon("saving") : tCommon("save")}
                 </Button>
               </DialogFooter>
             </form>

@@ -1,4 +1,5 @@
-import React from "react";
+import React from 'react';
+import { useTranslations } from 'next-intl';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -8,8 +9,8 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import Image from "next/image";
+} from '@/components/ui/alert-dialog';
+import Image from 'next/image';
 
 interface Props {
   isOpen: boolean;
@@ -18,6 +19,9 @@ interface Props {
 }
 
 export default function LeaveDeleteModal({ isOpen, onClose, onDelete }: Props) {
+  const t = useTranslations('attendance');
+  const tCommon = useTranslations('common');
+
   const handleDelete = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -25,7 +29,7 @@ export default function LeaveDeleteModal({ isOpen, onClose, onDelete }: Props) {
     try {
       await onDelete();
     } catch (error) {
-      console.error("Error deleting leave:", error);
+      console.error('Error deleting leave:', error);
     }
   };
 
@@ -40,11 +44,10 @@ export default function LeaveDeleteModal({ isOpen, onClose, onDelete }: Props) {
             alt="confirmation"
           />
           <AlertDialogTitle className="text-lg text-center font-semibold text-black mb-2">
-            Are you sure you want to delete this leave request?
+            {t('confirmDeleteLeave')}
           </AlertDialogTitle>
           <AlertDialogDescription className="text-sm text-center text-text-secondary">
-            Deleting this leave request will remove all associated data. This
-            action is irreversible.
+            {t('deleteLeaveDesc')}
           </AlertDialogDescription>
         </AlertDialogHeader>
 
@@ -53,13 +56,13 @@ export default function LeaveDeleteModal({ isOpen, onClose, onDelete }: Props) {
             onClick={handleDelete}
             className="flex-1 bg-transparent text-red-500 rounded-md py-2 font-medium hover:bg-red-50"
           >
-            Delete
+            {tCommon('delete')}
           </AlertDialogAction>
           <AlertDialogCancel
             onClick={onClose}
             className="flex-1 border bg-primary text-white rounded-md py-2 font-medium"
           >
-            Cancel
+            {tCommon('cancel')}
           </AlertDialogCancel>
         </AlertDialogFooter>
       </AlertDialogContent>

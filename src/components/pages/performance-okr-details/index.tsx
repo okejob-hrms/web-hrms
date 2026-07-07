@@ -5,13 +5,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Edit2, Ellipsis, FileDown, Play, Trash } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/shared/status-badge";
 import { OKRTab } from "./sections/tab";
 import { CircularProgress } from "@/components/ui/progress";
 import { useOKRDetails } from "./hook";
 import { Skeleton } from "@/components/ui/skeleton";
 import dayjs from "dayjs";
-import { cn } from "@/lib/utils";
 import { InitiateModal } from "./sections/initiate-modal";
 import { DeleteModal } from "./sections/delete-modal";
 
@@ -74,10 +73,12 @@ export const PerformanceOKRDetails = () => {
     <div className="font-sans md:px-[125px] px-4 space-y-4">
       <div className="flex gap-2 items-center">
         <h1 className="font-semibold text-4xl">{detailOKRCycle?.data?.name}</h1>
-        <Badge variant={status.variant} className={status.className}>
-          <div className={cn(status.circleClassName, "w-2 h-2 rounded-full")} />{" "}
-          {status.label}
-        </Badge>
+        <StatusBadge
+          statusKey={status.key}
+          variant={status.variant}
+          className={status.className}
+          circleClassName={status.circleClassName}
+        />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className="p-1 hover:bg-gray-100 rounded">
@@ -97,7 +98,7 @@ export const PerformanceOKRDetails = () => {
               </button>
             </DropdownMenuItem>
             {
-              status.label !== "Active" && (
+              status.key !== "active" && (
                 <>
                   <DropdownMenuItem asChild>
                     <button

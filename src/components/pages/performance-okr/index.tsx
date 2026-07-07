@@ -1,5 +1,8 @@
+'use client';
+
 import DataTable from "@/components/tables/data-table";
 import { Button } from "@/components/ui/button";
+import { useTranslations } from "next-intl";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowDown, ArrowUp, ChevronsUpDown, Eye } from "lucide-react";
@@ -7,11 +10,12 @@ import dayjs from "dayjs";
 import useOKR from "./hook";
 import FormModal from "./sections/form-modal";
 import { getStatusOKRCycle } from "@/lib/helpers";
-import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/shared/status-badge";
 import { IOKRResponse } from "@/services/okr/types";
-import { cn } from "@/lib/utils";
 
 export default function PerformanceOKR() {
+  const t = useTranslations("performance");
+  const tCommon = useTranslations("common");
   const {
     data,
     pagination,
@@ -43,7 +47,7 @@ export default function PerformanceOKR() {
 
         return (
           <div className="flex flex-row gap-2 items-center">
-            <span>Period</span>
+            <span>{t("period")}</span>
             <button
               type="button"
               onClick={() => column.toggleSorting(isSorted === "asc")}
@@ -75,7 +79,7 @@ export default function PerformanceOKR() {
 
         return (
           <div className="flex flex-row gap-2 items-center">
-            <span>Start Date</span>
+            <span>{t("startDate")}</span>
             <button
               type="button"
               onClick={() => column.toggleSorting(isSorted === "asc")}
@@ -105,7 +109,7 @@ export default function PerformanceOKR() {
 
         return (
           <div className="flex flex-row gap-2 items-center">
-            <span>End Date</span>
+            <span>{t("endDate")}</span>
             <button
               type="button"
               onClick={() => column.toggleSorting(isSorted === "asc")}
@@ -122,14 +126,14 @@ export default function PerformanceOKR() {
     },
     {
       accessorKey: "total",
-      header: "Total OKR",
+      header: t("totalOkr"),
       cell: ({ row }) => {
         return <span>{row.original.objectives_count}</span>;
       },
     },
     {
       accessorKey: "overall_progress",
-      header: "Overall Achievement",
+      header: t("overallAchievement"),
       cell: ({ row }) => {
         return <span>{Number(row.original.overall_progress).toFixed(2)}%</span>;
       },
@@ -149,7 +153,7 @@ export default function PerformanceOKR() {
 
         return (
           <div className="flex flex-row gap-2 items-center">
-            <span>Status</span>
+            <span>{tCommon("status")}</span>
             <button
               type="button"
               onClick={() => column.toggleSorting(isSorted === "asc")}
@@ -162,15 +166,17 @@ export default function PerformanceOKR() {
       },
       cell: ({ row }) => {
         const status = row.original.status_label;
-        const { variant, className, label, circleClassName } =
+        const { variant, className, key, circleClassName } =
           getStatusOKRCycle(status);
         if (!row.original.status_label) return "-";
 
         return (
-          <Badge variant={variant} className={className}>
-            <div className={cn(circleClassName, "w-2 h-2 rounded-full")} />{" "}
-            {label}
-          </Badge>
+          <StatusBadge
+            statusKey={key}
+            variant={variant}
+            className={className}
+            circleClassName={circleClassName}
+          />
         );
       },
     },
@@ -189,7 +195,7 @@ export default function PerformanceOKR() {
 
         return (
           <div className="flex flex-row gap-2 items-center">
-            <span>Last Update</span>
+            <span>{tCommon("lastUpdate")}</span>
             <button
               type="button"
               onClick={() => column.toggleSorting(isSorted === "asc")}
@@ -275,11 +281,9 @@ export default function PerformanceOKR() {
       <div className="flex flex-col justify-between gap-6">
         <div className="rounded-md bg-white border shadow-sm border-grayscale-20 flex flex-col gap-4 p-6">
           <div className="flex flex-col sm:flex-row justify-between w-full items-start sm:items-center gap-4 sm:gap-0">
-            <h2 className="font-semibold text-xl">
-              Objective & Key Results (OKR)
-            </h2>
+            <h2 className="font-semibold text-xl">{t("okrTitle")}</h2>
             <Button onClick={() => handleNew()} className="whitespace-nowrap">
-              + New OKR Cycle
+              {t("newOkrCycle")}
             </Button>
           </div>
           <DataTable

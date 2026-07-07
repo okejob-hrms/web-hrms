@@ -1,4 +1,7 @@
-import React from 'react';
+'use client';
+
+import React, { useMemo } from 'react';
+import { useTranslations, useLocale } from 'next-intl';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,7 +22,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { month, year } from '@/lib/utils';
+import { year } from '@/lib/utils';
+import { getMonthOptions } from '@/lib/formatting';
+import { resolveLocale } from '@/lib/i18n/locale';
 import dayjs from 'dayjs';
 
 interface Props {
@@ -37,8 +42,12 @@ export default function PayrunsAddModal({
   formData,
   setFormData,
 }: Props) {
+  const t = useTranslations('payroll');
+  const tCommon = useTranslations('common');
+  const locale = resolveLocale(useLocale());
+  const monthOptions = useMemo(() => getMonthOptions(locale), [locale]);
+
   const handleUpdate = async (e: React.MouseEvent) => {
-    console.log('Employee data updated');
     e.preventDefault();
     e.stopPropagation();
 
@@ -46,7 +55,7 @@ export default function PayrunsAddModal({
       await onUpdate();
       setIsOpen(false);
     } catch (error) {
-      console.error('Error updating employee:', error);
+      console.error('Error updating payroll group:', error);
     }
   };
 
@@ -56,12 +65,12 @@ export default function PayrunsAddModal({
         <AlertDialogContent className="max-w-md mx-auto bg-white rounded-lg shadow-lg p-6">
           <AlertDialogHeader className="text-center items-center justify-center">
             <AlertDialogTitle className="text-lg text-center font-semibold text-black mb-2">
-              Add Payroll Group
+              {t('addPayrollGroup')}
             </AlertDialogTitle>
           </AlertDialogHeader>
           <div className="grid grid-cols-2 gap-3 space-y-2 mb-4">
             <div className="col-span-2">
-              <div className="text-sm text-gray-500">Payment Period</div>
+              <div className="text-sm text-gray-500">{t('paymentPeriod')}</div>
               <div className="grid grid-cols-2 gap-3 space-y-2">
                 <div className="col-span-1">
                   <Select
@@ -77,10 +86,10 @@ export default function PayrunsAddModal({
                     )}
                   >
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select month" />
+                      <SelectValue placeholder={tCommon('selectMonth')} />
                     </SelectTrigger>
                     <SelectContent>
-                      {month.map((item, i) => (
+                      {monthOptions.map((item, i) => (
                         <SelectItem value={String(item.id)} key={i}>
                           {item.label}
                         </SelectItem>
@@ -102,7 +111,7 @@ export default function PayrunsAddModal({
                     )}
                   >
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select year" />
+                      <SelectValue placeholder={tCommon('selectYear')} />
                     </SelectTrigger>
                     <SelectContent>
                       {year.map((item, i) => (
@@ -119,12 +128,13 @@ export default function PayrunsAddModal({
             <div className="col-span-2">
               <div className="grid grid-cols-2 gap-3 space-y-2">
                 <div className="col-span-1">
-                  <div className="text-sm text-gray-500">Send Payslip Date</div>
+                  <div className="text-sm text-gray-500">
+                    {t('sendPayslipDate')}
+                  </div>
                   <Input
                     type="date"
                     value={formData.send_payslip_at}
                     onChange={(e) => {
-                      console.log(e);
                       setFormData((prev) => ({
                         ...prev,
                         send_payslip_at: dayjs(e.target.value).format(
@@ -136,10 +146,10 @@ export default function PayrunsAddModal({
                 </div>
                 <div className="col-span-1">
                   <div className="text-sm text-gray-500">
-                    Send Payslip Automatically
+                    {t('sendPayslipAutomatically')}
                   </div>
                   <div className="flex items-center gap-3 mt-1">
-                    <span className="text-sm text-gray-600">No</span>
+                    <span className="text-sm text-gray-600">{tCommon('no')}</span>
                     <Switch
                       checked={formData.auto_send_payslip}
                       onCheckedChange={() => {
@@ -150,7 +160,7 @@ export default function PayrunsAddModal({
                       }}
                     />
                     <span className="text-sm text-blue-600 font-medium">
-                      Active
+                      {tCommon('active')}
                     </span>
                   </div>
                   {formData.auto_send_payslip && (
@@ -169,7 +179,7 @@ export default function PayrunsAddModal({
                         }}
                       />
                       <span className="text-sm text-gray-500 font-medium">
-                        Payslip will sent on selected date and time
+                        {t('payslipSentOnSelectedDateTime')}
                       </span>
                     </>
                   )}
@@ -178,7 +188,7 @@ export default function PayrunsAddModal({
             </div>
 
             <div className="col-span-2">
-              <div className="text-sm text-gray-500">Notes</div>
+              <div className="text-sm text-gray-500">{tCommon('notes')}</div>
               <Textarea
                 rows={5}
                 value={formData.notes}
@@ -196,13 +206,13 @@ export default function PayrunsAddModal({
               onClick={() => setIsOpen(false)}
               className="flex-1 border text-primary border-primary bg-white hover:bg-blue-50 rounded-md py-2 font-medium"
             >
-              Cancel
+              {tCommon('cancel')}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleUpdate}
               className="flex-1 bg-primary text-white rounded-md py-2 font-medium"
             >
-              Save
+              {tCommon('save')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

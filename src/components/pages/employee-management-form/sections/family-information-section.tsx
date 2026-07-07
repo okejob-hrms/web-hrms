@@ -45,16 +45,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Image from "next/image";
 import dayjs from "dayjs";
+import { formatDate } from "@/lib/formatting";
+import { resolveLocale } from "@/lib/i18n/locale";
+import { useLocale, useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { ApiErrorResponse } from "@/lib/types";
-
-const formatDate = (dateString: string): string => {
-  return new Date(dateString).toLocaleDateString("id-ID", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
-};
 
 interface TableRowActionsProps {
   row: any;
@@ -63,6 +58,7 @@ interface TableRowActionsProps {
 }
 
 const TableRowActions = ({ row, onEdit, onDelete }: TableRowActionsProps) => {
+  const tCommon = useTranslations("common");
   const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
 
   const handleEditClick = (e: React.MouseEvent) => {
@@ -96,7 +92,7 @@ const TableRowActions = ({ row, onEdit, onDelete }: TableRowActionsProps) => {
               width={16}
               alt="icon-edit"
             />
-            Edit
+            {tCommon('edit')}
           </div>
         </DropdownMenuItem>
         <DropdownMenuItem
@@ -110,7 +106,7 @@ const TableRowActions = ({ row, onEdit, onDelete }: TableRowActionsProps) => {
               width={16}
               alt="icon-delete"
             />
-            Delete
+            {tCommon('delete')}
           </div>
         </DropdownMenuItem>
       </DropdownMenuContent>
@@ -137,6 +133,8 @@ const FamilyFormModal = ({
   onSuccess,
   buttonVariant = "default",
 }: FamilyFormModalProps) => {
+  const t = useTranslations("employee");
+  const tCommon = useTranslations("common");
   const [internalOpen, setInternalOpen] = React.useState(false);
   const queryClient = useQueryClient();
   const formContext = useFormContext();
@@ -161,6 +159,20 @@ const FamilyFormModal = ({
       company: "",
     },
   });
+
+  const educationOptions = React.useMemo(
+    () => [
+      { label: t("educationPrimary"), value: "1" },
+      { label: t("educationJuniorHigh"), value: "2" },
+      { label: t("educationSeniorHigh"), value: "3" },
+      { label: t("educationVocationalHigh"), value: "4" },
+      { label: t("educationDiploma"), value: "5" },
+      { label: t("educationBachelor"), value: "6" },
+      { label: t("educationMaster"), value: "7" },
+      { label: t("educationDoctorate"), value: "8" },
+    ],
+    [t],
+  );
 
   React.useEffect(() => {
     if (isEdit && familyData && open) {
@@ -188,7 +200,7 @@ const FamilyFormModal = ({
     }) => (isEdit ? putUpdateFamily(params) : postCreateFamily(params)),
     onSuccess: (res) => {
       toast.success(
-        `Family information ${isEdit ? "updated" : "added"} successfully!`,
+        isEdit ? t("familyUpdatedSuccess") : t("familyAddedSuccess"),
       );
 
       if (setValue && watchedFamilies) {
@@ -251,17 +263,19 @@ const FamilyFormModal = ({
           error.response
             .json()
             .then((errorData: ApiErrorResponse) => {
-              toast.error(errorData.message || "Failed to save family.");
+              toast.error(errorData.message || t("familySaveFailed"));
             })
             .catch(() => {
-              toast.error("Failed to save family: Server error");
+              toast.error(t("familySaveServerError"));
             });
         } catch (parseError) {
-          toast.error("Failed to save family: Server error : " + parseError);
+          toast.error(`${t("familySaveServerError")} : ${parseError}`);
         }
       } else {
         toast.error(
-          `Failed to save family: ${error.message || "Unknown error"}`,
+          tCommon("saveFailed", {
+            message: error.message || "Unknown error",
+          }),
         );
       }
     },
@@ -284,7 +298,7 @@ const FamilyFormModal = ({
       mutation.mutate(params);
     } catch (error) {
       console.error("Submit error:", error);
-      toast.error("Failed to submit form");
+      toast.error(t("familySubmitFailed"));
     }
   }, []);
 
@@ -320,58 +334,49 @@ const FamilyFormModal = ({
             variant={buttonVariant}
             className={cn(buttonVariant === "outline" && "bg-white")}
           >
-            <Plus /> Add Family Information
+            <Plus /> {t("addFamilyInformation")}
           </Button>
         </DialogTrigger>
       )}
       <DialogContent className="bg-white md:min-w-5xl overflow-y-scroll max-h-[90vh]">
         <DialogHeader>
-          <DialogTitle>{isEdit ? "Edit Family" : "Add Family"}</DialogTitle>
+          <DialogTitle>{isEdit ? t("editFamily") : t("addFamily")}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <InputForm name="name" label="Name" required />
+              <InputForm name="name" label={tCommon("name")} required />
               <div className="grid grid-cols-2 gap-4 w-full">
                 <InputForm
                   name="place_of_birth"
-                  label="Place of Birth"
+                  label={t("placeOfBirth")}
                   required
                 />
-                <DatePicker name="date_of_birth" label="Born Date" />
+                <DatePicker name="date_of_birth" label={t("bornDate")} />
               </div>
               <InputForm
                 name="relationship"
-                label="Family Relationship"
+                label={t("familyRelationship")}
                 required
               />
               <SelectForm
                 name="highest_education"
-                label="Highest Education Level"
-                options={[
-                  { label: "Primary School", value: "1" },
-                  { label: "Junior High School", value: "2" },
-                  { label: "Senior High School", value: "3" },
-                  { label: "Vocational High School", value: "4" },
-                  { label: "Diploma (D1/D2/D3)", value: "5" },
-                  { label: "Bachelor's Degree (S1)", value: "6" },
-                  { label: "Master's Degree (S2)", value: "7" },
-                  { label: "Doctorate (S3)", value: "8" },
-                ]}
+                label={t("highestEducationLevel")}
+                options={educationOptions}
                 disabled={mutation.isPending}
                 required
               />
-              <InputForm name="email" label="Email" type="email" required />
-              <PhoneInput name="phone" label="Phone Number" required={true} />
+              <InputForm name="email" label={tCommon("email")} type="email" required />
+              <PhoneInput name="phone" label={t("phoneNumber")} required={true} />
               <InputForm
                 name="occupation"
-                label="Occupation"
+                label={t("occupation")}
                 required
                 disabled={mutation.isPending}
               />
               <InputForm
                 name="company"
-                label="Company"
+                label={t("company")}
                 required
                 disabled={mutation.isPending}
               />
@@ -384,13 +389,13 @@ const FamilyFormModal = ({
                 onClick={handleCancel}
                 disabled={mutation.isPending}
               >
-                Cancel
+                {tCommon("cancel")}
               </Button>
               <Button
                 onClick={handleUpdateFamily}
                 disabled={mutation.isPending || !form.formState.isValid}
               >
-                {mutation.isPending ? "Saving..." : "Save"}
+                {mutation.isPending ? tCommon("saving") : tCommon("save")}
               </Button>
             </DialogFooter>
           </form>
@@ -408,20 +413,23 @@ interface SectionHeaderProps {
 const SectionHeader = ({
   withAddButton,
   employee_profile_id,
-}: SectionHeaderProps) => (
+}: SectionHeaderProps) => {
+  const t = useTranslations("employee");
+  return (
   <div
     className={withAddButton ? "flex justify-between items-center mb-4" : ""}
   >
     <h2
       className={`font-semibold text-lg leading-5 ${withAddButton ? "mb-3" : ""}`}
     >
-      Family Information
+      {t("familyInformation")}
     </h2>
     {withAddButton && (
       <FamilyFormModal employee_profile_id={employee_profile_id} />
     )}
   </div>
-);
+  );
+};
 
 interface FamilyInformationSectionProps {
   withAddButton?: boolean;
@@ -435,6 +443,9 @@ export const FamilyInformationSection =
   }) {
     const formContext = useFormContext();
     const queryClient = useQueryClient();
+    const locale = resolveLocale(useLocale());
+    const t = useTranslations("employee");
+    const tCommon = useTranslations("common");
     const [editingFamily, setEditingFamily] =
       React.useState<IFamilyResponse | null>(null);
     const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
@@ -445,7 +456,7 @@ export const FamilyInformationSection =
       mutationFn: ({ id }: { id: number }) =>
         deleteFamily({ id, employee_profile_id }),
       onSuccess: (_, variables) => {
-        toast.success("Family information deleted successfully!");
+        toast.success(t("familyDeleteSuccess"));
         if (formContext?.setValue && watchedFamilies) {
           const updatedFamilies = watchedFamilies.filter(
             (f: IFamilyResponse) => f.id !== variables.id,
@@ -473,9 +484,10 @@ export const FamilyInformationSection =
       onError: (error: any) => {
         console.error("Delete mutation error:", error);
         toast.error(
-          `Failed to delete family information: ${
-            error?.response?.data?.message || error.message || "Unknown error"
-          }`,
+          t("familyDeleteFailed", {
+            message:
+              error?.response?.data?.message || error.message || "Unknown error",
+          }),
         );
       },
     });
@@ -504,7 +516,7 @@ export const FamilyInformationSection =
 
     const handleDelete = (familyId: number) => {
       if (
-        window.confirm("Are you sure you want to delete this family member?")
+        window.confirm(t("familyDeleteConfirm"))
       ) {
         deleteMutation.mutate({ id: familyId });
       }
@@ -519,45 +531,51 @@ export const FamilyInformationSection =
       () => [
         {
           accessorKey: "name",
-          header: "Name",
+          header: tCommon("name"),
         },
         {
           accessorKey: "relationship",
-          header: "Family Relationship",
+          header: t("familyRelationship"),
         },
         {
           accessorKey: "place_of_birth",
-          header: "Place of Birth",
+          header: t("placeOfBirth"),
         },
         {
           accessorKey: "date_of_birth",
-          header: "Date of Birth",
+          header: t("bornDate"),
           cell: ({ row }) => (
-            <span>{formatDate(row.getValue("date_of_birth"))}</span>
+            <span>
+              {formatDate(row.getValue("date_of_birth"), locale, {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+              })}
+            </span>
           ),
         },
         {
           accessorKey: "highest_education",
-          header: "Highest Education Level",
+          header: t("highestEducationLevel"),
           cell: ({ row }) => (
             <span>{row.original.highest_education_label}</span>
           ),
         },
         {
           accessorKey: "email",
-          header: "Email",
+          header: tCommon("email"),
         },
         {
           accessorKey: "phone",
-          header: "Phone",
+          header: t("phoneNumber"),
         },
         {
           accessorKey: "occupation",
-          header: "Occupation",
+          header: t("occupation"),
         },
         {
           accessorKey: "company",
-          header: "Company",
+          header: t("company"),
         },
         {
           accessorKey: "menu",
@@ -571,7 +589,7 @@ export const FamilyInformationSection =
           ),
         },
       ],
-      [],
+      [t, tCommon, locale, handleEdit, handleDelete],
     );
 
     return (
@@ -609,11 +627,10 @@ export const FamilyInformationSection =
             noDataPlaceholder={
               <div className="border border-primary-border bg-primary-background rounded-md p-2 gap-1 mx-8 flex flex-col items-center justify-center">
                 <p className="text-primary font-semibold text-lg text-center">
-                  Complete Family Information
+                  {t("completeFamilyInformation")}
                 </p>
                 <p className="text-base text-text-secondary text-center">
-                  Family information helps ensure accurate benefits and HR data.
-                  Continue by completing family details.
+                  {t("completeFamilyInformationDesc")}
                 </p>
                 <FamilyFormModal
                   employee_profile_id={employee_profile_id}

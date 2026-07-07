@@ -44,6 +44,7 @@ import {
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { ApiErrorResponse } from "@/lib/types";
+import { useTranslations } from "next-intl";
 
 interface TableRowActionsProps {
   row: any;
@@ -126,6 +127,8 @@ const ContactReferenceFormModal = ({
   onSuccess,
   buttonVariant = "default",
 }: ContactReferenceFormModalProps) => {
+  const t = useTranslations("employee");
+  const tCommon = useTranslations("common");
   const [internalOpen, setInternalOpen] = React.useState(false);
   const queryClient = useQueryClient();
   const formContext = useFormContext();
@@ -193,7 +196,9 @@ const ContactReferenceFormModal = ({
     },
     onSuccess: (res) => {
       toast.success(
-        `Contact reference ${isEdit ? "updated" : "added"} successfully!`,
+        isEdit
+          ? t("contactReferenceUpdatedSuccess")
+          : t("contactReferenceAddedSuccess"),
       );
 
       if (setValue && watchedContactReferences) {
@@ -262,20 +267,20 @@ const ContactReferenceFormModal = ({
             .json()
             .then((errorData: ApiErrorResponse) => {
               toast.error(
-                errorData.message || "Failed to save contact reference.",
+                errorData.message || t("contactReferenceSaveFailed"),
               );
             })
             .catch(() => {
-              toast.error("Failed to save contact reference: Server error");
+              toast.error(t("contactReferenceSaveServerError"));
             });
         } catch (parseError) {
           toast.error(
-            "Failed to save contact reference: Server error : " + parseError,
+            `${t("contactReferenceSaveServerError")} : ${parseError}`,
           );
         }
       } else {
         toast.error(
-          `Failed to save contact reference: ${error.message || "Unknown error"}`,
+          `${t("contactReferenceSaveFailed")} ${error.message || ""}`,
         );
       }
     },
@@ -288,7 +293,7 @@ const ContactReferenceFormModal = ({
           employee_profile_id || employeeProfileIdRef.current;
 
         if (!finalEmployeeProfileId) {
-          toast.error("Employee profile ID is required");
+          toast.error(t("employeeProfileIdRequired"));
           return;
         }
 
@@ -309,7 +314,7 @@ const ContactReferenceFormModal = ({
         mutation.mutate(params);
       } catch (error) {
         console.error("Submit error:", error);
-        toast.error("Failed to submit form");
+        toast.error(t("contactReferenceSubmitFailed"));
       }
     },
     [employee_profile_id, isEdit, contactReferenceData?.id, mutation],
@@ -349,25 +354,25 @@ const ContactReferenceFormModal = ({
             variant={buttonVariant}
             className={cn(buttonVariant === "outline" && "bg-white")}
           >
-            <Plus /> Add Contact Reference
+            <Plus /> {t("addContactReference")}
           </Button>
         </DialogTrigger>
       )}
       <DialogContent className="bg-white md:min-w-5xl overflow-y-scroll max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>
-            {isEdit ? "Edit Contact Reference" : "Add Contact Reference"}
+            {isEdit ? t("editContactReference") : t("addContactReference")}
           </DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <InputForm name="name" label="Name" required />
-              <InputForm name="relationship" label="Relationship" required />
-              <InputForm name="email" label="Email" type="email" required />
-              <PhoneInput name="phone" label="Phone Number" />
-              <InputForm name="occupation" label="Occupation" required />
-              <InputForm name="company" label="Company" required />
+              <InputForm name="name" label={tCommon("name")} required />
+              <InputForm name="relationship" label={t("relationship")} required />
+              <InputForm name="email" label={tCommon("email")} type="email" required />
+              <PhoneInput name="phone" label={t("phoneNumber")} />
+              <InputForm name="occupation" label={t("occupation")} required />
+              <InputForm name="company" label={t("company")} required />
             </div>
 
             <DialogFooter>
@@ -377,13 +382,13 @@ const ContactReferenceFormModal = ({
                 onClick={handleCancel}
                 disabled={mutation.isPending}
               >
-                Cancel
+                {tCommon("cancel")}
               </Button>
               <Button
                 onClick={handleUpdateContactReference}
                 disabled={mutation.isPending}
               >
-                {mutation.isPending ? "Saving..." : "Save"}
+                {mutation.isPending ? tCommon("saving") : tCommon("save")}
               </Button>
             </DialogFooter>
           </form>
@@ -398,23 +403,28 @@ interface Props {
   employee_profile_id?: number;
 }
 
-const SectionHeader = ({ withAddButton, employee_profile_id }: Props) => (
+const SectionHeader = ({ withAddButton, employee_profile_id }: Props) => {
+  const t = useTranslations("employee");
+  return (
   <div
     className={withAddButton ? "flex justify-between items-center mb-4" : ""}
   >
     <h2
       className={`font-semibold text-lg leading-5 ${withAddButton ? "mb-3" : ""}`}
     >
-      Contact Reference
+      {t("contactReference")}
     </h2>
     {withAddButton && (
       <ContactReferenceFormModal employee_profile_id={employee_profile_id} />
     )}
   </div>
-);
+  );
+};
 
 export const ContactOfReferenceSection = React.memo<Props>(
   function ContactOfReferenceSection({ withAddButton, employee_profile_id }) {
+    const t = useTranslations("employee");
+    const tCommon = useTranslations("common");
     const formContext = useFormContext();
     const queryClient = useQueryClient();
     const [editingContactReference, setEditingContactReference] =
@@ -443,7 +453,7 @@ export const ContactOfReferenceSection = React.memo<Props>(
         });
       },
       onSuccess: (_, variables) => {
-        toast.success("Contact reference deleted successfully!");
+        toast.success(t("contactReferenceDeleteSuccess"));
         if (formContext?.setValue && watchedContactReferences) {
           const updatedContactReferences = watchedContactReferences.filter(
             (c: IContactReferenceResponse) => c.id !== variables.id,
@@ -473,9 +483,10 @@ export const ContactOfReferenceSection = React.memo<Props>(
       onError: (error: any) => {
         console.error("Delete mutation error:", error);
         toast.error(
-          `Failed to delete contact reference: ${
-            error?.response?.data?.message || error.message || "Unknown error"
-          }`,
+          t("contactReferenceDeleteFailed", {
+            message:
+              error?.response?.data?.message || error.message || tCommon("failed"),
+          }),
         );
       },
     });
@@ -511,9 +522,7 @@ export const ContactOfReferenceSection = React.memo<Props>(
 
     const handleDelete = (contactReferenceId: number) => {
       if (
-        window.confirm(
-          "Are you sure you want to delete this contact reference?",
-        )
+        window.confirm(t("contactReferenceDeleteConfirm"))
       ) {
         deleteMutation.mutate({ id: contactReferenceId });
       }
@@ -528,27 +537,27 @@ export const ContactOfReferenceSection = React.memo<Props>(
       () => [
         {
           accessorKey: "name",
-          header: "Name",
+          header: tCommon("name"),
         },
         {
           accessorKey: "relationship",
-          header: "Relationship",
+          header: t("relationship"),
         },
         {
           accessorKey: "email",
-          header: "Email",
+          header: tCommon("email"),
         },
         {
           accessorKey: "phone",
-          header: "Phone Number",
+          header: t("phoneNumber"),
         },
         {
           accessorKey: "occupation",
-          header: "Occupation",
+          header: t("occupation"),
         },
         {
           accessorKey: "company",
-          header: "Company",
+          header: t("company"),
         },
         {
           accessorKey: "menu",
@@ -562,7 +571,7 @@ export const ContactOfReferenceSection = React.memo<Props>(
           ),
         },
       ],
-      [],
+      [t, tCommon],
     );
 
     if (!finalEmployeeProfileId) {
@@ -611,11 +620,10 @@ export const ContactOfReferenceSection = React.memo<Props>(
             noDataPlaceholder={
               <div className="border border-primary-border bg-primary-background rounded-md p-2 gap-1 mx-8 flex flex-col items-center justify-center">
                 <p className="text-primary font-semibold text-lg text-center">
-                  Complete Contact Reference Information
+                  {t("completeContactReference")}
                 </p>
                 <p className="text-base text-text-secondary text-center">
-                  Add references who can validate the employee&apos;s
-                  professional background and character.
+                  {t("completeContactReferenceDesc")}
                 </p>
                 <ContactReferenceFormModal
                   buttonVariant="outline"

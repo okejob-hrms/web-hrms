@@ -1,4 +1,5 @@
-import React from "react";
+import React from 'react';
+import { useTranslations } from 'next-intl';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -8,8 +9,8 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import Image from "next/image";
+} from '@/components/ui/alert-dialog';
+import Image from 'next/image';
 
 interface Props {
   isOpen: boolean;
@@ -18,6 +19,9 @@ interface Props {
 }
 
 export default function LeaveRejectModal({ isOpen, onClose, onReject }: Props) {
+  const t = useTranslations('attendance');
+  const tCommon = useTranslations('common');
+
   const handleReject = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -25,7 +29,7 @@ export default function LeaveRejectModal({ isOpen, onClose, onReject }: Props) {
     try {
       await onReject();
     } catch (error) {
-      console.error("Error rejecting leave:", error);
+      console.error('Error rejecting leave:', error);
     }
   };
 
@@ -40,10 +44,10 @@ export default function LeaveRejectModal({ isOpen, onClose, onReject }: Props) {
             alt="confirmation"
           />
           <AlertDialogTitle className="text-lg text-center font-semibold text-black mb-2">
-            Are you sure you want to reject this leave request?
+            {t('confirmRejectLeave')}
           </AlertDialogTitle>
           <AlertDialogDescription className="text-sm text-center text-text-secondary">
-            This leave request will be marked as rejected
+            {t('rejectLeaveDesc')}
           </AlertDialogDescription>
         </AlertDialogHeader>
 
@@ -52,13 +56,13 @@ export default function LeaveRejectModal({ isOpen, onClose, onReject }: Props) {
             onClick={onClose}
             className="flex-1 border text-primary border-primary bg-white hover:bg-blue-50 rounded-md py-2 font-medium"
           >
-            Cancel
+            {tCommon('cancel')}
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={handleReject}
             className="flex-1 bg-primary text-white rounded-md py-2 font-medium"
           >
-            Reject
+            {tCommon('reject')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

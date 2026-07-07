@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useTranslations } from 'next-intl';
 import { DataTable } from '@/components/tables/data-table';
 import { CellContext, ColumnDef } from '@tanstack/react-table';
 import { Separator } from '@/components/ui/separator';
@@ -27,7 +28,7 @@ import {
   Trash,
   XCircle,
 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { StatusBadge } from '@/components/shared/status-badge';
 import { getStatusOvertime } from '@/lib/helpers';
 import OvertimeApproveModal from './sections/approve-modal';
 import OvertimeRejectModal from './sections/reject-modal';
@@ -57,6 +58,9 @@ export default function OvertimeTrackerList({
   hidePannel = false,
   isEmployee = false,
 }: OvertimeTrackerListProps) {
+  const t = useTranslations('attendance');
+  const tCommon = useTranslations('common');
+  const tStatus = useTranslations('status');
   const {
     attendances,
     pagination,
@@ -110,7 +114,7 @@ export default function OvertimeTrackerList({
       ? [
           {
             accessorKey: 'employee.name',
-            header: 'Name',
+            header: tCommon('name'),
             cell: ({ row }: CellContext<OvertimeListItem, unknown>) => (
               <div className="flex gap-4 items-center min-w-[150px]">
                 <Avatar className="h-10 w-10">
@@ -135,7 +139,7 @@ export default function OvertimeTrackerList({
 
     {
       accessorKey: 'overtime_date',
-      header: 'Overtime Date',
+      header: t('overtimeDate'),
       size: 200,
       cell: ({ row }) =>
         dayjs(row.original.overtime_date).format('MMMM D, YYYY') || '-',
@@ -143,7 +147,7 @@ export default function OvertimeTrackerList({
 
     {
       accessorKey: 'request_date',
-      header: 'Request Date',
+      header: t('requestDate'),
       size: 200,
       cell: ({ row }) =>
         row.original.request_date
@@ -153,7 +157,7 @@ export default function OvertimeTrackerList({
 
     {
       accessorKey: 'duration',
-      header: 'Duration',
+      header: tCommon('duration'),
       cell: ({ row }) => {
         const att = row.original;
         if (!att) return '-';
@@ -173,24 +177,22 @@ export default function OvertimeTrackerList({
 
     {
       accessorKey: 'notes',
-      header: 'Notes',
+      header: tCommon('notes'),
       size: 200,
       cell: ({ row }) => row.original.notes || '-',
     },
 
     {
       accessorKey: 'status',
-      header: 'Status',
+      header: tCommon('status'),
       size: 160,
       cell: ({ row }) => {
         const status = row.original.status;
-        const { variant, className, label } = getStatusOvertime(status);
+        const { variant, className, key } = getStatusOvertime(status);
         if (!row.original.status) return '-';
 
         return (
-          <Badge variant={variant} className={className}>
-            {label}
-          </Badge>
+          <StatusBadge statusKey={key} variant={variant} className={className} />
         );
       },
     },
@@ -214,7 +216,7 @@ export default function OvertimeTrackerList({
                 }}
               >
                 <Eye className="mr-2" />
-                Overtime Request Details
+                {t('overtimeDetails')}
               </DropdownMenuItem>
 
               {row.original.status === 1 && (
@@ -229,7 +231,7 @@ export default function OvertimeTrackerList({
                         }}
                       >
                         <Clock4Icon className="mr-2" />
-                        Approve Request
+                        {t('approveRequest')}
                       </DropdownMenuItem>
 
                       <DropdownMenuItem
@@ -240,7 +242,7 @@ export default function OvertimeTrackerList({
                         }}
                       >
                         <XCircle className="mr-2" />
-                        Reject Request
+                        {t('rejectRequest')}
                       </DropdownMenuItem>
                     </>
                   )}
@@ -253,7 +255,7 @@ export default function OvertimeTrackerList({
                     }}
                   >
                     <Edit3 className="mr-2" />
-                    Edit Overtime Request
+                    {t('editOvertime')}
                   </DropdownMenuItem>
                 </>
               )}
@@ -266,7 +268,7 @@ export default function OvertimeTrackerList({
                   }}
                 >
                   <Trash className="mr-2" />
-                  Delete Request
+                  {t('deleteRequest')}
                 </DropdownMenuItem>
               )}
             </DropdownMenuContent>
@@ -283,51 +285,54 @@ export default function OvertimeTrackerList({
     },
   });
 
-  const tabs = [
-    {
-      name: 'Waiting for approval',
-      value: 1,
-      icon: <Clock4Icon />,
-    },
-    {
-      name: 'Approved',
-      value: 2,
-      icon: <ClockArrowUpIcon />,
-    },
-    {
-      name: 'Rejected',
-      value: 3,
-      icon: <ClockAlertIcon />,
-    },
-  ];
+  const tabs = React.useMemo(
+    () => [
+      {
+        name: t('waitingForApproval'),
+        value: 1,
+        icon: <Clock4Icon />,
+      },
+      {
+        name: tStatus('approved'),
+        value: 2,
+        icon: <ClockArrowUpIcon />,
+      },
+      {
+        name: tStatus('rejected'),
+        value: 3,
+        icon: <ClockAlertIcon />,
+      },
+    ],
+    [t, tStatus],
+  );
 
   return (
     <div className="font-sans min-h-screen flex flex-col space-y-6 px-6">
       {!hidePannel && (
         <>
-          {!isEmployee && <h2 className="font-semibold text-xl">Summary</h2>}
+          {!isEmployee && <h2 className="font-semibold text-xl">{tCommon('summary')}</h2>}
           {!isEmployee && (
             <div className="grid xl:grid-cols-4 grid-cols-1 gap-6">
               <InfoList
-                title="New Overtime Request"
-                compare="vs"
-                time="yesterday"
+                title={t('newOvertimeRequest')}
+                compare={tCommon('vs')}
+                time={tCommon('yesterday')}
                 value={attendances?.summary.new_requests.today}
               />
               <InfoList
-                title="Pending Overtime Request"
+                title={t('pendingOvertime')}
                 compare=""
                 time=""
                 value={attendances?.summary.pending}
               />
               <InfoList
-                title="Approved Overtime Request"
+                title={t('approvedOvertime')}
                 compare=""
                 time=""
                 value={attendances?.summary.approved}
               />
               <InfoList
-                title="Rejected Overtime Request"
+                title={t('rejectedOvertime')}
                 compare=""
                 time=""
                 value={attendances?.summary.rejected}
@@ -370,7 +375,7 @@ export default function OvertimeTrackerList({
           <form className="flex flex-col md:flex-row md:items-end gap-2 md:h-10">
             <InputForm
               name="search"
-              placeholder="Search by Employee Name or Email"
+              placeholder={t('searchEmployee')}
               icon={<Search className="size-5 text-grayscale-20" />}
               iconPosition="right"
               value={filters.search}
@@ -402,10 +407,10 @@ export default function OvertimeTrackerList({
         <Separator />
         <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6">
           <div className="flex md:flex-row flex-col justify-between w-full md:items-center items-start gap-4">
-            <h2 className="font-semibold text-xl">Overtime Request</h2>
+            <h2 className="font-semibold text-xl">{t('overtimeRequest')}</h2>
             {isEmployee && (
               <Button onClick={() => setOpenAdd(true)}>
-                <Plus /> New Overtime Request
+                <Plus /> {t('newOvertimeBtn')}
               </Button>
             )}
           </div>

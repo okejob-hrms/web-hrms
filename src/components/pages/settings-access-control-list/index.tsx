@@ -2,6 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import * as React from 'react';
+import { useTranslations } from 'next-intl';
 import { useRoleManagement } from '@/components/pages/settings-access-control-list/hook';
 import { DataTable } from '@/components/tables/data-table';
 import { IRole } from '@/services/settings/types';
@@ -11,6 +12,8 @@ import { ArrowUp, ArrowDown, ChevronsUpDown, Edit3 } from 'lucide-react';
 import { formatDateTime } from '@/lib/helpers';
 
 export default function SettingsAccessControl() {
+  const t = useTranslations('settings');
+  const tCommon = useTranslations('common');
   const { roles, handleEdit, handleNew } = useRoleManagement();
 
   const columns: ColumnDef<IRole>[] = [
@@ -29,7 +32,7 @@ export default function SettingsAccessControl() {
 
         return (
           <div className="flex flex-row gap-2 items-center">
-            <span>Role Name</span>
+            <span>{t('roleName')}</span>
             <button
               type="button"
               onClick={() => column.toggleSorting(isSorted === 'asc')}
@@ -44,7 +47,7 @@ export default function SettingsAccessControl() {
     },
     {
       accessorKey: 'lastUpdate',
-      header: 'Last Update',
+      header: tCommon('lastUpdate'),
       size: 300,
       cell: ({ row }) => {
         const { date, hour } = formatDateTime(row.original.updated_at);
@@ -86,10 +89,10 @@ export default function SettingsAccessControl() {
         <div className="rounded-md bg-white border shadow-sm border-grayscale-20 flex flex-col gap-4 p-6">
           <div className="flex flex-col sm:flex-row justify-between w-full items-start sm:items-center gap-4 sm:gap-0">
             <div className="flex gap-2 items-center flex-wrap">
-              <h2 className="font-semibold text-xl">Role</h2>
+              <h2 className="font-semibold text-xl">{t('role')}</h2>
             </div>
             <Button onClick={() => handleNew()} className="whitespace-nowrap">
-              + New Role
+              {t('newRole')}
             </Button>
           </div>
           <DataTable columns={columns} data={roles} customSize={!isMobile} />

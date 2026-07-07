@@ -7,6 +7,7 @@ import { PaginatedResponse } from '@/lib/types';
 import { JobLevel } from '@/services/job-levels/types';
 import { getJobLevels } from '@/services/job-levels';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { useEffect, useState } from 'react';
 import { getLeaveTypeDetail, postLeaveType, putLeaveType } from '@/services/settings';
@@ -40,6 +41,8 @@ export type LeaveConfigValues = z.infer<typeof formSchema>;
 // -----------------
 export function useLeaveTypeForm() {
   const router = useRouter();
+  const t = useTranslations('settings');
+  const tCommon = useTranslations('common');
   const [listing, setListing] = useState<QuotaConfigurationDetailLocal[]>([])
   const [loadingType, setLoadingType] = useState(false);
   const [selectedId, setSelectedId] = useState<string>('');
@@ -143,12 +146,12 @@ export function useLeaveTypeForm() {
     },
     onMutate: () => setLoadingType(true),
     onSuccess: () => {
-      toast.success("Leave type successfully save");
+      toast.success(t('leaveTypeSaveSuccess'));
       queryClient.invalidateQueries({ queryKey: ["leaveType"] });
       router.push('/settings/leave-management')
     },
     onError: (err) => {
-      toast.error(`Failed to save: ${err.message}`);
+      toast.error(tCommon('saveFailed', { message: err.message }));
     },
     onSettled: () => setLoadingType(false),
   });

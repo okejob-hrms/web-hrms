@@ -6,12 +6,14 @@ import { getEmployeeDetailByUserId } from "@/services/employees";
 import { useQuery } from "@tanstack/react-query";
 import { getDetailOffboarding } from "@/services/employees/offboardings";
 import { OffboardingTab } from "@/components/pages/offboarding-details/sections/offboarding-tab";
+import { useTranslations } from "next-intl";
 
 export default function OffboardingSalaryAdjustmentPage({
   params,
 }: {
   params: Promise<{ id: number }>;
 }) {
+  const t = useTranslations("offboarding");
   const { id } = React.use(params);
   const numericId = Number(id);
 
@@ -40,7 +42,7 @@ export default function OffboardingSalaryAdjustmentPage({
   }
 
   if (isErrorOffboardingDetails || !offboardingDetails) {
-    return <div>Offboarding data not found</div>;
+    return <div>{t("offboardingNotFound")}</div>;
   }
 
   if (isLoadingEmployeeDetails) {
@@ -48,7 +50,7 @@ export default function OffboardingSalaryAdjustmentPage({
   }
 
   if (isErrorEmployeeDetails || !employeeDetails) {
-    return <div>Employee data not found</div>;
+    return <div>{t("employeeDataNotFound")}</div>;
   }
 
   return (

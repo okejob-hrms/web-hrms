@@ -7,10 +7,12 @@ import { PaginationState } from "@tanstack/react-table";
 import { Attendance, AttendanceSummary, AttendanceSummaryDetail } from "@/services/attendance/types";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { Filters } from "./types";
 import dayjs from "dayjs";
 
 export function useAttendance() {
+  const t = useTranslations('attendance');
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: 0,
     pageSize: 10,
@@ -29,7 +31,7 @@ export function useAttendance() {
 
   const [detailFilter, setDetailFilter] = React.useState(() => {
     const now = dayjs();
-    return { month: now.format('MMMM'), year: now.year() };
+    return { month: now.month() + 1, year: now.year() };
   });
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -77,13 +79,13 @@ export function useAttendance() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["attendance"] });
       queryClient.invalidateQueries({ queryKey: ["attendanceDetail", selectedId] });
-      toast.success('Success update attendance status');
+      toast.success(t('updateStatusSuccess'));
       setOpenApprove(false);
       setOpenReject(false);
       setOpenDetail(false);
     },
     onError: () => {
-      toast.error('Failed update attendance status');
+      toast.error(t('updateStatusFailed'));
     }
   });
   
@@ -91,11 +93,11 @@ export function useAttendance() {
     mutationFn: (id: number) => deleteAttendance(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["attendance"] });
-      toast.success("Success delete attendance");
+      toast.success(t('deleteAttendanceSuccess'));
       setOpenDelete(false);
     },
     onError: () => {
-      toast.error("Failed delete attendance");
+      toast.error(t('deleteAttendanceFailed'));
     },
   });
 
@@ -122,13 +124,19 @@ export function useAttendance() {
   };
 
   const handleNextDetailMonth = () => {
-    const next = dayjs(`${detailFilter.year}-${detailFilter.month}-01`).add(1, 'month');
-    setDetailFilter({ month: next.format('MMMM'), year: next.year() });
+    const next = dayjs()
+      .year(detailFilter.year)
+      .month(detailFilter.month - 1)
+      .add(1, 'month');
+    setDetailFilter({ month: next.month() + 1, year: next.year() });
   };
 
   const handlePrevDetailMonth = () => {
-    const prev = dayjs(`${detailFilter.year}-${detailFilter.month}-01`).subtract(1, 'month');
-    setDetailFilter({ month: prev.format('MMMM'), year: prev.year() });
+    const prev = dayjs()
+      .year(detailFilter.year)
+      .month(detailFilter.month - 1)
+      .subtract(1, 'month');
+    setDetailFilter({ month: prev.month() + 1, year: prev.year() });
   };
 
   return {

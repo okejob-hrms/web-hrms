@@ -19,9 +19,8 @@ import { useSelfAssessmentPeriodDetails } from "./hook";
 import AppSkeleton from "@/components/partials/app-skeleton";
 import { IEmployeeAssessment } from "@/services/employees/self-assessment/types";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/shared/status-badge";
 import { getStatusEmployeeAssessment } from "@/lib/helpers";
-import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -103,16 +102,15 @@ export const SelfAssessmentPeriodDetails = () => {
         );
       },
       cell: ({ row }) => {
-        const status = getStatusEmployeeAssessment(
-          row.original.submission_status,
-        );
+        const { key, variant, className, circleClassName } =
+          getStatusEmployeeAssessment(row.original.submission_status);
         return (
-          <Badge variant={status.variant} className={status.className}>
-            <div
-              className={cn(status.circleClassName, "w-2 h-2 rounded-full")}
-            />{" "}
-            {status.label}
-          </Badge>
+          <StatusBadge
+            statusKey={key}
+            variant={variant}
+            className={className}
+            circleClassName={circleClassName}
+          />
         );
       },
     },

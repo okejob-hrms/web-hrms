@@ -14,6 +14,9 @@ import { cn, stringAvatar } from "@/lib/utils";
 import { IEmployeeResponse } from "@/services/employees/types";
 import { ColumnDef } from "@tanstack/react-table";
 import * as React from "react";
+import { useLocale, useTranslations } from "next-intl";
+import { formatDate } from "@/lib/formatting";
+import { resolveLocale } from "@/lib/i18n/locale";
 import { usePerformanceSelfAssessmentForm } from "../hook";
 import { Skeleton } from "@/components/ui/skeleton";
 import DataTable from "@/components/tables/data-table";
@@ -41,6 +44,10 @@ export const ParticipantListModal = React.memo(function ParticipantListModal({
   assessmentForms,
   onUpdateSelectedParticipants,
 }: ModalProps) {
+  const locale = resolveLocale(useLocale());
+  const t = useTranslations("performance");
+  const tCommon = useTranslations("common");
+  const tEmployee = useTranslations("employee");
   const {
     isLoadingEmployees,
     employeeList,
@@ -112,32 +119,31 @@ export const ParticipantListModal = React.memo(function ParticipantListModal({
     handleSearchChange(e.target.value);
   };
 
-  const columns: ColumnDef<IEmployeeResponse>[] = [
-    {
-      accessorKey: "selected",
-      header: ({ table }) => {
-        const totalEmployeeCount = allEmployees?.data?.total || 0;
-        const allEmployeeIds =
-          allEmployees?.data?.data?.map((emp) => emp.user_id.toString()) || [];
-        const isAllSelected =
-          totalEmployeeCount > 0 &&
-          allEmployeeIds.length > 0 &&
-          allEmployeeIds.every((user_id) => selectedRows.has(user_id));
-        const isSomeSelected = selectedRows.size > 0 && !isAllSelected;
-        console.log("selectedRows", selectedRows);
-        return (
-          <Checkbox
-            checked={
-              isAllSelected ? true : isSomeSelected ? "indeterminate" : false
-            }
-            onCheckedChange={handleSelectAll}
-          />
-        );
-      },
-      size: 5,
-      cell: ({ row }) => {
-        console.log("row", selectedRows.has(row.original.user_id.toString()));
-        return (
+  const columns: ColumnDef<IEmployeeResponse>[] = React.useMemo(
+    () => [
+      {
+        accessorKey: "selected",
+        header: () => {
+          const totalEmployeeCount = allEmployees?.data?.total || 0;
+          const allEmployeeIds =
+            allEmployees?.data?.data?.map((emp) => emp.user_id.toString()) || [];
+          const isAllSelected =
+            totalEmployeeCount > 0 &&
+            allEmployeeIds.length > 0 &&
+            allEmployeeIds.every((user_id) => selectedRows.has(user_id));
+          const isSomeSelected = selectedRows.size > 0 && !isAllSelected;
+
+          return (
+            <Checkbox
+              checked={
+                isAllSelected ? true : isSomeSelected ? "indeterminate" : false
+              }
+              onCheckedChange={handleSelectAll}
+            />
+          );
+        },
+        size: 5,
+        cell: ({ row }) => (
           <Checkbox
             checked={selectedRows.has(row.original.user_id.toString())}
             onCheckedChange={(checked) =>
@@ -147,88 +153,99 @@ export const ParticipantListModal = React.memo(function ParticipantListModal({
               )
             }
           />
-        );
+        ),
       },
-    },
-    {
-      accessorKey: "name",
-      header: "Name",
-      cell: ({ row }) => (
-        <div className="flex gap-4 items-center min-w-[150px]">
-          <Avatar className="h-10 w-10">
-            <AvatarImage
-              src={`${process.env.NEXT_PUBLIC_FILE_URL}/${row.original.photo_profile}`}
-            />
-            <AvatarFallback className="text-primary-hover bg-primary-background text-base font-medium">
-              {stringAvatar(row.original.name)}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex flex-col">
-            <span className="font-semibold text-foreground text-sm">
-              {row.original.name}
-            </span>
-            <span className="text-text-secondary">{row.original.id}</span>
+      {
+        accessorKey: "name",
+        header: tCommon("name"),
+        cell: ({ row }) => (
+          <div className="flex gap-4 items-center min-w-[150px]">
+            <Avatar className="h-10 w-10">
+              <AvatarImage
+                src={`${process.env.NEXT_PUBLIC_FILE_URL}/${row.original.photo_profile}`}
+              />
+              <AvatarFallback className="text-primary-hover bg-primary-background text-base font-medium">
+                {stringAvatar(row.original.name)}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex flex-col">
+              <span className="font-semibold text-foreground text-sm">
+                {row.original.name}
+              </span>
+              <span className="text-text-secondary">{row.original.id}</span>
+            </div>
           </div>
-        </div>
-      ),
-    },
-    {
-      accessorKey: "job_position",
-      header: "Position",
-    },
-    {
-      accessorKey: "department",
-      header: "Department",
-    },
-    {
-      accessorKey: "email",
-      header: "Email",
-    },
-    {
-      accessorKey: "phone_number",
-      header: "Phone Number",
-    },
-    {
-      accessorKey: "status",
-      header: "Status",
-      cell: ({ row }) => {
-        const status = row.original.status;
-        return (
-          <Badge
-            variant="default"
-            className={cn(
-              "rounded-full",
-              status === 1 ? "bg-success-focused " : "bg-error-focused ",
-            )}
-          >
-            <div
+        ),
+      },
+      {
+        accessorKey: "job_position",
+        header: tCommon("position"),
+      },
+      {
+        accessorKey: "department",
+        header: tCommon("department"),
+      },
+      {
+        accessorKey: "email",
+        header: tCommon("email"),
+      },
+      {
+        accessorKey: "phone_number",
+        header: tEmployee("phoneNumber"),
+      },
+      {
+        accessorKey: "status",
+        header: tCommon("status"),
+        cell: ({ row }) => {
+          const status = row.original.status;
+          return (
+            <Badge
+              variant="default"
               className={cn(
-                "size-2 rounded-full",
-                status === 1 ? "bg-success" : "bg-error",
+                "rounded-full",
+                status === 1 ? "bg-success-focused " : "bg-error-focused ",
               )}
-            />
-            <span className={cn(status === 1 ? "text-success" : "text-error")}>
-              {status === 1 ? "Active" : "Inactive"}
-            </span>
-          </Badge>
-        );
+            >
+              <div
+                className={cn(
+                  "size-2 rounded-full",
+                  status === 1 ? "bg-success" : "bg-error",
+                )}
+              />
+              <span className={cn(status === 1 ? "text-success" : "text-error")}>
+                {status === 1 ? tCommon("active") : tCommon("inactive")}
+              </span>
+            </Badge>
+          );
+        },
       },
-    },
-    {
-      accessorKey: "start_date",
-      header: "Join Date",
-      cell: ({ row }) => {
-        const date = new Date(row.original.start_date);
-        return date.toLocaleDateString();
+      {
+        accessorKey: "start_date",
+        header: tEmployee("joinDate"),
+        cell: ({ row }) =>
+          formatDate(row.original.start_date, locale, {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+          }),
       },
-    },
-  ];
+    ],
+    [
+      allEmployees?.data?.data,
+      allEmployees?.data?.total,
+      locale,
+      selectedRows,
+      t,
+      tCommon,
+      tEmployee,
+    ],
+  );
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="bg-white md:min-w-5xl overflow-y-scroll max-h-[90vh]">
         <DialogHeader>
-          <DialogTitle>Assign Participant</DialogTitle>
+          <DialogTitle>{t("assignParticipant")}</DialogTitle>
         </DialogHeader>
         <div className="py-4">
           {isLoadingEmployees ? (
@@ -242,16 +259,20 @@ export const ParticipantListModal = React.memo(function ParticipantListModal({
             <div className="flex flex-col gap-4">
               <div className="flex justify-between items-center gap-2">
                 <div className="flex gap-2 items-center">
-                  <h2 className="font-semibold text-xl">Employee List</h2>
+                  <h2 className="font-semibold text-xl">
+                    {tEmployee("listTitle")}
+                  </h2>
                   <div className="rounded-full bg-primary-background py-1 px-1.5 text-primary text-xs">
                     <span>
-                      {selectedRows.size} / {totalEmployees || 0} Employee
-                      Selected
+                      {t("employeesSelected", {
+                        selected: selectedRows.size,
+                        total: totalEmployees || 0,
+                      })}
                     </span>
                   </div>
                 </div>
                 <Input
-                  placeholder="Search"
+                  placeholder={tCommon("search")}
                   className="max-w-80"
                   value={filters?.search || ""}
                   onChange={handleSearch}
@@ -270,10 +291,10 @@ export const ParticipantListModal = React.memo(function ParticipantListModal({
         <DialogFooter>
           <div className="flex gap-2 justify-end w-full">
             <Button variant="outline" onClick={handleCancel} type="button">
-              Cancel
+              {tCommon("cancel")}
             </Button>
             <Button onClick={handleSave} type="button">
-              Save Selection
+              {t("saveSelection")}
             </Button>
           </div>
         </DialogFooter>

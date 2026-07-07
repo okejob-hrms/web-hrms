@@ -49,6 +49,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ApiErrorResponse } from "@/lib/types";
+import { useTranslations } from "next-intl";
+import {
+  resolveOffboardingRecipientStatusKey,
+  translateOffboardingHandoverStatus,
+  translateOffboardingHandoverStatusLabel,
+} from "@/lib/i18n/status";
 
 interface TableProps {
   offboarding_id: number;
@@ -125,6 +131,9 @@ export const FormModal = React.memo(function FormModal({
   open,
   onOpenChange,
 }: FormModalProps) {
+  const t = useTranslations("offboarding");
+  const tCommon = useTranslations("common");
+  const tStatus = useTranslations("status");
   const queryClient = useQueryClient();
   const [searchEmployee, setSearchEmployee] = React.useState("");
   const [defaultRecipients, setDefaultRecipients] = React.useState<string[]>(
@@ -157,7 +166,7 @@ export const FormModal = React.memo(function FormModal({
     mutationFn: (data: IWorkDocumentHandoverRequest) =>
       storeWorkDocumentHandover(offboarding_id, data),
     onSuccess: () => {
-      toast.success("Work handover created successfully");
+      toast.success(t("workHandoverCreated"));
       form.reset();
       setSelectedRecipients([]);
       setDefaultRecipients([]);
@@ -181,18 +190,18 @@ export const FormModal = React.memo(function FormModal({
                 );
               }
               toast.error(
-                errorData.message || "Failed to update salary adjustment",
+                errorData.message || t("workHandoverCreateFailed"),
               );
             })
             .catch(() => {
-              toast.error("Failed to update salary adjustment: Server error");
+              toast.error(t("workHandoverServerError"));
             });
         } catch (parseError) {
-          toast.error("Failed to update salary adjustment: Server error");
+          toast.error(t("workHandoverServerError"));
         }
       } else {
         toast.error(
-          `Failed to update salary adjustment: ${error.message || "Unknown error"}`,
+          `${t("workHandoverCreateFailed")}: ${error.message || t("unknownError")}`,
         );
       }
     },
@@ -202,13 +211,13 @@ export const FormModal = React.memo(function FormModal({
     mutationFn: (data: IWorkDocumentHandoverRequest) =>
       updateWorkDocumentHandover(offboarding_id, data, editData!.id),
     onSuccess: () => {
-      toast.success("Work handover updated successfully");
+      toast.success(t("workHandoverUpdated"));
       form.reset();
       onOpenChange(false);
       queryClient.invalidateQueries({ queryKey: ["work-handover"] });
     },
     onError: (error: any) => {
-      toast.error(error.message || "Failed to update work handover");
+      toast.error(error.message || t("workHandoverUpdateFailed"));
     },
   });
 
@@ -290,7 +299,7 @@ export const FormModal = React.memo(function FormModal({
             id: 0,
             user_id: id,
             status: 1,
-            status_label: "Waiting Approval",
+            status_label: t("waitingApproval"),
           }));
 
           return [...updated, ...newRecipients];
@@ -299,7 +308,29 @@ export const FormModal = React.memo(function FormModal({
     });
 
     return () => subscription.unsubscribe();
-  }, [form]);
+  }, [form, t]);
+
+  const recipientStatusOptions = React.useMemo(
+    () => [
+      {
+        value: "1",
+        label: translateOffboardingHandoverStatus(
+          "waitingApproval",
+          t,
+          tStatus,
+        ),
+      },
+      {
+        value: "2",
+        label: translateOffboardingHandoverStatus("received", t, tStatus),
+      },
+      {
+        value: "3",
+        label: translateOffboardingHandoverStatus("rejected", t, tStatus),
+      },
+    ],
+    [t, tStatus],
+  );
 
   const handleRemove = React.useCallback(
     (userId: number) => {
@@ -328,7 +359,7 @@ export const FormModal = React.memo(function FormModal({
       <DialogContent className="bg-white md:min-w-5xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-lg sm:text-xl">
-            {isEditMode ? "Edit" : "Add"} Work & Responsibilities Handover
+            {isEditMode ? t("editWorkHandover") : t("addWorkHandover")}
           </DialogTitle>
         </DialogHeader>
         <Form {...form}>
@@ -337,20 +368,21 @@ export const FormModal = React.memo(function FormModal({
             onSubmit={form.handleSubmit(handleSubmit)}
           >
             <TextAreaForm
-              label="Works"
+              label={t("works")}
               name="name"
               required
               className="min-h-[100px]"
             />
             <div className="flex flex-col gap-2">
               <label className="text-sm text-text-secondary">
-                Handed Over To<span className="text-error">*</span>
+                {t("handedOverTo")}
+                <span className="text-error">*</span>
               </label>
               <MultiSelectForm
                 options={employeesOptions}
                 name="recipients"
                 maxCount={3}
-                searchPlaceholder="Search Employee"
+                searchPlaceholder={tCommon("searchEmployee")}
                 hideSelectAll
                 disabled={isLoadingEmployees}
                 valueTransformer={(value) => Number(value)}
@@ -383,12 +415,14 @@ export const FormModal = React.memo(function FormModal({
                         }}
                       >
                         <SelectTrigger className="min-w-[120px]">
-                          <SelectValue placeholder="Select Status" />
+                          <SelectValue placeholder={t("selectStatus")} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="1">Waiting Approval</SelectItem>
-                          <SelectItem value="2">Received</SelectItem>
-                          <SelectItem value="3">Rejected</SelectItem>
+                          {recipientStatusOptions.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                       <button
@@ -400,7 +434,7 @@ export const FormModal = React.memo(function FormModal({
                           src="/icons/deleteOutlined.svg"
                           width={16}
                           height={16}
-                          alt="delete"
+                          alt={tCommon("delete")}
                         />
                       </button>
                     </div>
@@ -415,14 +449,14 @@ export const FormModal = React.memo(function FormModal({
                 disabled={isPending}
                 className="w-full sm:w-auto order-2 sm:order-1"
               >
-                Cancel
+                {tCommon("cancel")}
               </Button>
               <Button
                 type="submit"
                 disabled={isPending || !form.formState.isValid}
                 className="w-full sm:w-auto order-1 sm:order-2"
               >
-                {isPending ? "Saving..." : "Save"}
+                {isPending ? tCommon("saving") : tCommon("save")}
               </Button>
             </DialogFooter>
           </form>
@@ -435,6 +469,9 @@ export const FormModal = React.memo(function FormModal({
 export const WorkHandoverTable = React.memo(function WorkHandoverTable({
   offboarding_id,
 }: TableProps) {
+  const t = useTranslations("offboarding");
+  const tCommon = useTranslations("common");
+  const tStatus = useTranslations("status");
   const [selectedItem, setSelectedItem] =
     React.useState<IWorkAndHandoverResponse | null>(null);
   const [isFormModalOpen, setFormModalOpen] = React.useState(false);
@@ -468,13 +505,13 @@ export const WorkHandoverTable = React.memo(function WorkHandoverTable({
       offboarding_id: number;
     }) => deleteHandoverAssetsReturn(params),
     onSuccess: () => {
-      toast.success("Work handover deleted successfully");
+      toast.success(t("workHandoverDeleted"));
       setDeleteDialogOpen(false);
       setSelectedItem(null);
       queryClient.invalidateQueries({ queryKey: ["work-handover"] });
     },
     onError: (error: any) => {
-      toast.error(error.message || "Failed to delete work handover");
+      toast.error(error.message || t("workHandoverDeleteFailed"));
     },
   });
 
@@ -521,7 +558,7 @@ export const WorkHandoverTable = React.memo(function WorkHandoverTable({
     () => [
       {
         accessorKey: "name",
-        header: "Works",
+        header: t("works"),
         cell: ({ row }) => (
           <div className="min-w-[150px] max-w-[300px] break-words">
             {row.original.name}
@@ -530,7 +567,7 @@ export const WorkHandoverTable = React.memo(function WorkHandoverTable({
       },
       {
         accessorKey: "recipients",
-        header: "Handed Over To",
+        header: t("handedOverTo"),
         cell: ({ row }) => {
           return <RecipientsList recipients={row.original.recipients} />;
         },
@@ -538,7 +575,7 @@ export const WorkHandoverTable = React.memo(function WorkHandoverTable({
       },
       {
         accessorKey: "status",
-        header: "Status",
+        header: tCommon("status"),
         cell: ({ row }) => {
           return (
             <div className="space-y-1 min-w-[120px]">
@@ -554,7 +591,13 @@ export const WorkHandoverTable = React.memo(function WorkHandoverTable({
                         : "bg-error-background text-error-hover",
                   )}
                 >
-                  {item.status_label}
+                  {translateOffboardingHandoverStatusLabel(
+                    item.status,
+                    item.status_label,
+                    resolveOffboardingRecipientStatusKey,
+                    t,
+                    tStatus,
+                  )}
                 </div>
               ))}
             </div>
@@ -563,7 +606,7 @@ export const WorkHandoverTable = React.memo(function WorkHandoverTable({
       },
       {
         accessorKey: "received_at",
-        header: "Received Date",
+        header: t("receivedDate"),
         cell: ({ row }) => {
           return (
             <div className="min-w-[100px]">
@@ -589,7 +632,7 @@ export const WorkHandoverTable = React.memo(function WorkHandoverTable({
                     e.stopPropagation();
                   }}
                 >
-                  <span className="sr-only">Open menu</span>
+                  <span className="sr-only">{t("openMenu")}</span>
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
@@ -606,7 +649,7 @@ export const WorkHandoverTable = React.memo(function WorkHandoverTable({
                   }}
                 >
                   <Edit3 className="w-4 h-4" />
-                  <span>Edit</span>
+                  <span>{tCommon("edit")}</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 cursor-pointer select-none"
@@ -617,7 +660,7 @@ export const WorkHandoverTable = React.memo(function WorkHandoverTable({
                   }}
                 >
                   <Trash2 className="w-4 h-4" />
-                  <span>Delete</span>
+                  <span>{tCommon("delete")}</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -626,21 +669,21 @@ export const WorkHandoverTable = React.memo(function WorkHandoverTable({
         size: 80,
       },
     ],
-    [openDropdownId],
+    [openDropdownId, t, tCommon, tStatus],
   );
 
   return (
     <div className="flex flex-col gap-4 w-full">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
         <h4 className="font-semibold text-lg sm:text-xl">
-          Work & Responsibilities Handover
+          {t("workHandoverTitle")}
         </h4>
         <Button
           className="w-full sm:w-fit flex items-center justify-center gap-2"
           onClick={handleAddNew}
         >
           <Plus className="w-4 h-4" />
-          Add New
+          {t("addNew")}
         </Button>
       </div>
 

@@ -1,17 +1,16 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import {
-  IAssessmentField,
-} from "@/services/employees/self-assessment/types";
+import { IAssessmentField } from "@/services/employees/self-assessment/types";
 import { getFormById } from "@/services/form";
 import { IFormGroup } from "@/services/form/types";
 import { FormFieldRenderer } from "./form-field-renderer";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useQuery } from "@tanstack/react-query";
 
 interface OpenSections {
   [key: string]: boolean;
@@ -36,58 +35,54 @@ export const AssessmentForm: React.FC<AssessmentFormProps> = ({
   fields,
 }) => {
   const [openSections, setOpenSections] = useState<OpenSections>({});
-  const [groupFields, setGroupFields] = useState<GroupFieldsMap>({});
-  const [formSections, setFormSections] = useState<FormSection[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
 
-  useEffect(() => {
-    const fetchFormData = async () => {
-      if (!formId) {
-        setLoading(false);
-        return;
-      }
+  const { data: formResponse, isLoading: loading } = useQuery({
+    queryKey: ["form", formId],
+    queryFn: () => getFormById(formId),
+    enabled: !!formId,
+  });
 
-      try {
-        setLoading(true);
-        const response = await getFormById(formId);
+  const { groupFields, formSections } = React.useMemo(() => {
+    const fieldsMap: GroupFieldsMap = {};
+    const sections: FormSection[] = [];
+    const groups = formResponse?.data?.groups;
 
-        if (response.data && response.data.groups) {
-          const fieldsMap: GroupFieldsMap = {};
-          const sections: FormSection[] = [];
+    if (groups) {
+      groups.forEach((group: IFormGroup) => {
+        const groupId = parseInt(group.id, 10);
+        sections.push({
+          field_group_id: groupId,
+          name: group.name,
+        });
 
-          response.data.groups.forEach((group: IFormGroup) => {
-            const groupId = parseInt(group.id);
-            sections.push({
-              field_group_id: groupId,
-              name: group.name,
-            });
-
-            if (group.fields && Array.isArray(group.fields)) {
-              fieldsMap[groupId] = group.fields;
-            }
-          });
-
-          setGroupFields(fieldsMap);
-          setFormSections(sections);
-          setOpenSections(
-            sections.reduce(
-              (acc, group) => ({
-                ...acc,
-                [group.field_group_id]: true,
-              }),
-              {},
-            ),
-          );
+        if (group.fields && Array.isArray(group.fields)) {
+          fieldsMap[groupId] = group.fields;
         }
-      } catch (error) {
-        console.error("Error fetching form data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+      });
+    }
 
-    fetchFormData();
-  }, [formId]);
+    return { groupFields: fieldsMap, formSections: sections };
+  }, [formResponse?.data?.groups]);
+
+  React.useEffect(() => {
+    if (formSections.length === 0) {
+      return;
+    }
+
+    setOpenSections((prev) => {
+      if (Object.keys(prev).length > 0) {
+        return prev;
+      }
+
+      return formSections.reduce<OpenSections>(
+        (acc, group) => ({
+          ...acc,
+          [group.field_group_id]: true,
+        }),
+        {},
+      );
+    });
+  }, [formSections]);
 
   const toggleSection = (section: string | number): void => {
     setOpenSections((prev) => ({ ...prev, [section]: !prev[section] }));
@@ -101,6 +96,10 @@ export const AssessmentForm: React.FC<AssessmentFormProps> = ({
   };
 
   if (!formSections || formSections.length === 0) {
+    if (loading) {
+      return <Skeleton />;
+    }
+
     return (
       <div className="w-full mx-auto p-6 text-center text-primary font-semibold">
         No assessment groups available

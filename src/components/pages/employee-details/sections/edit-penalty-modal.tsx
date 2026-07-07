@@ -25,19 +25,22 @@ import { IPenaltyRequest } from "@/services/employees/penalties/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import dayjs from "dayjs";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import { useTranslations } from "next-intl";
 
-const penaltySchema = z.object({
-  point: z.coerce.number().min(1, "Point must be at least 1"),
-  name: z.string().min(1, "Name is required"),
-  description: z.string().min(1, "Description is required"),
-  valid_until: z.date().nullable().optional(),
-});
+type PenaltyFormValues = z.infer<ReturnType<typeof createPenaltySchema>>;
 
-type PenaltyFormValues = z.infer<typeof penaltySchema>;
+function createPenaltySchema(t: (key: string) => string) {
+  return z.object({
+    point: z.coerce.number().min(1, t("penaltyPointMin")),
+    name: z.string().min(1, t("nameRequired")),
+    description: z.string().min(1, t("descriptionRequired")),
+    valid_until: z.date().nullable().optional(),
+  });
+}
 
 interface EditPenaltyModalProps {
   penaltyId: number | null;
@@ -52,7 +55,11 @@ export function EditPenaltyModal({
   open,
   onOpenChange,
 }: EditPenaltyModalProps) {
+  const t = useTranslations("employee");
+  const tCommon = useTranslations("common");
   const queryClient = useQueryClient();
+
+  const penaltySchema = useMemo(() => createPenaltySchema(t), [t]);
 
   const { data: penaltyData, isLoading: isLoadingDetails } = useQuery({
     queryKey: ["penalty-detail", penaltyId],
@@ -85,7 +92,7 @@ export function EditPenaltyModal({
   const { mutate: handleUpdate, isPending } = useMutation({
     mutationFn: (data: IPenaltyRequest) => updatePenalty(penaltyId!, data),
     onSuccess: () => {
-      toast.success("Penalty updated successfully");
+      toast.success(t("penaltyUpdatedSuccess"));
       queryClient.invalidateQueries({
         queryKey: ["employee-penalties", userId],
       });
@@ -100,17 +107,17 @@ export function EditPenaltyModal({
           error.response
             .json()
             .then((errorData: ApiErrorResponse) => {
-              toast.error(errorData.message || "Failed to edit penalty");
+              toast.error(errorData.message || t("penaltyEditFailed"));
             })
             .catch(() => {
-              toast.error("Failed to edit penalty: Server error");
+              toast.error(`${t("penaltyEditFailed")}: ${tCommon("failed")}`);
             });
-        } catch (parseError) {
-          toast.error("Failed to edit penalty: Server error");
+        } catch {
+          toast.error(`${t("penaltyEditFailed")}: ${tCommon("failed")}`);
         }
       } else {
         toast.error(
-          `Failed to edit penalty: ${error.message || "Unknown error"}`,
+          `${t("penaltyEditFailed")}: ${error.message || tCommon("failed")}`,
         );
       }
     },
@@ -132,10 +139,10 @@ export function EditPenaltyModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Edit Penalty</DialogTitle>
+          <DialogTitle>{t("editPenalty")}</DialogTitle>
         </DialogHeader>
         {isLoadingDetails ? (
-          <div className="flex justify-center p-4">Loading details...</div>
+          <div className="flex justify-center p-4">{t("loadingDetails")}</div>
         ) : (
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -144,7 +151,7 @@ export function EditPenaltyModal({
                 name="point"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Point</FormLabel>
+                    <FormLabel>{t("penaltyPoint")}</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
@@ -161,9 +168,12 @@ export function EditPenaltyModal({
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Name</FormLabel>
+                    <FormLabel>{tCommon("name")}</FormLabel>
                     <FormControl>
-                      <Input placeholder="Teguran Lisan" {...field} />
+                      <Input
+                        placeholder={t("penaltyNamePlaceholder")}
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -174,9 +184,12 @@ export function EditPenaltyModal({
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Description</FormLabel>
+                    <FormLabel>{tCommon("description")}</FormLabel>
                     <FormControl>
-                      <Textarea placeholder="Description..." {...field} />
+                      <Textarea
+                        placeholder={t("descriptionPlaceholder")}
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -184,9 +197,9 @@ export function EditPenaltyModal({
               />
               <DatePicker
                 name="valid_until"
-                label="Valid Until"
+                label={t("validUntil")}
                 isOptional
-                placeholder="Pick a date"
+                placeholder={tCommon("pickDate")}
               />
               <div className="flex justify-end gap-2 pt-4">
                 <Button
@@ -194,10 +207,10 @@ export function EditPenaltyModal({
                   variant="outline"
                   onClick={() => onOpenChange(false)}
                 >
-                  Cancel
+                  {tCommon("cancel")}
                 </Button>
                 <Button type="submit" disabled={isPending}>
-                  {isPending ? "Saving..." : "Save Changes"}
+                  {isPending ? tCommon("saving") : tCommon("saveChanges")}
                 </Button>
               </div>
             </form>

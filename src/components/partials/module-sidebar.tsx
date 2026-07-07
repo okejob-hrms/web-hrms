@@ -1,17 +1,19 @@
-"use client";
+'use client';
 
-import { usePathname } from "next/navigation";
-import { menus } from "@/lib/menu";
-import { AppSidebar } from "@/components/partials/app-sidebar";
+import { usePathname } from 'next/navigation';
+import { menus } from '@/lib/menu';
+import { AppSidebar } from '@/components/partials/app-sidebar';
 
 interface ModuleSidebarProps {
-  defaultTitle?: string;
+  defaultTitleKey?: string;
 }
 
-export function ModuleSidebar({ defaultTitle = "Module" }: ModuleSidebarProps) {
+export function ModuleSidebar({
+  defaultTitleKey = 'module',
+}: ModuleSidebarProps) {
   const pathname = usePathname();
-  const moduleName = pathname.split("/")[1]; // ambil segment pertama
+  const moduleName = pathname.split('/')[1];
   const menuItems = menus[moduleName] || [];
 
-  return <AppSidebar title={defaultTitle} menuItems={menuItems} />;
+  return <AppSidebar titleKey={defaultTitleKey} menuItems={menuItems} />;
 }

@@ -29,6 +29,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { stringAvatar } from "@/lib/utils";
 import { toast } from "sonner";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 
 const accessFormSchema = z.object({
   access_level: z.string(),
@@ -44,12 +45,6 @@ const accessFormSchema = z.object({
 });
 
 type AccessFormValues = z.infer<typeof accessFormSchema>;
-
-const ACCESS_LEVEL_OPTIONS = [
-  { label: "Public", value: "public" },
-  { label: "Restricted", value: "restricted" },
-  { label: "Confidential", value: "confidential" },
-];
 
 interface ManageAccessModalProps {
   onSave?: (data: any) => Promise<void> | void;
@@ -68,6 +63,16 @@ export default function ManageAccessModal({
   defaultValues,
   employeeDocumentId,
 }: ManageAccessModalProps) {
+  const t = useTranslations("employee");
+  const tCommon = useTranslations("common");
+  const accessLevelOptions = React.useMemo(
+    () => [
+      { label: t("accessPublic"), value: "public" },
+      { label: t("accessRestricted"), value: "restricted" },
+      { label: t("accessConfidential"), value: "confidential" },
+    ],
+    [t],
+  );
   const form = useForm<AccessFormValues>({
     defaultValues: {
       access_level: "public",
@@ -92,7 +97,7 @@ export default function ManageAccessModal({
       queryClient.invalidateQueries({
         queryKey: ["manage_access", employeeDocumentId],
       });
-      toast.success("Access control granted.");
+      toast.success(t("accessControlGranted"));
     },
     onError: (error: any) => {
       if (error?.response) {
@@ -100,19 +105,17 @@ export default function ManageAccessModal({
           error.response
             .json()
             .then((errorData: ApiErrorResponse) => {
-              toast.error(errorData.message || "Failed to save manage access");
+              toast.error(errorData.message || t("manageAccessSaveFailed"));
             })
             .catch(() => {
-              toast.error("Failed to save manage access: Server error");
+              toast.error(t("manageAccessSaveServerError"));
             });
         } catch (parseError) {
-          toast.error(
-            "Failed to save manage access: Server error : " + parseError,
-          );
+          toast.error(`${t("manageAccessSaveServerError")} : ${parseError}`);
         }
       } else {
         toast.error(
-          `Failed to save manage access: ${error.message || "Unknown error"}`,
+          `${t("manageAccessSaveFailed")}: ${error.message || tCommon("failed")}`,
         );
       }
     },
@@ -200,17 +203,17 @@ export default function ManageAccessModal({
             const employee = employees.data.data.find(
               (emp) => emp.id === share.granteeable_id,
             );
-            label = employee?.name || `Employee ${share.granteeable_id}`;
+            label = employee?.name || t("employeeFallback", { id: share.granteeable_id });
           } else if (share.granteeable_type === "Departement") {
             const department = departments.data.data.find(
               (dept) => dept.id === share.granteeable_id,
             );
-            label = department?.name || `Department ${share.granteeable_id}`;
+            label = department?.name || t("departmentFallback", { id: share.granteeable_id });
           } else if (share.granteeable_type === "JobLevel") {
             const jobLevel = jobLevels.data.find(
               (jl) => jl.id === share.granteeable_id,
             );
-            label = jobLevel?.name || `Job Level ${share.granteeable_id}`;
+            label = jobLevel?.name || t("jobLevelFallback", { id: share.granteeable_id });
           }
 
           if (label) {
@@ -237,6 +240,7 @@ export default function ManageAccessModal({
     jobLevels?.data,
     form,
     isOpen,
+    t,
   ]);
 
   React.useEffect(() => {
@@ -282,9 +286,9 @@ export default function ManageAccessModal({
     if (manageAccess?.data?.access_control?.link_token) {
       const link = `${window.location.origin}/documents/shared/${manageAccess.data.access_control.link_token}`;
       navigator.clipboard.writeText(link);
-      toast.success("Link copied to clipboard");
+      toast.success(t("linkCopied"));
     } else {
-      toast.error("No shareable link available");
+      toast.error(t("noShareableLink"));
     }
   };
 
@@ -329,9 +333,10 @@ export default function ManageAccessModal({
     return [];
   }, [employees?.data]);
 
-  const groupedOptions: ComboboxGroup[] = [
+  const groupedOptions: ComboboxGroup[] = React.useMemo(
+    () => [
     {
-      label: "Employee",
+      label: tCommon("employee"),
       options: employeesOptions,
       renderOption: (option, index) => {
         const employee = employees?.data?.data?.[index];
@@ -360,7 +365,7 @@ export default function ManageAccessModal({
       },
     },
     {
-      label: "Department",
+      label: tCommon("department"),
       options: departmentOptions,
       renderOption: (option) => (
         <div className="flex gap-2 items-center">
@@ -376,7 +381,7 @@ export default function ManageAccessModal({
       ),
     },
     {
-      label: "Job Level",
+      label: t("jobLevel"),
       options: jobLevelOptions,
       renderOption: (option) => (
         <div className="flex gap-2 items-center">
@@ -391,7 +396,9 @@ export default function ManageAccessModal({
         </div>
       ),
     },
-  ];
+  ],
+  [t, tCommon, employeesOptions, departmentOptions, jobLevelOptions, employees?.data?.data],
+  );
 
   const isSubmitting = disabled || isLoading || isManageAccessLoading;
 
@@ -412,7 +419,7 @@ export default function ManageAccessModal({
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="bg-white max-w-2xl flex flex-col">
         <DialogHeader>
-          <DialogTitle>Manage Document Access</DialogTitle>
+          <DialogTitle>{t("manageDocumentAccess")}</DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
@@ -426,8 +433,8 @@ export default function ManageAccessModal({
                   <div className="md:col-span-8">
                     <SelectForm
                       name="access_level"
-                      label="Access Level"
-                      options={ACCESS_LEVEL_OPTIONS}
+                      label={t("accessLevel")}
+                      options={accessLevelOptions}
                       required
                     />
                   </div>
@@ -440,7 +447,7 @@ export default function ManageAccessModal({
                       disabled={isSubmitting}
                     >
                       <Copy className="h-4 w-4 mr-2" />
-                      Copy Link
+                      {t("copyLink")}
                     </Button>
                   </div>
                 </div>
@@ -448,7 +455,7 @@ export default function ManageAccessModal({
                   <div className="md:col-span-9">
                     <MultiSelectComboboxForm
                       name="granteeables"
-                      label="Employee Name/Department/Job Level"
+                      label={t("granteeLabel")}
                       groups={groupedOptions}
                     />
                   </div>
@@ -460,7 +467,7 @@ export default function ManageAccessModal({
                       className="w-full"
                       disabled={isSubmitting}
                     >
-                      Invite
+                      {t("invite")}
                     </Button>
                   </div>
                 </div>
@@ -468,7 +475,7 @@ export default function ManageAccessModal({
                   {selectedGranteeables && selectedGranteeables.length > 0 && (
                     <div className="space-y-2">
                       <p className="text-text-disabled text-xs font-normal">
-                        Who has access
+                        {t("whoHasAccess")}
                       </p>
                       <div className="flex flex-col gap-2 mb-2">
                         {selectedGranteeables.map(
@@ -565,7 +572,7 @@ export default function ManageAccessModal({
                 className="flex-1 sm:flex-none"
                 disabled={isSubmitting}
               >
-                Cancel
+                {tCommon("cancel")}
               </Button>
               <Button
                 type="submit"
@@ -575,10 +582,10 @@ export default function ManageAccessModal({
                 {isSubmitting ? (
                   <>
                     <RefreshCw className="h-4 w-4 animate-spin mr-2" />
-                    {isManageAccessLoading ? "Loading..." : "Saving..."}
+                    {isManageAccessLoading ? tCommon("loading") : tCommon("saving")}
                   </>
                 ) : (
-                  "Save"
+                  tCommon("save")
                 )}
               </Button>
             </DialogFooter>

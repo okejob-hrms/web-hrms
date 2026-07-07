@@ -1,6 +1,8 @@
 "use client";
 
 import * as React from "react";
+import { useLocale } from "next-intl";
+import { resolveLocale } from "@/lib/i18n/locale";
 import dayjs from "dayjs";
 import { CircleX } from "lucide-react";
 
@@ -13,7 +15,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/shared/status-badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   formatDateRange,
@@ -38,12 +40,11 @@ export default function EssBusinessTripDetailModal({
   loading,
   onCancel,
 }: Props) {
+  const locale = resolveLocale(useLocale());
   const renderStatus = (status?: number) => {
-    const { variant, className, label } = getStatusBusinessTrip(status);
+    const { variant, className, key } = getStatusBusinessTrip(status);
     return (
-      <Badge variant={variant} className={className}>
-        {label}
-      </Badge>
+      <StatusBadge statusKey={key} variant={variant} className={className} />
     );
   };
 
@@ -89,10 +90,10 @@ export default function EssBusinessTripDetailModal({
               <div className="text-sm text-gray-500">Duration</div>
               <div>
                 <span className="text-base">
-                  {formatDateRange(data.start_date, data.end_date)}
+                  {formatDateRange(data.start_date, data.end_date, locale)}
                 </span>{" "}
                 <span className="text-base text-text-disabled">
-                  ({formatDayDifference(data.start_date, data.end_date)})
+                  ({formatDayDifference(data.start_date, data.end_date, locale)})
                 </span>
               </div>
             </div>

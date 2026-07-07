@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
+import { useTranslations, useLocale } from 'next-intl';
 
 import {
   AlertDialog,
@@ -32,7 +33,8 @@ import {
 import { LeaveBalanceType, leaveBalanceFormScheme } from '../types';
 import { LeaveBalanceItem } from '@/services/settings/types';
 import { useLeaveManagement } from '../hook';
-import { days, month } from '@/lib/utils';
+import { getDayOptions, getMonthOptions } from '@/lib/formatting';
+import { resolveLocale } from '@/lib/i18n/locale';
 
 interface LeaveBalanceFormProps {
   open: boolean;
@@ -49,7 +51,20 @@ export default function LeaveBalanceForm({
   handleClose,
   isLoading,
 }: LeaveBalanceFormProps) {
+  const t = useTranslations('settings');
+  const tEmployee = useTranslations('employee');
+  const tCommon = useTranslations('common');
+  const locale = resolveLocale(useLocale());
   const { handleSaveLeaveBalance, jobLevel } = useLeaveManagement();
+
+  const monthOptions = useMemo(
+    () => getMonthOptions(locale),
+    [locale],
+  );
+  const dayOptions = useMemo(
+    () => getDayOptions(locale, 31, (day) => tCommon('dayNumber', { number: day })),
+    [locale, tCommon],
+  );
 
   const DEFAULT_VALUES: LeaveBalanceType = {
     job_level_id: 0,
@@ -88,8 +103,8 @@ export default function LeaveBalanceForm({
         <AlertDialogHeader>
           <AlertDialogTitle>
             {initialData !== undefined
-              ? 'Edit Leave Balance'
-              : 'Add Leave Balance'}
+              ? t('editLeaveBalance')
+              : t('addLeaveBalance')}
           </AlertDialogTitle>
         </AlertDialogHeader>
 
@@ -99,14 +114,14 @@ export default function LeaveBalanceForm({
             className="flex flex-col gap-4 mt-4"
           >
             <div className="grid sm:grid-cols-2 grid-cols-1 gap-4">
-              {/* Department Name */}
               <FormField
                 control={form.control}
                 name="job_level_id"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Job Level <span className="text-red-500">*</span>
+                      {tEmployee('jobLevel')}{' '}
+                      <span className="text-red-500">*</span>
                     </FormLabel>
                     <FormControl>
                       <Select
@@ -116,7 +131,7 @@ export default function LeaveBalanceForm({
                         value={String(field.value)}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Select job level" />
+                          <SelectValue placeholder={t('selectJobLevel')} />
                         </SelectTrigger>
                         <SelectContent>
                           {jobLevel?.data.map((item, i) => (
@@ -132,14 +147,14 @@ export default function LeaveBalanceForm({
                 )}
               />
 
-              {/* Duration Time */}
               <FormField
                 control={form.control}
                 name="balance"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Balance <span className="text-red-500">*</span>
+                      {t('leaveBalance')}{' '}
+                      <span className="text-red-500">*</span>
                     </FormLabel>
                     <FormControl>
                       <Input
@@ -161,14 +176,14 @@ export default function LeaveBalanceForm({
               />
             </div>
 
-            {/* Reset Day */}
             <FormField
               control={form.control}
               name="reset_period_day"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    Reset Period Day <span className="text-red-500">*</span>
+                    {t('resetPeriodDay')}{' '}
+                    <span className="text-red-500">*</span>
                   </FormLabel>
                   <FormControl>
                     <Select
@@ -178,10 +193,10 @@ export default function LeaveBalanceForm({
                       value={String(field.value)}
                     >
                       <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select month" />
+                        <SelectValue placeholder={tCommon('selectDay')} />
                       </SelectTrigger>
                       <SelectContent>
-                        {days.map((item, i) => (
+                        {dayOptions.map((item, i) => (
                           <SelectItem value={String(item.id)} key={i}>
                             {item.label}
                           </SelectItem>
@@ -194,14 +209,14 @@ export default function LeaveBalanceForm({
               )}
             />
 
-            {/* Reset Month */}
             <FormField
               control={form.control}
               name="reset_period_month"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    Reset Period Month <span className="text-red-500">*</span>
+                    {t('resetPeriodMonth')}{' '}
+                    <span className="text-red-500">*</span>
                   </FormLabel>
                   <FormControl>
                     <Select
@@ -211,10 +226,10 @@ export default function LeaveBalanceForm({
                       value={String(field.value)}
                     >
                       <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select month" />
+                        <SelectValue placeholder={tCommon('selectMonth')} />
                       </SelectTrigger>
                       <SelectContent>
-                        {month.map((item, i) => (
+                        {monthOptions.map((item, i) => (
                           <SelectItem value={String(item.id)} key={i}>
                             {item.label}
                           </SelectItem>
@@ -228,20 +243,11 @@ export default function LeaveBalanceForm({
             />
 
             <AlertDialogFooter className="flex justify-center gap-4">
-              <AlertDialogCancel
-                className="min-w-[100px] border-2 border-[#18618B] text-[#18618B] bg-white hover:bg-[#e6f1f7] font-medium py-2 rounded-lg"
-                onClick={handleClose}
-                disabled={isLoading}
-              >
-                Cancel
+              <AlertDialogCancel type="button" onClick={handleClose}>
+                {tCommon('cancel')}
               </AlertDialogCancel>
-              <Button
-                type="submit"
-                isLoading={isLoading}
-                disabled={!form.formState.isValid}
-                className="min-w-[100px] bg-[#18618B] hover:bg-[#14506e] text-white font-medium py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Save
+              <Button type="submit" isLoading={isLoading}>
+                {tCommon('save')}
               </Button>
             </AlertDialogFooter>
           </form>

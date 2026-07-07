@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -6,9 +6,10 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-} from "@/components/ui/dialog";
-import Image from "next/image";
-import * as React from "react";
+} from '@/components/ui/dialog';
+import { useTranslations } from 'next-intl';
+import Image from 'next/image';
+import * as React from 'react';
 
 interface IDeleteModalProps {
   open: boolean;
@@ -23,6 +24,9 @@ export const DeleteModal: React.FC<IDeleteModalProps> = ({
   onSave,
   id,
 }) => {
+  const t = useTranslations('performance');
+  const tCommon = useTranslations('common');
+
   return (
     <Dialog
       open={open}
@@ -42,12 +46,11 @@ export const DeleteModal: React.FC<IDeleteModalProps> = ({
             className="m-auto"
           />
           <DialogTitle className="text-xl font-semibold text-center">
-            Are you sure you want to delete this KPI?
+            {t('confirmDeleteKpi')}
           </DialogTitle>
         </DialogHeader>
         <DialogDescription className="text-center">
-          This action cannot be undone and the request will be permanently
-          removed from the system.
+          {t('confirmDeleteKpiDesc')}
         </DialogDescription>
         <DialogFooter className="px-6 pb-6 w-full grid grid-cols-1 md:grid-cols-2 gap-2">
           <Button
@@ -55,10 +58,10 @@ export const DeleteModal: React.FC<IDeleteModalProps> = ({
             className="font-semibold text-error"
             onClick={() => onSave(id)}
           >
-            Delete KPI
+            {t('deleteKpi')}
           </Button>
           <Button className="font-semibold" onClick={() => onOpenChange(false)}>
-            Cancel
+            {tCommon('cancel')}
           </Button>
         </DialogFooter>
       </DialogContent>

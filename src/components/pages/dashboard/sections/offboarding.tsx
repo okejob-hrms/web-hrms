@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useTranslations, useLocale } from 'next-intl';
 import {
   LineChart,
   Line,
@@ -22,6 +23,8 @@ import DataTable from '@/components/tables/data-table';
 import { ColumnDef } from '@tanstack/react-table';
 import { ListOff } from '@/services/dashboard/types';
 import { Button } from '@/components/ui/button';
+import { formatChartMonthLabel } from '@/lib/formatting';
+import { resolveLocale } from '@/lib/i18n/locale';
 
 type DepartmentChartRow = {
   month: string;
@@ -29,6 +32,10 @@ type DepartmentChartRow = {
 };
 
 export const Offboarding = () => {
+  const t = useTranslations('dashboard');
+  const tCommon = useTranslations('common');
+  const tEmployee = useTranslations('employee');
+  const locale = resolveLocale(useLocale());
   const COLORS: Record<string, string> = {};
   const {
     offStat,
@@ -44,10 +51,15 @@ export const Offboarding = () => {
     setFilters,
   } = useDashboardOffboarding();
 
+  const chartMonth = React.useCallback(
+    (period: string) => formatChartMonthLabel(period, locale, 'short'),
+    [locale],
+  );
+
   const columns: ColumnDef<ListOff>[] = [
     {
       accessorKey: 'name',
-      header: 'Name',
+      header: tCommon('name'),
       cell: ({ row }) => (
         <div className="flex flex-col">
           <span className="font-semibold text-foreground text-sm">
@@ -59,23 +71,23 @@ export const Offboarding = () => {
     },
     {
       accessorKey: 'job_position',
-      header: 'Position',
+      header: tCommon('position'),
     },
     {
       accessorKey: 'job_level',
-      header: 'Job Level',
+      header: tEmployee('jobLevel'),
     },
     {
       accessorKey: 'department',
-      header: 'Department',
+      header: tCommon('department'),
     },
     {
       accessorKey: 'join_date',
-      header: 'Joined',
+      header: t('joined'),
     },
     {
       accessorKey: 'last_working_date',
-      header: 'Last Working Date',
+      header: tEmployee('lastWorkingDate'),
     },
     {
       accessorKey: 'menu',
@@ -94,7 +106,7 @@ export const Offboarding = () => {
   ];
 
   const lineData = offStat?.data.trend.map((item) => ({
-    month: item.month,
+    month: chartMonth(item.month),
     value: item.total,
   }));
 
@@ -124,9 +136,7 @@ export const Offboarding = () => {
   const departmentData: DepartmentChartRow[] =
     offStat?.data?.department_date?.reduce<DepartmentChartRow[]>(
       (acc, item) => {
-        const month = new Date(item.month + '-01').toLocaleString('en-US', {
-          month: 'short',
-        });
+        const month = chartMonth(item.month);
 
         let row = acc.find((d) => d.month === month);
 
@@ -167,9 +177,7 @@ export const Offboarding = () => {
 
   const jobLevelData: DepartmentChartRow[] =
     offStat?.data?.job_level_date?.reduce<DepartmentChartRow[]>((acc, item) => {
-      const month = new Date(item.month + '-01').toLocaleString('en-US', {
-        month: 'short',
-      });
+      const month = chartMonth(item.month);
 
       let row = acc.find((d) => d.month === month);
 
@@ -208,9 +216,7 @@ export const Offboarding = () => {
 
   const branchData: DepartmentChartRow[] =
     offStat?.data?.branch_date?.reduce<DepartmentChartRow[]>((acc, item) => {
-      const month = new Date(item.month + '-01').toLocaleString('en-US', {
-        month: 'short',
-      });
+      const month = chartMonth(item.month);
 
       let row = acc.find((d) => d.month === month);
 
@@ -378,7 +384,7 @@ export const Offboarding = () => {
   return (
     <div className="font-sans min-h-screen flex flex-col space-y-6 py-6">
       <div className="space-y-1">
-        <div className="text-xs font-bold text-gray-600">Date Period</div>
+        <div className="text-xs font-bold text-gray-600">{t('datePeriod')}</div>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Input
             type="date"
@@ -411,14 +417,14 @@ export const Offboarding = () => {
         <div className="col-span-1 md:col-span-3 space-y-3">
           <div className="flex gap-3 items-center">
             <h2 className="font-bold text-xl text-gray-600">
-              Offboarding Employee
+              {t('offboardingEmployees')}
             </h2>
             <div className="text-gray-400 text-sm">
               Last Updated: December 4, 2025
             </div>
             <RefreshCcw size={14} className="text-gray-700" />
           </div>
-          <div className="text-gray-600">Total Resigned Employees</div>
+          <div className="text-gray-600">{t('totalResignedEmployees')}</div>
           <h2 className="font-bold text-2xl text-primary">
             {formatCurrency(offStat?.data.total ?? 0)}
           </h2>
@@ -431,19 +437,19 @@ export const Offboarding = () => {
 
         {/* CHART 1 */}
         <div className="col-span-1">
-          <h2 className="font-semibold text-center mb-2">By Department</h2>
+          <h2 className="font-semibold text-center mb-2">{t('byDepartment')}</h2>
           <BarChartDepartment />
         </div>
 
         {/* CHART 2 */}
         <div className="col-span-1">
-          <h2 className="font-semibold text-center mb-2">By Job Level</h2>
+          <h2 className="font-semibold text-center mb-2">{t('byJobLevel')}</h2>
           <BarChartJobLevel />
         </div>
 
         {/* CHART 3 */}
         <div className="col-span-1">
-          <h2 className="font-semibold text-center mb-2">By Branch</h2>
+          <h2 className="font-semibold text-center mb-2">{t('byBranch')}</h2>
           <BarChartBranch />
         </div>
       </div>
@@ -452,7 +458,7 @@ export const Offboarding = () => {
         <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6">
           <div className="flex md:flex-row flex-col justify-between w-full md:items-center items-start gap-4">
             <h2 className="font-bold text-xl text-gray-600">
-              Recent Resigned Employee
+              {t('recentResignedEmployee')}
             </h2>
           </div>
 
@@ -462,7 +468,7 @@ export const Offboarding = () => {
                 type="text"
                 className="w-full"
                 value={search}
-                placeholder="Search employee name"
+                placeholder={tEmployee('searchEmployee')}
                 onChange={(e) => {
                   setSearch(e.target.value);
                 }}

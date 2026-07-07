@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/tables/data-table";
 import { ColumnDef } from "@tanstack/react-table";
@@ -24,6 +25,8 @@ import {
 
 export default function SettingsAttendanceConfiguration() {
   const router = useRouter();
+  const t = useTranslations("settings");
+  const tCommon = useTranslations("common");
 
   const {
     lateDeductionData,
@@ -50,10 +53,10 @@ export default function SettingsAttendanceConfiguration() {
     }
   }, [branches, selectedBranch, setSelectedBranch]);
 
-  if (isLoading) return <p>Loading...</p>;
-  if (isError) return <p>Error loading data</p>;
+  if (isLoading) return <p>{tCommon("loading")}</p>;
+  if (isError) return <p>{tCommon("errorLoading")}</p>;
 
-  if (!data) return <p>No data yet</p>;
+  if (!data) return <p>{tCommon("noData")}</p>;
 
   const { workingHours, late_tolerance, max_late_tolerance } = data;
 
@@ -63,7 +66,7 @@ export default function SettingsAttendanceConfiguration() {
   const columns: ColumnDef<WorkingHour>[] = [
     {
       id: "day",
-      header: "Day",
+      header: tCommon("day"),
       size: 160,
       cell: ({ row, table }) => {
         const day = row.original.day;
@@ -77,15 +80,15 @@ export default function SettingsAttendanceConfiguration() {
         return null;
       },
     },
-    { accessorKey: "shift", header: "Shift", size: 160 },
-    { accessorKey: "workingHours", header: "Working Hours", size: 200 },
-    { accessorKey: "break", header: "Break", size: 160 },
+    { accessorKey: "shift", header: t("shift"), size: 160 },
+    { accessorKey: "workingHours", header: t("workingHoursLabel"), size: 200 },
+    { accessorKey: "break", header: t("break"), size: 160 },
   ];
 
   const lateDeductionColumn: ColumnDef<LateDeductions>[] = [
     {
       accessorKey: "duration_type_label",
-      header: "Late Duration",
+      header: t("lateDuration"),
       size: 160,
       cell: ({ row }) => {
         const { duration_type_label, min_minutes } = row.original;
@@ -94,7 +97,7 @@ export default function SettingsAttendanceConfiguration() {
     },
     {
       accessorKey: "shift",
-      header: "Impacted Shift",
+      header: t("impactedShift"),
       size: 200,
       cell: ({ row }) => {
         const shifts = row.original.shift ?? [];
@@ -103,10 +106,10 @@ export default function SettingsAttendanceConfiguration() {
     },
     {
       accessorKey: "payroll_amount_formatted",
-      header: "Payroll Impact",
+      header: t("payrollImpact"),
       size: 200,
     },
-    { accessorKey: "leave_impact_label", header: "Leave Impact", size: 160 },
+    { accessorKey: "leave_impact_label", header: t("leaveImpact"), size: 160 },
     {
       id: "actions",
       header: "",
@@ -145,25 +148,29 @@ export default function SettingsAttendanceConfiguration() {
             onClick={() => goToEdit()}
           >
             <Edit3 />
-            Edit Attendance Configuration
+            {t("editAttendanceConfig")}
           </Button>
         </div>
 
         <DataTable columns={columns} data={workingHours} />
 
         <div className="font-bold text-md mt-5">
-          Grace Period & Absent Threshold
+          {t("gracePeriod")}
         </div>
         <div className="grid grid-cols-3 sm:grid-cols-1 gap-4">
           <div className="space-y-2">
-            <div className="text-gray-500">Grace Period (Late Tolerance)</div>
-            <div className="text-gray-500">{late_tolerance ?? "-"} minutes</div>
+            <div className="text-gray-500">{t("gracePeriodTolerance")}</div>
+            <div className="text-gray-500">
+              {late_tolerance ?? "-"} {t("minutes")}
+            </div>
           </div>
 
           <div className="space-y-2">
-            <div className="text-gray-500">Absent After</div>
+            <div className="text-gray-500">{t("absentAfter")}</div>
             <div className="text-gray-500">
-              {max_late_tolerance ?? "-"} minutes after start shift
+              {t("minutesAfterStartShift", {
+                minutes: max_late_tolerance ?? "-",
+              })}
             </div>
           </div>
         </div>
@@ -181,7 +188,7 @@ export default function SettingsAttendanceConfiguration() {
             onClick={() => handleAdd()}
           >
             <Plus />
-            Add Late Deduction
+            {t("addLateDeduction")}
           </Button>
         </div>
         <DataTable
@@ -194,13 +201,13 @@ export default function SettingsAttendanceConfiguration() {
 
   const tabs = [
     {
-      name: "Working Hours",
+      name: t("workingHours"),
       value: "working-hours",
       content: <WorkingHour />,
       icon: <Icon name="userSolid" size={18} color="currentColor" />,
     },
     {
-      name: "Late Deduction Rules",
+      name: t("lateDeductionRules"),
       value: "late-deduction-rules",
       content: <LateDeduction />,
       icon: <Icon name="documentOutlined" size={18} color="currentColor" />,
@@ -212,16 +219,16 @@ export default function SettingsAttendanceConfiguration() {
       <div className="flex flex-col justify-between gap-6">
         <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6">
           <div className="flex flex-col sm:flex-row sm:gap-4 justify-between">
-            <h2 className="font-semibold text-xl">Attendance Configuration</h2>
+            <h2 className="font-semibold text-xl">{t("attendanceConfiguration")}</h2>
             <div className="flex gap-5 items-center">
-              <div className="tex-gray-500">Branch :</div>
+              <div className="tex-gray-500">{t("branchLabel")}</div>
               <Select
                 onValueChange={(val) => setSelectedBranch(val)}
                 value={String(selectedBranch)}
                 defaultValue={String(selectedBranch)}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select branch" />
+                  <SelectValue placeholder={t("selectBranch")} />
                 </SelectTrigger>
                 <SelectContent>
                   {branches.map((item, i) => (

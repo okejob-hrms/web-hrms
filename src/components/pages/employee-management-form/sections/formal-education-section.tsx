@@ -45,6 +45,7 @@ import dayjs from "dayjs";
 import localizedFormat from "dayjs/plugin/localizedFormat";
 import { cn } from "@/lib/utils";
 import { ApiErrorResponse } from "@/lib/types";
+import { useTranslations } from "next-intl";
 
 dayjs.extend(localizedFormat);
 
@@ -129,6 +130,8 @@ const FormalEducationFormModal = ({
   buttonVariant = "default",
   onSuccess,
 }: FormalEducationFormModalProps) => {
+  const t = useTranslations("employee");
+  const tCommon = useTranslations("common");
   const [internalOpen, setInternalOpen] = React.useState(false);
   const queryClient = useQueryClient();
   const formContext = useFormContext();
@@ -180,7 +183,7 @@ const FormalEducationFormModal = ({
     }) => (isEdit ? putUpdateEducation(params) : postCreateEducation(params)),
     onSuccess: (res) => {
       toast.success(
-        `Formal education ${isEdit ? "updated" : "added"} successfully!`,
+        isEdit ? t("formalEducationUpdatedSuccess") : t("formalEducationAddedSuccess"),
       );
 
       if (setValue && watchedEducations) {
@@ -245,20 +248,20 @@ const FormalEducationFormModal = ({
             .json()
             .then((errorData: ApiErrorResponse) => {
               toast.error(
-                errorData.message || "Failed to save formal education.",
+                errorData.message || t("formalEducationSaveFailed"),
               );
             })
             .catch(() => {
-              toast.error("Failed to save formal education: Server error");
+              toast.error(t("formalEducationSaveServerError"));
             });
         } catch (parseError) {
           toast.error(
-            "Failed to save formal education: Server error : " + parseError,
+            `${t("formalEducationSaveServerError")} : ${parseError}`,
           );
         }
       } else {
         toast.error(
-          `Failed to save formal education: ${error.message || "Unknown error"}`,
+          `${t("formalEducationSaveFailed")} ${error.message || ""}`,
         );
       }
     },
@@ -279,7 +282,7 @@ const FormalEducationFormModal = ({
       mutation.mutate(params);
     } catch (error) {
       console.error("Submit error:", error);
-      toast.error("Failed to submit form");
+      toast.error(t("formalEducationSubmitFailed"));
     }
   }, []);
 
@@ -315,14 +318,14 @@ const FormalEducationFormModal = ({
             variant={buttonVariant}
             className={cn(buttonVariant === "outline" && "bg-white")}
           >
-            <Plus /> Add Formal Education
+            <Plus /> {t("addFormalEducation")}
           </Button>
         </DialogTrigger>
       )}
       <DialogContent className="bg-white md:min-w-5xl overflow-y-scroll max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>
-            {isEdit ? "Edit Formal Education" : "Add Formal Education"}
+            {isEdit ? t("editFormalEducation") : t("addFormalEducation")}
           </DialogTitle>
         </DialogHeader>
         <Form {...form}>
@@ -330,29 +333,29 @@ const FormalEducationFormModal = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
               <InputForm
                 name="institution"
-                label="School"
+                label={t("school")}
                 required
                 disabled={mutation.isPending}
               />
               <InputForm
                 name="location"
-                label="City"
+                label={t("city")}
                 required
                 disabled={mutation.isPending}
               />
               <InputForm
                 name="major"
-                label="Major"
+                label={t("major")}
                 required
                 disabled={mutation.isPending}
               />
               <div className="grid grid-cols-2 gap-4 w-full">
-                <DatePicker name="start_date" label="Education Start Date" />
-                <DatePicker name="graduation_date" label="Graduation Date" />
+                <DatePicker name="start_date" label={t("educationStartDate")} />
+                <DatePicker name="graduation_date" label={t("graduationDate")} />
               </div>
               <div className="grid gap-2 w-full">
                 <FormLabel className="text-sm font-normal">
-                  GPA
+                  {t("gpa")}
                   <span className="text-error">*</span>
                 </FormLabel>
                 <div className="flex items-start gap-2 w-full">
@@ -380,13 +383,12 @@ const FormalEducationFormModal = ({
                 onClick={handleCancel}
                 disabled={mutation.isPending}
               >
-                Cancel
+                {tCommon("cancel")}
               </Button>
               <Button
                 onClick={handleUpdateEducation}
-                // disabled={mutation.isPending || !form.formState.isValid}
               >
-                {mutation.isPending ? "Saving..." : "Save"}
+                {mutation.isPending ? tCommon("saving") : tCommon("save")}
               </Button>
             </DialogFooter>
           </form>
@@ -401,26 +403,31 @@ interface Props {
   employee_profile_id?: number;
 }
 
-const SectionHeader = ({ withAddButton, employee_profile_id }: Props) => (
+const SectionHeader = ({ withAddButton, employee_profile_id }: Props) => {
+  const t = useTranslations("employee");
+  return (
   <div
     className={withAddButton ? "flex justify-between items-center mb-4" : ""}
   >
     <h2
       className={`font-semibold text-lg leading-5 ${withAddButton ? "mb-3" : ""}`}
     >
-      Formal Education
+      {t("formalEducation")}
     </h2>
     {withAddButton && (
       <FormalEducationFormModal employee_profile_id={employee_profile_id} />
     )}
   </div>
-);
+  );
+};
 
 export const FormalEducationSection = React.memo<Props>(
   function FormalEducationSection({
     withAddButton = false,
     employee_profile_id,
   }) {
+    const t = useTranslations("employee");
+    const tCommon = useTranslations("common");
     const formContext = useFormContext();
     const queryClient = useQueryClient();
     const [editingEducation, setEditingEducation] =
@@ -435,7 +442,7 @@ export const FormalEducationSection = React.memo<Props>(
       mutationFn: ({ id }: { id: number }) =>
         deleteEducation({ id, employee_profile_id }),
       onSuccess: (_, variables) => {
-        toast.success("Formal education deleted successfully!");
+        toast.success(t("formalEducationDeleteSuccess"));
         if (formContext?.setValue && watchedEducations) {
           const updatedEducations = watchedEducations.filter(
             (e: IEducationResponse) => e.id !== variables.id,
@@ -463,9 +470,10 @@ export const FormalEducationSection = React.memo<Props>(
       onError: (error: any) => {
         console.error("Delete mutation error:", error);
         toast.error(
-          `Failed to delete formal education: ${
-            error?.response?.data?.message || error.message || "Unknown error"
-          }`,
+          t("formalEducationDeleteFailed", {
+            message:
+              error?.response?.data?.message || error.message || tCommon("failed"),
+          }),
         );
       },
     });
@@ -501,7 +509,7 @@ export const FormalEducationSection = React.memo<Props>(
 
     const handleDelete = (educationId: number) => {
       if (
-        window.confirm("Are you sure you want to delete this formal education?")
+        window.confirm(t("formalEducationDeleteConfirm"))
       ) {
         deleteMutation.mutate({ id: educationId });
       }
@@ -516,33 +524,33 @@ export const FormalEducationSection = React.memo<Props>(
       () => [
         {
           accessorKey: "institution",
-          header: "School",
+          header: t("school"),
         },
         {
           accessorKey: "major",
-          header: "Major",
+          header: t("major"),
         },
         {
           accessorKey: "location",
-          header: "City",
+          header: t("city"),
         },
         {
           accessorKey: "start_date",
-          header: "Education Start Date",
+          header: t("educationStartDate"),
           cell: ({ row }) => (
             <span>{dayjs(row.original.start_date).format("LL")}</span>
           ),
         },
         {
           accessorKey: "graduation_date",
-          header: "Graduation Date",
+          header: t("graduationDate"),
           cell: ({ row }) => (
             <span>{dayjs(row.original.graduation_date).format("LL")}</span>
           ),
         },
         {
           accessorKey: "gpa",
-          header: "GPA",
+          header: t("gpa"),
         },
         {
           accessorKey: "menu",
@@ -556,7 +564,7 @@ export const FormalEducationSection = React.memo<Props>(
           ),
         },
       ],
-      [],
+      [t],
     );
 
     return (
@@ -594,11 +602,10 @@ export const FormalEducationSection = React.memo<Props>(
             noDataPlaceholder={
               <div className="border border-primary-border bg-primary-background rounded-md p-2 gap-1 mx-8 flex flex-col items-center justify-center">
                 <p className="text-primary font-semibold text-lg text-center">
-                  Complete Formal Education Information
+                  {t("completeFormalEducation")}
                 </p>
                 <p className="text-base text-text-secondary text-center">
-                  Record the employee’s formal education history for a more
-                  accurate and comprehensive employee profile.
+                  {t("completeFormalEducationDesc")}
                 </p>
                 <FormalEducationFormModal buttonVariant="outline" />
               </div>

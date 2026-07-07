@@ -11,6 +11,7 @@ import {
 import { PaginationState } from "@tanstack/react-table";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   getLeaves,
   deleteLeave,
@@ -31,6 +32,8 @@ import { ApiErrorResponse, PaginatedResponse } from "@/lib/types";
 export function useLeaveRequest(isEmployee?: boolean) {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const t = useTranslations('attendance');
+  const tCommon = useTranslations('common');
 
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: 0,
@@ -103,11 +106,11 @@ export function useLeaveRequest(isEmployee?: boolean) {
     }) => updateLeave(payload, id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["leaves"] });
-      toast.success("Successfully updated leave status");
+      toast.success(t('updateLeaveStatusSuccess'));
       closeAllModals();
     },
     onError: () => {
-      toast.error("Failed to update leave status");
+      toast.error(t('updateLeaveStatusFailed'));
     },
   });
 
@@ -121,7 +124,7 @@ export function useLeaveRequest(isEmployee?: boolean) {
     }) => updateStatusLeave(payload, id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["leaves"] });
-      toast.success("Successfully updated leave status");
+      toast.success(t('updateLeaveStatusSuccess'));
       closeAllModals();
     },
     onError: (error: any) => {
@@ -130,17 +133,17 @@ export function useLeaveRequest(isEmployee?: boolean) {
           error.response
             .json()
             .then((errorData: ApiErrorResponse) => {
-              toast.error(errorData.message || "Failed to update leave status");
+              toast.error(errorData.message || t('updateLeaveStatusFailed'));
             })
             .catch(() => {
-              toast.error("Failed to updated leave status: Server error");
+              toast.error(`${t('updateLeaveStatusFailed')}: ${tCommon('errorLoading')}`);
             });
-        } catch (parseError) {
-          toast.error("Failed to updated leave status: Server error");
+        } catch {
+          toast.error(`${t('updateLeaveStatusFailed')}: ${tCommon('errorLoading')}`);
         }
       } else {
         toast.error(
-          `Failed to updated leave status: ${error.message || "Unknown error"}`,
+          `${t('updateLeaveStatusFailed')}: ${error.message || tCommon('errorLoading')}`,
         );
       }
     },
@@ -150,7 +153,7 @@ export function useLeaveRequest(isEmployee?: boolean) {
     mutationFn: (id: number) => deleteLeave(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["leaves"] });
-      toast.success("Successfully deleted leave request");
+      toast.success(t('deleteLeaveSuccess'));
       setModalState((prev) => ({ ...prev, delete: false }));
     },
     onError: (error: any) => {
@@ -160,18 +163,18 @@ export function useLeaveRequest(isEmployee?: boolean) {
             .json()
             .then((errorData: ApiErrorResponse) => {
               toast.error(
-                errorData.message || "Failed to delete leave request",
+                errorData.message || t('deleteLeaveFailed'),
               );
             })
             .catch(() => {
-              toast.error("Failed to delete leave request: Server error");
+              toast.error(`${t('deleteLeaveFailed')}: ${tCommon('errorLoading')}`);
             });
-        } catch (parseError) {
-          toast.error("Failed to delete leave request: Server error");
+        } catch {
+          toast.error(`${t('deleteLeaveFailed')}: ${tCommon('errorLoading')}`);
         }
       } else {
         toast.error(
-          `Failed to delete leave request: ${error.message || "Unknown error"}`,
+          `${t('deleteLeaveFailed')}: ${error.message || tCommon('errorLoading')}`,
         );
       }
     },
@@ -225,7 +228,7 @@ export function useLeaveRequest(isEmployee?: boolean) {
 
   const handleNavigateAddRequestPage = React.useCallback(() => {
     router.push(isEmployee ? "/ess/leave/leave-form" : "/attendance/leave-request/add");
-  }, [router]);
+  }, [router, isEmployee]);
 
   const openModal = React.useCallback((modal: keyof typeof modalState) => {
     setModalState((prev) => ({ ...prev, [modal]: true }));

@@ -33,6 +33,9 @@ import DataTable from '@/components/tables/data-table';
 import { Input } from '@/components/ui/input';
 import { AttListData } from '@/services/dashboard/types';
 import { ColumnDef } from '@tanstack/react-table';
+import { useLocale, useTranslations } from 'next-intl';
+import { formatChartMonthLabel } from '@/lib/formatting';
+import { resolveLocale } from '@/lib/i18n/locale';
 
 interface AttendanceModalProps {
   open: boolean;
@@ -43,6 +46,15 @@ export default function AttendanceModal({
   open,
   onOpenChange,
 }: AttendanceModalProps) {
+  const t = useTranslations('dashboard');
+  const tAtt = useTranslations('attendance');
+  const tCommon = useTranslations('common');
+  const tPayroll = useTranslations('payroll');
+  const locale = resolveLocale(useLocale());
+  const chartMonth = React.useCallback(
+    (period: string) => formatChartMonthLabel(period, locale, 'short'),
+    [locale],
+  );
   const {
     attendanceStatDetails,
     attStat,
@@ -71,7 +83,7 @@ export default function AttendanceModal({
   };
 
   const lineData = attendanceStatDetails?.data.map((item) => ({
-    month: item.month,
+    month: chartMonth(item.month),
     onTime: item.on_time,
     late: item.late,
     absent: item.absent,
@@ -79,13 +91,19 @@ export default function AttendanceModal({
     leave: item.leave,
   }));
 
-  const lineTitle = ['On Time', 'Late', 'Absent', 'Overtime', 'Leave'];
+  const lineTitle = [
+    tAtt('onTime'),
+    t('late'),
+    tAtt('absent'),
+    tAtt('overtime'),
+    t('leave'),
+  ];
   const lineColor = ['#18618B', '#FFB84D', '#C964A2', '#64C9B1', '#367839'];
 
   const columns: ColumnDef<AttListData>[] = [
     {
       accessorKey: 'name',
-      header: 'Name',
+      header: tCommon('name'),
       cell: ({ row }) => (
         <div className="flex flex-col">
           <span className="font-semibold text-foreground text-sm">
@@ -97,31 +115,31 @@ export default function AttendanceModal({
     },
     {
       accessorKey: 'branch_name',
-      header: 'Branch',
+      header: t('branch'),
     },
     {
       accessorKey: 'late_clock_in',
-      header: 'Late Clock In',
+      header: tAtt('lateClockIn'),
     },
     {
       accessorKey: 'on_time',
-      header: 'On Time',
+      header: tAtt('onTime'),
     },
     {
       accessorKey: 'early_clock_in',
-      header: 'Early Clock In',
+      header: tAtt('earlyClockIn'),
     },
     {
       accessorKey: 'early_clock_out',
-      header: 'Early Clock Out',
+      header: tAtt('earlyClockOut'),
     },
     {
       accessorKey: 'absent',
-      header: 'Absent',
+      header: tAtt('absent'),
     },
     {
       accessorKey: 'leave',
-      header: 'Leave',
+      header: t('leave'),
     },
   ];
 
@@ -186,46 +204,34 @@ export default function AttendanceModal({
   );
 
   const pannel = [
+    { title: tAtt('onTime'), value: attStat?.data.on_time.today ?? 0 },
     {
-      title: 'On Time',
-      value: attStat?.data.on_time.today ?? 0,
-    },
-    {
-      title: 'Late Clock In',
+      title: tAtt('lateClockIn'),
       value: attStat?.data.late_clock_in.today ?? 0,
     },
     {
-      title: 'Early Clock In',
+      title: tAtt('earlyClockIn'),
       value: attStat?.data.early_clock_in.today ?? 0,
     },
     {
-      title: 'Early Clock Out',
+      title: tAtt('earlyClockOut'),
       value: attStat?.data.early_clock_out.today ?? 0,
     },
-    {
-      title: 'Overtime',
-      value: attStat?.data.overtime.today ?? 0,
-    },
-    {
-      title: 'Absent',
-      value: attStat?.data.absent.today ?? 0,
-    },
-    {
-      title: 'Leave',
-      value: attStat?.data.leave.today ?? 0,
-    },
+    { title: tAtt('overtime'), value: attStat?.data.overtime.today ?? 0 },
+    { title: tAtt('absent'), value: attStat?.data.absent.today ?? 0 },
+    { title: t('leave'), value: attStat?.data.leave.today ?? 0 },
   ];
 
   return (
     <Dialog open={open} onOpenChange={onCloseModal}>
       <DialogContent className="h-screen w-screen sm:max-w-7xl p-6 rounded-2xl bg-white overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Employee Attendance Trend</DialogTitle>
+          <DialogTitle>{t('employeeAttendanceTrend')}</DialogTitle>
         </DialogHeader>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div className="space-y-1 col-span-1 md:col-span-2">
-            <div className="text-xs font-bold text-gray-600">Date Period</div>
+            <div className="text-xs font-bold text-gray-600">{t('datePeriod')}</div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
                 type="date"
@@ -254,7 +260,7 @@ export default function AttendanceModal({
             </div>
           </div>
           <div className="space-y-1">
-            <div className="text-xs font-bold text-gray-600">Branch</div>
+            <div className="text-xs font-bold text-gray-600">{t('branch')}</div>
             <Select
               value={filters.branch_id}
               onValueChange={(val) => {
@@ -265,7 +271,7 @@ export default function AttendanceModal({
               }}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select branch" />
+                <SelectValue placeholder={t('selectBranch')} />
               </SelectTrigger>
               <SelectContent>
                 {branchesData?.map((item, key) => {
@@ -279,7 +285,7 @@ export default function AttendanceModal({
             </Select>
           </div>
           <div className="space-y-1">
-            <div className="text-xs font-bold text-gray-600">Departement</div>
+            <div className="text-xs font-bold text-gray-600">{tCommon('department')}</div>
             <Select
               value={filters.department_id}
               onValueChange={(val) => {
@@ -290,7 +296,7 @@ export default function AttendanceModal({
               }}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select departement" />
+                <SelectValue placeholder={t('selectDepartment')} />
               </SelectTrigger>
               <SelectContent>
                 {departmentData?.data.data.map((item, key) => {
@@ -310,10 +316,10 @@ export default function AttendanceModal({
             <div className="flex items-center justify-between">
               <div className="flex gap-3 items-center">
                 <h2 className="font-bold text-xl text-gray-600">
-                  Attendance Trend
+                  {t('attendanceTrend')}
                 </h2>
                 <div className="text-gray-400 text-sm">
-                  Last Updated: December 4, 2025
+                  {t('lastUpdatedOn', { date: 'December 4, 2025' })}
                 </div>
                 <RefreshCcw size={14} className="text-gray-700" />
               </div>
@@ -356,7 +362,7 @@ export default function AttendanceModal({
             <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6">
               <div className="flex md:flex-row flex-col justify-between w-full md:items-center items-start gap-4">
                 <h2 className="font-bold text-xl text-gray-600">
-                  Attendance Employee Trend
+                  {t('attendanceEmployeeTrend')}
                 </h2>
               </div>
 
@@ -366,7 +372,7 @@ export default function AttendanceModal({
                     type="text"
                     className="w-full"
                     value={search}
-                    placeholder="Search employee name"
+                    placeholder={tPayroll('searchEmployeeName')}
                     onChange={(e) => {
                       setSearch(e.target.value);
                     }}
@@ -397,8 +403,8 @@ export default function AttendanceModal({
         {/* Footer */}
         <DialogFooter className="mt-6 flex justify-between items-center w-full">
           <div className="flex gap-3">
-            <Button variant="outline" onClick={() => onCloseModal}>
-              Cancel
+            <Button variant="outline" onClick={() => onCloseModal()}>
+              {tCommon('cancel')}
             </Button>
           </div>
         </DialogFooter>
