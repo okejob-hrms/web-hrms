@@ -64,12 +64,15 @@ export const AssessmentResultTable = ({
     }
 
     return columns.map((column) => {
-      if (column.accessorKey === "rating_score" || column.accessorKey === "score") {
+      const accessorKey =
+        "accessorKey" in column ? column.accessorKey : undefined;
+
+      if (accessorKey === "rating_score" || accessorKey === "score") {
         return {
           ...column,
           header: () => (
             <div className={scoreHeaderClassName}>
-              {column.accessorKey === "rating_score"
+              {accessorKey === "rating_score"
                 ? "Category Rating"
                 : "Weighted Contribution"}
             </div>
