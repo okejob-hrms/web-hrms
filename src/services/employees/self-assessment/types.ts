@@ -145,6 +145,10 @@ export interface IAssessmentField {
 export interface IAssessmentGroup {
   name: string;
   score: number;
+  max_score?: number;
+  rating_score?: number;
+  rating_max?: number;
+  group_weight?: number;
   field_group_id: number;
 }
 
@@ -152,6 +156,7 @@ export interface IAssessmentData {
   fields: IAssessmentField[];
   groups: IAssessmentGroup[];
   total_score: number;
+  max_total_score?: number;
 }
 
 export interface IAssessmentSubmission {

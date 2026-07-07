@@ -15,24 +15,32 @@ export const FormFieldRenderer = React.memo(function FormFieldRenderer({
   value?: IAssessmentField;
 }) {
   const { setValue } = useFormContext();
+  const fieldName = value?.field_id?.toString() || field.id.toString();
 
   React.useEffect(() => {
-    if (value) {
-      if (field.type === "checkbox") {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const selectedValues = (value.value as any) || [];
-
-        if (Array.isArray(field.options)) {
-          field.options.forEach((option: string) => {
-            const isSelected = selectedValues.includes(option);
-            setValue(option, isSelected);
-          });
-        }
-      } else {
-        setValue(field.form_id.toString(), value.value || "");
-      }
+    if (!value) {
+      return;
     }
-  }, [value, field, setValue]);
+
+    if (field.type === "checkbox") {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const selectedValues = (value.value as any) || [];
+
+      if (Array.isArray(field.options)) {
+        field.options.forEach((option: string) => {
+          const isSelected = selectedValues.includes(option);
+          setValue(option, isSelected);
+        });
+      }
+      return;
+    }
+
+    if (field.type === "range") {
+      return;
+    }
+
+    setValue(fieldName, value.value || "");
+  }, [value, field, fieldName, setValue]);
 
   const renderField = () => {
     switch (field.type) {
@@ -55,7 +63,7 @@ export const FormFieldRenderer = React.memo(function FormFieldRenderer({
         return (
           <TextAreaForm
             data-state="disabled"
-            name={field.form_id.toString()}
+            name={fieldName}
             label={field.label}
             disabled
             inputClassName="bg-grayscale-20 text-text-disabled"
@@ -79,7 +87,7 @@ export const FormFieldRenderer = React.memo(function FormFieldRenderer({
       default:
         return (
           <InputForm
-            name={field.form_id.toString()}
+            name={fieldName}
             className="mt-2"
             disabled
             value={value?.value}
