@@ -21,6 +21,7 @@ interface AssessmentResultTableProps {
 
 const columns: ColumnDef<IAssessmentGroup>[] = [
   {
+    id: "name",
     accessorKey: "name",
     header: "Category",
     cell: ({ row }) => (
@@ -28,6 +29,7 @@ const columns: ColumnDef<IAssessmentGroup>[] = [
     ),
   },
   {
+    id: "rating_score",
     accessorKey: "rating_score",
     header: "Category Rating",
     cell: ({ row }) => (
@@ -37,6 +39,7 @@ const columns: ColumnDef<IAssessmentGroup>[] = [
     ),
   },
   {
+    id: "score",
     accessorKey: "score",
     header: "Weighted Contribution",
     cell: ({ row }) => {
@@ -58,18 +61,19 @@ export const AssessmentResultTable = ({
   data,
   scoreHeaderClassName,
 }: AssessmentResultTableProps) => {
-  const resolvedColumns = React.useMemo(() => {
+  const resolvedColumns = React.useMemo((): ColumnDef<IAssessmentGroup>[] => {
     if (!scoreHeaderClassName) {
       return columns;
     }
 
-    return columns.map((column) => {
+    return columns.map((column): ColumnDef<IAssessmentGroup> => {
       const accessorKey =
         "accessorKey" in column ? column.accessorKey : undefined;
 
       if (accessorKey === "rating_score" || accessorKey === "score") {
         return {
           ...column,
+          id: accessorKey,
           header: () => (
             <div className={scoreHeaderClassName}>
               {accessorKey === "rating_score"
