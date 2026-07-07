@@ -10,6 +10,7 @@ import { OffboardingFormBuilder } from './form-builder';
 import { useESS } from '@/components/pages/ess/hook';
 import { IExitFormRequest, ISubmissionForm } from '@/services/form/types';
 import { postSubmitExitInterview } from '@/services/offboarding-employee';
+import { useTranslations } from 'next-intl';
 
 interface ExitInterviewFormProps {
   formId?: number;
@@ -17,6 +18,8 @@ interface ExitInterviewFormProps {
 }
 
 export const ExitInterviewForm = ({ formId, offboardingId }: ExitInterviewFormProps) => {
+  const t = useTranslations('offboarding');
+  const tCommon = useTranslations('common');
   const router = useRouter();
   const queryClient = useQueryClient();
   const { formFields, formFieldsLoading } = useESS({ formId });
@@ -32,7 +35,7 @@ export const ExitInterviewForm = ({ formId, offboardingId }: ExitInterviewFormPr
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["offboardingStatus"] });
       queryClient.invalidateQueries({ queryKey: ["offboardingProgress"] });
-      toast.success("Exit interview submitted successfully"); //
+      toast.success(t("exitInterviewSubmitted"));
       router.push('/ess/offboarding');
     },
     onError: async (error: any) => {
@@ -53,9 +56,9 @@ export const ExitInterviewForm = ({ formId, offboardingId }: ExitInterviewFormPr
             }
           }
         });
-        toast.error("Please check the form for errors");
+        toast.error(t("formCheckErrors"));
       } else {
-        toast.error("An unexpected error occurred. Please try again.");
+        toast.error(t("unexpectedError"));
       }
     }
   });
@@ -107,7 +110,7 @@ export const ExitInterviewForm = ({ formId, offboardingId }: ExitInterviewFormPr
       <div className="max-w-4xl mx-auto">
         <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 max-w-4xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-2xl font-bold text-slate-900">Exit Interview Form</h1>
+            <h1 className="text-2xl font-bold text-slate-900">{t("exitInterviewForm")}</h1>
           </div>
 
           <FormProvider {...methods}>
@@ -119,7 +122,7 @@ export const ExitInterviewForm = ({ formId, offboardingId }: ExitInterviewFormPr
                   className="bg-[#336192] hover:bg-[#264a70] text-white px-8"
                   disabled={mutation.isPending}
                 >
-                  {mutation.isPending ? "Submitting..." : "Submit Form"}
+                  {mutation.isPending ? tCommon("submitting") : t("submitForm")}
                 </Button>
               </div>
             </form>

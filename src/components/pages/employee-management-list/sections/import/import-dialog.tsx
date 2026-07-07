@@ -20,6 +20,7 @@ import {
 } from "@/services/employees/import-service";
 import { toast } from "sonner";
 import { ImportPreviewTable } from "./import-preview-table";
+import { useTranslations } from "next-intl";
 
 interface EmployeeImportDialogProps {
   open: boolean;
@@ -30,6 +31,8 @@ export function EmployeeImportDialog({
   open,
   onOpenChange,
 }: EmployeeImportDialogProps) {
+  const t = useTranslations("employee");
+  const tCommon = useTranslations("common");
   const [step, setStep] = React.useState<"upload" | "result">("upload");
   const [file, setFile] = React.useState<File | null>(null);
   const [isProcessing, setIsProcessing] = React.useState(false);
@@ -68,7 +71,7 @@ export function EmployeeImportDialog({
         }
       }
     } catch (error) {
-      toast.error("Failed to process file");
+      toast.error(t("failedProcessFile"));
       reset();
     } finally {
       setIsProcessing(false);
@@ -93,7 +96,7 @@ export function EmployeeImportDialog({
       if (blob.type === "application/json") {
         const text = await blob.text();
         const error = JSON.parse(text);
-        throw new Error(error.message || "Template not found");
+        throw new Error(error.message || t("templateNotFound"));
       }
 
       const url = window.URL.createObjectURL(blob);
@@ -106,10 +109,10 @@ export function EmployeeImportDialog({
       // Cleanup
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
-      toast.success("Template downloaded");
+      toast.success(t("templateDownloaded"));
     } catch (error: any) {
       console.error(error);
-      toast.error(error.message || "Failed to download template");
+      toast.error(error.message || t("failedDownloadTemplate"));
     } finally {
       setIsDownloading(false);
     }
@@ -121,7 +124,7 @@ export function EmployeeImportDialog({
       const pageRes = await getImportReport(report.import_id, page);
       setReport(pageRes.data);
     } catch (error) {
-      toast.error("Failed to load page");
+      toast.error(t("failedLoadPage"));
     }
   };
 
@@ -141,7 +144,7 @@ export function EmployeeImportDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className={cn("sm:max-w-xl transition-all duration-300 bg-white", step === "result" && "sm:max-w-[95vw]")}>
         <DialogHeader>
-          <DialogTitle>Import Employee</DialogTitle>
+          <DialogTitle>{t("importEmployee")}</DialogTitle>
         </DialogHeader>
 
         <div className="py-4">
@@ -158,8 +161,8 @@ export function EmployeeImportDialog({
               {isProcessing ? (
                 <div className="flex flex-col items-center gap-2 text-center">
                   <Loader2 className="h-10 w-10 text-primary animate-spin" />
-                  <p className="text-grayscale-90 font-medium">Processing file...</p>
-                  <p className="text-grayscale-70 text-sm">Please wait while we process your import.</p>
+                  <p className="text-grayscale-90 font-medium">{t("processingFile")}</p>
+                  <p className="text-grayscale-70 text-sm">{t("importProcessingWait")}</p>
                 </div>
               ) : (
                 <>
@@ -168,15 +171,16 @@ export function EmployeeImportDialog({
                   </div>
                   <div className="text-center">
                     <p className="text-grayscale-90">
-                      Drop your CSV/XLSX file here
+                      {t("importDropFile")}
                     </p>
                     <p className="text-grayscale-90">
-                      or <span className="text-primary font-semibold">click to browse from your device.</span>
+                      {t("importOr")}{" "}
+                      <span className="text-primary font-semibold">{t("importClickBrowse")}</span>
                     </p>
                   </div>
                   <div className="flex items-center gap-2 w-full justify-center">
                     <div className="h-[1px] bg-grayscale-20 flex-1 max-w-[40px]" />
-                    <span className="text-grayscale-70 text-xs">or</span>
+                    <span className="text-grayscale-70 text-xs">{t("importOr")}</span>
                     <div className="h-[1px] bg-grayscale-20 flex-1 max-w-[40px]" />
                   </div>
                   <Button
@@ -193,7 +197,7 @@ export function EmployeeImportDialog({
                     ) : (
                       <Download className="h-4 w-4" />
                     )}
-                    {isDownloading ? "Downloading..." : "Download Excel Template"}
+                    {isDownloading ? t("downloading") : t("downloadExcelTemplate")}
                   </Button>
                 </>
               )}
@@ -210,20 +214,20 @@ export function EmployeeImportDialog({
             <div className="space-y-6">
               <div className="flex flex-col md:flex-row gap-4 justify-around p-4 bg-grayscale-10 rounded-lg border border-grayscale-20">
                 <div className="flex flex-col items-center">
-                  <span className="text-grayscale-90 text-sm font-medium">Total Rows</span>
+                  <span className="text-grayscale-90 text-sm font-medium">{t("totalRows")}</span>
                   <span className="text-2xl font-bold">{report.total_rows}</span>
                 </div>
                 <div className="w-[1px] bg-grayscale-20 hidden md:block" />
                 <div className="flex flex-col items-center">
                   <span className="flex items-center gap-1 text-success text-sm font-medium">
-                    <CheckCircle2 className="h-4 w-4" /> Success
+                    <CheckCircle2 className="h-4 w-4" /> {tCommon("success")}
                   </span>
                   <span className="text-2xl font-bold text-success">{report.success_rows}</span>
                 </div>
                 <div className="w-[1px] bg-grayscale-20 hidden md:block" />
                 <div className="flex flex-col items-center">
                   <span className="flex items-center gap-1 text-error text-sm font-medium">
-                    <AlertCircle className="h-4 w-4" /> Failed
+                    <AlertCircle className="h-4 w-4" /> {tCommon("failed")}
                   </span>
                   <span className="text-2xl font-bold text-error">{report.failed_rows}</span>
                 </div>
@@ -231,7 +235,7 @@ export function EmployeeImportDialog({
 
               {report.records && report.records.data && report.records.data.length > 0 && (
                 <div className="space-y-3">
-                  <h3 className="text-sm font-semibold text-grayscale-90">Import Details</h3>
+                  <h3 className="text-sm font-semibold text-grayscale-90">{t("importDetails")}</h3>
                   <div className="border border-grayscale-20 rounded-md overflow-x-auto">
                    <ImportPreviewTable paginatedRecords={report.records} onPageChange={handlePageChange} />
                   </div>
@@ -250,7 +254,7 @@ export function EmployeeImportDialog({
                }}
                className="text-white hover:bg-primary font-semibold"
              >
-               Close
+               {tCommon("close")}
              </Button>
           ) : (
             <Button
@@ -261,7 +265,7 @@ export function EmployeeImportDialog({
               className="border-primary text-primary hover:bg-blue-50"
               disabled={isProcessing}
             >
-              Cancel
+              {tCommon("cancel")}
             </Button>
           )}
         </DialogFooter>

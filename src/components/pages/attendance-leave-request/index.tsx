@@ -2,6 +2,7 @@
 'use client';
 
 import * as React from 'react';
+import { useTranslations } from 'next-intl';
 import LeaveSummary from './sections/leave-summary';
 import LeaveFilters from './sections/leave-filters';
 import LeaveModals from './sections/leave-modals';
@@ -17,13 +18,16 @@ export default function AttendanceLeaveRequest({
   isEmployee = false,
   hidePannel = false,
 }: AttendanceLeaveRequestProps) {
+  const tCommon = useTranslations('common');
   const leaveRequest = useLeaveRequest(isEmployee);
 
   return (
     <div className="font-sans min-h-screen flex flex-col space-y-6 px-6">
       {!hidePannel && (
         <>
-          {!isEmployee && <h2 className="font-semibold text-xl">Summary</h2>}
+          {!isEmployee && (
+            <h2 className="font-semibold text-xl">{tCommon('summary')}</h2>
+          )}
 
           <LeaveSummary summary={leaveRequest.leaves?.summary} />
 

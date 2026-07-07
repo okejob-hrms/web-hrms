@@ -42,6 +42,8 @@ import { EmployeeListSidebar } from "./employee-list-sidebar";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
+import { OrgChartDepthFilter } from "./org-chart-depth-filter";
+import { OrgChartFitView } from "./org-chart-fit-view";
 
 const nodeWidth = 220;
 const nodeHeight = 140;
@@ -97,6 +99,7 @@ export default function OrganizationChartEdit() {
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
 
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<number | null>(null);
+  const [maxDepth, setMaxDepth] = useState<number | null>(null);
   const [assignEmployeeOpen, setAssignEmployeeOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [selectedEmployeeDetails, setSelectedEmployeeDetails] = useState<EmployeeNode | null>(null);
@@ -108,8 +111,9 @@ export default function OrganizationChartEdit() {
     isRefetching,
     isError,
   } = useQuery({
-    queryKey: ["organizationChart", selectedEmployeeId],
-    queryFn: () => getOrgChart(selectedEmployeeId ? `${selectedEmployeeId}` : ''),
+    queryKey: ["organizationChart", selectedEmployeeId, maxDepth],
+    queryFn: () =>
+      getOrgChart(selectedEmployeeId ? `${selectedEmployeeId}` : '', maxDepth),
     select: (apiResponse) => flattenOrgData(apiResponse.data),
   });
 
@@ -183,6 +187,8 @@ export default function OrganizationChartEdit() {
     },
   });
 
+  const fitViewTrigger = `${selectedEmployeeId ?? "all"}:${maxDepth ?? "all"}:${nodes.length}`;
+
   return (
     <ReactFlowProvider>
       <div className="flex flex-col h-screen w-full overflow-hidden bg-white">
@@ -193,8 +199,15 @@ export default function OrganizationChartEdit() {
             </Button>
             <h2 className="font-semibold text-lg md:text-xl truncate">Organization Structure</h2>
           </div>
-          
-          <Button 
+
+          <div className="flex items-center gap-2">
+            <OrgChartDepthFilter
+              value={maxDepth}
+              onChange={setMaxDepth}
+              className="w-[180px] md:w-[200px] bg-white"
+            />
+
+            <Button 
             variant="outline" 
             size="sm"
             className="md:hidden flex items-center gap-2"
@@ -203,6 +216,7 @@ export default function OrganizationChartEdit() {
             {isSidebarOpen ? <X size={16} /> : <Menu size={16} />}
             <span>{isSidebarOpen ? "Close" : "Employees"}</span>
           </Button>
+          </div>
         </div>
 
         <div className="flex flex-1 relative overflow-hidden">
@@ -244,6 +258,10 @@ export default function OrganizationChartEdit() {
               >
                 <Background />
                 <CustomControls />
+                <OrgChartFitView
+                  trigger={fitViewTrigger}
+                  enabled={nodes.length > 0}
+                />
               </ReactFlow>
             )}
           </div>

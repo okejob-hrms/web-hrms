@@ -10,9 +10,12 @@ import { Button } from "@/components/ui/button";
 import { IdCardLanyard, Plus } from "lucide-react";
 import { ParticipantListModal } from "./sections/participant-list-modal";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 
 export const PerformanceSelfAssessmentForm = React.memo(
   function PerformanceSelfAssessmentForm() {
+    const t = useTranslations("performance");
+    const tCommon = useTranslations("common");
     const {
       form,
       periodOptions,
@@ -38,53 +41,51 @@ export const PerformanceSelfAssessmentForm = React.memo(
     return (
       <div className="font-sans md:px-[125px] px-4 space-y-4">
         <h2 className="font-semibold text-lg text-black">
-          {isEditMode ? "Edit Assessment Details" : "Assessment Details"}
+          {isEditMode ? t("editAssessmentDetails") : t("assessmentDetails")}
         </h2>
         <Form {...form}>
-          <form
-            className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end"
-            // onSubmit={(e) => {
-            //   e.preventDefault();
-            //   form.handleSubmit(handleSubmit)();
-            // }}
-          >
+          <form className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
             <SelectForm
               name="period"
               options={periodOptions}
               required
-              label="Assessment Period"
+              label={t("assessmentPeriod")}
               disabled={isLoadingDetails}
             />
             <InputForm
-              label="Year"
+              label={t("year")}
               name="year"
               required
               disabled={isLoadingDetails}
             />
             <DatePicker
               name="start_date"
-              label="Start Date"
+              label={t("startDate")}
               className="md:col-start-1"
               disabled={isLoadingDetails}
             />
             <DatePicker
               name="end_date"
-              label="End Date"
+              label={t("endDate")}
               disabled={isLoadingDetails}
             />
             <SelectForm
               name="reminder"
               options={sendReminderOptions}
               required
-              label="Send Reminder"
+              label={t("sendReminder")}
               disabled={isLoadingDetails}
             />
             <div className="md:col-span-3 flex gap-2 items-center mt-2">
-              <h2 className="font-semibold text-lg text-black">Participants</h2>
+              <h2 className="font-semibold text-lg text-black">
+                {t("participants")}
+              </h2>
               <div className="rounded-full bg-primary-background py-1 px-1.5 text-primary text-xs">
                 <span>
-                  {totalSelectedParticipants} / {totalEmployees} Employee
-                  Assigned
+                  {t("employeesAssigned", {
+                    assigned: totalSelectedParticipants,
+                    total: totalEmployees ?? 0,
+                  })}
                 </span>
               </div>
             </div>
@@ -98,13 +99,13 @@ export const PerformanceSelfAssessmentForm = React.memo(
                     name={`assessment_form_${assessmentFormItem.id}`}
                     options={assessmentFormOptions}
                     required
-                    label="Assessment Form"
+                    label={t("assessmentForm")}
                   />
                 </div>
                 {assessmentFormItem.selectedParticipants.length > 0 ? (
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex flex-col text-text-disabled">
-                      <span className="text-sm">Assigned Participant</span>
+                      <span className="text-sm">{t("assignedParticipant")}</span>
                       <span className="text-sm">
                         {assessmentFormItem.selectedParticipants.length} /{" "}
                         {totalEmployees}
@@ -122,7 +123,7 @@ export const PerformanceSelfAssessmentForm = React.memo(
                         width={20}
                         height={20}
                       />
-                      Edit Participant
+                      {t("editParticipant")}
                     </Button>
                     <Button
                       variant="ghost"
@@ -143,7 +144,7 @@ export const PerformanceSelfAssessmentForm = React.memo(
                     type="button"
                   >
                     <IdCardLanyard />
-                    Assign Participant
+                    {t("assignParticipant")}
                   </Button>
                 )}
               </div>
@@ -156,7 +157,7 @@ export const PerformanceSelfAssessmentForm = React.memo(
               type="button"
             >
               <Plus />
-              Add Participant
+              {t("addParticipant")}
             </Button>
             <div className="flex gap-2 my-8 justify-between md:col-start-1 md:justify-start w-full">
               <Button
@@ -166,7 +167,7 @@ export const PerformanceSelfAssessmentForm = React.memo(
                 disabled={isPendingAddAssessment}
                 onClick={handleCancel}
               >
-                Cancel
+                {tCommon("cancel")}
               </Button>
               <Button
                 type="button"
@@ -175,7 +176,7 @@ export const PerformanceSelfAssessmentForm = React.memo(
                 className="w-[50%]"
                 disabled={isLoadingDetails}
               >
-                {isEditMode ? "Update Assessment" : "Create Assessment"}
+                {isEditMode ? t("updateAssessment") : t("createAssessment")}
               </Button>
             </div>
           </form>

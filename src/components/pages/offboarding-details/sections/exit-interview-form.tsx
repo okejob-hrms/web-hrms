@@ -24,6 +24,7 @@ import { getDetailOffboarding } from "@/services/employees/offboardings";
 import { ApiErrorResponse } from "@/lib/types";
 import AppSkeleton from "@/components/partials/app-skeleton";
 import { IFormGroup } from "@/services/form/types";
+import { useTranslations } from "next-intl";
 
 interface ExitInterviewFormProps {
   offboarding_id: number;
@@ -50,10 +51,11 @@ const AlertProcess = React.memo(function AlertProcess({
   name: string;
   offboardingId: number;
 }) {
+  const t = useTranslations("offboarding");
   const notifyMutation = useMutation({
     mutationFn: () => postNotifyEmployee(offboardingId),
     onSuccess: () => {
-      toast.success("Success notify employee");
+      toast.success(t("notifyEmployeeSuccess"));
     },
     onError: (error: unknown) => {
       if (error && typeof error === "object" && "response" in error) {
@@ -62,18 +64,18 @@ const AlertProcess = React.memo(function AlertProcess({
           apiError.response
             .json()
             .then((errorData: ApiErrorResponse) => {
-              toast.error(errorData.message || "Failed to notify employee");
+              toast.error(errorData.message || t("notifyEmployeeFailed"));
             })
             .catch(() => {
-              toast.error("Failed to notify employee: Server error");
+              toast.error(`${t("notifyEmployeeFailed")}: ${t("serverError")}`);
             });
         } catch (parseError) {
-          toast.error(`Failed to notify employee: Server error: ${parseError}`);
+          toast.error(`${t("notifyEmployeeFailed")}: ${t("serverError")}: ${parseError}`);
         }
       } else {
         const errorMessage =
-          error instanceof Error ? error.message : "Unknown error";
-        toast.error(`Failed to notify employee: ${errorMessage}`);
+          error instanceof Error ? error.message : t("unknownError");
+        toast.error(`${t("notifyEmployeeFailed")}: ${errorMessage}`);
       }
     },
   });
@@ -83,11 +85,10 @@ const AlertProcess = React.memo(function AlertProcess({
       <Alert className="flex items-center border border-primary-border bg-primary-background justify-between">
         <div>
           <AlertTitle className="text-primary font-semibold text-lg">
-            Offboarding Process Initiated
+            {t("offboardingProcessInitiated")}
           </AlertTitle>
           <AlertDescription>
-            Please notify {name} to fill-in their exit form to proceed with the
-            next step.
+            {t("notifyEmployeeDesc", { name })}
           </AlertDescription>
         </div>
         <Button
@@ -100,9 +101,9 @@ const AlertProcess = React.memo(function AlertProcess({
             src="/icons/activity.svg"
             width={18}
             height={18}
-            alt="notify"
+            alt={t("notifyEmployee")}
           />
-          Notify Employee
+          {t("notifyEmployee")}
         </Button>
       </Alert>
     </div>

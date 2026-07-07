@@ -30,9 +30,13 @@ import { Plus } from "lucide-react";
 import * as React from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 export const InitiateOffboardingEmployee = React.memo(
   function InitiateOffboardingEmployee() {
+    const t = useTranslations("offboarding");
+    const tCommon = useTranslations("common");
+    const tEmployee = useTranslations("employee");
     const [isOpen, setIsOpen] = React.useState(false);
     const [searchApprover, setSearchApprover] = React.useState("");
     const debouncedApprover = useDebounce(searchApprover, 300);
@@ -97,13 +101,13 @@ export const InitiateOffboardingEmployee = React.memo(
         createInitiateOffboarding(params),
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["offboardings"] });
-        toast.success("New offboarding initiated");
+        toast.success(t("initiateSuccess"));
         form.reset();
         setIsOpen(false);
       },
       onError: (error: any) => {
         console.error("Mutation error:", error);
-        toast.error("Failed to initiate new offboarding");
+        toast.error(t("initiateFailed"));
       },
     });
 
@@ -135,16 +139,15 @@ export const InitiateOffboardingEmployee = React.memo(
         <DialogTrigger asChild>
           <Button variant="default">
             <Plus className="mr-2 h-4 w-4" />
-            New Offboarding Process
+            {t("newOffboardingProcess")}
           </Button>
         </DialogTrigger>
 
         <DialogContent className="bg-white md:min-w-5xl overflow-y-auto max-h-[90vh]">
           <DialogHeader>
-            <DialogTitle>New Offboarding Process</DialogTitle>
+            <DialogTitle>{t("newOffboardingProcess")}</DialogTitle>
             <DialogDescription>
-              Select an employee to begin the offboarding procedure and manage
-              their exit smoothly
+              {t("newOffboardingProcessDesc")}
             </DialogDescription>
           </DialogHeader>
 
@@ -155,21 +158,21 @@ export const InitiateOffboardingEmployee = React.memo(
             >
               <SelectEmployeeForm
                 name="user_id"
-                label="Employee Name"
+                label={t("employeeName")}
                 required
                 options={employeesOptions}
               />
 
               <div className="flex flex-col gap-2">
                 <label className="text-sm font-medium text-gray-700">
-                  Assigned Approver
+                  {t("assignedApprover")}
                   <span className="text-red-500 ml-1">*</span>
                 </label>
                 <MultiSelectForm
                   options={employeesOptions}
                   name="approvers"
                   maxCount={3}
-                  searchPlaceholder="Search Employee"
+                  searchPlaceholder={tEmployee("searchEmployee")}
                   hideSelectAll
                   disabled={isLoadingEmployees}
                   valueTransformer={(value) => Number(value)}
@@ -181,17 +184,17 @@ export const InitiateOffboardingEmployee = React.memo(
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <DatePicker
                   name="effective_resignation_date"
-                  label="Effective Resignation Date"
+                  label={t("effectiveResignationDate")}
                 />
                 <DatePicker
                   name="last_working_date"
-                  label="Last Working Date"
+                  label={tEmployee("lastWorkingDate")}
                 />
               </div>
 
               <SelectForm
                 name="form_id"
-                label="Exit Interview Form"
+                label={t("exitInterviewForm")}
                 required
                 options={formOptions}
               />
@@ -203,7 +206,7 @@ export const InitiateOffboardingEmployee = React.memo(
                     variant="outline"
                     disabled={mutation.isPending}
                   >
-                    Cancel
+                    {tCommon("cancel")}
                   </Button>
                 </DialogClose>
                 <Button
@@ -211,7 +214,7 @@ export const InitiateOffboardingEmployee = React.memo(
                   disabled={mutation.isPending}
                   className="min-w-[100px]"
                 >
-                  {mutation.isPending ? "Saving..." : "Save"}
+                  {mutation.isPending ? tCommon("saving") : tCommon("save")}
                 </Button>
               </DialogFooter>
             </form>

@@ -1,21 +1,28 @@
 'use client';
 
-import React, { useEffect } from "react";
-import { useForm, SubmitHandler } from "react-hook-form";
-import { Button } from "@/components/ui/button";
+import React, { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Form, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Textarea } from "@/components/ui/textarea";
-import { MultiSelectForm } from "@/components/ui/multi-select"; // Use MultiSelect instead
+} from '@/components/ui/dialog';
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Textarea } from '@/components/ui/textarea';
+import { MultiSelectForm } from '@/components/ui/multi-select';
+import { useTranslations } from 'next-intl';
 
 interface DocumentHandoverFormData {
   document: string;
-  handover_to_user_ids: string[]; // Changed to array for MultiSelect
+  handover_to_user_ids: string[];
 }
 
 interface DocumentHandoverFormModalProps {
@@ -44,9 +51,12 @@ const DocumentHandoverFormModal: React.FC<DocumentHandoverFormModalProps> = ({
   setSearchEmployee,
   isSubmitting,
 }) => {
+  const t = useTranslations('offboarding');
+  const tCommon = useTranslations('common');
+
   const form = useForm<DocumentHandoverFormData>({
     defaultValues: {
-      document: "",
+      document: '',
       handover_to_user_ids: [],
     },
   });
@@ -55,7 +65,7 @@ const DocumentHandoverFormModal: React.FC<DocumentHandoverFormModalProps> = ({
     if (initialData) {
       form.reset(initialData);
     } else {
-      form.reset({ document: "", handover_to_user_ids: [] });
+      form.reset({ document: '', handover_to_user_ids: [] });
     }
   }, [initialData, form, open]);
 
@@ -64,7 +74,9 @@ const DocumentHandoverFormModal: React.FC<DocumentHandoverFormModalProps> = ({
       <DialogContent className="max-w-[500px] bg-white">
         <DialogHeader>
           <DialogTitle>
-            {initialData ? "Edit Document Handover" : "Document Handover"}
+            {initialData
+              ? t('editDocumentHandover')
+              : t('documentHandoverModalAddTitle')}
           </DialogTitle>
         </DialogHeader>
 
@@ -75,8 +87,15 @@ const DocumentHandoverFormModal: React.FC<DocumentHandoverFormModalProps> = ({
               name="document"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Document Name<span className="text-red-500 ml-1">*</span></FormLabel>
-                  <Textarea className="h-[135px]" placeholder="High-Fidelity design HRMS" {...field} />
+                  <FormLabel>
+                    {t('documentName')}
+                    <span className="text-red-500 ml-1">*</span>
+                  </FormLabel>
+                  <Textarea
+                    className="h-[135px]"
+                    placeholder={t('workHandoverPlaceholder')}
+                    {...field}
+                  />
                   <FormMessage />
                 </FormItem>
               )}
@@ -84,13 +103,14 @@ const DocumentHandoverFormModal: React.FC<DocumentHandoverFormModalProps> = ({
 
             <div className="flex flex-col gap-2">
               <label className="text-sm font-medium text-gray-700">
-                Handed Over To<span className="text-red-500 ml-1">*</span>
+                {t('handedOverTo')}
+                <span className="text-red-500 ml-1">*</span>
               </label>
               <MultiSelectForm
                 options={employeesOptions}
                 name="handover_to_user_ids"
                 maxCount={5}
-                searchPlaceholder="Search Employee"
+                searchPlaceholder={tCommon('searchEmployee')}
                 hideSelectAll
                 valueTransformer={(value: string) => value}
                 searchValue={searchEmployee}
@@ -99,9 +119,15 @@ const DocumentHandoverFormModal: React.FC<DocumentHandoverFormModalProps> = ({
             </div>
 
             <div className="flex justify-end gap-3 pt-4">
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+              >
+                {tCommon('cancel')}
+              </Button>
               <Button type="submit" className="bg-[#2B5783] text-white">
-                {isSubmitting ? "Saving..." : "Save"}
+                {isSubmitting ? tCommon('saving') : tCommon('save')}
               </Button>
             </div>
           </form>

@@ -21,7 +21,7 @@ export const SelfAssessment = ({ data }: SelfAssessmentProps) => {
       <h3 className="font-semibold text-lg text-black">
         Self Assessment Result
       </h3>
-      <AssessmentResultTable data={data?.data} />
+      <AssessmentResultTable data={data?.data} formId={data?.form_id} />
       <div className="flex gap-2 items-center">
         <h3 className="font-semibold text-lg text-black">
           Self Assessment Details

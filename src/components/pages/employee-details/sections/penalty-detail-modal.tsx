@@ -8,16 +8,8 @@ import { getDetailsPenalty } from "@/services/employees/penalties";
 import { useQuery } from "@tanstack/react-query";
 import { formatDateTime, rupiahFormatter } from "@/lib/helpers";
 import { Badge } from "@/components/ui/badge";
-import {
-  formatConfiguredValue,
-  formatPeriod,
-  getAppliedAmount,
-  getConditionLabel,
-  getImpactLabel,
-  getTriggerLabel,
-  getValueTypeLabel,
-  isDispensation,
-} from "./penalty-utils";
+import { usePenaltyLabels } from "./penalty-utils";
+import { useTranslations } from "next-intl";
 
 interface PenaltyDetailModalProps {
   penaltyId: number | null;
@@ -47,6 +39,19 @@ export function PenaltyDetailModal({
   open,
   onOpenChange,
 }: PenaltyDetailModalProps) {
+  const t = useTranslations("employee");
+  const tCommon = useTranslations("common");
+  const {
+    getTriggerLabel,
+    getConditionLabel,
+    getImpactLabel,
+    getValueTypeLabel,
+    formatPeriod,
+    formatConfiguredValue,
+    getAppliedAmount,
+    isDispensation,
+  } = usePenaltyLabels();
+
   const { data: penaltyData, isLoading } = useQuery({
     queryKey: ["penalty-detail", penaltyId],
     queryFn: () => getDetailsPenalty(penaltyId!),
@@ -63,21 +68,20 @@ export function PenaltyDetailModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[560px] bg-white max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Penalty Details</DialogTitle>
+          <DialogTitle>{t("penaltyDetails")}</DialogTitle>
         </DialogHeader>
 
         {isLoading ? (
-          <div className="flex justify-center p-4">Loading...</div>
+          <div className="flex justify-center p-4">{tCommon("loading")}</div>
         ) : penalty ? (
           <div className="flex flex-col gap-5 text-sm">
-            {/* Header */}
             <div className="space-y-2">
               <div className="text-base font-semibold text-grayscale-90">
                 {penalty.name}
               </div>
               {meta?.rule_name && meta.rule_name !== penalty.name ? (
                 <div className="text-xs text-grayscale-50">
-                  Aturan: {meta.rule_name}
+                  {t("penaltyRule")}: {meta.rule_name}
                 </div>
               ) : null}
               <div className="flex flex-wrap gap-2 pt-1">
@@ -91,7 +95,7 @@ export function PenaltyDetailModal({
                 </Badge>
                 {meta?.impact_type ? (
                   <Badge variant="outline" className="font-normal">
-                    Dampak: {getImpactLabel(meta.impact_type)}
+                    {t("penaltyImpact")}: {getImpactLabel(meta.impact_type)}
                   </Badge>
                 ) : null}
                 {dispensation ? (
@@ -99,18 +103,19 @@ export function PenaltyDetailModal({
                     variant="outline"
                     className="border-success text-success font-normal"
                   >
-                    Dispensasi
+                    {t("dispensation")}
                   </Badge>
                 ) : null}
               </div>
             </div>
 
-            {/* Applied penalty highlight */}
             <div className="rounded-lg border border-grayscale-20 bg-grayscale-10 p-4">
-              <div className="text-xs text-grayscale-50">Potongan Diterapkan</div>
+              <div className="text-xs text-grayscale-50">
+                {t("appliedDeduction")}
+              </div>
               {dispensation ? (
                 <div className="text-lg font-semibold text-success">
-                  Tanpa Potongan
+                  {t("noDeduction")}
                 </div>
               ) : (
                 <div className="text-lg font-semibold text-error">
@@ -119,22 +124,22 @@ export function PenaltyDetailModal({
               )}
             </div>
 
-            {/* Description */}
             {penalty.description ? (
-              <Field label="Deskripsi" className="">
+              <Field label={tCommon("description")} className="">
                 <span className="font-normal text-grayscale-70">
                   {penalty.description}
                 </span>
               </Field>
             ) : null}
 
-            {/* Detail grid */}
             <div className="grid grid-cols-2 gap-4 border-t border-grayscale-20 pt-4">
-              <Field label="Period">{formatPeriod(penalty.period)}</Field>
-              <Field label="Point">{penalty.point ?? 0}</Field>
+              <Field label={t("employeePayrollPeriod")}>
+                {formatPeriod(penalty.period)}
+              </Field>
+              <Field label={t("penaltyPoint")}>{penalty.point ?? 0}</Field>
 
               {meta?.configured_amount !== undefined ? (
-                <Field label="Nilai Aturan">
+                <Field label={t("configuredValue")}>
                   {formatConfiguredValue(
                     meta.configured_amount,
                     meta.value_type,
@@ -142,59 +147,59 @@ export function PenaltyDetailModal({
                 </Field>
               ) : null}
               {meta?.value_type ? (
-                <Field label="Tipe Nilai">
+                <Field label={t("valueType")}>
                   {getValueTypeLabel(meta.value_type)}
                 </Field>
               ) : null}
 
-              {/* Per-occurrence specifics */}
               {!isAggregate && meta?.minutes !== undefined ? (
-                <Field label="Durasi">{meta.minutes} menit</Field>
+                <Field label={t("duration")}>
+                  {t("minutesUnit", { minutes: meta.minutes })}
+                </Field>
               ) : null}
               {!isAggregate && meta?.occurrence_index !== undefined ? (
-                <Field label="Kejadian ke-">{meta.occurrence_index}</Field>
+                <Field label={t("occurrenceIndex")}>
+                  {meta.occurrence_index}
+                </Field>
               ) : null}
               {!isAggregate && meta?.monthly_free_count !== undefined ? (
-                <Field label="Kuota Dispensasi / Bulan">
+                <Field label={t("monthlyFreeQuota")}>
                   {meta.monthly_free_count}
                 </Field>
               ) : null}
 
-              {/* Aggregate specifics */}
               {isAggregate && meta?.count !== undefined ? (
-                <Field label="Jumlah Kejadian">{meta.count}</Field>
+                <Field label={t("occurrenceCount")}>{meta.count}</Field>
               ) : null}
 
-              {/* Threshold range */}
               {meta?.min_threshold !== undefined &&
               meta?.max_threshold !== undefined ? (
-                <Field label="Rentang Threshold">
+                <Field label={t("thresholdRange")}>
                   {meta.min_threshold} – {meta.max_threshold}
                 </Field>
               ) : null}
 
-              <Field label="Valid Until">
+              <Field label={t("validUntil")}>
                 {penalty.valid_until
                   ? formatDateTime(penalty.valid_until).date
                   : "-"}
               </Field>
             </div>
 
-            {/* Footer meta */}
             <div className="border-t border-grayscale-20 pt-4 space-y-1 text-xs text-grayscale-50">
               <div>
-                Created At: {formatDateTime(penalty.created_at).date}{" "}
+                {t("createdAt")}: {formatDateTime(penalty.created_at).date}{" "}
                 {formatDateTime(penalty.created_at).hour}
               </div>
               <div>
-                Updated At: {formatDateTime(penalty.updated_at).date}{" "}
+                {t("updatedAt")}: {formatDateTime(penalty.updated_at).date}{" "}
                 {formatDateTime(penalty.updated_at).hour}
               </div>
             </div>
           </div>
         ) : (
           <div className="text-center text-muted-foreground p-4">
-            No details found.
+            {t("noDetailsFound")}
           </div>
         )}
       </DialogContent>

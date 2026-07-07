@@ -1,12 +1,15 @@
 'use client';
 
 import * as React from 'react';
+import { useTranslations, useLocale } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/tables/data-table';
 import { ColumnDef } from '@tanstack/react-table';
 import { Plus, CalendarIcon } from 'lucide-react';
 import { RowActions } from '@/components/tables/row-actions';
 import dayjs from 'dayjs';
+import { formatDate } from '@/lib/formatting';
+import { resolveLocale } from '@/lib/i18n/locale';
 import {
   Dialog,
   DialogContent,
@@ -59,6 +62,10 @@ import { getJobPositionPagination } from '@/services/job-position';
 // Component
 // =======================
 export default function SettingsBaseSalary() {
+  const t = useTranslations('settings');
+  const tEmployee = useTranslations('employee');
+  const tCommon = useTranslations('common');
+  const locale = resolveLocale(useLocale());
   const [open, setOpen] = React.useState(false);
   const [openDelete, setOpenDelete] = React.useState(false);
   const [openDetail, setOpenDetail] = React.useState(false);
@@ -99,7 +106,7 @@ export default function SettingsBaseSalary() {
   const columns: ColumnDef<BaseSalaryItem>[] = [
     {
       accessorKey: 'job_position_id',
-      header: 'Job Position',
+      header: tEmployee('positionName'),
       cell: ({ row }) => {
         const selected = jobPosition?.data.filter(
           (item) => item.id === row.original.job_position_id,
@@ -109,7 +116,7 @@ export default function SettingsBaseSalary() {
     },
     {
       accessorKey: 'job_level_id',
-      header: 'Job Level',
+      header: tEmployee('jobLevel'),
       cell: ({ row }) => {
         const selected = jobLevel?.data.filter(
           (item) => item.id === row.original.job_level_id,
@@ -119,20 +126,31 @@ export default function SettingsBaseSalary() {
     },
     {
       accessorKey: 'amount',
-      header: 'Base Salary Amount',
+      header: t('baseSalaryAmount'),
       cell: ({ row }) => `*************`,
       // `Rp ${Number(row.original.amount).toLocaleString('id-ID')}`,
     },
     {
       accessorKey: 'effective_date',
-      header: 'Effective Date',
+      header: t('effectiveDate'),
       cell: ({ row }) =>
-        dayjs(row.original.effective_date).format('MMMM D, YYYY'),
+        formatDate(row.original.effective_date, locale, {
+          month: 'long',
+          day: 'numeric',
+          year: 'numeric',
+        }),
     },
     {
       accessorKey: 'updated_at',
-      header: 'Last Update',
-      cell: ({ row }) => dayjs(row.original.updated_at).format('MMMM D, YYYY'),
+      header: tCommon('lastUpdate'),
+      cell: ({ row }) =>
+        row.original.updated_at
+          ? formatDate(row.original.updated_at, locale, {
+              month: 'long',
+              day: 'numeric',
+              year: 'numeric',
+            })
+          : '-',
     },
     {
       id: 'actions',
@@ -177,14 +195,14 @@ export default function SettingsBaseSalary() {
     },
     onMutate: () => setLoading(true),
     onSuccess: () => {
-      toast.success('Base salary successfully save');
+      toast.success(t('baseSalarySaved'));
       queryClient.invalidateQueries({ queryKey: ['getBaseSalary'] });
       baseSalaryDataRefetch();
       setOpen(false);
       setEditing(null);
     },
     onError: (err) => {
-      toast.error(`Failed to save: ${err.message}`);
+      toast.error(tCommon('saveFailed', { message: err.message }));
     },
     onSettled: () => setLoading(false),
   });
@@ -194,14 +212,14 @@ export default function SettingsBaseSalary() {
     mutationFn: (id) => removeBaseSalary(id),
     onMutate: () => setLoading(true),
     onSuccess: () => {
-      toast.success('Base salary deleted successfully');
+      toast.success(t('baseSalaryDeleted'));
       queryClient.invalidateQueries({ queryKey: ['getBaseSalary'] });
       baseSalaryDataRefetch();
       setOpenDelete(false);
       setEditing(null);
     },
     onError: (err) => {
-      toast.error(`Failed to delete: ${err.message}`);
+      toast.error(tCommon('deleteFailed', { message: err.message }));
     },
     onSettled: () => setLoading(false),
   });
@@ -233,7 +251,7 @@ export default function SettingsBaseSalary() {
       !form.effective_date ||
       !form.end_date
     )
-      return toast.error('Please fill all data!');
+      return toast.error(tCommon('fillAllData'));
 
     saveMutation.mutate({ id: editing?.id, data: form });
   };
@@ -251,7 +269,7 @@ export default function SettingsBaseSalary() {
   return (
     <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6">
       <div className="flex flex-col sm:flex-row sm:gap-4 justify-between">
-        <h2 className="font-semibold text-xl">Base Salary Management</h2>
+        <h2 className="font-semibold text-xl">{t('baseSalaryManagement')}</h2>
         <Button
           className="flex flex-row items-center gap-2"
           onClick={() => {
@@ -261,7 +279,7 @@ export default function SettingsBaseSalary() {
           }}
         >
           <Plus className="w-4 h-4" />
-          Add Base Salary
+          {t('addBaseSalary')}
         </Button>
       </div>
 
@@ -272,14 +290,14 @@ export default function SettingsBaseSalary() {
         <DialogContent className="max-w-md bg-white">
           <DialogHeader>
             <DialogTitle>
-              {editing ? 'Edit Base Salary' : 'Set Up Base Salary'}
+              {editing ? t('editBaseSalary') : t('setupBaseSalary')}
             </DialogTitle>
           </DialogHeader>
 
           <div className="grid gap-4 py-2">
             <div className="space-y-2">
               <Label>
-                Job Position<span className="text-red-500">*</span>
+                {tEmployee('positionName')}<span className="text-red-500">*</span>
               </Label>
               <Select
                 value={String(form.job_position_id)}
@@ -288,7 +306,7 @@ export default function SettingsBaseSalary() {
                 }
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select" />
+                  <SelectValue placeholder={tCommon('select')} />
                 </SelectTrigger>
                 <SelectContent>
                   {jobPosition?.data.map((item) => (
@@ -302,7 +320,7 @@ export default function SettingsBaseSalary() {
 
             <div className="space-y-2">
               <Label>
-                Job Level<span className="text-red-500">*</span>
+                {tEmployee('jobLevel')}<span className="text-red-500">*</span>
               </Label>
               <Select
                 value={String(form.job_level_id)}
@@ -311,7 +329,7 @@ export default function SettingsBaseSalary() {
                 }
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select" />
+                  <SelectValue placeholder={tCommon('select')} />
                 </SelectTrigger>
                 <SelectContent>
                   {jobLevel?.data.map((item) => (
@@ -325,7 +343,7 @@ export default function SettingsBaseSalary() {
 
             <div className="space-y-2">
               <Label>
-                Base Salary Amount<span className="text-red-500">*</span>
+                {t('baseSalaryAmount')}<span className="text-red-500">*</span>
               </Label>
               <Input
                 type="number"
@@ -342,7 +360,7 @@ export default function SettingsBaseSalary() {
 
             <div className="space-y-2">
               <Label>
-                Effective Date<span className="text-red-500">*</span>
+                {t('effectiveDate')}<span className="text-red-500">*</span>
               </Label>
               <Input
                 type="date"
@@ -358,7 +376,7 @@ export default function SettingsBaseSalary() {
 
             <div className="space-y-2">
               <Label>
-                Effective To<span className="text-red-500">*</span>
+                {t('effectiveTo')}<span className="text-red-500">*</span>
               </Label>
               <Input
                 type="date"
@@ -375,9 +393,9 @@ export default function SettingsBaseSalary() {
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>
-              Cancel
+              {tCommon('cancel')}
             </Button>
-            <Button onClick={handleSave}>Save</Button>
+            <Button onClick={handleSave}>{tCommon('save')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -396,10 +414,10 @@ export default function SettingsBaseSalary() {
               />
             </span>
             <AlertDialogTitle className="text-xl font-bold mb-2">
-              Are you sure you want to delete this configuration?
+              {t('deleteConfigurationTitle')}
             </AlertDialogTitle>
             <div className="text-gray-600 text-sm mb-4">
-              Employees linked to this configuration may be affected
+              {t('deleteConfigurationDesc')}
             </div>
           </div>
           <AlertDialogFooter className="flex flex-row gap-4 w-full justify-center">
@@ -408,14 +426,14 @@ export default function SettingsBaseSalary() {
               onClick={handleDelete}
               isLoading={loading}
             >
-              Delete Configuration
+              {t('deleteConfiguration')}
             </Button>
             <Button
               className="w-1/2 bg-[#18618B] hover:bg-[#14506e] text-white font-medium py-2 rounded-lg"
               onClick={() => setOpenDelete(false)}
               disabled={loading}
             >
-              Cancel
+              {tCommon('cancel')}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -425,12 +443,12 @@ export default function SettingsBaseSalary() {
       <Dialog open={openDetail} onOpenChange={setOpenDetail}>
         <DialogContent className="max-w-md bg-white">
           <DialogHeader>
-            <DialogTitle>Detail Base Salary</DialogTitle>
+            <DialogTitle>{t('detailBaseSalary')}</DialogTitle>
           </DialogHeader>
 
           <div className="grid gap-4 py-2">
             <div className="space-y-2">
-              <Label>Job Position</Label>
+              <Label>{tEmployee('positionName')}</Label>
               <Label className="font-semibold">
                 {jobPosition?.data.filter(
                   (item) => item.id === editing?.job_position_id,
@@ -439,7 +457,7 @@ export default function SettingsBaseSalary() {
             </div>
 
             <div className="space-y-2">
-              <Label>Job Level</Label>
+              <Label>{tEmployee('jobLevel')}</Label>
               <Label className="font-semibold">
                 {jobLevel?.data.filter(
                   (item) => item.id === editing?.job_level_id,
@@ -448,7 +466,7 @@ export default function SettingsBaseSalary() {
             </div>
 
             <div className="space-y-2">
-              <Label>Base Salary Amount</Label>
+              <Label>{t('baseSalaryAmount')}</Label>
               <Label className="font-semibold">
                 *************
                 {/* {`Rp ${Number(editing?.amount).toLocaleString('id-ID')}`} */}
@@ -456,16 +474,28 @@ export default function SettingsBaseSalary() {
             </div>
 
             <div className="space-y-2">
-              <Label>Effective Date</Label>
+              <Label>{t('effectiveDate')}</Label>
               <Label className="font-semibold">
-                {dayjs(editing?.effective_date).format('MMMM D, YYYY')}
+                {editing?.effective_date
+                  ? formatDate(editing.effective_date, locale, {
+                      month: 'long',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })
+                  : '-'}
               </Label>
             </div>
 
             <div className="space-y-2">
-              <Label>Effective To</Label>
+              <Label>{t('effectiveTo')}</Label>
               <Label className="font-semibold">
-                {dayjs(editing?.end_date).format('MMMM D, YYYY')}
+                {editing?.end_date
+                  ? formatDate(editing.end_date, locale, {
+                      month: 'long',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })
+                  : '-'}
               </Label>
             </div>
           </div>
@@ -476,11 +506,11 @@ export default function SettingsBaseSalary() {
               onClick={handleDelete}
               isLoading={loading}
             >
-              Delete
+              {tCommon('delete')}
             </Button>
             <div className="flex gap-3">
               <Button variant="outline" onClick={() => setOpenDetail(false)}>
-                Cancel
+                {tCommon('cancel')}
               </Button>
               <Button
                 onClick={() => {
@@ -492,7 +522,7 @@ export default function SettingsBaseSalary() {
                   }
                 }}
               >
-                Edit
+                {tCommon('edit')}
               </Button>
             </div>
           </div>

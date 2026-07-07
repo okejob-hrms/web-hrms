@@ -6,6 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations, useLocale } from "next-intl";
+import { formatDate } from "@/lib/formatting";
+import { resolveLocale } from "@/lib/i18n/locale";
 import { Toolbar } from "./sections/toolbar";
 import { ColumnDef, PaginationState } from "@tanstack/react-table";
 import { DataTable } from "@/components/tables/data-table";
@@ -28,126 +31,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import Image from "next/image";
 import { EmployeeImportDialog } from "./sections/import/import-dialog";
 
-export const columns: ColumnDef<IEmployeeResponse>[] = [
-  {
-    accessorKey: "name",
-    header: "Name",
-    cell: ({ row }) => (
-      <div className="flex gap-4 items-center min-w-[150px]">
-        <Avatar className="h-10 w-10">
-          <AvatarImage
-            src={`${process.env.NEXT_PUBLIC_FILE_URL}/${row.original.photo_profile}`}
-          />
-          <AvatarFallback className="text-primary-hover bg-primary-background text-base font-medium">
-            {stringAvatar(row.original.name)}
-          </AvatarFallback>
-        </Avatar>
-        <div className="flex flex-col">
-          <span className="font-semibold text-foreground text-sm">
-            {row.original.name}
-          </span>
-          <span className="text-text-secondary">{row.original.code}</span>
-        </div>
-      </div>
-    ),
-  },
-  {
-    accessorKey: "job_position",
-    header: "Position",
-  },
-  {
-    accessorKey: "department",
-    header: "Department",
-  },
-  {
-    accessorKey: "email",
-    header: "Email",
-  },
-  {
-    accessorKey: "phone_number",
-    header: "Phone Number",
-  },
-  {
-    accessorKey: "status",
-    header: "Status",
-    cell: ({ row }) => {
-      const status = row.original.status;
-      return (
-        <Badge
-          variant="default"
-          className={cn(
-            "rounded-full",
-            status === 1 ? "bg-success-focused " : "bg-error-focused ",
-          )}
-        >
-          <div
-            className={cn(
-              "size-2 rounded-full",
-              status === 1 ? "bg-success" : "bg-error",
-            )}
-          />
-          <span className={cn(status === 1 ? "text-success" : "text-error")}>
-            {status === 1 ? "Active" : "Inactive"}
-          </span>
-        </Badge>
-      );
-    },
-  },
-  {
-    accessorKey: "start_date",
-    header: "Join Date",
-    cell: ({ row }) => {
-      const date = new Date(row.original.start_date);
-      return date.toLocaleDateString();
-    },
-  },
-  {
-    accessorKey: "menu",
-    header: "",
-    cell: ({ row }) => {
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger>
-            <Ellipsis className="text-grayscale-30" />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuItem>
-              <Link
-                href={`/employee/employee-management/${row.original.id}`}
-                className="flex gap-2 w-full"
-              >
-                <Image
-                  src="/icons/eyeVisibleGrey.svg"
-                  height={16}
-                  width={16}
-                  alt="icon-eye"
-                />
-                Employee Details
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Link
-                href={`/employee/employee-management/edit/${row.original.id}`}
-                className="flex gap-2 w-full"
-              >
-                <Image
-                  src="/icons/editGrey.svg"
-                  height={16}
-                  width={16}
-                  alt="icon-edit"
-                />
-                Edit
-              </Link>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
-    },
-  },
-];
-
 export default function EmployeeManagementList() {
   const router = useRouter();
+  const t = useTranslations("employee");
+  const tCommon = useTranslations("common");
+  const locale = resolveLocale(useLocale());
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: 0,
     pageSize: 10,
@@ -158,6 +46,124 @@ export default function EmployeeManagementList() {
     search: "",
   });
   const [isImportOpen, setIsImportOpen] = React.useState(false);
+
+  const columns = React.useMemo<ColumnDef<IEmployeeResponse>[]>(
+    () => [
+      {
+        accessorKey: "name",
+        header: tCommon("name"),
+        cell: ({ row }) => (
+          <div className="flex gap-4 items-center min-w-[150px]">
+            <Avatar className="h-10 w-10">
+              <AvatarImage
+                src={`${process.env.NEXT_PUBLIC_FILE_URL}/${row.original.photo_profile}`}
+              />
+              <AvatarFallback className="text-primary-hover bg-primary-background text-base font-medium">
+                {stringAvatar(row.original.name)}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex flex-col">
+              <span className="font-semibold text-foreground text-sm">
+                {row.original.name}
+              </span>
+              <span className="text-text-secondary">{row.original.code}</span>
+            </div>
+          </div>
+        ),
+      },
+      {
+        accessorKey: "job_position",
+        header: tCommon("position"),
+      },
+      {
+        accessorKey: "department",
+        header: tCommon("department"),
+      },
+      {
+        accessorKey: "email",
+        header: tCommon("email"),
+      },
+      {
+        accessorKey: "phone_number",
+        header: t("phoneNumber"),
+      },
+      {
+        accessorKey: "status",
+        header: tCommon("status"),
+        cell: ({ row }) => {
+          const status = row.original.status;
+          return (
+            <Badge
+              variant="default"
+              className={cn(
+                "rounded-full",
+                status === 1 ? "bg-success-focused " : "bg-error-focused ",
+              )}
+            >
+              <div
+                className={cn(
+                  "size-2 rounded-full",
+                  status === 1 ? "bg-success" : "bg-error",
+                )}
+              />
+              <span className={cn(status === 1 ? "text-success" : "text-error")}>
+                {status === 1 ? tCommon("active") : tCommon("inactive")}
+              </span>
+            </Badge>
+          );
+        },
+      },
+      {
+        accessorKey: "start_date",
+        header: t("joinDate"),
+        cell: ({ row }) => formatDate(row.original.start_date, locale),
+      },
+      {
+        accessorKey: "menu",
+        header: "",
+        cell: ({ row }) => {
+          return (
+            <DropdownMenu>
+              <DropdownMenuTrigger>
+                <Ellipsis className="text-grayscale-30" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem>
+                  <Link
+                    href={`/employee/employee-management/${row.original.id}`}
+                    className="flex gap-2 w-full"
+                  >
+                    <Image
+                      src="/icons/eyeVisibleGrey.svg"
+                      height={16}
+                      width={16}
+                      alt="icon-eye"
+                    />
+                    {t("employeeDetails")}
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Link
+                    href={`/employee/employee-management/edit/${row.original.id}`}
+                    className="flex gap-2 w-full"
+                  >
+                    <Image
+                      src="/icons/editGrey.svg"
+                      height={16}
+                      width={16}
+                      alt="icon-edit"
+                    />
+                    {tCommon("edit")}
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          );
+        },
+      },
+    ],
+    [t, tCommon, locale],
+  );
 
   const debouncedFilters = useDebounce(filters, 300);
   const queryParams = React.useMemo(
@@ -208,10 +214,9 @@ export default function EmployeeManagementList() {
       <div className="rounded-md bg-white border shadow-sm border-grayscale-20 p-6 flex flex-col gap-4">
         <div className="flex md:flex-row flex-col justify-between w-full md:items-center items-start gap-4">
           <div className="flex gap-2 items-center">
-            <h2 className="font-semibold text-xl">Employee List</h2>
+            <h2 className="font-semibold text-xl">{t("listTitle")}</h2>
             <Badge className="bg-primary-background text-primary rounded-full">
-              {employees?.data.total || 0} Employee
-              {employees?.data.total !== 1 ? "s" : ""}
+              {t("employeeCount", { count: employees?.data.total || 0 })}
             </Badge>
           </div>
           <div className="flex gap-2">
@@ -226,12 +231,12 @@ export default function EmployeeManagementList() {
                 width={16}
                 alt="icon-import"
               />
-              Import
+              {tCommon("import")}
             </Button>
             <Button
               onClick={() => router.push("/employee/employee-management/add")}
             >
-              + New Employee
+              {t("newEmployee")}
             </Button>
           </div>
         </div>

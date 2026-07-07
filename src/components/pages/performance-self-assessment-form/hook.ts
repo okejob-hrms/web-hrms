@@ -16,6 +16,7 @@ import {
 } from "@/services/employees/self-assessment";
 import { toast } from "sonner";
 import { ApiErrorResponse } from "@/lib/types";
+import { useTranslations } from "next-intl";
 
 export interface Filters {
   search?: string;
@@ -31,6 +32,8 @@ export const usePerformanceSelfAssessmentForm = () => {
   const router = useRouter();
   const params = useParams();
   const queryClient = useQueryClient();
+  const t = useTranslations("performance");
+  const tCommon = useTranslations("common");
   const form = useForm();
   const [assessmentForms, setAssessmentForms] = React.useState<
     AssessmentFormItem[]
@@ -137,13 +140,16 @@ export const usePerformanceSelfAssessmentForm = () => {
     { label: "Q4", value: "Q4" },
   ];
 
-  const sendReminderOptions = [
-    { label: "1 Week After Start", value: "1_week_after_start" },
-    { label: "1 Days Before End", value: "1_days_before_end" },
-    { label: "2 Days Before End", value: "2_days_before_end" },
-    { label: "5 Days Before End", value: "5_days_before_end" },
-    { label: "5 Days Before", value: "5_days_before" },
-  ];
+  const sendReminderOptions = React.useMemo(
+    () => [
+      { label: t("reminderOneWeekAfterStart"), value: "1_week_after_start" },
+      { label: t("reminderOneDayBeforeEnd"), value: "1_days_before_end" },
+      { label: t("reminderTwoDaysBeforeEnd"), value: "2_days_before_end" },
+      { label: t("reminderFiveDaysBeforeEnd"), value: "5_days_before_end" },
+      { label: t("reminderFiveDaysBefore"), value: "5_days_before" },
+    ],
+    [t],
+  );
 
   const assessmentFormOptions = React.useMemo(() => {
     if (assessmentForm?.data) {
@@ -171,7 +177,7 @@ export const usePerformanceSelfAssessmentForm = () => {
         queryClient.invalidateQueries({
           queryKey: ["self-assessment-detail", periodId],
         });
-        toast.success("Self-assessment created successfully!");
+        toast.success(t("selfAssessmentCreatedSuccess"));
         router.push("/performance/self-assessment");
       },
       onError: (error: any) => {
@@ -181,18 +187,20 @@ export const usePerformanceSelfAssessmentForm = () => {
               .json()
               .then((errorData: ApiErrorResponse) => {
                 toast.error(
-                  errorData.message || "Failed to create self-assessment",
+                  errorData.message || t("selfAssessmentCreateFailed"),
                 );
               })
               .catch(() => {
-                toast.error("Failed to create self-assessment: Server error");
+                toast.error(tCommon("saveFailed", { message: "Server error" }));
               });
-          } catch (parseError) {
-            toast.error("Failed to create self-assessment: Server error");
+          } catch {
+            toast.error(tCommon("saveFailed", { message: "Server error" }));
           }
         } else {
           toast.error(
-            `Failed to create self-assessment: ${error.message || "Unknown error"}`,
+            tCommon("saveFailed", {
+              message: error.message || "Unknown error",
+            }),
           );
         }
       },
@@ -205,7 +213,7 @@ export const usePerformanceSelfAssessmentForm = () => {
         queryClient.invalidateQueries({
           queryKey: ["self-assessment-detail", periodId],
         });
-        toast.success("Self-assessment updated successfully!");
+        toast.success(t("selfAssessmentUpdatedSuccess"));
         router.push("/performance/self-assessment");
       },
       onError: (error: any) => {
@@ -215,18 +223,20 @@ export const usePerformanceSelfAssessmentForm = () => {
               .json()
               .then((errorData: ApiErrorResponse) => {
                 toast.error(
-                  errorData.message || "Failed to update self-assessment",
+                  errorData.message || t("selfAssessmentUpdateFailed"),
                 );
               })
               .catch(() => {
-                toast.error("Failed to updated self-assessment: Server error");
+                toast.error(tCommon("saveFailed", { message: "Server error" }));
               });
-          } catch (parseError) {
-            toast.error("Failed to updated self-assessment: Server error");
+          } catch {
+            toast.error(tCommon("saveFailed", { message: "Server error" }));
           }
         } else {
           toast.error(
-            `Failed to updated self-assessment: ${error.message || "Unknown error"}`,
+            tCommon("saveFailed", {
+              message: error.message || "Unknown error",
+            }),
           );
         }
       },
@@ -303,7 +313,7 @@ export const usePerformanceSelfAssessmentForm = () => {
         !formValues.start_date ||
         !formValues.end_date
       ) {
-        toast.error("Please fill in all required fields");
+        toast.error(t("fillRequiredFields"));
         return;
       }
       const hasValidAssessmentForm = assessmentForms.some((item, index) => {
@@ -312,9 +322,7 @@ export const usePerformanceSelfAssessmentForm = () => {
       });
 
       if (!hasValidAssessmentForm) {
-        toast.error(
-          "Please select at least one assessment form and assign participants",
-        );
+        toast.error(t("selectFormAndParticipants"));
         return;
       }
 
@@ -343,7 +351,7 @@ export const usePerformanceSelfAssessmentForm = () => {
       }
       queryClient.invalidateQueries({ queryKey: ["self-assessments"] });
     },
-    [form, assessmentForms, createAssessment, updateAssessment, isEditMode],
+    [form, assessmentForms, createAssessment, updateAssessment, isEditMode, t, queryClient],
   );
 
   const handleCancel = () => router.push("/performance/self-assessment");

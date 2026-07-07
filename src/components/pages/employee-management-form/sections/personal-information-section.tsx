@@ -20,9 +20,12 @@ import { toast } from "sonner";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { cn, stringAvatar } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useTranslations } from "next-intl";
 
 export const PersonalInformationSection = React.memo(
   function PersonalInformationSection() {
+    const t = useTranslations("employee");
+    const tCommon = useTranslations("common");
     const { data: roles } = useQuery({
       queryKey: ["roles"],
       queryFn: getRoles,
@@ -59,7 +62,7 @@ export const PersonalInformationSection = React.memo(
           setLoadingPhotoProfile(false);
         },
         onError: (error) => {
-          toast.error(`Failed to upload photo profile: ${error.message}`);
+          toast.error(t("photoUploadFailed", { message: error.message }));
         },
       });
 
@@ -84,14 +87,14 @@ export const PersonalInformationSection = React.memo(
       const file = event.target.files?.[0];
       if (file) {
         if (!file.type.startsWith("image/")) {
-          toast.error("Please select an image file");
+          toast.error(t("selectImageFile"));
           setLoadingPhotoProfile(false);
           return;
         }
 
         const maxSize = 5 * 1024 * 1024; // 5MB
         if (file.size > maxSize) {
-          toast.error("File size must be less than 5MB");
+          toast.error(t("fileSizeMax5mb"));
           setLoadingPhotoProfile(false);
           return;
         }
@@ -133,13 +136,13 @@ export const PersonalInformationSection = React.memo(
     return (
       <React.Fragment>
         <h2 className="font-semibold text-lg leading-5 mb-3">
-          Personal Information
+          {t("personalInformation")}
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-start">
           <div className="md:col-span-2">
             <label className="text-sm">
-              Photo{" "}
-              <span className="text-sm text-text-disabled">(optional)</span>
+              {t("photo")}{" "}
+              <span className="text-sm text-text-disabled">{tCommon("optional")}</span>
             </label>
             <div className="flex items-center gap-4">
               {isLoadingPhotoProfile || isPendingPhotoProfile ? (
@@ -173,7 +176,7 @@ export const PersonalInformationSection = React.memo(
                   height={18}
                   alt="icon search"
                 />
-                Select Image
+                {t("selectImage")}
               </Button>
               <input
                 type="file"
@@ -184,24 +187,24 @@ export const PersonalInformationSection = React.memo(
               />
             </div>
           </div>
-          <InputForm name="name" label="Name" required />
+          <InputForm name="name" label={tCommon("name")} required />
 
           <SelectForm
             name="role_id"
-            label="User Role"
+            label={t("userRole")}
             options={roleOptions}
             required
             className="md:w-[50%]"
           />
           <InputForm
             name="email"
-            label="Email"
+            label={tCommon("email")}
             required
             className="col-start-1"
           />
           <PhoneInput
             name="phone_number"
-            label="Phone Number"
+            label={t("phoneNumber")}
             required={true}
             className="self-end"
             countryCodeName="country_code"
@@ -209,33 +212,33 @@ export const PersonalInformationSection = React.memo(
           <RadioForm
             required
             name="gender"
-            label="Gender"
+            label={t("gender")}
             options={[
-              { label: "Male", value: "male" },
-              { label: "Female", value: "female" },
+              { label: t("male"), value: "male" },
+              { label: t("female"), value: "female" },
             ]}
           />
 
           <div className="grid grid-cols-2 gap-2 items-start">
-            <InputForm name="place_of_birth" label="Place of Birth" required />
-            <DatePicker name="date_of_birth" label="Born Date" />
+            <InputForm name="place_of_birth" label={t("placeOfBirth")} required />
+            <DatePicker name="date_of_birth" label={t("bornDate")} />
           </div>
 
           <div className="grid grid-cols-2 gap-2 items-start">
             <SelectForm
               name="marital_status"
-              label="Marital Status"
+              label={t("maritalStatus")}
               options={[
-                { label: "Single", value: "1" },
-                { label: "Married", value: "2" },
-                { label: "Divorced", value: "3" },
-                { label: "Widowed", value: "4" },
+                { label: t("single"), value: "1" },
+                { label: t("married"), value: "2" },
+                { label: t("divorced"), value: "3" },
+                { label: t("widowed"), value: "4" },
               ]}
               required
             />
             <SelectForm
               name="blood_type"
-              label="Blood Type"
+              label={t("bloodType")}
               options={[
                 { label: "A", value: "A" },
                 { label: "AB", value: "AB" },
@@ -248,7 +251,7 @@ export const PersonalInformationSection = React.memo(
           <div className="grid grid-cols-2 gap-2 col-start-1 col-end-2 items-start">
             <InputForm
               name="height"
-              label="Height"
+              label={t("height")}
               required
               iconPosition="right"
               type="number"
@@ -256,7 +259,7 @@ export const PersonalInformationSection = React.memo(
             />
             <InputForm
               name="weight"
-              label="Weight"
+              label={t("weight")}
               type="number"
               required
               iconPosition="right"
@@ -264,28 +267,28 @@ export const PersonalInformationSection = React.memo(
             />
           </div>
 
-          <InputForm name="id_number" label="ID Number" required />
-          <InputForm name="npwp" label="Taxpayer ID Number (NPWP)" />
-          <InputForm name="bpjs" label="Health Insurance Number (BPJS)" />
+          <InputForm name="id_number" label={t("idNumber")} required />
+          <InputForm name="npwp" label={t("npwp")} />
+          <InputForm name="bpjs" label={t("bpjs")} />
 
-          <TextAreaForm name="citizen_id_address" label="Citizen ID Address" />
-          <TextAreaForm name="residential_address" label="Residental Address" />
-          <InputForm name="hobby" label="Hobby" />
+          <TextAreaForm name="citizen_id_address" label={t("citizenIdAddress")} />
+          <TextAreaForm name="residential_address" label={t("residentialAddress")} />
+          <InputForm name="hobby" label={t("hobby")} />
 
           <TextAreaForm
             name="achievement"
-            label="Achievement"
+            label={t("achievement")}
             className="md:col-span-2"
           />
           <TextAreaForm
             name="personal_description"
-            label="Personal Description"
+            label={t("personalDescription")}
             className="md:col-span-2"
           />
           <div className="grid gap-2 w-full items-center">
             <FormLabel className="text-sm font-normal">
-              Social Media
-              <span className="text-text-disabled"> (optional)</span>
+              {t("socialMedia")}
+              <span className="text-text-disabled"> {tCommon("optional")}</span>
             </FormLabel>
             {Array.from({ length: socialMediaCount }).map((_, index) => (
               <div key={index} className="flex items-start gap-2 w-full">
@@ -355,7 +358,7 @@ export const PersonalInformationSection = React.memo(
                     },
                   ]}
                   className="w-18"
-                  placeholder="Select platform"
+                  placeholder={t("selectPlatform")}
                 />
                 <InputForm
                   name={`social_media_accounts.${index}.url`}
@@ -383,7 +386,7 @@ export const PersonalInformationSection = React.memo(
             type="button"
             onClick={addSocialMedia}
           >
-            <Plus /> Add More
+            <Plus /> {t("addMore")}
           </Button>
           <Separator className="md:col-span-2 my-4" />
         </div>

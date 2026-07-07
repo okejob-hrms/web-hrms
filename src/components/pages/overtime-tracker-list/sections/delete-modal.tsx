@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import {
   AlertDialog,
@@ -10,6 +12,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
 
 interface Props {
   onUpdate: (e?: React.FormEvent) => void;
@@ -22,8 +25,10 @@ export default function OvertimeDeleteModal({
   isOpen,
   setIsOpen,
 }: Props) {
+  const t = useTranslations('attendance');
+  const tCommon = useTranslations('common');
+
   const handleUpdate = async (e: React.MouseEvent) => {
-    console.log('Employee data updated');
     e.preventDefault();
     e.stopPropagation();
 
@@ -46,11 +51,10 @@ export default function OvertimeDeleteModal({
               alt="confirmation"
             />
             <AlertDialogTitle className="text-lg text-center font-semibold text-black mb-2">
-              Are you sure you want to delete this overtime request?
+              {t('confirmDeleteOvertime')}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-sm text-center text-text-secondary">
-              Deleting this overtime request will remove all associated time
-              logs for the selected date. This action is irreversible.
+              {t('deleteOvertimeDesc')}
             </AlertDialogDescription>
           </AlertDialogHeader>
 
@@ -59,13 +63,13 @@ export default function OvertimeDeleteModal({
               onClick={handleUpdate}
               className="flex-1 bg-transparent text-red-500 rounded-md py-2 font-medium hover:bg-red-50"
             >
-              Delete
+              {tCommon('delete')}
             </AlertDialogAction>
             <AlertDialogCancel
               onClick={() => setIsOpen(false)}
               className="flex-1 border bg-primary text-white rounded-md py-2 font-medium"
             >
-              Cancel
+              {tCommon('cancel')}
             </AlertDialogCancel>
           </AlertDialogFooter>
         </AlertDialogContent>

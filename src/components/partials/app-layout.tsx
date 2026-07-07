@@ -14,7 +14,7 @@ import { ModuleSidebar } from '@/components/partials/module-sidebar';
 import AppSkeleton from './app-skeleton';
 import { useState, useEffect } from 'react';
 import { Toaster } from '../ui/sonner';
-import { getBreadcrumbs, getGenerateTitle, getHideSidebar } from '@/lib/menu';
+import { getBreadcrumbs, getHideSidebar, menus } from '@/lib/menu';
 import { toast } from 'sonner';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -26,6 +26,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const isAuthPage = pathname.startsWith('/auth');
   const isDocsPage = pathname.startsWith('/docs');
   const breadcrumbs = getBreadcrumbs(pathname);
+  const moduleSegment = pathname.split('/')[1] ?? '';
+  const sidebarTitleKey = moduleSegment in menus ? moduleSegment : 'module';
   const isDashboard = ['/dashboard', '/ess', '/ess/'];
   const removeBg = isDashboard.includes(pathname);
   // const isEmployee = (roles: string[]) =>
@@ -120,7 +122,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           ) : (
             <SidebarProvider className="mx-auto w-full container md:py-10 flex flex-col md:flex-row md:gap-4">
               <SidebarTrigger className="md:hidden" />
-              <ModuleSidebar defaultTitle={getGenerateTitle(pathname)} />
+              <ModuleSidebar defaultTitleKey={sidebarTitleKey} />
               <main className="w-full px-2 md:px-0 py-3 md:py-0">
                 {loading ? <AppSkeleton /> : children}
               </main>

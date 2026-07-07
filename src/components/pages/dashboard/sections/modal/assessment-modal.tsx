@@ -19,26 +19,30 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useDashboarAssessment } from '../../hooks/assessment';
+import { useTranslations } from 'next-intl';
 
 interface AssessementModalProps {
   hook: ReturnType<typeof useDashboarAssessment>;
 }
 
 export default function AssessementModal({ hook }: AssessementModalProps) {
+  const t = useTranslations('dashboard');
+  const tPerf = useTranslations('performance');
+  const tCommon = useTranslations('common');
   const hooks = hook;
 
   return (
     <Dialog open={hook.open} onOpenChange={hook.setOpen}>
       <DialogContent className="w-screen sm:max-w-3xl max-h-90 p-6 rounded-2xl bg-white overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Add Custom Chart Widget</DialogTitle>
+          <DialogTitle>{t('addCustomChartWidget')}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label>Label</Label>
+            <Label>{t('widgetLabel')}</Label>
             <Input
               type="text"
-              placeholder="Input label"
+              placeholder={t('inputLabel')}
               className="w-full"
               name="label"
               value={hooks.form.label}
@@ -51,11 +55,10 @@ export default function AssessementModal({ hook }: AssessementModalProps) {
             />
           </div>
 
-          {/* Data Source */}
-          <div className="text-lg font-bold">Data Source</div>
+          <div className="text-lg font-bold">{t('dataSource')}</div>
 
           <div className="space-y-2">
-            <Label>Data Source Measurement</Label>
+            <Label>{t('dataSourceMeasurement')}</Label>
 
             <Select
               value={hooks.form.dataSource}
@@ -67,20 +70,22 @@ export default function AssessementModal({ hook }: AssessementModalProps) {
               }}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select source" />
+                <SelectValue placeholder={t('selectSource')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="offboarding">Offboarding</SelectItem>
-                <SelectItem value="self_assessment">Self Assessment</SelectItem>
+                <SelectItem value="offboarding">{t('offboarding')}</SelectItem>
+                <SelectItem value="self_assessment">
+                  {tPerf('selfAssessment')}
+                </SelectItem>
                 <SelectItem value="supervisor_assessment">
-                  Supervisor Assessment
+                  {tPerf('supervisorAssessment')}
                 </SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="space-y-2">
-            <Label>Form Source</Label>
+            <Label>{t('formSource')}</Label>
 
             <Select
               value={hooks.form.formSource}
@@ -92,7 +97,7 @@ export default function AssessementModal({ hook }: AssessementModalProps) {
               }}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select form source" />
+                <SelectValue placeholder={t('selectFormSource')} />
               </SelectTrigger>
               <SelectContent>
                 {hook.dataForm?.data.map((item) => (
@@ -106,7 +111,7 @@ export default function AssessementModal({ hook }: AssessementModalProps) {
 
           {hook.form.formSource !== '' && !hook.loadingFormId && (
             <div className="space-y-2">
-              <Label>Form Field</Label>
+              <Label>{t('formField')}</Label>
 
               <div className="space-y-3">
                 {hook.dataFormId?.data
@@ -145,7 +150,7 @@ export default function AssessementModal({ hook }: AssessementModalProps) {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label>Rows</Label>
+              <Label>{t('rows')}</Label>
 
               <Select
                 value={hooks.form.rows}
@@ -157,17 +162,17 @@ export default function AssessementModal({ hook }: AssessementModalProps) {
                 }}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select rows" />
+                  <SelectValue placeholder={t('selectRows')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="question">Question</SelectItem>
-                  <SelectItem value="answer_option">Answer Option</SelectItem>
+                  <SelectItem value="question">{t('question')}</SelectItem>
+                  <SelectItem value="answer_option">{t('answerOption')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
-              <Label>Column</Label>
+              <Label>{t('column')}</Label>
 
               <Select
                 value={hooks.form.columns}
@@ -179,17 +184,17 @@ export default function AssessementModal({ hook }: AssessementModalProps) {
                 }}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select columns" />
+                  <SelectValue placeholder={t('selectColumns')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="question">Question</SelectItem>
-                  <SelectItem value="answer_option">Answer Option</SelectItem>
+                  <SelectItem value="question">{t('question')}</SelectItem>
+                  <SelectItem value="answer_option">{t('answerOption')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
-              <Label>Data Summary</Label>
+              <Label>{t('dataSummary')}</Label>
 
               <Select
                 value={hooks.form.dataSummary}
@@ -201,21 +206,21 @@ export default function AssessementModal({ hook }: AssessementModalProps) {
                 }}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select summary" />
+                  <SelectValue placeholder={t('selectSummary')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="sum">SUM</SelectItem>
-                  <SelectItem value="average">AVERAGE</SelectItem>
-                  <SelectItem value="max">MAX</SelectItem>
-                  <SelectItem value="min">MIN</SelectItem>
-                  <SelectItem value="count">COUNT</SelectItem>
+                  <SelectItem value="sum">{t('sum')}</SelectItem>
+                  <SelectItem value="average">{t('average')}</SelectItem>
+                  <SelectItem value="max">{t('max')}</SelectItem>
+                  <SelectItem value="min">{t('min')}</SelectItem>
+                  <SelectItem value="count">{t('count')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label>Data Visualization</Label>
+            <Label>{t('dataVisualization')}</Label>
 
             <Select
               value={hooks.form.dataVisualization}
@@ -227,11 +232,11 @@ export default function AssessementModal({ hook }: AssessementModalProps) {
               }}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select visualization" />
+                <SelectValue placeholder={t('selectVisualization')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="table">Table</SelectItem>
-                <SelectItem value="chart">Chart</SelectItem>
+                <SelectItem value="table">{t('table')}</SelectItem>
+                <SelectItem value="chart">{t('chart')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -240,7 +245,7 @@ export default function AssessementModal({ hook }: AssessementModalProps) {
         <DialogFooter className="mt-6 flex justify-end items-center w-full">
           <div className="flex gap-3">
             <Button variant="outline" onClick={() => hook.setOpen(false)}>
-              Cancel
+              {tCommon('cancel')}
             </Button>
 
             <Button
@@ -250,7 +255,7 @@ export default function AssessementModal({ hook }: AssessementModalProps) {
               }}
               disabled={hook.isPendingAddWidget}
             >
-              Create
+              {t('createWidget')}
             </Button>
           </div>
         </DialogFooter>

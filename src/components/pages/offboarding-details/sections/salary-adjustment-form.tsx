@@ -21,6 +21,7 @@ import { toast } from "sonner";
 import { getShowFinalSalary, postFinalSalary } from "@/services/employees/offboardings/final-salary";
 import { useRouter } from "next/navigation";
 import { ApiErrorResponse } from "@/lib/types";
+import { useTranslations } from "next-intl";
 
 interface Props {
   offboarding_id: number;
@@ -29,6 +30,9 @@ interface Props {
 export const SalaryAdjustmentForm = React.memo(function SalaryAdjustmentForm({
   offboarding_id,
 }: Props) {
+  const t = useTranslations("offboarding");
+  const tEmployee = useTranslations("employee");
+  const tCommon = useTranslations("common");
   const queryClient = useQueryClient();
   const router = useRouter();
   const form = useForm<z.infer<typeof MutateFinalSalaryRequestSchema>>({
@@ -80,7 +84,7 @@ export const SalaryAdjustmentForm = React.memo(function SalaryAdjustmentForm({
     mutationFn: (params: IMutateFinalSalaryRequest) =>
       postFinalSalary(offboarding_id, params),
     onSuccess: () => {
-      toast.success("Salary adjustment successfully!");
+      toast.success(t("salaryAdjustmentSuccess"));
       queryClient.invalidateQueries({ queryKey: ["employees"] });
       router.push("/employee/employee-management");
     },
@@ -101,18 +105,18 @@ export const SalaryAdjustmentForm = React.memo(function SalaryAdjustmentForm({
                 );
               }
               toast.error(
-                errorData.message || "Failed to update salary adjustment",
+                errorData.message || t("salaryAdjustmentFailed"),
               );
             })
             .catch(() => {
-              toast.error("Failed to update salary adjustment: Server error");
+              toast.error(t("salaryAdjustmentServerError"));
             });
         } catch (parseError) {
-          toast.error("Failed to update salary adjustment: Server error");
+          toast.error(t("salaryAdjustmentServerError"));
         }
       } else {
         toast.error(
-          `Failed to update salary adjustment: ${error.message || "Unknown error"}`,
+          `${t("salaryAdjustmentFailed")}: ${error.message || t("unknownError")}`,
         );
       }
     },
@@ -152,7 +156,7 @@ export const SalaryAdjustmentForm = React.memo(function SalaryAdjustmentForm({
 
   return (
     <div className="space-y-2">
-      <h2 className="font-semibold text-lg md:col-span-3">Earnings</h2>
+      <h2 className="font-semibold text-lg md:col-span-3">{t("earnings")}</h2>
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
@@ -160,7 +164,7 @@ export const SalaryAdjustmentForm = React.memo(function SalaryAdjustmentForm({
         >
           <InputForm
             name="base_salary"
-            label="Base Salary"
+            label={tEmployee("baseSalary")}
             disabled
             iconPosition="left"
             type="number"
@@ -168,14 +172,14 @@ export const SalaryAdjustmentForm = React.memo(function SalaryAdjustmentForm({
           />
           <InputForm
             name="salary_nett"
-            label="Salary (Nett)"
+            label={tEmployee("salaryNett")}
             disabled
             iconPosition="left"
             type="number"
             icon={<span className="text-text-disabled text-base">Rp</span>}
           />
           <h3 className="text-base text-black font-semibold md:col-span-2">
-            Allowance
+            {tEmployee("allowance")}
           </h3>
           {allowanceForm > 0 &&
             [...Array(allowanceForm)].map((_, index) => (
@@ -185,13 +189,13 @@ export const SalaryAdjustmentForm = React.memo(function SalaryAdjustmentForm({
               >
                 <SelectForm
                   name={`allowances.${index}.allowance_type_id`}
-                  label="Allowance Type"
+                  label={t("allowanceType")}
                   options={allowanceTypesOptions}
                 />
                 <div className="flex gap-2 items-end">
                   <InputForm
                     name={`allowances.${index}.allowance_value`}
-                    label="Allowance Value"
+                    label={t("allowanceValue")}
                     // disabled={
                     //   watchedAllowances &&
                     //   !watchedAllowances[index]?.allowance_type_id
@@ -219,52 +223,51 @@ export const SalaryAdjustmentForm = React.memo(function SalaryAdjustmentForm({
             type="button"
             onClick={() => setAllowanceForm((prev) => prev + 1)}
           >
-            <Plus /> Add Allowance
+            <Plus /> {t("addAllowance")}
           </Button>
           <div className="flex flex-col gap-1 w-full col-span-2">
             <h3 className="text-base text-black font-semibold md:col-span-2">
-              Overtime
+              {t("overtime")}
             </h3>
             <p className="text-text-secondary text-sm font-normal">
-              Approved Overtime :{" "}
-              <span className="font-semibold text-foreground">20</span> hours
+              {t("approvedOvertimeHours", { hours: 20 })}
             </p>
           </div>
           <InputForm
             name="overtime_amount"
-            label="Overtime Amount"
+            label={t("overtimeAmount")}
             iconPosition="left"
             type="number"
             icon={<span className="text-text-disabled text-base">Rp</span>}
           />
           <h3 className="text-base text-black font-semibold md:col-span-2">
-            Additional Earnings
+            {t("additionalEarnings")}
           </h3>
           <InputForm
             name="bonus_amount"
-            label="Bonus"
+            label={t("bonus")}
             iconPosition="left"
             type="number"
             icon={<span className="text-text-disabled text-base">Rp</span>}
           />
           <InputForm
             name="reimbursement_amount"
-            label="Reimbursement"
+            label={t("reimbursement")}
             iconPosition="left"
             type="number"
             icon={<span className="text-text-disabled text-base">Rp</span>}
           />
           <InputForm
             name="deduction_amount"
-            label="Deduction Amount"
+            label={t("deductionAmount")}
             iconPosition="left"
             type="number"
             icon={<span className="text-text-disabled text-base">Rp</span>}
           />
-          <TextAreaForm name="notes" label="Notes" className="col-span-2" />
+          <TextAreaForm name="notes" label={tCommon("notes")} className="col-span-2" />
           <div className="w-full gap-2 mt-8 flex">
             <Button variant="outline" className="w-[174px]">
-              Cancel
+              {tCommon("cancel")}
             </Button>
             <SalaryAdjustmentModal
               onUpdate={handleUpdateEmployee}

@@ -14,17 +14,26 @@ import * as React from "react";
 import { RowSelectionState } from "@tanstack/react-table";
 import { z } from "zod";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
-// schema form
-const formSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  description: z.string().optional(),
-});
-
-export type RoleFormSchema = z.infer<typeof formSchema>;
+export type RoleFormSchema = {
+  name: string;
+  description?: string;
+};
 
 export function useRoleManagementForm() {
   const router = useRouter();
+  const t = useTranslations("settings");
+  const tValidation = useTranslations("validation");
+
+  const formSchema = React.useMemo(
+    () =>
+      z.object({
+        name: z.string().min(2, tValidation("roleNameMin")),
+        description: z.string().optional(),
+      }),
+    [tValidation],
+  );
 
   // local states
   const [selectedPermissions, setSelectedPermissions] = React.useState<number[]>([]);
@@ -82,10 +91,10 @@ export function useRoleManagementForm() {
     mutationFn: createRole,
     onSuccess: () => {
       router.push("/settings/access-control");
-      toast.success("Create role successful!");
+      toast.success(t("createRoleSuccess"));
     },
     onError: (error) => {
-      toast.error(`Failed to create role: ${error.message}`);
+      toast.error(t("createRoleFailed", { message: error.message }));
     },
   });
 
@@ -96,10 +105,10 @@ export function useRoleManagementForm() {
       router.push("/settings/access-control");
       roleRefetch();
       userWithRoleRefetch();
-      toast.success("Update role successful!");
+      toast.success(t("updateRoleSuccess"));
     },
     onError: (error: Error) => {
-      toast.error(`Failed to update role: ${error.message}`);
+      toast.error(t("updateRoleFailed", { message: error.message }));
     },
   });
 
@@ -118,7 +127,7 @@ export function useRoleManagementForm() {
   // submit
   const handleSubmit = (values: RoleFormSchema) => {
     if (selectedEmployees.length === 0) {
-      toast.error("Please select at least one employee.");
+      toast.error(t("selectAtLeastOneEmployee"));
       return;
     }
 

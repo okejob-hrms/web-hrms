@@ -1,6 +1,6 @@
-// src/config/menu.ts
-interface MenuItem {
-  name: string;
+// src/lib/menu.ts
+export interface MenuItem {
+  key: string;
   value?: string;
   subItem?: MenuItem[];
 }
@@ -8,164 +8,207 @@ interface MenuItem {
 export const menus: Record<string, MenuItem[]> = {
   dashboard: [
     {
-      name: "Offboarding",
-      value: "offboarding",
+      key: 'offboarding',
+      value: 'offboarding',
       subItem: [
-        { name: "Active Offboarding", value: "dashboard?overview=offboarding-active" },
-        { name: "Waiting of Offboarding", value: "dashboard?overview=offboarding-waiting" },
+        {
+          key: 'activeOffboarding',
+          value: 'dashboard?overview=offboarding-active',
+        },
+        {
+          key: 'waitingOffboarding',
+          value: 'dashboard?overview=offboarding-waiting',
+        },
       ],
     },
-    { name: "Attandance Aprroval", value: "dashboard?overview=attendance" },
-    { name: "Leave Request", value: "dashboard?overview=leave" },
-    { name: "Overtime Request", value: "dashboard?overview=overtime" },
-    { name: "Payslip Request", value: "dashboard?overview=payslip" },
+    { key: 'attendanceApproval', value: 'dashboard?overview=attendance' },
+    { key: 'leaveRequest', value: 'dashboard?overview=leave' },
+    { key: 'overtimeRequest', value: 'dashboard?overview=overtime' },
+    { key: 'payslipRequest', value: 'dashboard?overview=payslip' },
   ],
   employee: [
-    { name: "Employee Management", value: "employee/employee-management" },
+    { key: 'employeeManagement', value: 'employee/employee-management' },
     {
-      name: "Organization",
-      value: "employee/organization",
+      key: 'organization',
+      value: 'employee/organization',
       subItem: [
         {
-          name: "Org. Structure Chart",
-          value: "employee/organization/structure",
+          key: 'orgStructureChart',
+          value: 'employee/organization/structure',
         },
-        { name: "Position", value: "employee/organization/position" },
-        { name: "Teams", value: "employee/organization/teams" },
-        { name: "Job Levels", value: "employee/organization/job-level" },
+        { key: 'position', value: 'employee/organization/position' },
+        { key: 'teams', value: 'employee/organization/teams' },
+        { key: 'jobLevels', value: 'employee/organization/job-level' },
         {
-          name: "Department",
-          value: "employee/organization/department-management",
+          key: 'department',
+          value: 'employee/organization/department-management',
         },
       ],
     },
     {
-      name: "Offboarding",
-      value: "employee/off-boarding",
+      key: 'offboarding',
+      value: 'employee/off-boarding',
     },
   ],
 
   attendance: [
-    { name: "Attandance Tracker", value: "attendance/attendance-tracker" },
-    { name: "Leave Request", value: "attendance/leave-request" },
-    { name: "Overtime", value: "attendance/over-time" },
-    { name: "Business Trip", value: "attendance/business-trip" },
+    { key: 'attendanceTracker', value: 'attendance/attendance-tracker' },
+    { key: 'leaveRequest', value: 'attendance/leave-request' },
+    { key: 'overtime', value: 'attendance/over-time' },
+    { key: 'businessTrip', value: 'attendance/business-trip' },
   ],
 
   payroll: [
-    { name: "Payrun Management", value: "payroll/list" },
-    { name: "Request Access", value: "payroll/request" },
+    { key: 'payrunManagement', value: 'payroll/list' },
+    { key: 'requestAccess', value: 'payroll/request' },
   ],
 
   settings: [
-    { name: "Access Control", value: "settings/access-control" },
+    { key: 'accessControl', value: 'settings/access-control' },
     {
-      name: "Company",
-      value: "settings/company",
+      key: 'company',
+      value: 'settings/company',
       subItem: [
-        { name: "Company Profile", value: "settings/company/company-profile" },
-        { name: "Branch", value: "settings/company/company-branch" },
+        { key: 'companyProfile', value: 'settings/company/company-profile' },
+        { key: 'branch', value: 'settings/company/company-branch' },
       ],
     },
     {
-      name: "Time & Attendence",
-      value: "settings/time-attendence",
+      key: 'timeAttendance',
+      value: 'settings/time-attendence',
       subItem: [
         {
-          name: "Attendance Configuration",
-          value: "settings/time-attendance/attendance-configuration",
+          key: 'attendanceConfiguration',
+          value: 'settings/time-attendance/attendance-configuration',
         },
         {
-          name: "Overtime Configuration",
-          value: "settings/time-attendance/overtime-configuration",
+          key: 'overtimeConfiguration',
+          value: 'settings/time-attendance/overtime-configuration',
         },
         {
-          name: "Holiday Attendance",
-          value: "settings/time-attendance/holiday",
+          key: 'holidayAttendance',
+          value: 'settings/time-attendance/holiday',
         },
         {
-          name: "Attendance Rule",
-          value: "settings/time-attendance/attendance-rule",
+          key: 'attendanceRule',
+          value: 'settings/time-attendance/attendance-rule',
         },
       ],
     },
-    { name: "Leave Configuration", value: "settings/leave-management" },
-    { name: "Form Template", value: "settings/form-template" },
+    { key: 'leaveConfiguration', value: 'settings/leave-management' },
+    { key: 'formTemplate', value: 'settings/form-template' },
     {
-      name: "Salary Management",
-      value: "settings/salary-management",
+      key: 'salaryManagement',
+      value: 'settings/salary-management',
       subItem: [
         {
-          name: "Base Salary Management",
-          value: "settings/salary-management/base-salary",
+          key: 'baseSalaryManagement',
+          value: 'settings/salary-management/base-salary',
         },
         {
-          name: "Allowance Management",
-          value: "settings/salary-management/allowance",
+          key: 'allowanceManagement',
+          value: 'settings/salary-management/allowance',
         },
         {
-          name: "Salary Deduction Management",
-          value: "settings/salary-management/deduction",
+          key: 'salaryDeductionManagement',
+          value: 'settings/salary-management/deduction',
         },
       ],
     },
     {
-      name: "Performance Management",
-      value: "settings/competencies",
+      key: 'performanceManagement',
+      value: 'settings/competencies',
       subItem: [
         {
-          name: "Performance Competencies",
-          value: "settings/competencies",
+          key: 'performanceCompetencies',
+          value: 'settings/competencies',
         },
         {
-          name: "Assessment Score Threshold",
-          value: "settings/assessment-score",
+          key: 'assessmentScoreThreshold',
+          value: 'settings/assessment-score',
         },
       ],
     },
-    // { name: "Mobile & ESS", value: "settings/mobile-ess" },
   ],
   performance: [
-    { name: "Self Assessment", value: "performance/self-assessment" },
+    { key: 'selfAssessment', value: 'performance/self-assessment' },
     {
-      name: "Supervisor Assessment",
-      value: "performance/supervisor-assessment",
-    },
-    // {
-    //   name: "Objective & Key Results (OKR)",
-    //   value: "performance/team-okr",
-    //   subItem: [
-    //     {
-    //       name: "Department/Team OKR",
-    //       value: "performance/team-okr",
-    //     },
-    //     {
-    //       name: "Individual OKR",
-    //       value: "performance/individual-okr",
-    //     },
-    //     {
-    //       name: "Key Performance Indicators (KPIs)",
-    //       value: "performance/kpi",
-    //     },
-    //   ],
-    // },
-    {
-      name: "Objective & Key Results (OKR)",
-      value: "performance/okr",
+      key: 'supervisorAssessment',
+      value: 'performance/supervisor-assessment',
     },
     {
-      name: "Key Performance Indicators (KPIs)",
-      value: "performance/kpi",
+      key: 'okr',
+      value: 'performance/okr',
+    },
+    {
+      key: 'kpi',
+      value: 'performance/kpi',
     },
   ],
 };
 
+const BREADCRUMB_SEGMENT_KEYS: Record<string, string> = {
+  dashboard: 'dashboard',
+  employee: 'employee',
+  'employee-management': 'employeeManagement',
+  organization: 'organization',
+  structure: 'structure',
+  position: 'position',
+  teams: 'teams',
+  'job-level': 'jobLevel',
+  'department-management': 'departmentManagement',
+  'off-boarding': 'offBoarding',
+  attendance: 'attendance',
+  'attendance-tracker': 'attendanceTracker',
+  'leave-request': 'leaveRequest',
+  'over-time': 'overTime',
+  'business-trip': 'businessTrip',
+  payroll: 'payroll',
+  list: 'list',
+  request: 'request',
+  performance: 'performance',
+  'self-assessment': 'selfAssessment',
+  'supervisor-assessment': 'supervisorAssessment',
+  okr: 'okr',
+  kpi: 'kpi',
+  settings: 'settings',
+  'access-control': 'accessControl',
+  company: 'company',
+  'company-profile': 'companyProfile',
+  'company-branch': 'companyBranch',
+  'time-attendance': 'timeAttendance',
+  'attendance-configuration': 'attendanceConfiguration',
+  'overtime-configuration': 'overtimeConfiguration',
+  holiday: 'holiday',
+  'attendance-rule': 'attendanceRule',
+  'leave-management': 'leaveManagement',
+  'form-template': 'formTemplate',
+  'salary-management': 'salaryManagement',
+  'base-salary': 'baseSalary',
+  allowance: 'allowance',
+  deduction: 'deduction',
+  competencies: 'competencies',
+  'assessment-score': 'assessmentScore',
+  ess: 'ess',
+  auth: 'auth',
+  login: 'login',
+  'reset-password': 'resetPassword',
+  'change-password': 'changePassword',
+  'mail-confirm': 'mailConfirm',
+  add: 'add',
+  edit: 'edit',
+};
+
+export function getBreadcrumbKey(segment: string): string | null {
+  return BREADCRUMB_SEGMENT_KEYS[segment] ?? null;
+}
+
 export const getGenerateTitle = (title: string) => {
-  if (!title) return "";
+  if (!title) return '';
 
-  const segments = title.split("/").filter(Boolean); // buang string kosong
+  const segments = title.split('/').filter(Boolean);
 
-  if (segments.length === 0) return "";
+  if (segments.length === 0) return '';
 
   const firstSegment = segments[0];
 
@@ -174,23 +217,23 @@ export const getGenerateTitle = (title: string) => {
 
 export const getHideSidebar = (path: string) => {
   const hidePath = [
-    "/auth",
-    "/dashboard",
-    "/settings/access-control/",
-    "/settings/company/company-profile/edit",
-    "/employee/organization/structure/edit",
-    "/attendance/attendance-tracker/",
-    "/attendance/leave-request/add",
-    "/settings/time-attendance/attendance-configuration/edit",
-    "/settings/time-attendance/overtime-configuration/edit",
-    "/settings/form-template/add",
-    "/settings/form-template/edit",
-    "/settings/company/company-branch/",
-    "/payroll/list/",
-    "/settings/leave-management/",
-    "/performance/self-assessment/add",
-    "/ess/",
-    "/ess"
+    '/auth',
+    '/dashboard',
+    '/settings/access-control/',
+    '/settings/company/company-profile/edit',
+    '/employee/organization/structure/edit',
+    '/attendance/attendance-tracker/',
+    '/attendance/leave-request/add',
+    '/settings/time-attendance/attendance-configuration/edit',
+    '/settings/time-attendance/overtime-configuration/edit',
+    '/settings/form-template/add',
+    '/settings/form-template/edit',
+    '/settings/company/company-branch/',
+    '/payroll/list/',
+    '/settings/leave-management/',
+    '/performance/self-assessment/add',
+    '/ess/',
+    '/ess',
   ];
 
   const employeeDetailPattern = /^\/employee\/employee-management\/\d+$/;
@@ -257,29 +300,29 @@ export const getHideSidebar = (path: string) => {
 };
 
 export const getBreadcrumbs = (pathname: string) => {
-  const segments = pathname.split("/").filter(Boolean);
+  const segments = pathname.split('/').filter(Boolean);
 
   return segments.map((segment, index) => {
-    const link = "/" + segments.slice(0, index + 1).join("/");
+    const link = '/' + segments.slice(0, index + 1).join('/');
+    const key = getBreadcrumbKey(segment);
 
     return {
-      label: segment
-        .replace(/-/g, " ")
-        .replace(/\b\w/g, (c) => c.toUpperCase()),
+      segment,
+      key,
       link,
     };
   });
 };
 
 export const getLastPath = (pathname: string) => {
-  const segments = pathname.split("/").filter(Boolean);
-  return segments.length > 0 ? segments[segments.length - 1] : "";
+  const segments = pathname.split('/').filter(Boolean);
+  return segments.length > 0 ? segments[segments.length - 1] : '';
 };
 
 export const toTitleCase = (str: string) => {
   return str
-    .replace(/-/g, " ")
-    .replace(/_/g, " ")
+    .replace(/-/g, ' ')
+    .replace(/_/g, ' ')
     .toLowerCase()
     .replace(/\b\w/g, (char) => char.toUpperCase());
 };

@@ -1,31 +1,29 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function MailConfirmPage() {
   const router = useRouter();
+  const t = useTranslations("auth");
+  const tCommon = useTranslations("common");
 
   return (
     <div className="max-w-md mx-auto min-h-screen flex flex-col justify-center px-6">
-      {/* Back button */}
       <button
         onClick={() => router.back()}
         className="flex items-center gap-2 text-sm font-medium mb-6"
       >
-        <ArrowLeft className="h-5 w-5" /> Back
+        <ArrowLeft className="h-5 w-5" /> {tCommon("back")}
       </button>
 
-      {/* Title */}
-      <h1 className="text-2xl font-bold mb-1">Please Check Your Email</h1>
-      <p className="text-muted-foreground mb-6">
-        Reset password request link has been succesfuly sent to your registered
-        email.
-      </p>
+      <h1 className="text-2xl font-bold mb-1">{t("checkEmail")}</h1>
+      <p className="text-muted-foreground mb-6">{t("checkEmailSubtitle")}</p>
       <div className="text-gray-500 my-3 text-sm">
-        Didn’t receive an email?{" "}
-        <span className="text-primary pl-2 font-bold">Resend Email</span>
+        {t("didntReceiveEmail")}{" "}
+        <span className="text-primary pl-2 font-bold">{t("resendEmail")}</span>
       </div>
 
       <Button
@@ -33,7 +31,7 @@ export default function MailConfirmPage() {
         className="w-full"
         onClick={() => router.push("/auth/login")}
       >
-        Continue
+        {tCommon("continue")}
       </Button>
     </div>
   );

@@ -33,6 +33,7 @@ import { useForm, Controller } from "react-hook-form";
 import { toast } from "sonner";
 import dynamic from "next/dynamic";
 import "react-quill-new/dist/quill.snow.css";
+import { useTranslations } from "next-intl";
 
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
@@ -53,6 +54,8 @@ export const InterviewScheduleForm = React.memo(function InterviewScheduleForm({
   open,
   setOpen,
 }: InterviewScheduleFormProps) {
+  const t = useTranslations("offboarding");
+
   if (isEditMode) {
     return (
       <ModalForm
@@ -70,11 +73,10 @@ export const InterviewScheduleForm = React.memo(function InterviewScheduleForm({
       <Alert className="flex flex-col md:flex-row items-center border border-primary-border bg-primary-background">
         <div>
           <AlertTitle className="text-primary font-semibold text-lg">
-            Set Up Exit Interview Schedule
+            {t("setupInterviewScheduleTitle")}
           </AlertTitle>
           <AlertDescription>
-            You haven&apos;t scheduled this exit interview yet. Please complete
-            the meeting details so the employee and other participants can join.
+            {t("setupInterviewScheduleDesc")}
           </AlertDescription>
         </div>
         <ModalForm
@@ -124,6 +126,9 @@ export const ModalForm = React.memo(function ModalForm({
   open,
   setOpen,
 }: ModalFormProps) {
+  const t = useTranslations("offboarding");
+  const tCommon = useTranslations("common");
+  const tEmployee = useTranslations("employee");
   const isEditMode = !!existingData;
 
   const getDefaultValues = () => {
@@ -181,7 +186,7 @@ export const ModalForm = React.memo(function ModalForm({
         : postInterviewSchedule(offboarding_id, data),
     onSuccess: () => {
       toast.success(
-        `Schedule ${isEditMode ? "updated" : "created"} successfully`,
+        isEditMode ? t("scheduleUpdatedSuccess") : t("scheduleCreatedSuccess"),
       );
       form.reset();
       setOpen(false);
@@ -191,29 +196,29 @@ export const ModalForm = React.memo(function ModalForm({
       queryClient.invalidateQueries({ queryKey: ["interview-schedule"] });
     },
     onError: (error: any) => {
+      const action = isEditMode ? t("scheduleUpdateFailed") : t("scheduleCreateFailed");
       if (error?.response) {
         try {
           error.response
             .json()
             .then((errorData: ApiErrorResponse) => {
-              toast.error(
-                errorData.message ||
-                  `Failed to ${isEditMode ? "update" : "create"} schedule`,
-              );
+              toast.error(errorData.message || action);
             })
             .catch(() => {
               toast.error(
-                `Failed to ${isEditMode ? "update" : "create"} schedule: Server error`,
+                t("scheduleServerError", {
+                  action: isEditMode ? "update" : "create",
+                }),
               );
             });
         } catch (parseError) {
           toast.error(
-            `Failed to ${isEditMode ? "update" : "create"} schedule: Server error : ${parseError}`,
+            `${action}: ${t("serverError")} : ${parseError}`,
           );
         }
       } else {
         toast.error(
-          `Failed to ${isEditMode ? "update" : "create"} schedule: ${error.message || "Unknown error"}`,
+          `${action}: ${error.message || t("unknownError")}`,
         );
       }
     },
@@ -259,7 +264,7 @@ export const ModalForm = React.memo(function ModalForm({
         <DialogTrigger asChild>
           <Button className="w-fit">
             <Calendar />
-            Set Interview Schedule
+            {t("setInterviewSchedule")}
           </Button>
         </DialogTrigger>
       )}
@@ -272,37 +277,37 @@ export const ModalForm = React.memo(function ModalForm({
             <DialogHeader>
               <DialogTitle>
                 {isEditMode
-                  ? "Edit Interview Schedule"
-                  : "Set Interview Schedule"}
+                  ? t("editInterviewSchedule")
+                  : t("setInterviewSchedule")}
               </DialogTitle>
             </DialogHeader>
             <div className="gap-2 grid grid-cols-1 md:grid-cols-2">
-              <DatePicker name="date" label="Date" />
+              <DatePicker name="date" label={tCommon("date")} />
               <div className="grid grid-cols-2 gap-2">
                 <InputForm
                   icon={<Clock />}
                   iconPosition="right"
                   name="start_time"
-                  label="Start Time"
+                  label={t("startTime")}
                   required
                 />
                 <InputForm
                   icon={<Clock />}
                   iconPosition="right"
                   name="end_time"
-                  label="End Time"
+                  label={t("endTime")}
                   required
                 />
               </div>
               <div className="flex flex-col gap-2 md:col-span-2">
                 <label className="text-sm text-text-secondary">
-                  Participant<span className="text-error">*</span>
+                  {t("participant")}<span className="text-error">*</span>
                 </label>
                 <MultiSelectForm
                   options={employeesOptions}
                   name="participants"
                   maxCount={3}
-                  searchPlaceholder="Search Employee"
+                  searchPlaceholder={tEmployee("searchEmployee")}
                   hideSelectAll
                   disabled={isLoadingEmployees}
                   valueTransformer={(value) => Number(value)}
@@ -311,7 +316,7 @@ export const ModalForm = React.memo(function ModalForm({
                 />
               </div>
               <div className="flex flex-col gap-2 col-span-2">
-                <label className="text-sm text-text-secondary">Notes</label>
+                <label className="text-sm text-text-secondary">{tCommon("notes")}</label>
                 <Controller
                   name="notes"
                   control={form.control}
@@ -323,7 +328,7 @@ export const ModalForm = React.memo(function ModalForm({
                         onChange={field.onChange}
                         modules={quillModules}
                         formats={quillFormats}
-                        placeholder="Write your notes here..."
+                        placeholder={t("writeNotesPlaceholder")}
                         className="bg-white rounded-md border border-input"
                       />
                     </div>
@@ -334,15 +339,15 @@ export const ModalForm = React.memo(function ModalForm({
             <DialogFooter>
               <DialogClose asChild>
                 <Button type="button" variant="outline" onClick={handleCancel}>
-                  Cancel
+                  {tCommon("cancel")}
                 </Button>
               </DialogClose>
               <Button type="submit" disabled={mutation.isPending}>
                 {mutation.isPending
-                  ? "Saving..."
+                  ? tCommon("saving")
                   : isEditMode
-                    ? "Save Changes"
-                    : "Save"}
+                    ? tCommon("saveChanges")
+                    : tCommon("save")}
               </Button>
             </DialogFooter>
           </form>

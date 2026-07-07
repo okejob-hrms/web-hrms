@@ -174,6 +174,8 @@ export interface SelectFilterProps {
   placeholder?: string;
   options: Option[];
   label?: string;
+  value?: string;
+  onValueChange?: (value: string) => void;
 }
 
 export interface GroupOption {
@@ -247,8 +249,27 @@ export interface ComboboxGroup {
   renderOption?: (option: ComboboxOption, index: number) => React.ReactNode;
 }
 
+export interface SearchableSelectProps {
+  value?: string | number | null;
+  onValueChange: (value: string | number | null) => void;
+  options?: ComboboxOption[];
+  placeholder?: string;
+  disabled?: boolean;
+  className?: string;
+  allowClear?: boolean;
+  valueType?: "string" | "number";
+  searchValue?: string;
+  onSearchChange?: (value: string) => void;
+  modalChildren?: React.ReactNode;
+  emptyMessage?: string;
+  searchPlaceholder?: string;
+  popoverClassName?: string;
+  isLoading?: boolean;
+  loadingMessage?: string;
+}
+
 export interface ComboboxProps extends InputFormProps {
-  label: string;
+  label?: string;
   name: string;
   labelClassName?: string;
   formItemClassName?: string;
@@ -260,6 +281,10 @@ export interface ComboboxProps extends InputFormProps {
   emptyMessage?: string;
   searchPlaceholder?: string;
   popoverClassName?: string;
+  allowClear?: boolean;
+  modalChildren?: React.ReactNode;
+  onSearchChange?: (value: string) => void;
+  searchValue?: string;
   renderOption?: (
     option: ComboboxOption,
     fieldValue: any,

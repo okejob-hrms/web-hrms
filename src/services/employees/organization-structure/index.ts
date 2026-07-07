@@ -12,11 +12,16 @@ import {
 
 export const getOrgChart = async (
   employeeId?: string | null,
+  maxDepth?: number | null,
 ): Promise<ApiResponse<IEmployeeOrganizationStructure[]>> => {
   const queryParams = new URLSearchParams();
 
   if (employeeId) {
     queryParams.append("employee_id", String(employeeId));
+  }
+
+  if (maxDepth != null) {
+    queryParams.append("max_depth", String(maxDepth));
   }
 
   const url = `employees/structure/organization-chart?${queryParams.toString()}`;

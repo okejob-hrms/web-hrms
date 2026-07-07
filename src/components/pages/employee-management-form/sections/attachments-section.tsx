@@ -4,26 +4,27 @@
 import { UploadButton } from "@/components/ui/button";
 import * as React from "react";
 import { useFormContext } from "react-hook-form";
+import { useTranslations } from "next-intl";
 
-const attachmentTypes = [
-  { name: "cv", label: "CV", required: true },
+const attachmentTypeKeys = [
+  { name: "cv", labelKey: "attachmentCv", required: true },
   {
     name: "graduation_certificate",
-    label: "Graduation Certificate",
+    labelKey: "attachmentGraduationCertificate",
     required: true,
   },
-  { name: "personal_id", label: "Personal ID Card", required: true },
-  { name: "family_card", label: "Family Card", required: true },
-  { name: "npwp", label: "NPWP", required: false },
+  { name: "personal_id", labelKey: "attachmentPersonalId", required: true },
+  { name: "family_card", labelKey: "attachmentFamilyCard", required: true },
+  { name: "npwp", labelKey: "attachmentNpwp", required: false },
   {
     name: "health_insurance_card",
-    label: "Health Insurance Card (BPJS)",
+    labelKey: "attachmentHealthInsurance",
     required: false,
   },
-  { name: "bank_account_book", label: "Bank Account Book", required: true },
-  { name: "driver_license", label: "Driver License", required: false },
-  { name: "other", label: "Others", required: false },
-];
+  { name: "bank_account_book", labelKey: "attachmentBankBook", required: true },
+  { name: "driver_license", labelKey: "attachmentDriverLicense", required: false },
+  { name: "other", labelKey: "attachmentOthers", required: false },
+] as const;
 
 interface AttachmentsSectionProps {
   employee_documents?: Array<{
@@ -47,14 +48,15 @@ interface AttachmentsSectionProps {
 export const AttachmentsSection = React.memo(function AttachmentsSection({
   employee_documents,
 }: AttachmentsSectionProps) {
+  const t = useTranslations("employee");
   const form = useFormContext();
   const errors = form.formState.errors["attachments"] as any;
 
   return (
     <React.Fragment>
-      <h2 className="font-semibold text-lg leading-5 mb-3">Attachments</h2>
+      <h2 className="font-semibold text-lg leading-5 mb-3">{t("attachments")}</h2>
       <div className="grid grid-cols-2 gap-4">
-        {attachmentTypes.map((attachment, index) => {
+        {attachmentTypeKeys.map((attachment, index) => {
           const document = employee_documents?.find(
             (doc) => doc.type === attachment.name,
           );
@@ -62,7 +64,7 @@ export const AttachmentsSection = React.memo(function AttachmentsSection({
             <UploadButton
               key={attachment.name}
               name={attachment.name}
-              label={attachment.label}
+              label={t(attachment.labelKey)}
               required={attachment.required}
               defaultFile={document || undefined}
               error={errors && errors[index]?.path.message}

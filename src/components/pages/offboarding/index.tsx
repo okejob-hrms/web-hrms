@@ -4,6 +4,10 @@
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import * as React from 'react';
+import { useTranslations } from 'next-intl';
+import { useLocale } from 'next-intl';
+import { formatDate } from '@/lib/formatting';
+import { resolveLocale } from '@/lib/i18n/locale';
 import { Toolbar } from './sections/toolbar';
 import { ColumnDef, PaginationState } from '@tanstack/react-table';
 import { DataTable } from '@/components/tables/data-table';
@@ -25,124 +29,138 @@ interface EmployeeOffboardingListProps {
   status?: number;
 }
 
-export const columns: ColumnDef<IOffboardingResponse>[] = [
-  {
-    accessorKey: 'user_name',
-    header: 'Name',
-    cell: ({ row }) => (
-      <div className="flex gap-4 items-center min-w-[150px]">
-        <Avatar className="h-10 w-10">
-          <AvatarImage
-            src={`${process.env.NEXT_PUBLIC_FILE_URL}/${row.original.user_name}`}
-          />
-          <AvatarFallback className="text-primary-hover bg-primary-background text-base font-medium">
-            {stringAvatar(row.original.user_name)}
-          </AvatarFallback>
-        </Avatar>
-        <div className="flex flex-col">
-          <span className="font-semibold text-foreground text-sm">
-            {row.original.user_name}
-          </span>
-          <span className="text-text-secondary">{row.original.id}</span>
-        </div>
-      </div>
-    ),
-  },
-  {
-    accessorKey: 'job_position',
-    header: 'Position',
-    cell: ({ row }) => {
-      return row.original.job_position || '-';
-    },
-  },
-  {
-    accessorKey: 'department',
-    header: 'Department',
-    cell: ({ row }) => {
-      return row.original.department || '-';
-    },
-  },
-  {
-    accessorKey: 'start_date',
-    header: 'Join Date',
-    cell: ({ row }) => {
-      const date = new Date(row.original.join_date);
-      return date.toLocaleDateString();
-    },
-  },
-  {
-    accessorKey: 'status',
-    header: 'Status',
-    cell: ({ row }) => {
-      const status = row.original.status_offboarding;
-      return (
-        <Badge
-          variant="default"
-          className={cn(
-            'rounded-full',
-            status === 'In Progress'
-              ? 'bg-warning-background'
-              : status === 'Completed'
-                ? 'bg-success-focused'
-                : 'bg-error-focused',
-          )}
-        >
-          {status === 'In Progress' ? (
-            <Clock color="#FFB84D" />
-          ) : (
-            <div
-              className={cn(
-                status === 'Completed' ? 'bg-success' : 'bg-error',
-                'h-2 w-2 rounded-full',
-              )}
-            />
-          )}
-          <span
-            className={cn(
-              status === 'In Progress'
-                ? 'text-warning-hover'
-                : status === 'Completed'
-                  ? 'text-success'
-                  : 'text-error',
-            )}
-          >
-            {status}
-          </span>
-        </Badge>
-      );
-    },
-  },
-  {
-    accessorKey: 'menu',
-    header: '',
-    cell: ({ row }) => {
-      return (
-        <Link href={`/employee/off-boarding/${row.original.id}`}>
-          <Image
-            src="/icons/eyeVisibleGrey.svg"
-            width={20}
-            height={20}
-            alt="preview"
-          />
-        </Link>
-      );
-    },
-  },
-];
-
 export default function EmployeeOffboardingList({
   hidePannel = false,
   status,
 }: EmployeeOffboardingListProps) {
+  const t = useTranslations('employee');
+  const tCommon = useTranslations('common');
+  const tStatus = useTranslations('status');
+  const tOffboarding = useTranslations('offboarding');
+  const locale = resolveLocale(useLocale());
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: 0,
     pageSize: 10,
   });
   const [filters, setFilters] = React.useState<Filters>({
-    // department_id: 0,
-    // job_position_id: 0,
     search: '',
   });
+
+  const columns = React.useMemo<ColumnDef<IOffboardingResponse>[]>(
+    () => [
+      {
+        accessorKey: 'user_name',
+        header: tCommon('name'),
+        cell: ({ row }) => (
+          <div className="flex gap-4 items-center min-w-[150px]">
+            <Avatar className="h-10 w-10">
+              <AvatarImage
+                src={`${process.env.NEXT_PUBLIC_FILE_URL}/${row.original.user_name}`}
+              />
+              <AvatarFallback className="text-primary-hover bg-primary-background text-base font-medium">
+                {stringAvatar(row.original.user_name)}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex flex-col">
+              <span className="font-semibold text-foreground text-sm">
+                {row.original.user_name}
+              </span>
+              <span className="text-text-secondary">{row.original.id}</span>
+            </div>
+          </div>
+        ),
+      },
+      {
+        accessorKey: 'job_position',
+        header: tCommon('position'),
+        cell: ({ row }) => {
+          return row.original.job_position || '-';
+        },
+      },
+      {
+        accessorKey: 'department',
+        header: tCommon('department'),
+        cell: ({ row }) => {
+          return row.original.department || '-';
+        },
+      },
+      {
+        accessorKey: 'start_date',
+        header: t('joinDate'),
+        cell: ({ row }) =>
+          formatDate(row.original.join_date, locale, {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+          }),
+      },
+      {
+        accessorKey: 'status',
+        header: tCommon('status'),
+        cell: ({ row }) => {
+          const status = row.original.status_offboarding;
+          const statusLabel =
+            status === 'In Progress'
+              ? tStatus('inProgress')
+              : status === 'Completed'
+                ? tStatus('completed')
+                : status;
+          return (
+            <Badge
+              variant="default"
+              className={cn(
+                'rounded-full',
+                status === 'In Progress'
+                  ? 'bg-warning-background'
+                  : status === 'Completed'
+                    ? 'bg-success-focused'
+                    : 'bg-error-focused',
+              )}
+            >
+              {status === 'In Progress' ? (
+                <Clock color="#FFB84D" />
+              ) : (
+                <div
+                  className={cn(
+                    status === 'Completed' ? 'bg-success' : 'bg-error',
+                    'h-2 w-2 rounded-full',
+                  )}
+                />
+              )}
+              <span
+                className={cn(
+                  status === 'In Progress'
+                    ? 'text-warning-hover'
+                    : status === 'Completed'
+                      ? 'text-success'
+                      : 'text-error',
+                )}
+              >
+                {statusLabel}
+              </span>
+            </Badge>
+          );
+        },
+      },
+      {
+        accessorKey: 'menu',
+        header: '',
+        cell: ({ row }) => {
+          return (
+            <Link href={`/employee/off-boarding/${row.original.id}`}>
+              <Image
+                src="/icons/eyeVisibleGrey.svg"
+                width={20}
+                height={20}
+                alt={tOffboarding('previewAlt')}
+              />
+            </Link>
+          );
+        },
+      },
+    ],
+    [t, tCommon, tStatus, tOffboarding, locale],
+  );
 
   const debouncedFilters = useDebounce(filters, 300);
   const queryParams = React.useMemo(
@@ -158,7 +176,6 @@ export default function EmployeeOffboardingList({
   const { data: employees, isLoading } = useQuery({
     queryKey: ['offboardings', queryParams, status],
     queryFn: () => getOffboardings(queryParams, status),
-    // queryFn: () => getEmployees(queryParams),
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
@@ -203,12 +220,9 @@ export default function EmployeeOffboardingList({
       <div className="rounded-md bg-white border shadow-sm border-grayscale-20 p-6 flex flex-col gap-4">
         <div className="flex md:flex-row flex-col justify-between w-full md:items-center items-start gap-4">
           <div className="flex gap-2 items-center">
-            <h2 className="font-semibold text-xl">
-              Employee Offboarding Records
-            </h2>
+            <h2 className="font-semibold text-xl">{t('offboardingTitle')}</h2>
             <Badge className="bg-primary-background text-primary rounded-full">
-              {employees?.total || 0} Employee
-              {employees?.total !== 1 ? 's' : ''}
+              {t('employeeCount', { count: employees?.total || 0 })}
             </Badge>
           </div>
           {!hidePannel && <InitiateOffboardingEmployee />}

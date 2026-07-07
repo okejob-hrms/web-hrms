@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useTranslations } from 'next-intl';
 import {
   useReactTable,
   getCoreRowModel,
@@ -69,6 +70,7 @@ export function DataTable<TData, TValue>({
   tableFooter,
   maxBodyHeight,
 }: DataTableProps<TData, TValue>) {
+  const t = useTranslations('ui.table');
   const enableRowSelection = !!rowSelection;
   const isPaginated =
     paginationState !== undefined && setPaginationState !== undefined;
@@ -236,12 +238,10 @@ export function DataTable<TData, TValue>({
                       {noDataPlaceholder || (
                         <>
                           <p className="text-primary font-semibold text-sm">
-                            No Data Available
+                            {t('noDataTitle')}
                           </p>
                           <p className="text-text-secondary text-sm">
-                            {
-                              "There's currently no data to display in this table."
-                            }
+                            {t('noDataDescription')}
                           </p>
                         </>
                       )}

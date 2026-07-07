@@ -1,12 +1,15 @@
 'use client';
 
 import * as React from 'react';
+import { useTranslations, useLocale } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/tables/data-table';
 import { ColumnDef } from '@tanstack/react-table';
 import { Plus, Trash2 } from 'lucide-react';
 import { RowActions } from '@/components/tables/row-actions';
 import dayjs from 'dayjs';
+import { formatDate } from '@/lib/formatting';
+import { resolveLocale } from '@/lib/i18n/locale';
 import {
   Dialog,
   DialogContent,
@@ -50,6 +53,9 @@ import Image from 'next/image';
 import { toTitleCase } from '@/lib/menu';
 
 export default function SettingsSalaryDeduction() {
+  const t = useTranslations('settings');
+  const tCommon = useTranslations('common');
+  const locale = resolveLocale(useLocale());
   const [open, setOpen] = React.useState(false);
   const [openDelete, setOpenDelete] = React.useState(false);
   const [openDetail, setOpenDetail] = React.useState(false);
@@ -77,16 +83,16 @@ export default function SettingsSalaryDeduction() {
   const columns: ColumnDef<DeductionSalaryItem>[] = [
     {
       accessorKey: 'name',
-      header: 'Deduction Name',
+      header: t('deductionName'),
     },
     {
       accessorKey: 'deduction_type',
-      header: 'Deduction Type',
+      header: t('deductionType'),
       cell: ({ row }) => toTitleCase(row.original.deduction_type),
     },
     {
       accessorKey: 'employer_contribution',
-      header: 'Employer Contribution',
+      header: t('employerContribution'),
       cell: ({ row }) =>
         row.original.contribution_type === 'fixed_amount'
           ? `Rp ${Number(row.original.employer_contribution).toLocaleString('id-ID')}`
@@ -94,7 +100,7 @@ export default function SettingsSalaryDeduction() {
     },
     {
       accessorKey: 'employee_contribution',
-      header: 'Employee Contribution',
+      header: t('employeeContribution'),
       cell: ({ row }) =>
         row.original.contribution_type === 'fixed_amount'
           ? `Rp ${Number(row.original.employee_contribution).toLocaleString('id-ID')}`
@@ -102,21 +108,35 @@ export default function SettingsSalaryDeduction() {
     },
     {
       accessorKey: 'effective_date',
-      header: 'Effective Date',
+      header: t('effectiveDate'),
       cell: ({ row }) =>
-        dayjs(row.original.effective_date).format('MMMM D, YYYY') ?? '-',
+        formatDate(row.original.effective_date, locale, {
+          month: 'long',
+          day: 'numeric',
+          year: 'numeric',
+        }),
     },
     {
       accessorKey: 'effective_to',
-      header: 'Effective To',
+      header: t('effectiveTo'),
       cell: ({ row }) =>
-        dayjs(row.original.effective_to).format('MMMM D, YYYY') ?? '-',
+        formatDate(row.original.effective_to, locale, {
+          month: 'long',
+          day: 'numeric',
+          year: 'numeric',
+        }),
     },
     {
       accessorKey: 'updated_at',
-      header: 'Last Update',
+      header: tCommon('lastUpdate'),
       cell: ({ row }) =>
-        dayjs(row.original.updated_at).format('MMMM D, YYYY') ?? '-',
+        row.original.updated_at
+          ? formatDate(row.original.updated_at, locale, {
+              month: 'long',
+              day: 'numeric',
+              year: 'numeric',
+            })
+          : '-',
     },
     {
       id: 'actions',
@@ -168,14 +188,14 @@ export default function SettingsSalaryDeduction() {
     },
     onMutate: () => setLoading(true),
     onSuccess: () => {
-      toast.success('Deduction salary successfully save');
+      toast.success(t('deductionSaved'));
       queryClient.invalidateQueries({ queryKey: ['getDeductionSalary'] });
       deductionDataRefetch();
       setOpen(false);
       setEditing(null);
     },
     onError: (err) => {
-      toast.error(`Failed to save: ${err.message}`);
+      toast.error(tCommon('saveFailed', { message: err.message }));
     },
     onSettled: () => setLoading(false),
   });
@@ -189,14 +209,14 @@ export default function SettingsSalaryDeduction() {
     mutationFn: (id) => removeDeductionSalary(id),
     onMutate: () => setLoading(true),
     onSuccess: () => {
-      toast.success('Deduction salary deleted successfully');
+      toast.success(t('deductionDeleted'));
       queryClient.invalidateQueries({ queryKey: ['getDeductionSalary'] });
       deductionDataRefetch();
       setOpenDelete(false);
       setEditing(null);
     },
     onError: (err) => {
-      toast.error(`Failed to delete: ${err.message}`);
+      toast.error(tCommon('deleteFailed', { message: err.message }));
     },
     onSettled: () => setLoading(false),
   });
@@ -236,13 +256,11 @@ export default function SettingsSalaryDeduction() {
 
   const handleSave = () => {
     if (!form.name || !form.effective_date || !form.deduction_type)
-      return toast.error('Please fill all required fields');
+      return toast.error(t('fillRequiredFields'));
     if (!form.contribution_type)
-      return toast.error('Please fill contribution type');
+      return toast.error(t('fillContributionType'));
     if (!form.employee_contribution || !form.employer_contribution)
-      return toast.error(
-        'Please fill employee contribution and employer contribution',
-      );
+      return toast.error(t('fillContributions'));
 
     saveMutation.mutate({
       id: editing?.id,
@@ -275,7 +293,7 @@ export default function SettingsSalaryDeduction() {
   return (
     <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6">
       <div className="flex flex-col sm:flex-row sm:gap-4 justify-between">
-        <h2 className="font-semibold text-xl">Salary Deduction Management</h2>
+        <h2 className="font-semibold text-xl">{t('salaryDeductionManagement')}</h2>
         <Button
           className="flex flex-row items-center gap-2"
           onClick={() => {
@@ -285,7 +303,7 @@ export default function SettingsSalaryDeduction() {
           }}
         >
           <Plus className="w-4 h-4" />
-          Set Up Salary Deduction
+          {t('setupSalaryDeduction')}
         </Button>
       </div>
 
@@ -298,7 +316,7 @@ export default function SettingsSalaryDeduction() {
         >
           <DialogHeader>
             <DialogTitle>
-              {editing ? 'Edit Salary Deduction' : 'Set Up Salary Deduction'}
+              {editing ? t('editSalaryDeduction') : t('setupSalaryDeduction')}
             </DialogTitle>
           </DialogHeader>
 
@@ -309,7 +327,7 @@ export default function SettingsSalaryDeduction() {
             <div className="grid gap-4 py-2">
               <div className="space-y-2">
                 <Label>
-                  Deduction Name<span className="text-red-500">*</span>
+                  {t('deductionName')}<span className="text-red-500">*</span>
                 </Label>
                 <Select
                   value={form.name}
@@ -318,7 +336,7 @@ export default function SettingsSalaryDeduction() {
                   }
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select Deduction Type" />
+                    <SelectValue placeholder={t('selectDeductionType')} />
                   </SelectTrigger>
                   <SelectContent>
                     {deductionDataType?.data.map((item, i) => (
@@ -332,7 +350,7 @@ export default function SettingsSalaryDeduction() {
 
               <div className="space-y-2">
                 <Label>
-                  Deduction Type <span className="text-red-500">*</span>
+                  {t('deductionType')} <span className="text-red-500">*</span>
                 </Label>
                 <Select
                   value={form.deduction_type}
@@ -341,12 +359,12 @@ export default function SettingsSalaryDeduction() {
                   }
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select Type" />
+                    <SelectValue placeholder={t('selectType')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="statutory">Statutory</SelectItem>
+                    <SelectItem value="statutory">{t('statutory')}</SelectItem>
                     <SelectItem value="company_policy">
-                      Company Policy
+                      {t('companyPolicy')}
                     </SelectItem>
                   </SelectContent>
                 </Select>
@@ -354,12 +372,12 @@ export default function SettingsSalaryDeduction() {
 
               <div className="space-y-2">
                 <Label>
-                  Description <span className="text-red-500">*</span>
+                  {tCommon('description')} <span className="text-red-500">*</span>
                 </Label>
                 <Textarea
                   className="resize-none h-[135px] whitespace-pre-wrap break-all"
                   rows={5}
-                  placeholder="Enter description"
+                  placeholder={t('enterDescription')}
                   value={form.description}
                   onChange={(e) =>
                     setForm((prev) => ({
@@ -373,7 +391,7 @@ export default function SettingsSalaryDeduction() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <Label>
-                    Effective Date <span className="text-red-500">*</span>
+                    {t('effectiveDate')} <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     type="date"
@@ -387,7 +405,7 @@ export default function SettingsSalaryDeduction() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Effective To</Label>
+                  <Label>{t('effectiveTo')}</Label>
                   <Input
                     type="date"
                     value={form.effective_to}
@@ -403,11 +421,11 @@ export default function SettingsSalaryDeduction() {
 
               <hr className="my-2" />
 
-              <h4 className="font-medium">Contribution</h4>
+              <h4 className="font-medium">{t('contribution')}</h4>
               {form.name === 'PPH21' ? (
                 <div className="space-y-2">
                   <Label>
-                    Calculation Basis <span className="text-red-500">*</span>
+                    {t('calculationBasis')} <span className="text-red-500">*</span>
                   </Label>
                   <Select
                     value={form.calculation_basis}
@@ -416,18 +434,18 @@ export default function SettingsSalaryDeduction() {
                     }
                   >
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select Calculation Basis" />
+                      <SelectValue placeholder={t('calculationBasis')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="gross_salary">Gross Salary</SelectItem>
-                      <SelectItem value="Voluntary">Base Salary</SelectItem>
+                      <SelectItem value="gross_salary">{t('grossSalary')}</SelectItem>
+                      <SelectItem value="Voluntary">{t('baseSalaryLabel')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               ) : (
                 <div className="space-y-2 mb-2">
                   <Label>
-                    Contribution Type <span className="text-red-500">*</span>
+                    {t('contributionType')} <span className="text-red-500">*</span>
                   </Label>
                   <RadioGroup
                     defaultValue="percentage"
@@ -442,12 +460,12 @@ export default function SettingsSalaryDeduction() {
                   >
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="percentage" id="percentage" />
-                      <Label htmlFor="percentage">Percentage (%)</Label>
+                      <Label htmlFor="percentage">{t('percentage')}</Label>
                     </div>
 
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="fixed_amount" id="fixed_amount" />
-                      <Label htmlFor="fixed_amount">Fixed Amount</Label>
+                      <Label htmlFor="fixed_amount">{t('fixedAmount')}</Label>
                     </div>
                   </RadioGroup>
                 </div>
@@ -456,10 +474,10 @@ export default function SettingsSalaryDeduction() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <Label>
-                    Employer Contribution{' '}
+                    {t('employerContribution')}{' '}
                     {form.contribution_type === 'fixed_amount'
-                      ? '(Fixed)'
-                      : '(%)'}
+                      ? t('fixed')
+                      : t('percentSymbol')}
                   </Label>
                   <Input
                     type="number"
@@ -474,10 +492,10 @@ export default function SettingsSalaryDeduction() {
                 </div>
                 <div className="space-y-2">
                   <Label>
-                    Employee Contribution{' '}
+                    {t('employeeContribution')}{' '}
                     {form.contribution_type === 'fixed_amount'
-                      ? '(Fixed)'
-                      : '(%)'}
+                      ? t('fixed')
+                      : t('percentSymbol')}
                   </Label>
                   <Input
                     type="number"
@@ -496,14 +514,14 @@ export default function SettingsSalaryDeduction() {
             <div>
               {form.name === 'PPH21' && (
                 <>
-                  <h4 className="font-medium mb-3">Tiered Rules</h4>
+                  <h4 className="font-medium mb-3">{t('tieredRules')}</h4>
                   {form.tiers.map((rule, idx) => (
                     <div
                       key={idx}
                       className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end mb-2"
                     >
                       <div className="space-y-2">
-                        <Label>Min Income</Label>
+                        <Label>{t('minIncome')}</Label>
                         <Input
                           type="number"
                           value={Number(rule.min_income)}
@@ -515,7 +533,7 @@ export default function SettingsSalaryDeduction() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>Max Income</Label>
+                        <Label>{t('maxIncome')}</Label>
                         <Input
                           type="number"
                           value={Number(rule.max_income)}
@@ -528,7 +546,7 @@ export default function SettingsSalaryDeduction() {
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="flex-1 space-y-2">
-                          <Label>Tax Rate (%)</Label>
+                          <Label>{t('taxRate')}</Label>
                           <Input
                             type="number"
                             value={Number(rule.tax_rate)}
@@ -579,7 +597,7 @@ export default function SettingsSalaryDeduction() {
                       }))
                     }
                   >
-                    + Add Rule
+                    {t('addRule')}
                   </Button>
                 </>
               )}
@@ -588,9 +606,9 @@ export default function SettingsSalaryDeduction() {
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>
-              Cancel
+              {tCommon('cancel')}
             </Button>
-            <Button onClick={handleSave}>Save</Button>
+            <Button onClick={handleSave}>{tCommon('save')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -609,10 +627,10 @@ export default function SettingsSalaryDeduction() {
               />
             </span>
             <AlertDialogTitle className="text-xl font-bold mb-2">
-              Are you sure you want to delete this configuration?
+              {t('deleteConfigurationTitle')}
             </AlertDialogTitle>
             <div className="text-gray-600 text-sm mb-4">
-              Employees linked to this configuration may be affected
+              {t('deleteConfigurationDesc')}
             </div>
           </div>
           <AlertDialogFooter className="flex flex-row gap-4 w-full justify-center">
@@ -621,14 +639,14 @@ export default function SettingsSalaryDeduction() {
               onClick={handleDelete}
               isLoading={loading}
             >
-              Delete Configuration
+              {t('deleteConfiguration')}
             </Button>
             <Button
               className="w-1/2 bg-[#18618B] hover:bg-[#14506e] text-white font-medium py-2 rounded-lg"
               onClick={() => setOpenDelete(false)}
               disabled={loading}
             >
-              Cancel
+              {tCommon('cancel')}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -640,7 +658,7 @@ export default function SettingsSalaryDeduction() {
           className={`${editing?.name === 'PPH21' ? 'w-full md:max-w-6xl' : 'max-w-3xl'} max-h-[90vh] overflow-y-auto bg-white`}
         >
           <DialogHeader>
-            <DialogTitle>Detail Salary Deduction</DialogTitle>
+            <DialogTitle>{t('detailSalaryDeduction')}</DialogTitle>
           </DialogHeader>
 
           <div
@@ -648,50 +666,62 @@ export default function SettingsSalaryDeduction() {
           >
             <div className="grid gap-4 py-2">
               <div className="space-y-2">
-                <Label>Deduction Name</Label>
+                <Label>{t('deductionName')}</Label>
                 <Label className="font-semibold">{editing?.name}</Label>
               </div>
 
               <div className="space-y-2">
-                <Label>Deduction Type</Label>
+                <Label>{t('deductionType')}</Label>
                 <Label className="font-semibold">
                   {toTitleCase(editing?.deduction_type ?? '')}
                 </Label>
               </div>
 
               <div className="space-y-2">
-                <Label>Description</Label>
+                <Label>{tCommon('description')}</Label>
                 <Label className="font-semibold">{editing?.description}</Label>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div className="space-y-2">
-                  <Label>Effective Date</Label>
+                  <Label>{t('effectiveDate')}</Label>
                   <Label className="font-semibold">
-                    {dayjs(editing?.effective_date).format('MMMM D, YYYY')}
+                    {editing?.effective_date
+                      ? formatDate(editing.effective_date, locale, {
+                          month: 'long',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })
+                      : '-'}
                   </Label>
                 </div>
                 <div className="space-y-2">
-                  <Label>Effective To</Label>
+                  <Label>{t('effectiveTo')}</Label>
                   <Label className="font-semibold">
-                    {dayjs(editing?.effective_to).format('MMMM D, YYYY')}
+                    {editing?.effective_to
+                      ? formatDate(editing.effective_to, locale, {
+                          month: 'long',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })
+                      : '-'}
                   </Label>
                 </div>
               </div>
 
               <hr className="my-2" />
 
-              <h4 className="font-medium">Contribution</h4>
+              <h4 className="font-medium">{t('contribution')}</h4>
               {editing?.name === 'PPH21' ? (
                 <div className="space-y-2">
-                  <Label>Calculation Basis</Label>
+                  <Label>{t('calculationBasis')}</Label>
                   <Label className="font-semibold">
                     {toTitleCase(editing?.calculation_basis ?? '')}
                   </Label>
                 </div>
               ) : (
                 <div className="space-y-2 mb-2">
-                  <Label>Contribution Type</Label>
+                  <Label>{t('contributionType')}</Label>
                   <Label className="font-semibold">
                     {toTitleCase(editing?.contribution_type ?? '')}
                   </Label>
@@ -701,10 +731,10 @@ export default function SettingsSalaryDeduction() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <Label>
-                    Employer Contribution{' '}
+                    {t('employerContribution')}{' '}
                     {editing?.contribution_type === 'fixed_amount'
-                      ? '(Fixed)'
-                      : '(%)'}
+                      ? t('fixed')
+                      : t('percentSymbol')}
                   </Label>
                   <Label className="font-semibold">
                     {editing?.contribution_type === 'fixed_amount'
@@ -714,10 +744,10 @@ export default function SettingsSalaryDeduction() {
                 </div>
                 <div className="space-y-2">
                   <Label>
-                    Employee Contribution{' '}
+                    {t('employeeContribution')}{' '}
                     {editing?.contribution_type === 'fixed_amount'
-                      ? '(Fixed)'
-                      : '(%)'}
+                      ? t('fixed')
+                      : t('percentSymbol')}
                   </Label>
                   <Label className="font-semibold">
                     {editing?.contribution_type === 'fixed_amount'
@@ -731,27 +761,27 @@ export default function SettingsSalaryDeduction() {
             <div>
               {editing?.name === 'PPH21' && (
                 <>
-                  <h4 className="font-medium mb-3">Tiered Rules</h4>
+                  <h4 className="font-medium mb-3">{t('tieredRules')}</h4>
                   {editing?.tiers?.map((rule, idx) => (
                     <div
                       key={idx}
                       className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end mb-2"
                     >
                       <div className="space-y-2">
-                        <Label>Min Income</Label>
+                        <Label>{t('minIncome')}</Label>
                         <Label className="font-semibold">
                           {`Rp ${Number(rule.min_income).toLocaleString('id-ID')}`}
                         </Label>
                       </div>
                       <div className="space-y-2">
-                        <Label>Max Income</Label>
+                        <Label>{t('maxIncome')}</Label>
                         <Label className="font-semibold">
                           {`Rp ${Number(rule.max_income).toLocaleString('id-ID')}`}
                         </Label>
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="flex-1 space-y-2">
-                          <Label>Tax Rate (%)</Label>
+                          <Label>{t('taxRate')}</Label>
                           <Label className="font-semibold">
                             {rule.tax_rate}%
                           </Label>
@@ -782,7 +812,7 @@ export default function SettingsSalaryDeduction() {
                       }))
                     }
                   >
-                    + Add Rule
+                    {t('addRule')}
                   </Button>
                 </>
               )}
@@ -795,11 +825,11 @@ export default function SettingsSalaryDeduction() {
               onClick={handleDelete}
               isLoading={loading}
             >
-              Delete
+              {tCommon('delete')}
             </Button>
             <div className="flex gap-3">
               <Button variant="outline" onClick={() => setOpenDetail(false)}>
-                Cancel
+                {tCommon('cancel')}
               </Button>
               <Button
                 onClick={() => {
@@ -823,7 +853,7 @@ export default function SettingsSalaryDeduction() {
                   }
                 }}
               >
-                Edit
+                {tCommon('edit')}
               </Button>
             </div>
           </div>

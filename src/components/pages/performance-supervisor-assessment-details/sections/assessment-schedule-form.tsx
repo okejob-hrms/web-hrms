@@ -23,6 +23,7 @@ import { Calendar, Clock } from "lucide-react";
 import * as React from "react";
 import { useForm, Controller } from "react-hook-form";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
 import "react-quill-new/dist/quill.snow.css";
 import { setSchedule } from "@/services/performances/supervisor-assessment";
@@ -120,6 +121,7 @@ export const ModalForm = React.memo(function ModalForm({
   open,
   setOpen,
 }: ModalFormProps) {
+  const tCommon = useTranslations("common");
   const isEditMode = !!existingData;
 
   const getDefaultValues = () => {
@@ -296,7 +298,7 @@ export const ModalForm = React.memo(function ModalForm({
                   options={employeesOptions}
                   name="participants"
                   maxCount={3}
-                  searchPlaceholder="Search Employee"
+                  searchPlaceholder={tCommon("searchEmployee")}
                   hideSelectAll
                   disabled={isLoadingEmployees}
                   valueTransformer={(value) => Number(value)}

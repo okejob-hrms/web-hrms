@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react";
 import { useForm, FormProvider, useFormContext } from "react-hook-form";
+import { useTranslations } from "next-intl";
 import { CheckboxForm } from "@/components/ui/checkbox-form";
 import { TextAreaForm } from "@/components/ui/textarea";
 import { InputForm } from "@/components/ui/input";
@@ -65,6 +66,7 @@ const RadioCardField = ({
 
 const SurveyFormFieldRenderer = ({ field }: { field: IFieldResponse }) => {
   const { control } = useFormContext();
+  const t = useTranslations("performance");
   const fieldName = field.id.toString();
 
   const commonProps = {
@@ -103,7 +105,7 @@ const SurveyFormFieldRenderer = ({ field }: { field: IFieldResponse }) => {
       return (
         <TextAreaForm
           {...commonProps}
-          placeholder="Type your answer here..."
+          placeholder={t("typeAnswerHere")}
           labelClassName="font-medium"
         />
       );
@@ -117,7 +119,7 @@ const SurveyFormFieldRenderer = ({ field }: { field: IFieldResponse }) => {
           control={control}
           name={fieldName}
           rules={{
-            required: field.is_required ? "This field is required" : false,
+            required: field.is_required ? t("fieldRequired") : false,
           }}
           render={({ field: formField }) => (
             <div className="space-y-2">
@@ -141,7 +143,7 @@ const SurveyFormFieldRenderer = ({ field }: { field: IFieldResponse }) => {
       return (
         <InputForm
           {...commonProps}
-          placeholder="Type here..."
+          placeholder={t("typeHere")}
           labelClassName="font-medium"
         />
       );
@@ -155,6 +157,9 @@ export const SurveyAssessmentForm: React.FC<SurveyAssessmentFormProps> = ({
   initialData,
 }) => {
   const queryClient = useQueryClient();
+  const t = useTranslations("performance");
+  const tCommon = useTranslations("common");
+
   const defaultValues = React.useMemo(() => {
     if (!initialData?.data?.fields) {
       return {};
@@ -190,7 +195,7 @@ export const SurveyAssessmentForm: React.FC<SurveyAssessmentFormProps> = ({
     if (Object.keys(defaultValues).length > 0) {
       form.reset(defaultValues);
     }
-  }, [defaultValues]);
+  }, [defaultValues, form]);
 
   const handleFormSubmit = (status: number) => (data: any) => {
     if (onSubmit) {
@@ -219,7 +224,9 @@ export const SurveyAssessmentForm: React.FC<SurveyAssessmentFormProps> = ({
 
       onSubmit(payload);
     } else {
-      toast.success(status === 1 ? "Draft saved" : "Assessment submitted");
+      toast.success(
+        status === 1 ? tCommon("draftSaved") : tCommon("assessmentSubmitted"),
+      );
     }
     queryClient.invalidateQueries({ queryKey: ["employee-self-assessment"] });
   };
@@ -244,14 +251,14 @@ export const SurveyAssessmentForm: React.FC<SurveyAssessmentFormProps> = ({
             onClick={form.handleSubmit(handleFormSubmit(1))}
             disabled={isSubmitting}
           >
-            Save Draft
+            {t("saveDraft")}
           </Button>
           <Button
             type="button"
             onClick={form.handleSubmit(handleFormSubmit(2))}
             disabled={isSubmitting}
           >
-            {isSubmitting ? "Submitting..." : "Submit Assessment"}
+            {isSubmitting ? tCommon("processing") : t("submitAssessment")}
           </Button>
         </div>
       </form>

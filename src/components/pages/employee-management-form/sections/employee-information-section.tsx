@@ -37,8 +37,11 @@ import { Label } from "@/components/ui/label";
 import { ApiErrorResponse } from "@/lib/types";
 import { getBranches } from "@/services/settings";
 import { IJobLevelForm } from "@/services/job-levels/types";
+import { useTranslations } from "next-intl";
 
 export const AddNewJobLevelModal: React.FC = () => {
+  const t = useTranslations("employee");
+  const tCommon = useTranslations("common");
   const [open, setOpen] = React.useState(false);
   const [name, setName] = React.useState("");
   const [level, setLevel] = React.useState("");
@@ -49,7 +52,7 @@ export const AddNewJobLevelModal: React.FC = () => {
   const addJobLevel = useMutation({
     mutationFn: (values: IJobLevelForm) => postJobLevel(values),
     onSuccess: () => {
-      toast.success("Job level added successfully!");
+      toast.success(t("jobLevelAddedSuccess"));
       queryClient.invalidateQueries({ queryKey: ["job_level_id"] });
       handleClose();
     },
@@ -59,19 +62,17 @@ export const AddNewJobLevelModal: React.FC = () => {
           error.response
             .json()
             .then((errorData: ApiErrorResponse) => {
-              toast.error(errorData.message || "Failed to add new job level");
+              toast.error(errorData.message || t("jobLevelAddFailed"));
             })
             .catch(() => {
-              toast.error("Failed to add new job level: Server error");
+              toast.error(`${t("jobLevelAddFailed")}: ${tCommon("failed")}`);
             });
         } catch (parseError) {
-          toast.error(
-            "Failed to add new job level: Server error : " + parseError,
-          );
+          toast.error(`${t("jobLevelAddFailed")}: ${parseError}`);
         }
       } else {
         toast.error(
-          `Failed to add new job level: ${error.message || "Unknown error"}`,
+          `${t("jobLevelAddFailed")}: ${error.message || tCommon("failed")}`,
         );
       }
     },
@@ -82,12 +83,12 @@ export const AddNewJobLevelModal: React.FC = () => {
     setErrorLevel("");
 
     if (!name) {
-      setErrorName("Job level is required");
+      setErrorName(t("jobLevelRequired"));
       return;
     }
 
     if (!level) {
-      setErrorLevel("Level is required");
+      setErrorLevel(t("levelRequired"));
       return;
     }
 
@@ -110,24 +111,24 @@ export const AddNewJobLevelModal: React.FC = () => {
           className="text-primary px-2 justify-start font-semibold text-base bg-primary-focused rounded-none w-full m-0 hover:text-white"
           variant="ghost"
         >
-          + Add New Job Level
+          {t("addNewJobLevel")}
         </Button>
       </DialogTrigger>
       <DialogContent className="bg-white">
         <DialogHeader>
-          <DialogTitle>Create New Job Level</DialogTitle>
+          <DialogTitle>{t("createNewJobLevel")}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div className="grid w-full items-center gap-3">
             <div className="flex">
               <Label htmlFor="job-level-name" className="text-sm font-normal">
-                Job Level
+                {t("jobLevel")}
               </Label>
               <span className="text-error">*</span>
             </div>
             <Input
               id="job-level-name"
-              placeholder="Job Level"
+              placeholder={t("jobLevel")}
               value={name}
               onChange={(e) => setName(e.target.value)}
               disabled={addJobLevel.isPending}
@@ -135,13 +136,13 @@ export const AddNewJobLevelModal: React.FC = () => {
             {errorName && <div className="text-error text-sm">{errorName}</div>}
             <div className="flex">
               <Label htmlFor="job-level-level" className="text-sm font-normal">
-                Level
+                {t("level")}
               </Label>
               <span className="text-error">*</span>
             </div>
             <Input
               id="job-level-level"
-              placeholder="Level"
+              placeholder={t("level")}
               value={level}
               onChange={(e) => setLevel(e.target.value)}
               disabled={addJobLevel.isPending}
@@ -158,14 +159,14 @@ export const AddNewJobLevelModal: React.FC = () => {
               onClick={handleClose}
               disabled={addJobLevel.isPending}
             >
-              Cancel
+              {tCommon("cancel")}
             </Button>
             <Button
               type="button"
               onClick={handleSubmit}
               disabled={addJobLevel.isPending}
             >
-              {addJobLevel.isPending ? "Saving..." : "Save"}
+              {addJobLevel.isPending ? tCommon("saving") : tCommon("save")}
             </Button>
           </DialogFooter>
         </div>
@@ -175,6 +176,8 @@ export const AddNewJobLevelModal: React.FC = () => {
 };
 
 export const AddNewPositionModal: React.FC = () => {
+  const t = useTranslations("employee");
+  const tCommon = useTranslations("common");
   const [open, setOpen] = React.useState(false);
   const [name, setName] = React.useState("");
   const [error, setError] = React.useState("");
@@ -183,7 +186,7 @@ export const AddNewPositionModal: React.FC = () => {
   const addPosition = useMutation({
     mutationFn: (values: IPositionForm) => postJobPosition(values),
     onSuccess: () => {
-      toast.success("Position added successfully!");
+      toast.success(t("positionAddedSuccess"));
       queryClient.invalidateQueries({ queryKey: ["job_position_id"] });
       handleClose();
     },
@@ -193,22 +196,20 @@ export const AddNewPositionModal: React.FC = () => {
           error.response
             .json()
             .then((errorData: ApiErrorResponse) => {
-              toast.error(errorData.message || "Failed to add new position");
-              setError(errorData.message || "Failed to add new position");
+              toast.error(errorData.message || t("positionAddFailed"));
+              setError(errorData.message || t("positionAddFailed"));
             })
             .catch(() => {
-              toast.error("Failed to add new position: Server error");
-              setError("Failed to add new position: Server error");
+              toast.error(`${t("positionAddFailed")}: ${tCommon("failed")}`);
+              setError(`${t("positionAddFailed")}: ${tCommon("failed")}`);
             });
         } catch (parseError) {
-          toast.error(
-            "Failed to add new position: Server error : " + parseError,
-          );
-          setError("Failed to add new position: Server error : " + parseError);
+          toast.error(`${t("positionAddFailed")}: ${parseError}`);
+          setError(`${t("positionAddFailed")}: ${parseError}`);
         }
       } else {
         toast.error(
-          `Failed to add new position: ${error.message || "Unknown error"}`,
+          `${t("positionAddFailed")}: ${error.message || tCommon("failed")}`,
         );
       }
     },
@@ -218,7 +219,7 @@ export const AddNewPositionModal: React.FC = () => {
     setError("");
 
     if (!name) {
-      setError("Name is required");
+      setError(t("nameRequired"));
       return;
     }
 
@@ -239,24 +240,24 @@ export const AddNewPositionModal: React.FC = () => {
           className="text-primary px-2 justify-start font-semibold text-base bg-primary-focused rounded-none w-full m-0 hover:text-white"
           variant="ghost"
         >
-          + Add New Position
+          {t("addNewPosition")}
         </Button>
       </DialogTrigger>
       <DialogContent className="bg-white">
         <DialogHeader>
-          <DialogTitle>Create New Position</DialogTitle>
+          <DialogTitle>{t("createNewPosition")}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div className="grid w-full items-center gap-3">
             <div className="flex">
               <Label htmlFor="position-name" className="text-sm font-normal">
-                Position Name
+                {t("positionName")}
               </Label>
               <span className="text-error">*</span>
             </div>
             <Input
               id="position-name"
-              placeholder="Position Name"
+              placeholder={t("positionName")}
               value={name}
               onChange={(e) => setName(e.target.value)}
               disabled={addPosition.isPending}
@@ -271,14 +272,14 @@ export const AddNewPositionModal: React.FC = () => {
               onClick={handleClose}
               disabled={addPosition.isPending}
             >
-              Cancel
+              {tCommon("cancel")}
             </Button>
             <Button
               type="button"
               onClick={handleSubmit}
               disabled={addPosition.isPending}
             >
-              {addPosition.isPending ? "Saving..." : "Save"}
+              {addPosition.isPending ? tCommon("saving") : tCommon("save")}
             </Button>
           </DialogFooter>
         </div>
@@ -288,6 +289,8 @@ export const AddNewPositionModal: React.FC = () => {
 };
 
 export const AddNewDepartmentModal: React.FC = () => {
+  const t = useTranslations("employee");
+  const tCommon = useTranslations("common");
   const [open, setOpen] = React.useState(false);
   const [name, setName] = React.useState("");
   const [description, setDescription] = React.useState("");
@@ -297,7 +300,7 @@ export const AddNewDepartmentModal: React.FC = () => {
   const addDepartment = useMutation({
     mutationFn: (values: IDepartmentForm) => postDepartment(values),
     onSuccess: () => {
-      toast.success("Department added successfully!");
+      toast.success(t("departmentAddedSuccess"));
       queryClient.invalidateQueries({ queryKey: ["department_id"] });
       handleClose();
     },
@@ -307,24 +310,20 @@ export const AddNewDepartmentModal: React.FC = () => {
           error.response
             .json()
             .then((errorData: ApiErrorResponse) => {
-              toast.error(errorData.message || "Failed to add new department");
-              setError(errorData.message || "Failed to add new department");
+              toast.error(errorData.message || t("departmentAddFailed"));
+              setError(errorData.message || t("departmentAddFailed"));
             })
             .catch(() => {
-              toast.error("Failed to add new department: Server error");
-              setError("Failed to add new department: Server error");
+              toast.error(`${t("departmentAddFailed")}: ${tCommon("failed")}`);
+              setError(`${t("departmentAddFailed")}: ${tCommon("failed")}`);
             });
         } catch (parseError) {
-          toast.error(
-            "Failed to add new department: Server error : " + parseError,
-          );
-          setError(
-            "Failed to add new department: Server error : " + parseError,
-          );
+          toast.error(`${t("departmentAddFailed")}: ${parseError}`);
+          setError(`${t("departmentAddFailed")}: ${parseError}`);
         }
       } else {
         toast.error(
-          `Failed to add new department: ${error.message || "Unknown error"}`,
+          `${t("departmentAddFailed")}: ${error.message || tCommon("failed")}`,
         );
       }
     },
@@ -334,7 +333,7 @@ export const AddNewDepartmentModal: React.FC = () => {
     setError("");
 
     if (!name.trim()) {
-      setError("Department name is required");
+      setError(t("departmentNameRequired"));
       return;
     }
 
@@ -359,24 +358,24 @@ export const AddNewDepartmentModal: React.FC = () => {
           className="text-primary px-2 justify-start font-semibold text-base bg-primary-focused rounded-none w-full m-0 hover:text-white"
           variant="ghost"
         >
-          + Add New Department
+          {t("addNewDepartment")}
         </Button>
       </DialogTrigger>
       <DialogContent className="bg-white">
         <DialogHeader>
-          <DialogTitle>Create New Department</DialogTitle>
+          <DialogTitle>{t("createNewDepartment")}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div className="grid w-full items-center gap-3">
             <div className="flex">
               <Label htmlFor="department-name" className="text-sm font-normal">
-                Department Name
+                {t("departmentName")}
               </Label>
               <span className="text-error">*</span>
             </div>
             <Input
               id="department-name"
-              placeholder="Department Name"
+              placeholder={t("departmentName")}
               value={name}
               onChange={(e) => setName(e.target.value)}
               disabled={addDepartment.isPending}
@@ -389,12 +388,12 @@ export const AddNewDepartmentModal: React.FC = () => {
               htmlFor="department-description"
               className="text-sm font-normal"
             >
-              Description{" "}
-              <span className="text-muted-foreground">(Optional)</span>
+              {tCommon("description")}{" "}
+              <span className="text-muted-foreground">({t("optionalLabel")})</span>
             </Label>
             <Textarea
               id="department-description"
-              placeholder="Description"
+              placeholder={tCommon("description")}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               disabled={addDepartment.isPending}
@@ -409,14 +408,14 @@ export const AddNewDepartmentModal: React.FC = () => {
               onClick={handleClose}
               disabled={addDepartment.isPending}
             >
-              Cancel
+              {tCommon("cancel")}
             </Button>
             <Button
               type="button"
               onClick={handleSubmit}
               disabled={addDepartment.isPending}
             >
-              {addDepartment.isPending ? "Saving..." : "Save"}
+              {addDepartment.isPending ? tCommon("saving") : tCommon("save")}
             </Button>
           </DialogFooter>
         </div>
@@ -426,6 +425,8 @@ export const AddNewDepartmentModal: React.FC = () => {
 };
 
 export const AddNewTeamModal: React.FC = () => {
+  const t = useTranslations("employee");
+  const tCommon = useTranslations("common");
   const [open, setOpen] = React.useState(false);
   const [name, setName] = React.useState("");
   const [description, setDescription] = React.useState("");
@@ -435,7 +436,7 @@ export const AddNewTeamModal: React.FC = () => {
   const addTeam = useMutation({
     mutationFn: (values: ITeamForm) => postTeam(values),
     onSuccess: () => {
-      toast.success("Team added successfully!");
+      toast.success(t("teamAddedSuccess"));
       queryClient.invalidateQueries({ queryKey: ["team_id"] });
       handleClose();
     },
@@ -445,20 +446,20 @@ export const AddNewTeamModal: React.FC = () => {
           error.response
             .json()
             .then((errorData: ApiErrorResponse) => {
-              toast.error(errorData.message || "Failed to add new team");
-              setError(errorData.message || "Failed to add new team");
+              toast.error(errorData.message || t("teamAddFailed"));
+              setError(errorData.message || t("teamAddFailed"));
             })
             .catch(() => {
-              toast.error("Failed to add new team: Server error");
-              setError("Failed to add new team: Server error");
+              toast.error(`${t("teamAddFailed")}: ${tCommon("failed")}`);
+              setError(`${t("teamAddFailed")}: ${tCommon("failed")}`);
             });
         } catch (parseError) {
-          toast.error("Failed to add new team: Server error : " + parseError);
-          setError("Failed to add new team: Server error : " + parseError);
+          toast.error(`${t("teamAddFailed")}: ${parseError}`);
+          setError(`${t("teamAddFailed")}: ${parseError}`);
         }
       } else {
         toast.error(
-          `Failed to add new team: ${error.message || "Unknown error"}`,
+          `${t("teamAddFailed")}: ${error.message || tCommon("failed")}`,
         );
       }
     },
@@ -468,7 +469,7 @@ export const AddNewTeamModal: React.FC = () => {
     setError("");
 
     if (!name.trim()) {
-      setError("Team name is required");
+      setError(t("teamNameRequired"));
       return;
     }
 
@@ -493,24 +494,24 @@ export const AddNewTeamModal: React.FC = () => {
           className="text-primary px-2 justify-start font-semibold text-base bg-primary-focused rounded-none w-full m-0 hover:text-white"
           variant="ghost"
         >
-          + Add New Team
+          {t("addNewTeam")}
         </Button>
       </DialogTrigger>
       <DialogContent className="bg-white">
         <DialogHeader>
-          <DialogTitle>Create New Team</DialogTitle>
+          <DialogTitle>{t("createNewTeam")}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div className="grid w-full items-center gap-3">
             <div className="flex">
               <Label htmlFor="team-name" className="text-sm font-normal">
-                Team Name
+                {t("teamName")}
               </Label>
               <span className="text-error">*</span>
             </div>
             <Input
               id="team-name"
-              placeholder="Team Name"
+              placeholder={t("teamName")}
               value={name}
               onChange={(e) => setName(e.target.value)}
               disabled={addTeam.isPending}
@@ -520,12 +521,12 @@ export const AddNewTeamModal: React.FC = () => {
 
           <div className="grid w-full items-center gap-3">
             <Label htmlFor="team-description" className="text-sm font-normal">
-              Description{" "}
-              <span className="text-muted-foreground">(Optional)</span>
+              {tCommon("description")}{" "}
+              <span className="text-muted-foreground">({t("optionalLabel")})</span>
             </Label>
             <Textarea
               id="team-description"
-              placeholder="Description"
+              placeholder={tCommon("description")}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               disabled={addTeam.isPending}
@@ -540,14 +541,14 @@ export const AddNewTeamModal: React.FC = () => {
               onClick={handleClose}
               disabled={addTeam.isPending}
             >
-              Cancel
+              {tCommon("cancel")}
             </Button>
             <Button
               type="button"
               onClick={handleSubmit}
               disabled={addTeam.isPending}
             >
-              {addTeam.isPending ? "Saving..." : "Save"}
+              {addTeam.isPending ? tCommon("saving") : tCommon("save")}
             </Button>
           </DialogFooter>
         </div>
@@ -558,6 +559,8 @@ export const AddNewTeamModal: React.FC = () => {
 
 export const EmployeeinformationSection = React.memo(
   function EmployeeinformationSection() {
+    const t = useTranslations("employee");
+    const tCommon = useTranslations("common");
     const { watch, setValue } = useFormContext();
     const watchedDepartmentId = watch("department_id");
     const watchedJobPositionId = watch("job_position_id");
@@ -760,12 +763,12 @@ export const EmployeeinformationSection = React.memo(
     return (
       <React.Fragment>
         <h2 className="font-semibold text-lg leading-5 mb-3">
-          Employment Information
+          {t("employmentInformation")}
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-start w-full">
           <SelectForm
             name="branch_id"
-            label="Company"
+            label={t("company")}
             options={branchOptions}
             required
             className="w-full"
@@ -775,7 +778,7 @@ export const EmployeeinformationSection = React.memo(
           <div></div>
           <SelectForm
             name="job_position_id"
-            label="Position"
+            label={tCommon("position")}
             options={positionOptions}
             required
             className="w-full"
@@ -784,7 +787,7 @@ export const EmployeeinformationSection = React.memo(
           />
           <SelectForm
             name="department_id"
-            label="Department"
+            label={tCommon("department")}
             options={departmentOptions}
             required
             modalChildren={<AddNewDepartmentModal />}
@@ -792,7 +795,7 @@ export const EmployeeinformationSection = React.memo(
           />
           <SelectForm
             name="job_level_id"
-            label="Job Level"
+            label={t("jobLevel")}
             options={jobLevelOptions}
             required
             modalChildren={<AddNewJobLevelModal />}
@@ -806,7 +809,7 @@ export const EmployeeinformationSection = React.memo(
               options={employeesOptions}
               name="direct_reports.0.direct_report_id"
               maxCount={2}
-              searchPlaceholder="Search Employee"
+              searchPlaceholder={tCommon("searchEmployee")}
               hideSelectAll
               disabled={isLoadingEmployees}
               valueTransformer={(value) => Number(value)}
@@ -832,7 +835,7 @@ export const EmployeeinformationSection = React.memo(
               options={employeesOptions}
               name="direct_reports.1.direct_report_id"
               maxCount={2}
-              searchPlaceholder="Search Employee"
+              searchPlaceholder={tCommon("searchEmployee")}
               hideSelectAll
               disabled={isLoadingEmployees}
               valueTransformer={(value) => Number(value)}
@@ -852,14 +855,14 @@ export const EmployeeinformationSection = React.memo(
           </div> */}
           <ComboboxForm
             name="primary_direct_report_id"
-            label="Primary Direct Report"
+            label={t("primaryDirectReport")}
             options={employeesOptions}
             disabled={isLoadingEmployees}
             valueType="number"
           />
           <ComboboxForm
             name="additional_direct_report_id"
-            label="Additional Direct Report"
+            label={t("additionalDirectReport")}
             options={employeesOptions}
             disabled={isLoadingEmployees}
             isOptional
@@ -867,20 +870,20 @@ export const EmployeeinformationSection = React.memo(
           />
           <SelectForm
             name="team_member"
-            label="Team"
+            label={t("team")}
             options={teamOptions}
             required
             modalChildren={<AddNewTeamModal />}
             disabled={isTeamsLoading || !!teamsError}
           />
-          <DatePicker name="start_date" label="Employment Start Date" />
-          <DatePicker name="end_date" label="Employment End Date" />
+          <DatePicker name="start_date" label={t("employmentStartDate")} />
+          <DatePicker name="end_date" label={t("employmentEndDate")} />
           <SelectForm
             name="status"
-            label="Status"
+            label={tCommon("status")}
             options={[
-              { label: "Active", value: "1" },
-              { label: "Inactive", value: "0" },
+              { label: tCommon("active"), value: "1" },
+              { label: tCommon("inactive"), value: "0" },
             ]}
             required
           />

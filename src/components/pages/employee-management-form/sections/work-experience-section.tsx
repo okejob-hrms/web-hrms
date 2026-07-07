@@ -47,6 +47,7 @@ import {
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { ApiErrorResponse } from "@/lib/types";
+import { useTranslations } from "next-intl";
 import { PhoneInput } from "@/components/ui/phone-input";
 
 dayjs.extend(localizedFormat);
@@ -66,14 +67,17 @@ const formatPhoneNumber = (value: string): string => {
   }
 };
 
-const validatePhoneNumber = (value: string): string | null => {
+const validatePhoneNumber = (
+  value: string,
+  t: (key: string) => string,
+): string | null => {
   const cleanValue = value.replace(/\D/g, "");
 
   if (cleanValue.length < 3) {
-    return "Phone number must be at least 3 digits";
+    return t("phoneMinDigits");
   }
   if (cleanValue.length > 15) {
-    return "Phone number must be no more than 15 digits";
+    return t("phoneMaxDigits");
   }
   return null;
 };
@@ -163,6 +167,8 @@ const WorkExperienceFormModal = ({
   onSuccess,
   buttonVariant = "default",
 }: WorkExperienceFormModalProps) => {
+  const t = useTranslations("employee");
+  const tCommon = useTranslations("common");
   const [internalOpen, setInternalOpen] = React.useState(false);
   const queryClient = useQueryClient();
 
@@ -217,7 +223,9 @@ const WorkExperienceFormModal = ({
         : postCreateWorkExperience(params),
     onSuccess: () => {
       toast.success(
-        `Work experience ${isEdit ? "updated" : "added"} successfully!`,
+        isEdit
+          ? t("workExperienceUpdatedSuccess")
+          : t("workExperienceAddedSuccess"),
       );
 
       queryClient.invalidateQueries({
@@ -236,21 +244,20 @@ const WorkExperienceFormModal = ({
             .json()
             .then((errorData: ApiErrorResponse) => {
               toast.error(
-                errorData.message || "Failed to save work experience.",
+                errorData.message || t("workExperienceSaveFailed"),
               );
-              // form.setError("")
             })
             .catch(() => {
-              toast.error("Failed to save work experience: Server error");
+              toast.error(t("workExperienceSaveServerError"));
             });
         } catch (parseError) {
           toast.error(
-            "Failed to save work experience: Server error : " + parseError,
+            `${t("workExperienceSaveServerError")} : ${parseError}`,
           );
         }
       } else {
         toast.error(
-          `Failed to save work experience: ${error.message || "Unknown error"}`,
+          `${t("workExperienceSaveFailed")} ${error.message || ""}`,
         );
       }
     },
@@ -261,6 +268,7 @@ const WorkExperienceFormModal = ({
       try {
         const phoneError = validatePhoneNumber(
           values.supervisor_contact?.toString() || "",
+          t,
         );
         if (phoneError) {
           form.setError("supervisor_contact", {
@@ -287,10 +295,10 @@ const WorkExperienceFormModal = ({
         mutation.mutate(params);
       } catch (error) {
         console.error("Submit error:", error);
-        toast.error("Failed to submit form");
+        toast.error(t("workExperienceSubmitFailed"));
       }
     },
-    [form, isEdit, workExperienceData?.id, employee_profile_id, mutation],
+    [form, isEdit, workExperienceData?.id, employee_profile_id, mutation, t],
   );
 
   const handleCancel = () => {
@@ -307,60 +315,60 @@ const WorkExperienceFormModal = ({
             variant={buttonVariant}
             className={cn(buttonVariant === "outline" && "bg-white")}
           >
-            <Plus /> Add Work Experience
+            <Plus /> {t("addWorkExperience")}
           </Button>
         </DialogTrigger>
       )}
       <DialogContent className="bg-white md:min-w-5xl overflow-y-scroll max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>
-            {isEdit ? "Edit Work Experience" : "Add Work Experience"}
+            {isEdit ? t("editWorkExperience") : t("addWorkExperience")}
           </DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <InputForm name="company" label="Company" required />
+              <InputForm name="company" label={t("company")} required />
               <div className="grid grid-cols-2 gap-4 w-full">
                 <InputForm
                   name="initial_position"
-                  label="Initial Position"
+                  label={t("initialPosition")}
                   required
                 />
                 <InputForm
                   name="final_position"
-                  label="Final Position"
+                  label={t("finalPosition")}
                   required
                 />
               </div>
-              <InputForm name="supervisor" label="Supervisor" required />
+              <InputForm name="supervisor" label={t("supervisor")} required />
               <PhoneInput
                 name="supervisor_contact"
-                label="Supervisor Contact Person"
+                label={t("supervisorContact")}
                 required
                 disabled={mutation.isPending}
               />
               <TextAreaForm
                 name="company_address"
-                label="Company Address"
+                label={t("companyAddress")}
                 required
                 className="md:col-span-2"
                 disabled={mutation.isPending}
               />
               <div className="grid grid-cols-2 gap-4 w-full">
-                <DatePicker label="Date of Joining" name="start_date" />
-                <DatePicker label="Date of Resignation" name="end_date" />
+                <DatePicker label={t("joinDate")} name="start_date" />
+                <DatePicker label={t("resignDate")} name="end_date" />
               </div>
               <InputForm
                 name="last_salary"
-                label="Last Salary"
+                label={t("lastSalary")}
                 required
                 type="number"
                 disabled={mutation.isPending}
               />
               <TextAreaForm
                 name="reason_for_resign"
-                label="Reason of Resignation"
+                label={t("reasonOfResign")}
                 required
                 className="md:col-span-2"
                 disabled={mutation.isPending}
@@ -374,10 +382,10 @@ const WorkExperienceFormModal = ({
                 onClick={handleCancel}
                 disabled={mutation.isPending}
               >
-                Cancel
+                {tCommon("cancel")}
               </Button>
               <Button type="submit" disabled={mutation.isPending}>
-                {mutation.isPending ? "Saving..." : "Save"}
+                {mutation.isPending ? tCommon("saving") : tCommon("save")}
               </Button>
             </DialogFooter>
           </form>
@@ -392,26 +400,31 @@ interface Props {
   employee_profile_id?: number;
 }
 
-const SectionHeader = ({ withAddButton, employee_profile_id }: Props) => (
+const SectionHeader = ({ withAddButton, employee_profile_id }: Props) => {
+  const t = useTranslations("employee");
+  return (
   <div
     className={withAddButton ? "flex justify-between items-center mb-4" : ""}
   >
     <h2
       className={`font-semibold text-lg leading-5 ${withAddButton ? "mb-3" : ""}`}
     >
-      Work Experience
+      {t("workExperience")}
     </h2>
     {withAddButton && (
       <WorkExperienceFormModal employee_profile_id={employee_profile_id} />
     )}
   </div>
-);
+  );
+};
 
 export const WorkExperienceSection = React.memo<Props>(
   function WorkExperienceSection({
     withAddButton = false,
     employee_profile_id,
   }) {
+    const t = useTranslations("employee");
+    const tCommon = useTranslations("common");
     const queryClient = useQueryClient();
     const [editingWorkExperience, setEditingWorkExperience] =
       React.useState<IResponseWorkExperience | null>(null);
@@ -436,7 +449,7 @@ export const WorkExperienceSection = React.memo<Props>(
       mutationFn: ({ id }: { id: number }) =>
         deleteWorkExperience({ id, employee_profile_id }),
       onSuccess: (_) => {
-        toast.success("Work experience deleted successfully!");
+        toast.success(t("workExperienceDeleteSuccess"));
         queryClient.invalidateQueries({
           queryKey: ["work-experiences", employee_profile_id || ""],
         });
@@ -444,9 +457,10 @@ export const WorkExperienceSection = React.memo<Props>(
       onError: (error: any) => {
         console.error("Delete mutation error:", error);
         toast.error(
-          `Failed to delete work experience: ${
-            error?.response?.data?.message || error.message || "Unknown error"
-          }`,
+          t("workExperienceDeleteFailed", {
+            message:
+              error?.response?.data?.message || error.message || tCommon("failed"),
+          }),
         );
       },
     });
@@ -458,7 +472,7 @@ export const WorkExperienceSection = React.memo<Props>(
 
     const handleDelete = (workExperienceId: number) => {
       if (
-        window.confirm("Are you sure you want to delete this work experience?")
+        window.confirm(t("workExperienceDeleteConfirm"))
       ) {
         deleteMutation.mutate({ id: workExperienceId });
       }
@@ -473,23 +487,23 @@ export const WorkExperienceSection = React.memo<Props>(
       () => [
         {
           accessorKey: "company",
-          header: "Company",
+          header: t("company"),
         },
         {
           accessorKey: "initial_position",
-          header: "Initial Position",
+          header: t("initialPosition"),
         },
         {
           accessorKey: "final_position",
-          header: "Final Position",
+          header: t("finalPosition"),
         },
         {
           accessorKey: "supervisor",
-          header: "Supervision",
+          header: t("supervision"),
         },
         {
           accessorKey: "supervisor_contact",
-          header: "Supervisor Contact",
+          header: t("supervisorContact"),
           cell: ({ row }) => {
             const phone = row.original.supervisor_contact;
             return (
@@ -499,25 +513,25 @@ export const WorkExperienceSection = React.memo<Props>(
         },
         {
           accessorKey: "company_address",
-          header: "Company Address",
+          header: t("companyAddress"),
         },
         {
           accessorKey: "start_date",
-          header: "Join Date",
+          header: t("joinDate"),
           cell: ({ row }) => (
             <span>{dayjs(row.original.start_date).format("LL")}</span>
           ),
         },
         {
           accessorKey: "end_date",
-          header: "Resign Date",
+          header: t("resignDate"),
           cell: ({ row }) => (
             <span>{dayjs(row.original.end_date).format("LL")}</span>
           ),
         },
         {
           accessorKey: "last_salary",
-          header: "Last Salary",
+          header: t("lastSalary"),
           cell: ({ getValue }) => {
             const salary = getValue<number>();
             return rupiahFormatter(salary);
@@ -525,7 +539,7 @@ export const WorkExperienceSection = React.memo<Props>(
         },
         {
           accessorKey: "reason_for_resign",
-          header: "Reason of Resign",
+          header: t("reasonOfResign"),
         },
         {
           accessorKey: "menu",
@@ -539,7 +553,7 @@ export const WorkExperienceSection = React.memo<Props>(
           ),
         },
       ],
-      [],
+      [t],
     );
 
     return (
@@ -577,11 +591,10 @@ export const WorkExperienceSection = React.memo<Props>(
             noDataPlaceholder={
               <div className="border border-primary-border bg-primary-background rounded-md p-2 gap-1 mx-8 flex flex-col items-center justify-center">
                 <p className="text-primary font-semibold text-lg text-center">
-                  Complete Work Experience Information
+                  {t("completeWorkExperience")}
                 </p>
                 <p className="text-base text-text-secondary text-center">
-                  Add the employee&apos;s previous roles, companies, and career
-                  history to build a complete employment profile.
+                  {t("completeWorkExperienceDesc")}
                 </p>
                 <WorkExperienceFormModal
                   buttonVariant="outline"

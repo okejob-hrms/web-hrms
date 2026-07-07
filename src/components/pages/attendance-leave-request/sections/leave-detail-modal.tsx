@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { useLocale, useTranslations } from 'next-intl';
+import { resolveLocale } from '@/lib/i18n/locale';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,7 +23,7 @@ import {
   formatDayDifference,
   getStatusOvertime,
 } from '@/lib/helpers';
-import { Badge } from '@/components/ui/badge';
+import { StatusBadge } from '@/components/shared/status-badge';
 import Link from 'next/link';
 import { IEmployeeDetailsResponse } from '@/services/employees/types';
 import { getUserLeaveBalance } from '@/services/employees/leave';
@@ -52,6 +54,9 @@ export default function LeaveDetailModal({
   getEmployeeData,
   isEmployee,
 }: Props) {
+  const locale = resolveLocale(useLocale());
+  const t = useTranslations('attendance');
+  const tCommon = useTranslations('common');
   const [approversData, setApproversData] = useState<ApproverData[]>([]);
   const [leaveBalance, setLeaveBalance] = useState('-');
   const [employeeData, setEmployeeData] = useState({
@@ -70,7 +75,10 @@ export default function LeaveDetailModal({
         const usedLeaveBalance = await getUserLeaveBalance(data.user_id);
         if (usedLeaveBalance) {
           setLeaveBalance(
-            `${usedLeaveBalance.data.time_off_used} / ${usedLeaveBalance.data.available_time_off} Days`,
+            t('leaveBalanceDays', {
+              used: usedLeaveBalance.data.time_off_used,
+              available: usedLeaveBalance.data.available_time_off,
+            }),
           );
         }
       } catch (err) {
@@ -80,7 +88,7 @@ export default function LeaveDetailModal({
       }
     };
     fetchUsedBalanceData();
-  }, [data, isOpen, getUserLeaveBalance]);
+  }, [data, isOpen, getUserLeaveBalance, t]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -103,9 +111,9 @@ export default function LeaveDetailModal({
               const employee = await getEmployeeData(approver.user_id);
               return {
                 approver,
-                employeeName: employee?.user?.name || 'Unknown',
+                employeeName: employee?.user?.name || t('unknownEmployee'),
                 jobPosition:
-                  employee?.employment?.job_position?.name || 'Unknown',
+                  employee?.employment?.job_position?.name || t('unknownEmployee'),
               };
             }),
           );
@@ -119,29 +127,25 @@ export default function LeaveDetailModal({
     };
 
     fetchData();
-  }, [data, isOpen, getEmployeeData]);
+  }, [data, isOpen, getEmployeeData, t]);
 
   const renderStatus = (statusData: ILeaveResponse) => {
     const status = statusData.status;
-    const { variant, className, label } = getStatusOvertime(status);
+    const { variant, className, key } = getStatusOvertime(status);
     if (!statusData.status) return '-';
 
     return (
-      <Badge variant={variant} className={className}>
-        {label}
-      </Badge>
+      <StatusBadge statusKey={key} variant={variant} className={className} />
     );
   };
 
   const renderStatusApprover = (approverData: ILeaveApprover) => {
     const status = approverData.status;
-    const { variant, className, label } = getStatusOvertime(status);
+    const { variant, className, key } = getStatusOvertime(status);
     if (!approverData.status) return '-';
 
     return (
-      <Badge variant={variant} className={className}>
-        {label}
-      </Badge>
+      <StatusBadge statusKey={key} variant={variant} className={className} />
     );
   };
 
@@ -164,7 +168,7 @@ export default function LeaveDetailModal({
       <AlertDialogContent className="max-w-md min-w-2xl mx-auto bg-white rounded-lg shadow-lg p-6">
         <AlertDialogHeader className="text-left">
           <AlertDialogTitle className="text-lg text-left font-semibold text-black mb-2">
-            Leave Request Details
+            {t('leaveRequestDetails')}
           </AlertDialogTitle>
         </AlertDialogHeader>
 
@@ -198,34 +202,34 @@ export default function LeaveDetailModal({
 
             <div className="grid grid-cols-2 gap-3 space-y-2 mb-4">
               <div>
-                <div className="text-sm text-gray-500">Leave Type</div>
+                <div className="text-sm text-gray-500">{t('leaveType')}</div>
                 <div>{data?.leave_type?.name}</div>
               </div>
               <div>
-                <div className="text-sm text-gray-500">Duration</div>
+                <div className="text-sm text-gray-500">{tCommon('duration')}</div>
                 <div>
                   <span className="text-base">
-                    {formatDateRange(data?.start_date, data?.end_date)}
+                    {formatDateRange(data?.start_date, data?.end_date, locale)}
                   </span>{' '}
                   <span className="text-base text-text-disabled">
-                    ({formatDayDifference(data?.start_date, data?.end_date)})
+                    ({formatDayDifference(data?.start_date, data?.end_date, locale)})
                   </span>
                 </div>
               </div>
               <div>
-                <div className="text-sm text-gray-500">Status</div>
+                <div className="text-sm text-gray-500">{tCommon('status')}</div>
                 <div>{renderStatus(data)}</div>
               </div>
               <div>
-                <div className="text-sm text-gray-500">Used Leave Balance</div>
+                <div className="text-sm text-gray-500">{t('usedLeaveBalance')}</div>
                 <div>{leaveBalance}</div>
               </div>
               <div className="col-span-2">
-                <div className="text-sm text-gray-500">Reason</div>
+                <div className="text-sm text-gray-500">{t('reason')}</div>
                 <div>{data?.reason}</div>
               </div>
               <div className="col-span-2">
-                <div className="text-sm text-gray-500">Attachments</div>
+                <div className="text-sm text-gray-500">{t('attachments')}</div>
                 {data?.attachment ? (
                   <Link
                     href={`${process.env.NEXT_PUBLIC_FILE_URL}/${data.attachment}`}
@@ -239,7 +243,7 @@ export default function LeaveDetailModal({
                 )}
               </div>
               <div className="col-span-2">
-                <div className="text-sm text-gray-500">Approvers</div>
+                <div className="text-sm text-gray-500">{t('approvers')}</div>
                 {approversData.length > 0
                   ? approversData.map((item) => (
                       <div
@@ -266,7 +270,7 @@ export default function LeaveDetailModal({
             onClick={onClose}
             className="flex-1 text-primary border-0 justify-start bg-white hover:bg-white rounded-md py-2 font-medium col-span-2"
           >
-            Cancel
+            {tCommon('cancel')}
           </AlertDialogCancel>
           {!isEmployee && (
             <>
@@ -275,14 +279,14 @@ export default function LeaveDetailModal({
                 className="flex-1 bg-white text-red-500 hover:text-red-500 hover:opacity-50 rounded-md py-2 font-medium border-red-500 px-4"
               >
                 <CircleX />
-                Reject
+                {tCommon('reject')}
               </AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleApprove}
                 className="flex-1 bg-primary text-white rounded-md py-2 font-medium px-5"
               >
                 <ClockCheck />
-                Approve Request
+                {t('approveRequest')}
               </AlertDialogAction>
             </>
           )}

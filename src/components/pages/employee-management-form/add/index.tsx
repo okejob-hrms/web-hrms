@@ -24,11 +24,14 @@ import { useRouter } from "next/navigation";
 import { convertPhoneToNumber } from "@/lib/helpers";
 import { ApiErrorResponse } from "@/lib/types";
 import { Button } from "@/components/ui/button";
+import { useTranslations } from "next-intl";
 
 type EmployeeFormValues = z.infer<typeof employeeManagementFormScheme>;
 
 export const AddEmployeeForm = React.memo(function AddEmployee() {
   const router = useRouter();
+  const t = useTranslations("employee");
+  const tCommon = useTranslations("common");
 
   const form = useForm<EmployeeFormValues>({
     resolver: zodResolver(employeeManagementFormScheme),
@@ -39,7 +42,7 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
   const { mutate, isPending } = useMutation({
     mutationFn: (params: IMutateEmployeeRequests) => createEmployee(params),
     onSuccess: () => {
-      toast.success("Employee added successfully!");
+      toast.success(t("employeeAddedSuccess"));
       router.push("/employee/employee-management");
       form.reset();
     },
@@ -47,13 +50,13 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
       if (error?.response) {
         try {
           const errorData: ApiErrorResponse = await error.response.json();
-          toast.error(errorData.message || "Failed to add employee");
+          toast.error(errorData.message || t("employeeAddFailed"));
         } catch {
-          toast.error("Failed to add employee: Server error");
+          toast.error(t("employeeAddServerError"));
         }
       } else {
         toast.error(
-          `Failed to add employee: ${error.message || "Unknown error"}`,
+          `${t("employeeAddFailed")}: ${error.message || "Unknown error"}`,
         );
       }
     },
@@ -154,7 +157,7 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
               disabled={isPending}
               onClick={() => router.push("/employee/employee-management")}
             >
-              Cancel
+              {tCommon("cancel")}
             </Button>
             <Button
               type="button"
@@ -163,7 +166,7 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
               className="md:max-w-36 w-[50%]"
               onClick={handleAddEmployee}
             >
-              Add Employee
+              {t("addEmployee")}
             </Button>
           </div>
         </form>

@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useTranslations, useLocale } from 'next-intl';
 import { DataTable } from '@/components/tables/data-table';
 import { ColumnDef } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
@@ -11,6 +12,8 @@ import { useAttendance } from './hook';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Attendance } from '@/services/attendance/types';
 import { stringAvatar } from '@/lib/utils';
+import { formatDate } from '@/lib/formatting';
+import { resolveLocale } from '@/lib/i18n/locale';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,6 +37,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
+import { StatusBadge } from '@/components/shared/status-badge';
 import {
   Sheet,
   SheetContent,
@@ -61,6 +65,9 @@ export const AttendanceTrackerList = ({
   relativeStatus,
 }: AttendanceTrackerListProps) => {
   const router = useRouter();
+  const t = useTranslations('attendance');
+  const tCommon = useTranslations('common');
+  const locale = resolveLocale(useLocale());
 
   const {
     attendances,
@@ -92,10 +99,20 @@ export const AttendanceTrackerList = ({
     setSelectedIdTrackers,
   } = useAttendance();
 
+  const detailPeriodLabel = React.useMemo(
+    () =>
+      formatDate(
+        new Date(detailFilter.year, detailFilter.month - 1, 1),
+        locale,
+        { month: 'long', year: 'numeric' },
+      ),
+    [detailFilter.month, detailFilter.year, locale],
+  );
+
   const columns: ColumnDef<Attendance>[] = [
     {
       accessorKey: 'name',
-      header: 'Name',
+      header: tCommon('name'),
       cell: ({ row }) => (
         <div className="flex gap-4 items-center min-w-[150px]">
           <Avatar className="h-10 w-10">
@@ -117,14 +134,14 @@ export const AttendanceTrackerList = ({
     },
     {
       accessorKey: 'latest_attendance.attendance_date',
-      header: 'Date',
+      header: tCommon('date'),
       size: 200,
       cell: ({ row }) => row.original.latest_attendance?.attendance_date || '-',
     },
 
     {
       accessorKey: 'latest_attendance',
-      header: 'Check-In & Out',
+      header: t('checkInOut'),
       size: 200,
       cell: ({ row }) => {
         const att = row.original.latest_attendance;
@@ -136,11 +153,11 @@ export const AttendanceTrackerList = ({
               {att.clock.in_at || '-'} — {att.clock.out_at || '-'}
             </span>
             <span className="text-muted-foreground text-xs">
-              Duration {att.duration || '-'}
+              {tCommon('duration')} {att.duration || '-'}
             </span>
             {att.clock.duration && (
               <span className="text-muted-foreground text-xs">
-                Overtime {att.clock.overtime_duration_fomated}
+                {t('overtime')} {att.clock.overtime_duration_fomated}
               </span>
             )}
           </div>
@@ -149,30 +166,28 @@ export const AttendanceTrackerList = ({
     },
     {
       accessorKey: 'latest_attendance.metadata.shift_name',
-      header: 'Shift',
+      header: t('shift'),
       size: 200,
       cell: ({ row }) =>
         row.original.latest_attendance?.metadata?.shift_name || '-',
     },
     {
       accessorKey: 'latest_attendance.notes',
-      header: 'Notes',
+      header: tCommon('notes'),
       size: 200,
       cell: ({ row }) => row.original.latest_attendance?.notes || '-',
     },
     {
       accessorKey: 'latest_attendance.status_label',
-      header: 'Status',
+      header: tCommon('status'),
       size: 160,
       cell: ({ row }) => {
         const status = row.original.latest_attendance?.status_label;
-        const { variant, className, label } = getStatusAttendance(status);
+        const { variant, className, key } = getStatusAttendance(status);
         if (!row.original.latest_attendance?.status_label) return '-';
 
         return (
-          <Badge variant={variant} className={className}>
-            {label}
-          </Badge>
+          <StatusBadge statusKey={key} variant={variant} className={className} />
         );
       },
     },
@@ -197,7 +212,7 @@ export const AttendanceTrackerList = ({
                   className="flex gap-2"
                 >
                   <Eye />
-                  Attendance Details
+                  {t('attendanceDetails')}
                 </button>
               </DropdownMenuItem>
               {row.original.latest_attendance?.status !== 1 && (
@@ -212,7 +227,7 @@ export const AttendanceTrackerList = ({
                     className="flex gap-2"
                   >
                     <Clock4Icon />
-                    Approve Attendance
+                    {t('approveAttendance')}
                   </button>
                 </DropdownMenuItem>
               )}
@@ -228,7 +243,7 @@ export const AttendanceTrackerList = ({
                     className="flex gap-2"
                   >
                     <XCircle />
-                    Reject Attendance
+                    {t('rejectAttendance')}
                   </button>
                 </DropdownMenuItem>
               )}
@@ -239,7 +254,7 @@ export const AttendanceTrackerList = ({
                   className="flex gap-2 justify-between items-center"
                 >
                   <Edit3 />
-                  Edit Attendance Record
+                  {t('editAttendanceRecord')}
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem>
@@ -251,7 +266,7 @@ export const AttendanceTrackerList = ({
                   className="flex gap-2"
                 >
                   <Trash />
-                  Delete Attendance
+                  {t('deleteAttendance')}
                 </button>
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -283,57 +298,57 @@ export const AttendanceTrackerList = ({
     <div className={`font-sans min-h-screen flex flex-col space-y-6 px-6`}>
       {!hidePannel && (
         <>
-          <h2 className="font-semibold text-xl">Summary</h2>
+          <h2 className="font-semibold text-xl">{tCommon('summary')}</h2>
           <div className="grid xl:grid-cols-3 grid-cols-1 gap-6">
             <InfoList
-              title="Late Clock In"
+              title={t('lateClockIn')}
               increase={stat?.late_clock_in?.change}
-              compare="vs"
-              time="yesterday"
+              compare={tCommon('vs')}
+              time={tCommon('yesterday')}
               value={stat?.late_clock_in?.current}
             />
             <InfoList
-              title="Early Clock In"
+              title={t('earlyClockIn')}
               increase={stat?.early_clock_in?.change}
-              compare="vs"
-              time="yesterday"
+              compare={tCommon('vs')}
+              time={tCommon('yesterday')}
               value={stat?.early_clock_in?.current}
             />
             <InfoList
-              title="Early Clock Out"
+              title={t('earlyClockOut')}
               increase={stat?.early_clock_out?.change}
-              compare="vs"
-              time="yesterday"
+              compare={tCommon('vs')}
+              time={tCommon('yesterday')}
               value={stat?.early_clock_out?.current}
             />
           </div>
           <div className="grid xl:grid-cols-4 grid-cols-1 gap-6">
             <InfoList
-              title="On Time"
+              title={t('onTime')}
               increase={stat?.on_time?.change}
-              compare="vs"
-              time="yesterday"
+              compare={tCommon('vs')}
+              time={tCommon('yesterday')}
               value={stat?.on_time?.current}
             />
             <InfoList
-              title="Overtime"
+              title={t('overtime')}
               increase={stat?.overtime?.change}
-              compare="vs"
-              time="yesterday"
+              compare={tCommon('vs')}
+              time={tCommon('yesterday')}
               value={stat?.overtime?.current}
             />
             <InfoList
-              title="Absent"
+              title={t('absent')}
               increase={stat?.absent?.change}
-              compare="vs"
-              time="yesterday"
+              compare={tCommon('vs')}
+              time={tCommon('yesterday')}
               value={stat?.absent?.current}
             />
             <InfoList
-              title="Day Off"
+              title={t('dayOff')}
               increase={stat?.day_off?.change}
-              compare="vs"
-              time="yesterday"
+              compare={tCommon('vs')}
+              time={tCommon('yesterday')}
               value={stat?.day_off?.current}
             />
           </div>
@@ -348,7 +363,7 @@ export const AttendanceTrackerList = ({
               <Input
                 name="search"
                 className="w-full md:w-1/4"
-                placeholder="Search by Employee Name or Email"
+                placeholder={t('searchEmployee')}
                 icon={<Search className="size-5 text-grayscale-20" />}
                 iconPosition="right"
                 value={filters.search}
@@ -382,11 +397,11 @@ export const AttendanceTrackerList = ({
 
         <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6">
           <div className="flex md:flex-row flex-col justify-between w-full md:items-center items-start gap-4">
-            <h2 className="font-semibold text-xl">Attendance Tracker</h2>
+            <h2 className="font-semibold text-xl">{t('attendanceTracker')}</h2>
             <Button
               onClick={() => router.push('/attendance/attendance-tracker/add')}
             >
-              + New Record Attendance
+              {t('newRecord')}
             </Button>
           </div>
 
@@ -401,8 +416,8 @@ export const AttendanceTrackerList = ({
           <Sheet open={openDetail} onOpenChange={setOpenDetail}>
             <SheetContent className="md:min-w-2xl w-full bg-white">
               <SheetHeader>
-                <SheetTitle>Attendance Details</SheetTitle>
-                <SheetDescription>This is the details view.</SheetDescription>
+                <SheetTitle>{t('attendanceDetails')}</SheetTitle>
+                <SheetDescription>{t('detailsView')}</SheetDescription>
               </SheetHeader>
               <div className="px-6">
                 <div className="flex sm:flex-row flex-col justify-between gap-4 mb-3">
@@ -434,7 +449,7 @@ export const AttendanceTrackerList = ({
                     }
                   >
                     <Eye />
-                    Employee Details
+                    {t('employeeDetails')}
                   </Button>
                 </div>
 
@@ -443,7 +458,7 @@ export const AttendanceTrackerList = ({
                 <div className="flex justify-between my-3">
                   <div className="flex gap-2 items-center">
                     <div className="font-bold font-xl">
-                      {detailFilter.month} {detailFilter.year}
+                      {detailPeriodLabel}
                     </div>
                     <div className="flex gap-2 items-center">
                       <Button
@@ -463,31 +478,31 @@ export const AttendanceTrackerList = ({
                 </div>
                 <div className="py-3 flex sm:flex-row flex-col justify-between">
                   <div className="gap-2">
-                    <div className="font-semibold text-xs">Late Check In</div>
+                    <div className="font-semibold text-xs">{t('lateCheckIn')}</div>
                     <h3 className="text-primary font-bold">
                       {statEmployee?.clock_in?.late}
                     </h3>
                   </div>
                   <div className="gap-2">
-                    <div className="font-semibold text-xs">Early Clock Out</div>
+                    <div className="font-semibold text-xs">{t('earlyClockOut')}</div>
                     <h3 className="text-primary font-bold">
                       {statEmployee?.clock_out?.early}
                     </h3>
                   </div>
                   <div className="gap-2">
-                    <div className="font-semibold text-xs">Overtime</div>
+                    <div className="font-semibold text-xs">{t('overtime')}</div>
                     <h3 className="text-primary font-bold">
                       {statEmployee?.overtime}
                     </h3>
                   </div>
                   <div className="gap-2">
-                    <div className="font-semibold text-xs">Absent</div>
+                    <div className="font-semibold text-xs">{t('absent')}</div>
                     <h3 className="text-primary font-bold">
                       {Math.round(statEmployee?.absent || 0)}
                     </h3>
                   </div>
                   <div className="gap-2">
-                    <div className="font-semibold text-xs">Day Off</div>
+                    <div className="font-semibold text-xs">{t('dayOff')}</div>
                     <h3 className="text-primary font-bold">
                       {statEmployee?.day_off?.used}/
                       {statEmployee?.day_off?.quota}
@@ -498,14 +513,14 @@ export const AttendanceTrackerList = ({
 
               {detailData?.data?.data && detailData?.data?.data?.length > 0 ? (
                 <div className="bg-gray-100 p-6 space-y-6 flex-1 overflow-y-auto border-t">
-                  {detailData?.data?.data.map((item, key) => {
+                  {detailData?.data?.data.map((item, index) => {
                     const status = item?.status_label;
-                    const { variant, className, label } =
+                    const { variant, className, key: statusKey } =
                       getStatusAttendance(status);
                     return (
                       <div
                         className="border rounded-md p-4 bg-white space-y-5"
-                        key={key}
+                        key={index}
                       >
                         <div className="flex sm:flex-row flex-col gap-4">
                           <div className="text-primary font-bold">
@@ -520,15 +535,17 @@ export const AttendanceTrackerList = ({
                             </Badge>
                           )}
 
-                          <Badge variant={variant} className={className}>
-                            {label}
-                          </Badge>
+                          <StatusBadge
+                            statusKey={statusKey}
+                            variant={variant}
+                            className={className}
+                          />
                         </div>
                         <div className="flex sm:flex-row flex-col gap-4 justify-between items-center">
                           <div className="flex flex-row gap-2 justify-between items-center">
                             <div className="flex flex-col">
                               <span className="text-muted-foreground text-xs">
-                                Clock-In
+                                {t('clockIn')}
                               </span>
                               <span>{item.clock.in_at || '-'}</span>
                             </div>
@@ -547,7 +564,7 @@ export const AttendanceTrackerList = ({
                             />
                             <div className="flex flex-col">
                               <span className="text-muted-foreground text-xs text-end">
-                                Clock-Out
+                                {t('clockOut')}
                               </span>
                               <span className="text-warning text-end">
                                 {item.clock.out_at || '-'}
@@ -557,7 +574,7 @@ export const AttendanceTrackerList = ({
 
                           <div className="flex flex-col space-y-2">
                             <span className="text-muted-foreground text-xs">
-                              Attendance Approval
+                              {t('attendanceApproval')}
                             </span>
                             <div className="flex gap-4">
                               {item.status !== 2 && (
@@ -571,7 +588,7 @@ export const AttendanceTrackerList = ({
                                   }}
                                 >
                                   <X />
-                                  Reject
+                                  {tCommon('reject')}
                                 </Button>
                               )}
                               {item.status !== 1 && (
@@ -584,7 +601,7 @@ export const AttendanceTrackerList = ({
                                   }}
                                 >
                                   <Check />
-                                  Approve
+                                  {tCommon('approve')}
                                 </Button>
                               )}
                             </div>
@@ -593,7 +610,7 @@ export const AttendanceTrackerList = ({
                         <div className="flex flex-col gap-3 py-2 border-t">
                           <div className="flex flex-col space-y-1">
                             <span className="text-muted-foreground text-sm">
-                              Location
+                              {t('location')}
                             </span>
                             <Badge
                               variant="default"
@@ -610,7 +627,7 @@ export const AttendanceTrackerList = ({
                           {item.notes && (
                             <div className="flex flex-col space-y-1">
                               <span className="text-muted-foreground text-sm">
-                                Notes
+                                {tCommon('notes')}
                               </span>
 
                               <span className="text-muted-foreground text-sm">
@@ -626,7 +643,7 @@ export const AttendanceTrackerList = ({
               ) : (
                 <div className="bg-gray-100 p-6 space-y-6 flex-1 overflow-y-auto border-t">
                   <div className="flex items-center justify-center">
-                    There is no attendance data for this period.
+                    {t('noAttendanceData')}
                   </div>
                 </div>
               )}

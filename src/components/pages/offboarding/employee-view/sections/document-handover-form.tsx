@@ -24,8 +24,16 @@ import { IHandoverItemRequest, IHandoverRequest } from "@/services/form/types";
 import { deleteHandoverItem, submitHandover } from "@/services/offboarding-employee";
 import { HandoverItem } from "@/services/offboarding-employee/types";
 import DeleteHandoverDialog from "./delete-handover-modal";
+import { useTranslations } from "next-intl";
+import {
+  resolveOffboardingRecipientStatusKey,
+  translateOffboardingHandoverStatusLabel,
+} from "@/lib/i18n/status";
 
 export default function DocumentHandover() {
+  const t = useTranslations("offboarding");
+  const tCommon = useTranslations("common");
+  const tStatus = useTranslations("status");
   const queryClient = useQueryClient();
   const { 
     offboardingData, 
@@ -44,10 +52,10 @@ export default function DocumentHandover() {
     return employees?.data?.data?.map((emp: any) => ({
       label: emp.name,
       value: emp.user_id.toString(),
-      subtitle: emp.job_title?.name || "Employee",
+      subtitle: emp.job_title?.name || tCommon("employee"),
       image: emp.image_url
     })) || [];
-  }, [employees]);
+  }, [employees, tCommon]);
 
   const [deleteId, setDeleteId] = React.useState<number | null>(null);
   const [openDeleteModal, setOpenDeleteModal] = React.useState(false);
@@ -57,10 +65,10 @@ export default function DocumentHandover() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["handoverItems", "document"] });
       queryClient.invalidateQueries({ queryKey: ["offboardingProgress"] });
-      toast.success("Handover item deleted successfully");
+      toast.success(t("handoverItemDeleted"));
       setOpenDeleteModal(false);
     },
-    onError: () => toast.error("Failed to delete item"),
+    onError: () => toast.error(t("handoverItemDeleteFailed")),
   });
 
   const confirmDelete = (id: number) => {
@@ -75,10 +83,10 @@ export default function DocumentHandover() {
       queryClient.invalidateQueries({ queryKey: ["offboardingStatus"] });
       queryClient.invalidateQueries({ queryKey: ["offboardingProgress"] });
       queryClient.invalidateQueries({ queryKey: ["handoverItems", "document"] });
-      toast.success("Document handover saved successfully");
+      toast.success(t("documentHandoverSaved"));
       setOpenFormModal(false);
     },
-    onError: () => toast.error("Failed to submit document handover"),
+    onError: () => toast.error(t("documentHandoverSubmitFailed")),
   });
 
   const handleAdd = () => {
@@ -112,12 +120,12 @@ export default function DocumentHandover() {
     () => [
       {
         accessorKey: "name",
-        header: "Document Name",
+        header: t("documentName"),
         size: 200,
       },
       {
         id: "handover_to",
-        header: "Handed Over To",
+        header: t("handedOverTo"),
         cell: ({ row }) => {
           const recipients = row.original.recipients || [];
           
@@ -139,7 +147,7 @@ export default function DocumentHandover() {
       },
       {
         accessorKey: "status",
-        header: "Status",
+        header: tCommon("status"),
         size: 160,
         cell: ({ row }) => {
           const status = row.original.status;
@@ -148,14 +156,20 @@ export default function DocumentHandover() {
 
           return (
             <Badge variant={variant} className={className}>
-              {label}
+              {translateOffboardingHandoverStatusLabel(
+                status,
+                label,
+                resolveOffboardingRecipientStatusKey,
+                t,
+                tStatus,
+              )}
             </Badge>
           );
         },
       },
       {
         accessorKey: "updated_at",
-        header: "Last Update",
+        header: t("lastUpdate"),
         size: 200,
         cell: ({ row }) => (
           <div className="flex flex-col">
@@ -173,16 +187,16 @@ export default function DocumentHandover() {
               <button className="p-1 hover:bg-gray-100 rounded"><Ellipsis className="text-grayscale-30" /></button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => handleEdit(row.original)}><Edit3 className="w-4 h-4 mr-2" /> Edit</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleEdit(row.original)}><Edit3 className="w-4 h-4 mr-2" /> {tCommon("edit")}</DropdownMenuItem>
                <DropdownMenuItem onClick={() => confirmDelete(row.original.id)}>
-              <Trash className="w-4 h-4 mr-2" /> Delete
+              <Trash className="w-4 h-4 mr-2" /> {tCommon("delete")}
             </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         ),
       },
     ],
-    [],
+    [t, tCommon, tStatus],
   );
 
   return (
@@ -190,9 +204,9 @@ export default function DocumentHandover() {
       <div className="max-w-4xl mx-auto">
         <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6">
           <div className="flex md:flex-row flex-col justify-between w-full md:items-center items-start gap-4">
-            <h2 className="font-semibold text-xl">Document Handover</h2>
+            <h2 className="font-semibold text-xl">{t("documentHandoverTitle")}</h2>
             <Button onClick={handleAdd}>
-              <Plus className="mr-2 h-4 w-4" /> Add
+              <Plus className="mr-2 h-4 w-4" /> {tCommon("add")}
             </Button>
           </div>
 

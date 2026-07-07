@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useTranslations } from 'next-intl';
 import DashboardInfo from '@/components/ui/dashboard-info';
 import { AppSidebar } from '@/components/partials/app-sidebar';
 import { menus } from '@/lib/menu';
@@ -19,29 +20,33 @@ export const PendingAction = () => {
   const searchParams = useSearchParams();
   const overview = searchParams.get('overview');
   const { pendingStat, pendingStatLoading } = useDashboardPending();
+  const t = useTranslations('dashboard');
 
-  const pannel = [
-    {
-      title: 'Active Offboarding',
-      value: pendingStat?.data.active_offboarding ?? 0,
-    },
-    {
-      title: 'Pending Leave Approvals',
-      value: pendingStat?.data.pending_leave ?? 0,
-    },
-    {
-      title: 'Employees On Leave Today',
-      value: pendingStat?.data.employee_on_leave_today ?? 0,
-    },
-    {
-      title: 'Pending Overtime Approval',
-      value: pendingStat?.data.pending_overtime ?? 0,
-    },
-    {
-      title: 'Pending Payslip Request Approval',
-      value: pendingStat?.data.pending_payslip ?? 0,
-    },
-  ];
+  const pannel = React.useMemo(
+    () => [
+      {
+        title: t('pendingActiveOffboarding'),
+        value: pendingStat?.data.active_offboarding ?? 0,
+      },
+      {
+        title: t('pendingLeaveApprovals'),
+        value: pendingStat?.data.pending_leave ?? 0,
+      },
+      {
+        title: t('pendingEmployeesOnLeaveToday'),
+        value: pendingStat?.data.employee_on_leave_today ?? 0,
+      },
+      {
+        title: t('pendingOvertimeApproval'),
+        value: pendingStat?.data.pending_overtime ?? 0,
+      },
+      {
+        title: t('pendingPayslipRequestApproval'),
+        value: pendingStat?.data.pending_payslip ?? 0,
+      },
+    ],
+    [pendingStat, t],
+  );
 
   const content = React.useMemo(() => {
     switch (overview) {
@@ -82,7 +87,7 @@ export const PendingAction = () => {
 
       <SidebarProvider className="mx-auto w-full md:py-10 flex flex-col md:flex-row md:gap-4">
         <SidebarTrigger className="md:hidden" />
-        <AppSidebar title="Pending Action" menuItems={menus['dashboard']} />
+        <AppSidebar title={t('pendingAction')} menuItems={menus['dashboard']} />
 
         <main className="w-full px-2 md:px-0 py-3 md:py-0 -px-6">
           {pendingStatLoading ? <AppSkeleton /> : content}

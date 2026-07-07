@@ -1,6 +1,9 @@
+'use client';
+
 import DataTable from "@/components/tables/data-table";
 import { Button } from "@/components/ui/button";
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { useKPIs } from "./hook";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ColumnDef } from "@tanstack/react-table";
@@ -28,6 +31,8 @@ import { DetailModal } from "./sections/detail-modal";
 import { DeleteModal } from "./sections/delete-modal";
 
 export default function PerformanceKPI() {
+  const t = useTranslations("performance");
+  const tCommon = useTranslations("common");
   const {
     data,
     isLoading,
@@ -58,6 +63,7 @@ export default function PerformanceKPI() {
     openDetail,
     handleCloseDetail,
     kpiDetailData,
+    isLoadingDetailData,
     openDelete,
     handleCloseDelete,
     handleConfirmDelete,
@@ -83,7 +89,7 @@ export default function PerformanceKPI() {
 
         return (
           <div className="flex flex-row gap-2 items-center">
-            <span>ID</span>
+            <span>{tCommon("id")}</span>
             <button
               type="button"
               onClick={() => column.toggleSorting(isSorted === "asc")}
@@ -112,7 +118,7 @@ export default function PerformanceKPI() {
 
         return (
           <div className="flex flex-row gap-2 items-center">
-            <span>KPI Name</span>
+            <span>{t("kpiName")}</span>
             <button
               type="button"
               onClick={() => column.toggleSorting(isSorted === "asc")}
@@ -129,21 +135,21 @@ export default function PerformanceKPI() {
     },
     {
       accessorKey: "frequency",
-      header: "Frequency",
+      header: t("frequency"),
       cell: ({ row }) => {
         return <span>{getFrequencyLabel(row.original.frequency)}</span>;
       },
     },
     {
       accessorKey: "direction",
-      header: "Direction",
+      header: t("direction"),
       cell: ({ row }) => {
         return <span>{getDirectionLabel(row.original.direction)}</span>;
       },
     },
     {
       accessorKey: "target",
-      header: "Target",
+      header: t("target"),
       cell: ({ row }) => {
         return (
           <span>{formatTarget(row.original.target, row.original.format)}</span>
@@ -170,7 +176,7 @@ export default function PerformanceKPI() {
                 className="flex gap-2 w-full text-left"
               >
                 <Eye className="w-4 h-4" />
-                KPI Details
+                {t("kpiDetails")}
               </button>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
@@ -181,7 +187,7 @@ export default function PerformanceKPI() {
                 className="flex gap-2 w-full text-left"
               >
                 <Edit2 className="w-4 h-4" />
-                Edit KPI
+                {t("editKpi")}
               </button>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
@@ -192,7 +198,7 @@ export default function PerformanceKPI() {
                 className="flex gap-2 w-full text-left"
               >
                 <Trash className="w-4 h-4" />
-                Delete KPI
+                {t("deleteKpi")}
               </button>
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -210,17 +216,17 @@ export default function PerformanceKPI() {
       <div className="flex flex-col justify-between gap-6">
         <div className="rounded-md bg-white border shadow-sm border-grayscale-20 flex flex-col gap-4 p-6">
           <div className="flex flex-col sm:flex-row justify-between w-full items-start sm:items-center gap-4 sm:gap-0">
-            <h2 className="font-semibold text-xl">KPI List</h2>
+            <h2 className="font-semibold text-xl">{t("kpiList")}</h2>
             <div className="flex gap-2">
               <Input
-                placeholder="Search KPI"
+                placeholder={t("searchKpi")}
                 icon={<Search className="size-5 text-grayscale-20" />}
                 iconPosition="right"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
               <Button onClick={() => handleNew()} className="whitespace-nowrap">
-                + New KPI
+                {t("newKpi")}
               </Button>
             </div>
           </div>
@@ -252,6 +258,9 @@ export default function PerformanceKPI() {
         open={openDetail}
         onOpenChange={handleCloseDetail}
         data={kpiDetailData}
+        getFrequencyLabel={getFrequencyLabel}
+        getDirectionLabel={getDirectionLabel}
+        isLoading={isLoadingDetailData}
       />
       <DeleteModal
         open={openDelete}

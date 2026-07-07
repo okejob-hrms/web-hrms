@@ -8,7 +8,7 @@ import { getPayrollEmployeeDetails } from "@/services/employees/payrolls";
 import { useQuery } from "@tanstack/react-query";
 import { formatCurrency } from "@/lib/utils";
 import dayjs from "dayjs";
-import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/shared/status-badge";
 import { getStatusGeneratingPayroll, getStatusPayroll } from "@/lib/helpers";
 
 interface PayrollDetailModalProps {
@@ -33,21 +33,17 @@ export function PayrollDetailModal({
   const payroll = payrollData?.data;
 
   const renderStatus = (statusLabel: string) => {
-    const { variant, className, label } = getStatusPayroll(statusLabel);
+    const { variant, className, key } = getStatusPayroll(statusLabel);
     return (
-      <Badge variant={variant} className={className}>
-        {label}
-      </Badge>
+      <StatusBadge statusKey={key} variant={variant} className={className} />
     );
   };
 
   const renderGenerationStatus = (statusLabel: string) => {
-    const { variant, className, label } =
+    const { variant, className, key } =
       getStatusGeneratingPayroll(statusLabel);
     return (
-      <Badge variant={variant} className={className}>
-        {label}
-      </Badge>
+      <StatusBadge statusKey={key} variant={variant} className={className} />
     );
   };
 

@@ -15,6 +15,7 @@ import DataTable from '@/components/tables/data-table';
 import { Input } from '@/components/ui/input';
 import { AgeListData } from '@/services/dashboard/types';
 import { ColumnDef } from '@tanstack/react-table';
+import { useTranslations } from 'next-intl';
 
 interface AgeModalProps {
   open: boolean;
@@ -27,6 +28,8 @@ export default function AgeModal({
   onOpenChange,
   dashboardAnalytics,
 }: AgeModalProps) {
+  const t = useTranslations('dashboard');
+  const tCommon = useTranslations('common');
   const {
     dataListAge,
     loadingListAge,
@@ -39,35 +42,20 @@ export default function AgeModal({
 
   const columns = React.useMemo<ColumnDef<AgeListData>[]>(
     () => [
-      {
-        accessorKey: 'name',
-        header: 'Name',
-      },
-      {
-        accessorKey: 'position',
-        header: 'Position',
-      },
-      {
-        accessorKey: 'branch',
-        header: 'Branch',
-      },
-      {
-        accessorKey: 'date_of_birth',
-        header: 'DOB',
-      },
-      {
-        accessorKey: 'category',
-        header: 'Category',
-      },
+      { accessorKey: 'name', header: tCommon('name') },
+      { accessorKey: 'position', header: tCommon('position') },
+      { accessorKey: 'branch', header: t('branch') },
+      { accessorKey: 'date_of_birth', header: t('dob') },
+      { accessorKey: 'category', header: t('category') },
     ],
-    [],
+    [t, tCommon],
   );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-screen sm:max-w-7xl p-6 rounded-2xl bg-white overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Age Spread Detail</DialogTitle>
+          <DialogTitle>{t('ageSpreadDetail')}</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col justify-between gap-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -76,7 +64,7 @@ export default function AgeModal({
                 type="text"
                 className="w-full"
                 value={searchAge}
-                placeholder="Search name"
+                placeholder={t('searchName')}
                 onChange={(e) => {
                   setSearchAge(e.target.value);
                 }}
@@ -102,11 +90,10 @@ export default function AgeModal({
           )}
         </div>
 
-        {/* Footer */}
         <DialogFooter className="mt-6 flex justify-between items-center w-full">
           <div className="flex gap-3">
             <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              {tCommon('cancel')}
             </Button>
           </div>
         </DialogFooter>

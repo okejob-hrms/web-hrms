@@ -34,11 +34,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { rupiahFormatter } from "@/lib/helpers";
 import {
-  formatPeriod,
-  getConditionLabel,
-  getTriggerLabel,
-  getAppliedAmount,
+  usePenaltyLabels,
 } from "./penalty-utils";
+import { useTranslations } from "next-intl";
 
 interface PenaltyDetailProps {
   userId: number;
@@ -59,6 +57,14 @@ const DEFAULT_FILTERS: PenaltyFilters = {
 export const PenaltyDetail = React.memo(function PenaltyDetail({
   userId,
 }: PenaltyDetailProps) {
+  const t = useTranslations("employee");
+  const tCommon = useTranslations("common");
+  const {
+    getTriggerLabel,
+    getConditionLabel,
+    formatPeriod,
+    getAppliedAmount,
+  } = usePenaltyLabels();
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: 0,
     pageSize: 10,
@@ -130,15 +136,16 @@ export const PenaltyDetail = React.memo(function PenaltyDetail({
   const [editOpen, setEditOpen] = React.useState(false);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
 
-  const columns: ColumnDef<IPenaltyResponse>[] = [
+  const columns: ColumnDef<IPenaltyResponse>[] = React.useMemo(
+    () => [
     {
       accessorKey: "id",
-      header: "ID",
+      header: tCommon("id"),
       cell: ({ row }) => row.original.id ?? "-",
     },
     {
       accessorKey: "name",
-      header: "Name",
+      header: tCommon("name"),
       cell: ({ row }) => (
         <div className="flex flex-col gap-0.5 max-w-[260px]">
           <span className="font-medium text-grayscale-90">
@@ -154,7 +161,7 @@ export const PenaltyDetail = React.memo(function PenaltyDetail({
     },
     {
       accessorKey: "trigger_type",
-      header: "Trigger",
+      header: t("penaltyTrigger"),
       cell: ({ row }) => {
         const trigger = row.original.meta?.trigger_type;
         if (!trigger) return "-";
@@ -167,7 +174,7 @@ export const PenaltyDetail = React.memo(function PenaltyDetail({
     },
     {
       accessorKey: "condition_type",
-      header: "Condition",
+      header: t("condition"),
       cell: ({ row }) => (
         <Badge variant="secondary" className="font-normal">
           {getConditionLabel(row.original.condition_type)}
@@ -176,12 +183,12 @@ export const PenaltyDetail = React.memo(function PenaltyDetail({
     },
     {
       accessorKey: "period",
-      header: "Period",
+      header: t("employeePayrollPeriod"),
       cell: ({ row }) => formatPeriod(row.original.period),
     },
     {
       accessorKey: "amount",
-      header: "Amount",
+      header: t("amount"),
       cell: ({ row }) => {
         const amount = getAppliedAmount(row.original);
         if (amount === 0) {
@@ -190,7 +197,7 @@ export const PenaltyDetail = React.memo(function PenaltyDetail({
               variant="outline"
               className="border-success text-success font-normal"
             >
-              Tanpa Potongan
+              {t("noDeduction")}
             </Badge>
           );
         }
@@ -203,7 +210,7 @@ export const PenaltyDetail = React.memo(function PenaltyDetail({
     },
     {
       accessorKey: "valid_until",
-      header: "Valid Until",
+      header: t("validUntil"),
       cell: ({ row }) => {
         const validUntil = row.original.valid_until;
         if (!validUntil) return "-";
@@ -232,7 +239,7 @@ export const PenaltyDetail = React.memo(function PenaltyDetail({
                 width={16}
                 alt="icon-eye"
               />
-              Details
+              {tCommon("details")}
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => {
@@ -246,7 +253,7 @@ export const PenaltyDetail = React.memo(function PenaltyDetail({
                 width={16}
                 alt="icon-edit"
               />
-              Edit
+              {tCommon("edit")}
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => {
@@ -260,18 +267,20 @@ export const PenaltyDetail = React.memo(function PenaltyDetail({
                 width={16}
                 alt="icon-edit"
               />
-              Delete
+              {tCommon("delete")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       ),
     },
-  ];
+  ],
+  [t, tCommon, getTriggerLabel, getConditionLabel, formatPeriod, getAppliedAmount],
+  );
 
   return (
     <div className="flex flex-col w-full gap-4 p-2">
       <div className="flex items-center justify-between">
-        <h2 className="font-semibold text-xl">Penalties</h2>
+        <h2 className="font-semibold text-xl">{t("penaltiesTitle")}</h2>
         <AddPenaltyModal userId={userId} />
       </div>
 
@@ -284,12 +293,12 @@ export const PenaltyDetail = React.memo(function PenaltyDetail({
           }
         >
           <SelectTrigger>
-            <SelectValue placeholder="Condition" />
+            <SelectValue placeholder={t("condition")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Semua Kondisi</SelectItem>
-            <SelectItem value="per_occurrence">Per Kejadian</SelectItem>
-            <SelectItem value="monthly_aggregate">Akumulasi Bulanan</SelectItem>
+            <SelectItem value="all">{t("allConditions")}</SelectItem>
+            <SelectItem value="per_occurrence">{t("perOccurrence")}</SelectItem>
+            <SelectItem value="monthly_aggregate">{t("monthlyAggregate")}</SelectItem>
           </SelectContent>
         </Select>
 
@@ -297,7 +306,7 @@ export const PenaltyDetail = React.memo(function PenaltyDetail({
           type="month"
           value={filters.period}
           onChange={(e) => updateFilter("period", e.target.value)}
-          aria-label="Period"
+          aria-label={t("employeePayrollPeriod")}
         />
 
         <Select
@@ -307,12 +316,12 @@ export const PenaltyDetail = React.memo(function PenaltyDetail({
           }
         >
           <SelectTrigger>
-            <SelectValue placeholder="Valid Until" />
+            <SelectValue placeholder={t("validUntil")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Semua Status</SelectItem>
-            <SelectItem value="active">Masih Berlaku</SelectItem>
-            <SelectItem value="expired">Kadaluarsa</SelectItem>
+            <SelectItem value="all">{t("allStatuses")}</SelectItem>
+            <SelectItem value="active">{t("stillValid")}</SelectItem>
+            <SelectItem value="expired">{t("expiredStatus")}</SelectItem>
           </SelectContent>
         </Select>
         </div>
@@ -324,7 +333,7 @@ export const PenaltyDetail = React.memo(function PenaltyDetail({
             className="flex items-center gap-1 text-text-secondary shrink-0"
           >
             <X className="w-4 h-4" />
-            Reset Filter
+            {t("resetFilter")}
           </Button>
         )}
       </div>

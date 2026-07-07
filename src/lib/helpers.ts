@@ -1,30 +1,29 @@
 import { z } from "zod";
 import duration from "dayjs/plugin/duration";
 import dayjs from "dayjs";
+import {
+  formatCurrencyIdr,
+  formatDateTime as formatDateTimeLocalized,
+  formatDateRange as formatDateRangeLocalized,
+  formatDayCount,
+} from "@/lib/formatting";
+import type { AppLocale } from "@/lib/i18n/locale";
+import { DEFAULT_LOCALE, resolveLocale } from "@/lib/i18n/locale";
+import {
+  resolveBusinessTripStatusKey,
+  resolveOvertimeStatusKey,
+  resolveSelfAssessmentStatusKey,
+  resolveStatusKey,
+  type StatusKey,
+} from "@/lib/i18n/status";
+
 dayjs.extend(duration);
 
-export const rupiahFormatter = (number: number) => {
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-  }).format(number);
-};
-export function formatDateTime(isoString: string) {
-  const dateObj = new Date(isoString);
+export const rupiahFormatter = (number: number) => formatCurrencyIdr(number);
 
-  const date = dateObj.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-
-  const hour = dateObj.toLocaleTimeString("en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
-
-  return { date, hour };
+/** @deprecated Pass locale — defaults to en for backward compatibility */
+export function formatDateTime(isoString: string, locale: AppLocale = "en") {
+  return formatDateTimeLocalized(isoString, locale);
 }
 
 export function snakeToTitleCase(str: string): string {
@@ -194,109 +193,100 @@ export const usePhoneValidation = () => {
 type BadgeVariant = "default" | "secondary" | "destructive" | "outline";
 
 interface StatusConfig {
+  key: StatusKey;
   variant: BadgeVariant;
   className?: string;
   circleClassName?: string;
-  label: string;
+}
+
+function emptyStatus(): StatusConfig {
+  return { key: "unknown", variant: "default" };
 }
 
 export function getStatusAttendance(status?: string): StatusConfig {
   if (!status) {
-    return {
-      variant: "default",
-      label: "-",
-    };
+    return emptyStatus();
   }
 
+  const key = resolveStatusKey(status);
   let variant: BadgeVariant = "default";
   let className = "";
 
-  switch (status) {
-    case "Approved":
+  switch (key) {
+    case "approved":
       variant = "secondary";
       className = "bg-green-100 text-green-700";
       break;
-    case "Waiting":
-    case "Waiting for Approval":
+    case "waiting":
+    case "waitingForApproval":
       variant = "secondary";
       className = "bg-yellow-100 text-yellow-700";
       break;
-    case "Rejected":
+    case "rejected":
       variant = "destructive";
+      break;
+    default:
       break;
   }
 
-  return { variant, className, label: status };
+  return { key, variant, className };
 }
 
 export function getStatusBusinessTrip(status?: number): StatusConfig {
-  switch (status) {
-    case 0:
+  const key = resolveBusinessTripStatusKey(status);
+
+  switch (key) {
+    case "waiting":
       return {
+        key,
         variant: "secondary",
         className: "bg-yellow-100 text-yellow-700",
-        label: "Waiting",
       };
-    case 1:
+    case "approved":
       return {
+        key,
         variant: "secondary",
         className: "bg-green-100 text-green-700",
-        label: "Approved",
       };
-    case 2:
+    case "rejected":
+      return { key, variant: "destructive" };
+    case "cancelled":
       return {
-        variant: "destructive",
-        label: "Rejected",
-      };
-    case 3:
-      return {
+        key,
         variant: "secondary",
         className: "bg-gray-100 text-gray-700",
-        label: "Cancelled",
       };
     default:
-      return {
-        variant: "default",
-        label: "-",
-      };
+      return emptyStatus();
   }
 }
 
 export function getStatusOvertime(status?: number): StatusConfig {
   if (!status) {
-    return {
-      variant: "default",
-      label: "-",
-    };
+    return emptyStatus();
   }
 
+  const key = resolveOvertimeStatusKey(status);
   let variant: BadgeVariant = "default";
   let className = "";
 
-  switch (status) {
-    case 1:
+  switch (key) {
+    case "waitingForApproval":
       variant = "secondary";
       className = "bg-yellow-100 text-yellow-700";
       break;
-    case 2:
+    case "approved":
       variant = "default";
       className = "bg-green-100 text-green-700";
       break;
-    case 3:
+    case "rejected":
       variant = "destructive";
+      break;
+    default:
       break;
   }
 
-  return {
-    variant,
-    className,
-    label:
-      status === 1
-        ? "Waiting for Approval"
-        : status === 2
-          ? "Approved"
-          : "Rejected",
-  };
+  return { key, variant, className };
 }
 
 export async function getLocationDetail(lat: string, lng: string) {
@@ -312,212 +302,206 @@ export async function getLocationDetail(lat: string, lng: string) {
 
 export function getStatusPayroll(status?: string): StatusConfig {
   if (!status) {
-    return {
-      variant: "default",
-      label: "-",
-    };
+    return emptyStatus();
   }
 
+  const key = resolveStatusKey(status);
   let variant: BadgeVariant = "default";
   let className = "";
 
-  switch (status) {
-    case "Draft":
+  switch (key) {
+    case "draft":
       variant = "secondary";
       className = "bg-gray-100 text-gray-700";
       break;
-    case "Final":
+    case "final":
       variant = "secondary";
       className = "bg-green-100 text-green-700";
       break;
-    case "Pending":
-    case "Waiting for Approval":
+    case "pending":
+    case "waitingForApproval":
       variant = "secondary";
       className = "bg-yellow-100 text-yellow-700";
       break;
-    case "Rejected":
+    case "rejected":
       variant = "destructive";
+      break;
+    default:
       break;
   }
 
-  return { variant, className, label: status };
+  return { key, variant, className };
 }
 
 export function getStatusPayrollReq(status?: string): StatusConfig {
   if (!status) {
-    return {
-      variant: "default",
-      label: "-",
-    };
+    return emptyStatus();
   }
 
+  const key = resolveStatusKey(status);
   let variant: BadgeVariant = "default";
   let className = "";
 
-  switch (status) {
-    case "Approved":
+  switch (key) {
+    case "approved":
       variant = "secondary";
       className = "bg-green-100 text-green-700";
       break;
-    case "Pending":
+    case "pending":
       variant = "secondary";
       className = "bg-yellow-100 text-yellow-700";
       break;
-    case "Rejected":
+    case "rejected":
       variant = "destructive";
+      break;
+    default:
       break;
   }
 
-  return { variant, className, label: status };
+  return { key, variant, className };
 }
 
 export function getStatusGeneratingPayroll(status?: string): StatusConfig {
   if (!status) {
-    return {
-      variant: "default",
-      label: "-",
-    };
+    return emptyStatus();
   }
 
+  const key = resolveStatusKey(status);
   let variant: BadgeVariant = "default";
   let className = "";
 
-  switch (status) {
-    case "Pending":
+  switch (key) {
+    case "pending":
       variant = "secondary";
       className = "bg-yellow-100 text-yellow-700";
       break;
-    case "Completed":
+    case "completed":
       variant = "secondary";
       className = "bg-green-100 text-green-700";
       break;
-    case "Failed":
+    case "failed":
       variant = "destructive";
+      break;
+    default:
       break;
   }
 
-  return { variant, className, label: status };
+  return { key, variant, className };
 }
 
 export function formatDayDifference(
   startDate: string,
   endDate: string,
+  locale?: AppLocale,
 ): string {
   const start = dayjs(startDate);
   const end = dayjs(endDate);
   const diffInMs = end.diff(start);
   const days = Math.floor(dayjs.duration(diffInMs).asDays());
-  return `${days} days`;
+
+  return formatDayCount(days, resolveLocale(locale ?? DEFAULT_LOCALE));
 }
 
-export function formatDateRange(startDate: string, endDate: string): string {
-  const start = dayjs(startDate);
-  const end = dayjs(endDate);
-
-  // Same month and year → "Dec 2 - Dec 4, 2025"
-  if (start.isSame(end, "month")) {
-    return `${start.format("MMM D")} - ${end.format("D, YYYY")}`;
-  }
-
-  // Same year but different months → "Dec 30 - Jan 2, 2025"
-  if (start.isSame(end, "year")) {
-    return `${start.format("MMM D")} - ${end.format("MMM D, YYYY")}`;
-  }
-
-  // Different years → "Dec 30, 2025 - Jan 2, 2026"
-  return `${start.format("MMM D, YYYY")} - ${end.format("MMM D, YYYY")}`;
+export function formatDateRange(
+  startDate: string,
+  endDate: string,
+  locale: AppLocale = DEFAULT_LOCALE,
+): string {
+  return formatDateRangeLocalized(startDate, endDate, locale);
 }
 
 export function getStatusEmployeeAssessment(status: string): StatusConfig {
+  const key = resolveStatusKey(status);
   let variant: BadgeVariant = "default";
   let className = "";
   let circleClassName = "";
 
-  switch (status) {
-    case "Not Started":
+  switch (key) {
+    case "notStarted":
       variant = "secondary";
       className = "bg-error-focused text-error-hover";
       circleClassName = "bg-error-hover";
       break;
-    case "In Progress":
+    case "inProgress":
       variant = "secondary";
       className = "bg-success-focused text-success-hover";
       circleClassName = "bg-success-hover";
       break;
-    case "Validated":
+    case "validated":
       variant = "secondary";
       className = "bg-primary text-white";
       circleClassName = "bg-white";
       break;
-    case "Completed":
+    case "completed":
       variant = "secondary";
       className = "bg-primary-focused text-primary-hover";
       circleClassName = "bg-primary-hover";
       break;
+    default:
+      break;
   }
 
-  return { variant, className, circleClassName, label: status };
+  return { key, variant, className, circleClassName };
 }
 
 export function getStatusSelfAssessment(status: number): StatusConfig {
+  const key = resolveSelfAssessmentStatusKey(status);
   let variant: BadgeVariant = "default";
   let className = "";
-  let label = "";
 
-  switch (status) {
-    case 1:
+  switch (key) {
+    case "active":
       variant = "secondary";
       className = "bg-success-focused text-success-hover";
-      label = "Active";
       break;
-    case 2:
+    case "completed":
       variant = "secondary";
       className = "bg-primary-focused text-primary-hover";
-      label = "Completed";
       break;
-    case 3:
+    case "expired":
       variant = "destructive";
-      label = "Expired";
+      break;
+    default:
       break;
   }
 
-  return { variant, className, label };
+  return { key, variant, className };
 }
 
 export function getStatusOKRCycle(statusLabel?: string): StatusConfig {
   if (!statusLabel) {
-    return {
-      variant: "default",
-      label: "-",
-    };
+    return emptyStatus();
   }
 
+  const key = resolveStatusKey(statusLabel);
   let variant: BadgeVariant = "default";
   let className = "";
   let circleClassName = "";
 
-  switch (statusLabel) {
-    case "Draft":
+  switch (key) {
+    case "draft":
       variant = "secondary";
       className = "bg-gray-100 text-gray-700";
       circleClassName = "bg-gray-700";
       break;
-    case "Active":
+    case "active":
       variant = "secondary";
       className = "bg-success-focused text-success-hover";
       circleClassName = "bg-success-hover";
       break;
-    case "Completed":
+    case "completed":
       variant = "secondary";
       className = "bg-primary-focused text-primary-hover";
       circleClassName = "bg-primary-hover";
       break;
-    case "Archived":
+    case "archived":
       variant = "secondary";
       className = "bg-gray-200 text-gray-600";
       circleClassName = "bg-gray-600";
       break;
+    default:
+      break;
   }
 
-  return { variant, className, circleClassName, label: statusLabel };
+  return { key, variant, className, circleClassName };
 }

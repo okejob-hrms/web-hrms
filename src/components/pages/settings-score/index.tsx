@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/tables/data-table';
 import { ColumnDef, PaginationState } from '@tanstack/react-table';
@@ -32,6 +33,10 @@ import { getScore, postScore, putScore, removeScore } from '@/services/score';
 // Component
 // =======================
 export default function SettingsScore() {
+  const t = useTranslations('settings');
+  const tCommon = useTranslations('common');
+  const tToast = useTranslations('toast');
+  const tValidation = useTranslations('validation');
   const [open, setOpen] = React.useState(false);
   const [openDelete, setOpenDelete] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
@@ -66,11 +71,11 @@ export default function SettingsScore() {
   const columns: ColumnDef<ScoreList>[] = [
     {
       accessorKey: 'score',
-      header: 'Score Label',
+      header: t('scoreLabel'),
     },
     {
       accessorKey: 'score_range',
-      header: 'Score Range',
+      header: t('scoreRange'),
       cell: ({ row }) => {
         return (
           <span>
@@ -118,16 +123,14 @@ export default function SettingsScore() {
     },
     onMutate: () => setLoading(true),
     onSuccess: () => {
-      toast.success('Score successfully save');
+      toast.success(t('scoreSaved'));
       queryClient.invalidateQueries({ queryKey: ['getScores'] });
       scoreRefetch();
       setOpen(false);
       setEditing(null);
     },
-    onError: (err) => {
-      toast.error(
-        `The score range overlaps with an existing range for this tenant`,
-      );
+    onError: () => {
+      toast.error(t('scoreOverlapError'));
     },
     onSettled: () => setLoading(false),
   });
@@ -137,14 +140,14 @@ export default function SettingsScore() {
     mutationFn: (id) => removeScore(id),
     onMutate: () => setLoading(true),
     onSuccess: () => {
-      toast.success('Score deleted successfully');
+      toast.success(t('scoreDeleted'));
       queryClient.invalidateQueries({ queryKey: ['getScores'] });
       scoreRefetch();
       setOpenDelete(false);
       setEditing(null);
     },
     onError: (err) => {
-      toast.error(`Failed to delete: ${err.message}`);
+      toast.error(tToast('deleteFailed', { message: err.message }));
     },
     onSettled: () => setLoading(false),
   });
@@ -168,10 +171,10 @@ export default function SettingsScore() {
 
   const handleSave = () => {
     if (!form.score || !form.max_value)
-      return toast.error('Please fill all data!');
+      return toast.error(tToast('fillAllData'));
 
     if (form.min_value > form.max_value)
-      return toast.error('The score range overlaps!');
+      return toast.error(tValidation('scoreOverlap'));
 
     saveMutation.mutate({ id: editing?.id, data: form });
   };
@@ -187,7 +190,7 @@ export default function SettingsScore() {
   return (
     <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6">
       <div className="flex flex-col sm:flex-row sm:gap-4 justify-between">
-        <h2 className="font-semibold text-xl">Score Threshold</h2>
+        <h2 className="font-semibold text-xl">{t('scoreThreshold')}</h2>
         <Button
           className="flex flex-row items-center gap-2"
           onClick={() => {
@@ -197,7 +200,7 @@ export default function SettingsScore() {
           }}
         >
           <Plus className="w-4 h-4" />
-          Add Score
+          {t('addScore')}
         </Button>
       </div>
 
@@ -214,18 +217,18 @@ export default function SettingsScore() {
         <DialogContent className="max-w-md bg-white">
           <DialogHeader>
             <DialogTitle>
-              {editing ? 'Edit Score Threshold' : 'Set Up Score Threshold'}
+              {editing ? t('editScore') : t('setupScore')}
             </DialogTitle>
           </DialogHeader>
 
           <div className="grid gap-4 py-2">
             <div className="space-y-2">
               <Label>
-                Score Label<span className="text-red-500">*</span>
+                {t('scoreLabel')}<span className="text-red-500">*</span>
               </Label>
               <Input
                 type="text"
-                placeholder="Enter score name"
+                placeholder={t('enterScoreName')}
                 value={form.score}
                 onChange={(e) =>
                   setForm((prev) => ({
@@ -238,11 +241,11 @@ export default function SettingsScore() {
 
             <div className="space-y-2">
               <Label>
-                Minimum Score<span className="text-red-500">*</span>
+                {t('minimumScore')}<span className="text-red-500">*</span>
               </Label>
               <Input
                 type="number"
-                placeholder="Enter min score"
+                placeholder={t('enterMinScore')}
                 value={Number(form.min_value)}
                 onChange={(e) =>
                   setForm((prev) => ({
@@ -255,11 +258,11 @@ export default function SettingsScore() {
 
             <div className="space-y-2">
               <Label>
-                Maximum Score<span className="text-red-500">*</span>
+                {t('maximumScore')}<span className="text-red-500">*</span>
               </Label>
               <Input
                 type="number"
-                placeholder="Enter max score"
+                placeholder={t('enterMaxScore')}
                 value={Number(form.max_value)}
                 onChange={(e) =>
                   setForm((prev) => ({
@@ -273,9 +276,9 @@ export default function SettingsScore() {
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>
-              Cancel
+              {tCommon('cancel')}
             </Button>
-            <Button onClick={handleSave}>Save</Button>
+            <Button onClick={handleSave}>{tCommon('save')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -294,10 +297,10 @@ export default function SettingsScore() {
               />
             </span>
             <AlertDialogTitle className="text-xl font-bold mb-2">
-              Are you sure you want to delete this configuration?
+              {t('deleteConfigurationTitle')}
             </AlertDialogTitle>
             <div className="text-gray-600 text-sm mb-4">
-              Employees linked to this configuration may be affected
+              {t('deleteConfigurationDesc')}
             </div>
           </div>
           <AlertDialogFooter className="flex flex-row gap-4 w-full justify-center">
@@ -306,14 +309,14 @@ export default function SettingsScore() {
               onClick={handleDelete}
               isLoading={loading}
             >
-              Delete Configuration
+              {t('deleteConfiguration')}
             </Button>
             <Button
               className="w-1/2 bg-[#18618B] hover:bg-[#14506e] text-white font-medium py-2 rounded-lg"
               onClick={() => setOpenDelete(false)}
               disabled={loading}
             >
-              Cancel
+              {tCommon('cancel')}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>

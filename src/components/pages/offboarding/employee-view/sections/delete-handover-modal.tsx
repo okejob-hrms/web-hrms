@@ -8,6 +8,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 
 interface DeleteHandoverDialogProps {
   open: boolean;
@@ -22,6 +23,9 @@ export default function DeleteHandoverDialog({
   onDelete,
   isLoading,
 }: DeleteHandoverDialogProps) {
+  const t = useTranslations("offboarding");
+  const tCommon = useTranslations("common");
+
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent className="w-full max-w-md text-center bg-white p-8">
@@ -31,15 +35,14 @@ export default function DeleteHandoverDialog({
               src="/icons/delete.svg"
               width={80}
               height={80}
-              alt="delete-icon"
+              alt={tCommon("delete")}
             />
           </div>
           <AlertDialogTitle className="text-xl font-bold mb-2">
-            Are you sure you want to delete this handover item?
+            {t("deleteHandoverConfirmTitle")}
           </AlertDialogTitle>
           <div className="text-gray-500 text-sm mb-6">
-            This action cannot be undone. This item will be permanently removed from 
-            the work handover list.
+            {t("deleteHandoverConfirmDesc")}
           </div>
         </div>
         <AlertDialogFooter className="flex flex-row gap-3 w-full justify-center">
@@ -48,14 +51,14 @@ export default function DeleteHandoverDialog({
             onClick={onDelete}
             disabled={isLoading}
           >
-            {isLoading ? "Deleting..." : "Delete Handover"}
+            {isLoading ? tCommon("deleting") : t("deleteHandover")}
           </Button>
           <Button
             className="flex-1 bg-[#18618B] hover:bg-[#14506e] text-white font-semibold py-2 rounded-lg"
             onClick={() => onOpenChange(false)}
             disabled={isLoading}
           >
-            Cancel
+            {tCommon("cancel")}
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

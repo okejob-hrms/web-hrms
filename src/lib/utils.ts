@@ -25,20 +25,7 @@ export const stringAvatar = (name: string) => {
   return `${firstInitial}${secondInitial}`.toUpperCase();
 };
 
-export const month = [
-  { id: 1, label: 'January' },
-  { id: 2, label: 'February' },
-  { id: 3, label: 'March' },
-  { id: 4, label: 'April' },
-  { id: 5, label: 'May' },
-  { id: 6, label: 'June' },
-  { id: 7, label: 'July' },
-  { id: 8, label: 'August' },
-  { id: 9, label: 'September' },
-  { id: 10, label: 'October' },
-  { id: 11, label: 'November' },
-  { id: 12, label: 'December' },
-];
+export { formatCurrency } from '@/lib/formatting';
 
 export const currentYear = new Date().getFullYear();
 
@@ -46,21 +33,3 @@ export const year = Array.from({ length: 5 }, (_, i) => {
   const y = currentYear - (4 - i);
   return { id: y, label: String(y) };
 });
-
-export function formatCurrency(value: number | string | null): string {
-  if (value === null || value === '' || isNaN(Number(value))) {
-    return '0';
-  }
-
-  const number = Number(value);
-
-  return new Intl.NumberFormat('id-ID', {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(number);
-}
-
-export const days = Array.from({ length: 31 }, (_, i) => ({
-  id: i + 1,
-  label: `Day ${i + 1}`,
-}));

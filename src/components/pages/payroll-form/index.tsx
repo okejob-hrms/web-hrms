@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { ArrowLeft, Edit3, Send, Clock, Eye, RefreshCcw } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { StatusBadge } from '@/components/shared/status-badge';
 import { Input } from '@/components/ui/input';
 import dayjs from 'dayjs';
 import { usePayrollDetail } from './hook';
@@ -451,13 +452,11 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
 
   const renderStatus = () => {
     const status = detailData?.data.status_label;
-    const { variant, className, label } = getStatusPayroll(status);
+    const { variant, className, key } = getStatusPayroll(status);
     if (!detailData?.data.status_label) return '-';
 
     return (
-      <Badge variant={variant} className={className}>
-        {label}
-      </Badge>
+      <StatusBadge statusKey={key} variant={variant} className={className} />
     );
   };
 

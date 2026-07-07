@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { DataTable } from "@/components/tables/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -13,6 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import dayjs from "dayjs";
 
 export default function SupervisorAssessmentList() {
+  const t = useTranslations("performance");
   const {
     setOpenFormModal,
     openFormModal,
@@ -63,7 +65,7 @@ export default function SupervisorAssessmentList() {
 
         return (
           <div className="flex flex-row gap-2 items-center">
-            <span>Employee Name</span>
+            <span>{t("employeeName")}</span>
             <button
               type="button"
               onClick={() => column.toggleSorting(isSorted === "asc")}
@@ -90,7 +92,7 @@ export default function SupervisorAssessmentList() {
 
         return (
           <div className="flex flex-row gap-2 items-center">
-            <span>Previous Position</span>
+            <span>{t("previousPosition")}</span>
             <button
               type="button"
               onClick={() => column.toggleSorting(isSorted === "asc")}
@@ -117,7 +119,7 @@ export default function SupervisorAssessmentList() {
 
         return (
           <div className="flex flex-row gap-2 items-center">
-            <span>Target Position</span>
+            <span>{t("targetPosition")}</span>
             <button
               type="button"
               onClick={() => column.toggleSorting(isSorted === "asc")}
@@ -144,7 +146,7 @@ export default function SupervisorAssessmentList() {
 
         return (
           <div className="flex flex-row gap-2 items-center">
-            <span>Final Score</span>
+            <span>{t("finalScore")}</span>
             <button
               type="button"
               onClick={() => column.toggleSorting(isSorted === "asc")}
@@ -159,14 +161,14 @@ export default function SupervisorAssessmentList() {
     },
     {
       accessorKey: "schedule",
-      header: "Interview Date",
+      header: t("interviewDate"),
       cell: ({ row }) => (
         <span>{dayjs(row.original.schedule?.date).format("MMMM D, YYYY")}</span>
       ),
     },
     {
       accessorKey: "status_label",
-      header: "Assessment Result",
+      header: t("assessmentResult"),
     },
     {
       accessorKey: "menu",
@@ -196,10 +198,10 @@ export default function SupervisorAssessmentList() {
         <div className="rounded-md bg-white border shadow-sm border-grayscale-20 flex flex-col gap-4 p-6">
           <div className="flex flex-col sm:flex-row justify-between w-full items-start sm:items-center gap-4 sm:gap-0">
             <div className="flex gap-2 items-center flex-wrap">
-              <h2 className="font-semibold text-xl">Supervisor Assessment</h2>
+              <h2 className="font-semibold text-xl">{t("supervisorAssessment")}</h2>
             </div>
             <Button onClick={() => handleNew()} className="whitespace-nowrap">
-              + New Assessment
+              {t("newAssessment")}
             </Button>
           </div>
 

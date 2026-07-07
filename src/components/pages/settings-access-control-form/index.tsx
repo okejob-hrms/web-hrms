@@ -23,6 +23,7 @@ import { useRoleManagementForm } from './hook';
 import { Textarea } from '@/components/ui/textarea';
 import { z } from 'zod';
 import { IPermissionAction } from '@/services/settings/types';
+import { useTranslations } from 'next-intl';
 
 type SettingsAccessControlAddProps = {
   id?: number;
@@ -31,6 +32,9 @@ type SettingsAccessControlAddProps = {
 export default function SettingsAccessControlAdd({
   id,
 }: SettingsAccessControlAddProps) {
+  const t = useTranslations('settings');
+  const tCommon = useTranslations('common');
+
   const {
     permission,
     pagination: employees,
@@ -63,7 +67,6 @@ export default function SettingsAccessControlAdd({
   React.useEffect(() => {
     if (id) {
       handleDetailData(id);
-      console.log('Editing role with id:', id);
     }
   }, [id, handleDetailData]);
 
@@ -98,7 +101,7 @@ export default function SettingsAccessControlAdd({
 
   const tabs = [
     {
-      name: 'Setting Permission',
+      name: t('settingPermission'),
       value: 'setting-permission',
       content: (
         <PermissionTable
@@ -110,7 +113,7 @@ export default function SettingsAccessControlAdd({
       icon: <Icon name="userSolid" size={18} color="currentColor" />,
     },
     {
-      name: 'Assign Employee',
+      name: t('assignEmployee'),
       value: 'assign-employee',
       content: employees ? (
         <AssignEmployee
@@ -125,7 +128,7 @@ export default function SettingsAccessControlAdd({
           setSelectedEmployees={setSelectedEmployees}
         />
       ) : (
-        <div>Loading employees...</div>
+        <div>{t('loadingEmployees')}</div>
       ),
       icon: <Icon name="documentOutlined" size={18} color="currentColor" />,
     },
@@ -134,38 +137,36 @@ export default function SettingsAccessControlAdd({
   return (
     <div className="font-sans md:px-[125px] px-4">
       <div className="flex flex-col justify-between gap-6">
-        <h2 className="font-semibold text-xl">Role Information</h2>
+        <h2 className="font-semibold text-xl">{t('roleInformation')}</h2>
 
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(handleSubmit)}
             className="space-y-4"
           >
-            {/* Name */}
             <FormField
               control={form.control}
               name="name"
               render={({ field }) => (
                 <FormItem className="w-1/2">
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel>{t('roleName')}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter role name" {...field} />
+                    <Input placeholder={t('roleNamePlaceholder')} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            {/* Description */}
             <FormField
               control={form.control}
               name="description"
               render={({ field }) => (
                 <FormItem className="w-1/2">
-                  <FormLabel>Description</FormLabel>
+                  <FormLabel>{tCommon('description')}</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Enter role description"
+                      placeholder={t('roleDescPlaceholder')}
                       className="w-full"
                       rows={4}
                       {...field}
@@ -178,7 +179,6 @@ export default function SettingsAccessControlAdd({
 
             <Separator />
 
-            {/* Tabs */}
             <Tabs defaultValue={tabs[0].value} className="w-full mx-auto">
               <TabsList className="p-1 w-full bg-secondary-background min-h-12">
                 {tabs.map((tab) => (
@@ -204,7 +204,6 @@ export default function SettingsAccessControlAdd({
               ))}
             </Tabs>
 
-            {/* Actions */}
             <div className="flex flex-row gap-2">
               <Button
                 type="button"
@@ -212,7 +211,7 @@ export default function SettingsAccessControlAdd({
                 onClick={handleBack}
                 className="min-w-[100px]"
               >
-                Cancel
+                {tCommon('cancel')}
               </Button>
               <Button
                 type="submit"
@@ -221,7 +220,9 @@ export default function SettingsAccessControlAdd({
                 }
                 className="min-w-[100px]"
               >
-                {form.formState.isSubmitting ? 'Saving...' : 'Save'}
+                {form.formState.isSubmitting
+                  ? tCommon('saving')
+                  : tCommon('save')}
               </Button>
             </div>
           </form>

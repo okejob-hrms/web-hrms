@@ -3,6 +3,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,41 +16,29 @@ import {
   FormControl,
   FormMessage,
 } from '@/components/ui/form';
-import { useState, useEffect } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { postChangePassword } from '@/services/auth';
 import { toast } from 'sonner';
-
-// -----------------------------
-// Zod Schema
-// -----------------------------
-const formSchema = z
-  .object({
-    email: z.string().email('Invalid email address'),
-    current_password: z
-      .string()
-      .min(6, 'Current password must be at least 6 characters'),
-    new_password: z.string().min(6, 'New password must be at least 6 characters'),
-    new_password_confirmation: z
-      .string()
-      .min(6, 'Password confirmation is required'),
-  })
-  .refine((data) => data.new_password === data.new_password_confirmation, {
-    message: 'Passwords do not match',
-    path: ['new_password_confirmation'],
-  });
+import { createChangePasswordSchema } from '@/lib/validation/schemas';
 
 export default function ChangePasswordPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const t = useTranslations('auth');
+  const tCommon = useTranslations('common');
+  const tValidation = useTranslations('validation');
+  const tToast = useTranslations('toast');
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
   const [storedEmail, setStoredEmail] = useState('');
 
-  // -----------------------------
-  // Form
-  // -----------------------------
+  const formSchema = useMemo(
+    () => createChangePasswordSchema(tValidation),
+    [tValidation],
+  );
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -77,7 +66,6 @@ export default function ChangePasswordPage() {
     }
   }, []);
 
-  // Reset form ketika query/local storage berubah
   useEffect(() => {
     const emailFromQuery = searchParams.get('email') ?? '';
     const resolvedEmail = emailFromQuery || storedEmail;
@@ -90,17 +78,14 @@ export default function ChangePasswordPage() {
     });
   }, [searchParams, storedEmail, form]);
 
-  // -----------------------------
-  // Mutation
-  // -----------------------------
   const mutation = useMutation({
     mutationFn: postChangePassword,
     onSuccess: () => {
-      toast.success('Password successfully changed!');
+      toast.success(tToast('passwordChanged'));
       router.push('/auth/success-change-password');
     },
     onError: () => {
-      toast.error('Failed to change password');
+      toast.error(tToast('passwordChangeFailed'));
     },
   });
 
@@ -114,31 +99,27 @@ export default function ChangePasswordPage() {
 
   return (
     <div className="max-w-md mx-auto min-h-screen flex flex-col justify-center px-6">
-      {/* Back button */}
       <Button
         variant="ghost"
         onClick={() => router.back()}
         className="flex items-center gap-2 text-sm font-medium mb-6 w-fit"
       >
-        <ArrowLeft className="h-5 w-5" /> Back
+        <ArrowLeft className="h-5 w-5" /> {tCommon('back')}
       </Button>
 
-      {/* Title */}
-      <h1 className="text-2xl font-bold mb-1">Create a New Password</h1>
+      <h1 className="text-2xl font-bold mb-1">{t('createNewPassword')}</h1>
       <p className="text-muted-foreground mb-6">
-        Create a new password for this account
+        {t('createNewPasswordSubtitle')}
       </p>
 
-      {/* Form */}
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          {/* Email */}
           <FormField
             control={form.control}
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email</FormLabel>
+                <FormLabel>{t('email')}</FormLabel>
                 <FormControl>
                   <Input type="email" disabled {...field} />
                 </FormControl>
@@ -147,17 +128,16 @@ export default function ChangePasswordPage() {
             )}
           />
 
-          {/* Current Password */}
           <FormField
             control={form.control}
             name="current_password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Current Password</FormLabel>
+                <FormLabel>{t('currentPassword')}</FormLabel>
                 <FormControl>
                   <div className="relative w-full">
                     <Input
-                      placeholder="Input your current password"
+                      placeholder={t('currentPasswordPlaceholder')}
                       type={showCurrentPassword ? 'text' : 'password'}
                       {...field}
                     />
@@ -181,17 +161,16 @@ export default function ChangePasswordPage() {
             )}
           />
 
-          {/* New Password */}
           <FormField
             control={form.control}
             name="new_password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>New Password</FormLabel>
+                <FormLabel>{t('newPassword')}</FormLabel>
                 <FormControl>
                   <div className="relative w-full">
                     <Input
-                      placeholder="Input your new password"
+                      placeholder={t('newPasswordPlaceholder')}
                       type={showPassword ? 'text' : 'password'}
                       {...field}
                     />
@@ -213,17 +192,16 @@ export default function ChangePasswordPage() {
             )}
           />
 
-          {/* New Password Confirmation */}
           <FormField
             control={form.control}
             name="new_password_confirmation"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>New Password Confirmation</FormLabel>
+                <FormLabel>{t('newPasswordConfirmation')}</FormLabel>
                 <FormControl>
                   <div className="relative w-full">
                     <Input
-                      placeholder="Confirm your new password"
+                      placeholder={t('confirmPasswordPlaceholder')}
                       type={showPasswordConfirm ? 'text' : 'password'}
                       {...field}
                     />
@@ -252,7 +230,7 @@ export default function ChangePasswordPage() {
             className="w-full"
             disabled={!form.formState.isValid || mutation.isPending}
           >
-            {mutation.isPending ? 'Processing...' : 'Continue'}
+            {mutation.isPending ? tCommon('processing') : tCommon('continue')}
           </Button>
         </form>
       </Form>

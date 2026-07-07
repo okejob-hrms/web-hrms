@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslations } from 'next-intl';
 import { Filters } from '../types';
 import { PaginationState } from '@tanstack/react-table';
 import { Separator } from '@/components/ui/separator';
@@ -31,6 +32,9 @@ export default function LeaveFilters({
   setPagination,
   isEmployee,
 }: Props) {
+  const t = useTranslations('attendance');
+  const tStatus = useTranslations('status');
+
   const form = useForm<Filters>({
     defaultValues: {
       search: '',
@@ -40,17 +44,17 @@ export default function LeaveFilters({
 
   const tabs = [
     {
-      name: 'Waiting for approval',
+      name: tStatus('waitingForApproval'),
       value: 1,
       icon: <Clock4Icon />,
     },
     {
-      name: 'Approved',
+      name: t('tabApproved'),
       value: 2,
       icon: <CircleCheckBigIcon />,
     },
     {
-      name: 'Rejected',
+      name: t('tabRejected'),
       value: 3,
       icon: <CircleXIcon />,
     },
@@ -92,7 +96,7 @@ export default function LeaveFilters({
           {!isEmployee && (
             <InputForm
               name="search"
-              placeholder="Search by Employee Name or Email"
+              placeholder={t('searchEmployeeNameEmail')}
               icon={<Search className="size-5 text-grayscale-20" />}
               iconPosition="right"
               value={filters.search}

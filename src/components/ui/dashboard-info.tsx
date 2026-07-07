@@ -10,6 +10,8 @@ type DashboardInfoProps = {
   compare?: string;
   time?: string;
   value?: number;
+  /** When true, show the value as a plain number instead of currency formatting */
+  numeric?: boolean;
 };
 
 export default function DashboardInfo({
@@ -18,6 +20,7 @@ export default function DashboardInfo({
   compare,
   time,
   value,
+  numeric = false,
 }: DashboardInfoProps) {
   return (
     <div className="font-sans">
@@ -30,7 +33,9 @@ export default function DashboardInfo({
           </div>
           <div className="flex items-center justify-between">
             <h2 className="font-semibold text-2xl text-primary">
-              {formatCurrency(Number(value || 0))}
+              {numeric
+                ? String(value ?? 0)
+                : formatCurrency(Number(value || 0))}
             </h2>
             {increase && (
               <div className="flex flex-row gap-2">

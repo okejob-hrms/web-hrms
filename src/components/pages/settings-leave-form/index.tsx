@@ -37,6 +37,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useTranslations } from 'next-intl';
+import { toast } from 'sonner';
 
 type SettingsLeaveConfigurationFormProps = {
   id?: string;
@@ -45,6 +47,9 @@ type SettingsLeaveConfigurationFormProps = {
 export default function SettingsLeaveConfigurationForm({
   id,
 }: SettingsLeaveConfigurationFormProps) {
+  const t = useTranslations('settings');
+  const tCommon = useTranslations('common');
+  const tEmployee = useTranslations('employee');
   const { form, onSubmit, jobLevel, handleDetailData, listing, onBack } =
     useLeaveTypeForm();
 
@@ -88,7 +93,7 @@ export default function SettingsLeaveConfigurationForm({
     // Basic validation: require job_level & quota_days
     if (!formRow.job_level || formRow.quota_days === '') {
       // you can replace with toast / UI error
-      alert('Job level and quota days are required');
+      toast.error(t('jobLevelQuotaRequired'));
       return;
     }
 
@@ -129,7 +134,7 @@ export default function SettingsLeaveConfigurationForm({
   const columns: ColumnDef<QuotaConfigurationDetailLocal>[] = [
     {
       accessorKey: 'job_level',
-      header: 'Job Level',
+      header: tEmployee('jobLevel'),
       size: 160,
       cell: ({ row }) => {
         const selected = jobLevel?.data.filter(
@@ -138,24 +143,24 @@ export default function SettingsLeaveConfigurationForm({
         return <div>{selected?.name ?? '-'}</div>;
       },
     },
-    { accessorKey: 'quota_days', header: 'Quota (days)', size: 160 },
+    { accessorKey: 'quota_days', header: t('quotaDays'), size: 160 },
     {
       accessorKey: 'carry_over_allowed',
-      header: 'Carry Over',
+      header: t('carryOver'),
       size: 200,
       cell: ({ row }) => (
-        <div>{row.original.carry_over_allowed ? 'Yes' : 'No'}</div>
+        <div>{row.original.carry_over_allowed ? tCommon('yes') : tCommon('no')}</div>
       ),
     },
     {
       accessorKey: 'max_carry_over_days',
-      header: 'Max Carry',
+      header: t('maxCarry'),
       size: 160,
-      cell: ({ row }) => <div>{row.original.max_carry_over_days} day</div>,
+      cell: ({ row }) => <div>{row.original.max_carry_over_days} {t('dayUnit')}</div>,
     },
     {
       accessorKey: 'carry_over_expiry',
-      header: 'Expiry',
+      header: t('expiry'),
       size: 160,
       cell: ({ row }) => (
         <div>
@@ -167,11 +172,11 @@ export default function SettingsLeaveConfigurationForm({
     },
     {
       accessorKey: 'deduct_employee_balance',
-      header: 'Deduct',
+      header: t('deduct'),
       size: 200,
       cell: ({ row }) => (
         <div className="">
-          {row.original.deduct_employee_balance ? 'Yes' : 'No'}
+          {row.original.deduct_employee_balance ? tCommon('yes') : tCommon('no')}
         </div>
       ),
     },
@@ -246,7 +251,7 @@ export default function SettingsLeaveConfigurationForm({
           {/* Basic Info */}
           <div>
             <h2 className="text-lg font-semibold mb-4">
-              Basic Leave Information
+              {t('basicLeaveInfo')}
             </h2>
             <div className="space-y-4">
               {/* NOTE: form schema expects "name" not "leaveName" */}
@@ -257,10 +262,10 @@ export default function SettingsLeaveConfigurationForm({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
-                        Leave Name <span className="text-red-500">*</span>
+                        {t('leaveName')} <span className="text-red-500">*</span>
                       </FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter leave name" {...field} />
+                        <Input placeholder={t('enterLeaveName')} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -273,11 +278,11 @@ export default function SettingsLeaveConfigurationForm({
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Description</FormLabel>
+                    <FormLabel>{tCommon('description')}</FormLabel>
                     <FormControl>
                       <Textarea
                         rows={3}
-                        placeholder="Enter leave description"
+                        placeholder={t('enterLeaveDesc')}
                         {...field}
                       />
                     </FormControl>
@@ -292,14 +297,14 @@ export default function SettingsLeaveConfigurationForm({
 
           {/* Entitlement Rules */}
           <div>
-            <h2 className="text-lg font-semibold mb-4">Entitlement Rules</h2>
+            <h2 className="text-lg font-semibold mb-4">{t('entitlementRules')}</h2>
             <FormField
               control={form.control}
               name="gender"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    Gender <span className="text-red-500">*</span>
+                    {t('gender')} <span className="text-red-500">*</span>
                   </FormLabel>
                   <FormControl>
                     <RadioGroup
@@ -309,15 +314,15 @@ export default function SettingsLeaveConfigurationForm({
                     >
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="all" id="all" />
-                        <label htmlFor="all">All</label>
+                        <label htmlFor="all">{tCommon('all')}</label>
                       </div>
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="male" id="male" />
-                        <label htmlFor="male">Male</label>
+                        <label htmlFor="male">{t('genderMale')}</label>
                       </div>
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="female" id="female" />
-                        <label htmlFor="female">Female</label>
+                        <label htmlFor="female">{t('genderFemale')}</label>
                       </div>
                     </RadioGroup>
                   </FormControl>
@@ -331,7 +336,7 @@ export default function SettingsLeaveConfigurationForm({
 
           {/* Quota Config */}
           <div>
-            <h2 className="text-lg font-semibold mb-4">Quota Configuration</h2>
+            <h2 className="text-lg font-semibold mb-4">{t('quotaConfiguration')}</h2>
 
             {/* IMPORTANT: name is "quota_configuration" per schema */}
             <FormField
@@ -348,9 +353,7 @@ export default function SettingsLeaveConfigurationForm({
                       {/* SAME */}
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="same" id="same" />
-                        <label htmlFor="same">
-                          Apply same quota for all job levels
-                        </label>
+                        <label htmlFor="same">{t('applySameQuotaForAll')}</label>
                       </div>
 
                       {/* === FOR 'same' MODE: use nested form paths === */}
@@ -362,7 +365,7 @@ export default function SettingsLeaveConfigurationForm({
                             name="quota_configuration_detail.0.quota_days"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Quota (days)</FormLabel>
+                                <FormLabel>{t('quotaDays')}</FormLabel>
                                 <FormControl>
                                   <Input type="number" {...field} />
                                 </FormControl>
@@ -382,7 +385,7 @@ export default function SettingsLeaveConfigurationForm({
                                     onCheckedChange={field.onChange}
                                   />
                                 </FormControl>
-                                <FormLabel>Carry Over Allowed</FormLabel>
+                                <FormLabel>{t('carryOverAllowed')}</FormLabel>
                               </FormItem>
                             )}
                           />
@@ -395,7 +398,7 @@ export default function SettingsLeaveConfigurationForm({
                                 name="quota_configuration_detail.0.max_carry_over_days"
                                 render={({ field }) => (
                                   <FormItem>
-                                    <FormLabel>Max Carry Over (days)</FormLabel>
+                                    <FormLabel>{t('maxCarryOver')}</FormLabel>
                                     <FormControl>
                                       <Input type="number" {...field} />
                                     </FormControl>
@@ -409,9 +412,7 @@ export default function SettingsLeaveConfigurationForm({
                                 name="quota_configuration_detail.0.carry_over_expiry"
                                 render={({ field }) => (
                                   <FormItem>
-                                    <FormLabel>
-                                      Carry Over Expiry (months)
-                                    </FormLabel>
+                                    <FormLabel>{t('carryOverExpiryMonths')}</FormLabel>
                                     <FormControl>
                                       <Input type="number" {...field} />
                                     </FormControl>
@@ -433,7 +434,7 @@ export default function SettingsLeaveConfigurationForm({
                                     onCheckedChange={field.onChange}
                                   />
                                 </FormControl>
-                                <FormLabel>Deduct Employee Balance</FormLabel>
+                                <FormLabel>{t('deductEmployeeBalance')}</FormLabel>
                               </FormItem>
                             )}
                           />
@@ -443,16 +444,14 @@ export default function SettingsLeaveConfigurationForm({
                       {/* PER LEVEL */}
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="per_level" id="per_level" />
-                        <label htmlFor="per_level">
-                          Define quota per job level
-                        </label>
+                        <label htmlFor="per_level">{t('defineQuotaPerLevel')}</label>
                       </div>
 
                       {quotaConfig === 'per_level' && (
                         <div className="ml-6 mt-4">
                           <div className="flex flex-col sm:flex-row sm:gap-4 justify-between mb-3">
                             <h2 className="font-semibold">
-                              Entitlement Matrix
+                              {t('entitlementMatrix')}
                             </h2>
                             <Button
                               type="button"
@@ -463,7 +462,7 @@ export default function SettingsLeaveConfigurationForm({
                               }}
                             >
                               <Plus />
-                              New Leave Type
+                              {t('newEntitlementRow')}
                             </Button>
                           </div>
 
@@ -474,7 +473,7 @@ export default function SettingsLeaveConfigurationForm({
                       {/* UNLIMITED */}
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="unlimited" id="unlimited" />
-                        <label htmlFor="unlimited">Unlimited Quota</label>
+                        <label htmlFor="unlimited">{t('unlimitedQuota')}</label>
                       </div>
                     </RadioGroup>
                   </FormControl>
@@ -486,9 +485,9 @@ export default function SettingsLeaveConfigurationForm({
           {/* Buttons */}
           <div className="flex justify-end gap-3 pt-4">
             <Button type="button" variant="outline" onClick={() => onBack()}>
-              Cancel
+              {tCommon('cancel')}
             </Button>
-            <Button type="submit">Save</Button>
+            <Button type="submit">{tCommon('save')}</Button>
           </div>
         </form>
       </Form>
@@ -498,7 +497,7 @@ export default function SettingsLeaveConfigurationForm({
         <DialogContent className="w-full max-w-md sm:max-w-xl bg-white px-4">
           <DialogHeader>
             <DialogTitle>
-              {editIndex !== null ? 'Edit' : 'Add'} Entitlement Matrix
+              {editIndex !== null ? t('editEntitlementMatrix') : t('addEntitlementMatrix')}
             </DialogTitle>
           </DialogHeader>
 
@@ -510,7 +509,7 @@ export default function SettingsLeaveConfigurationForm({
               value={formRow.job_level}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select job level" />
+                <SelectValue placeholder={t('selectJobLevel')} />
               </SelectTrigger>
               <SelectContent>
                 {jobLevel?.data.map((item, i) => (
@@ -521,7 +520,7 @@ export default function SettingsLeaveConfigurationForm({
               </SelectContent>
             </Select>
             <Input
-              placeholder="Quota (days)"
+              placeholder={t('quotaDays')}
               type="number"
               value={formRow.quota_days}
               onChange={(e) =>
@@ -536,13 +535,13 @@ export default function SettingsLeaveConfigurationForm({
                   setFormRow({ ...formRow, carry_over_allowed: !!v })
                 }
               />
-              <label>Carry Over Allowed</label>
+              <label>{t('carryOverAllowed')}</label>
             </div>
 
             {formRow.carry_over_allowed && (
               <div className="flex gap-2">
                 <Input
-                  placeholder="Max Carry Over (days)"
+                  placeholder={t('maxCarryOver')}
                   type="number"
                   value={formRow.max_carry_over_days}
                   onChange={(e) =>
@@ -553,7 +552,7 @@ export default function SettingsLeaveConfigurationForm({
                   }
                 />
                 <Input
-                  placeholder="Expiry (months)"
+                  placeholder={t('expiryMonths')}
                   type="number"
                   value={formRow.carry_over_expiry}
                   onChange={(e) =>
@@ -573,15 +572,15 @@ export default function SettingsLeaveConfigurationForm({
                   setFormRow({ ...formRow, deduct_employee_balance: !!v })
                 }
               />
-              <label>Deduct Employee Balance</label>
+              <label>{t('deductEmployeeBalance')}</label>
             </div>
           </div>
 
           <DialogFooter className="mt-4">
             <Button variant="outline" onClick={() => setOpenDialog(false)}>
-              Cancel
+              {tCommon('cancel')}
             </Button>
-            <Button onClick={handleAddOrUpdate}>Save</Button>
+            <Button onClick={handleAddOrUpdate}>{tCommon('save')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

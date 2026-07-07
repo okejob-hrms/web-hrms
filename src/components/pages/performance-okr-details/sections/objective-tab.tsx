@@ -20,6 +20,7 @@ import React from "react";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { getStatusOKRCycle } from "@/lib/helpers";
+import type { StatusKey } from "@/lib/i18n/status";
 
 dayjs.extend(relativeTime);
 
@@ -27,7 +28,7 @@ interface CardObjectiveProps {
   objective: IOKRObjective;
   onNewKpi: () => void;
   handleRenameObjective: (objective: IOKRObjective) => void;
-  statusLabel: string;
+  statusKey: StatusKey;
 }
 
 interface CardKeyResultProps {
@@ -112,7 +113,7 @@ const CardObjective = ({
   onNewKpi,
   objective,
   handleRenameObjective,
-  statusLabel,
+  statusKey,
 }: CardObjectiveProps) => {
   const keyResults = objective.key_results;
   return (
@@ -131,7 +132,7 @@ const CardObjective = ({
           >
             <Plus />
           </Button>
-          {statusLabel === "Draft" && (
+          {statusKey === "draft" && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="p-1 hover:bg-gray-100 rounded">
@@ -233,7 +234,7 @@ export const ObjectiveTab = () => {
               onNewKpi={() => handleOpenKeyResultForm(objective.id)}
               objective={objective}
               handleRenameObjective={() => handleShowEditObjective(objective)}
-              statusLabel={status.label}
+              statusKey={status.key}
             />
           ))}
         </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useTranslations } from 'next-intl';
 import { DataTable } from '@/components/tables/data-table';
 import { ColumnDef } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
@@ -14,7 +15,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Edit3, Ellipsis, Eye, Plus, Search, Trash, X } from 'lucide-react';
 import Link from 'next/link';
-import { Badge } from '@/components/ui/badge';
+import { StatusBadge } from '@/components/shared/status-badge';
 import { getStatusGeneratingPayroll, getStatusPayroll } from '@/lib/helpers';
 import { InputForm } from '@/components/ui/input';
 import { Form } from '@/components/ui/form';
@@ -29,6 +30,8 @@ import { ResponsePayrollItem } from '@/services/payroll/types';
 
 export const PayrollList = () => {
   const router = useRouter();
+  const t = useTranslations('payroll');
+  const tCommon = useTranslations('common');
 
   const {
     payrollData,
@@ -48,12 +51,13 @@ export const PayrollList = () => {
   const columns: ColumnDef<ResponsePayrollItem>[] = [
     {
       accessorKey: 'period_label',
-      header: 'Payruns',
+      header: t('payruns'),
       size: 200,
     },
     {
+      id: 'total_payslips',
       accessorKey: 'total',
-      header: 'Total Payslip',
+      header: t('totalPayslip'),
       size: 200,
       cell: ({ row }) => (
         <span className="text-gray-800">
@@ -62,8 +66,9 @@ export const PayrollList = () => {
       ),
     },
     {
+      id: 'total_gross_pay',
       accessorKey: 'total',
-      header: 'Total Pay',
+      header: t('totalPay'),
       size: 200,
       cell: ({ row }) => (
         <span className="text-gray-400">
@@ -85,40 +90,36 @@ export const PayrollList = () => {
     // },
     {
       accessorKey: 'payslip_status',
-      header: 'Payslip Status',
+      header: t('payslipStatus'),
       size: 160,
       cell: ({ row }) => {
         const status = row.original.status_label;
-        const { variant, className, label } = getStatusPayroll(status);
+        const { variant, className, key } = getStatusPayroll(status);
         if (!row.original.status_label) return '-';
 
         return (
-          <Badge variant={variant} className={className}>
-            {label}
-          </Badge>
+          <StatusBadge statusKey={key} variant={variant} className={className} />
         );
       },
     },
     {
       accessorKey: 'generation_status_label',
-      header: 'Generation Status',
+      header: t('generationStatus'),
       size: 160,
       cell: ({ row }) => {
         const status = row.original.generation_status_label;
-        const { variant, className, label } =
+        const { variant, className, key } =
           getStatusGeneratingPayroll(status);
         if (!row.original.generation_status_label) return '-';
 
         return (
-          <Badge variant={variant} className={className}>
-            {label}
-          </Badge>
+          <StatusBadge statusKey={key} variant={variant} className={className} />
         );
       },
     },
     {
       accessorKey: 'updated_at',
-      header: 'Last Updated',
+      header: tCommon('lastUpdated'),
       size: 200,
       cell: ({ row }) =>
         dayjs(row.original.updated_at).format('MMMM D, YYYY') || '-',
@@ -141,7 +142,7 @@ export const PayrollList = () => {
                       className="flex gap-2 justify-between items-center"
                     >
                       <Eye />
-                      Payruns Details
+                      {t('payrunDetails')}
                     </Link>
                   </DropdownMenuItem>
                   {!row.original.can_be_sent && (
@@ -151,7 +152,7 @@ export const PayrollList = () => {
                         className="flex gap-2 justify-between items-center"
                       >
                         <Edit3 />
-                        Edit Payruns
+                        {t('editPayrun')}
                       </Link>
                     </DropdownMenuItem>
                   )}
@@ -167,7 +168,7 @@ export const PayrollList = () => {
                   handleRegenerate(String(row.original.id));
                 }}
               >
-                Regenerate
+                {tCommon('regenerate')}
               </Button>
             )}
           </div>
@@ -190,7 +191,7 @@ export const PayrollList = () => {
           <form className="flex flex-col md:flex-row md:items-end gap-2 md:h-10">
             <InputForm
               name="search"
-              placeholder="Search by payruns name"
+              placeholder={t('searchPayrun')}
               icon={<Search className="size-5 text-grayscale-20" />}
               iconPosition="right"
               value={filters.search}
@@ -222,9 +223,9 @@ export const PayrollList = () => {
         <Separator />
         <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6">
           <div className="flex md:flex-row flex-col justify-between w-full md:items-center items-start gap-4">
-            <h2 className="font-semibold text-xl">Payruns</h2>
+            <h2 className="font-semibold text-xl">{t('payruns')}</h2>
             <Button onClick={() => setOpenAdd(true)}>
-              <Plus /> New Payruns
+              <Plus /> {t('newPayrun')}
             </Button>
           </div>
 
