@@ -61,7 +61,6 @@ export interface ICreateEmployeeResponse {
 }
 
 export interface IMutateEmployeeRequests {
-  team_member: any;
   name: string;
   email: string;
   role_id: number;

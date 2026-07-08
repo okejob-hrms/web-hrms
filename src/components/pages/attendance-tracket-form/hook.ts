@@ -22,6 +22,7 @@ import {
   putAttendance,
 } from '@/services/attendance';
 import { AttendanceDetail } from '@/services/attendance/types';
+import { ApiErrorResponse } from '@/lib/types';
 import { useTranslations } from 'next-intl';
 
 export type AttendanceFormValues = {
@@ -51,11 +52,19 @@ export function useAttendenceForm() {
   const attendanceSchema = useMemo(
     () =>
       z.object({
-        user_id: z.string().min(1, t('employeeRequired')),
-        attendance_date: z.date(),
-        shift_id: z.number().min(1, t('shiftRequired')),
-        clock_in_at: z.string().min(1, t('clockInRequired')),
-        clock_out_at: z.string().min(1, t('clockOutRequired')),
+        user_id: z
+          .string({ error: t('employeeRequired') })
+          .min(1, t('employeeRequired')),
+        attendance_date: z.date({ error: t('attendanceDateRequired') }),
+        shift_id: z
+          .number({ error: t('shiftRequired') })
+          .min(1, t('shiftRequired')),
+        clock_in_at: z
+          .string({ error: t('clockInRequired') })
+          .min(1, t('clockInRequired')),
+        clock_out_at: z
+          .string({ error: t('clockOutRequired') })
+          .min(1, t('clockOutRequired')),
         latitude: z.number().optional(),
         longitude: z.number().optional(),
         note: z.string().optional(),
@@ -142,7 +151,12 @@ export function useAttendenceForm() {
 
   const form = useForm<AttendanceFormValues>({
     resolver: zodResolver(attendanceSchema),
-    defaultValues: {},
+    defaultValues: {
+      user_id: '',
+      clock_in_at: '',
+      clock_out_at: '',
+      note: '',
+    },
   });
 
   useEffect(() => {
@@ -159,7 +173,7 @@ export function useAttendenceForm() {
 
   const mutation = useMutation<
     unknown,
-    unknown,
+    Error,
     { selectedId?: string; attendanceId: string; payload: AttendancePayload }
   >({
     mutationFn: ({ attendanceId, payload }) => {
@@ -176,11 +190,44 @@ export function useAttendenceForm() {
       setIsLoading(false);
       router.push('/attendance/attendance-tracker');
     },
-    onError: () => {
-      toast.error(
-        isAddMode ? t('createAttendanceFailed') : t('updateAttendanceFailed'),
-      );
+    onError: async (error) => {
       setIsLoading(false);
+      const fallback = isAddMode
+        ? t('createAttendanceFailed')
+        : t('updateAttendanceFailed');
+
+      const response = (error as Error & { response?: Response })?.response;
+      if (!response) {
+        toast.error(fallback);
+        return;
+      }
+
+      try {
+        const data: ApiErrorResponse = await response.json();
+
+        if (data.errors) {
+          Object.entries(data.errors).forEach(([fieldName, messages]) => {
+            if (messages?.[0]) {
+              form.setError(fieldName as keyof AttendanceFormValues, {
+                type: 'server',
+                message: messages[0],
+              });
+            }
+          });
+        }
+
+        const detailMessages = data.errors
+          ? Array.from(new Set(Object.values(data.errors).flat()))
+          : [];
+        const cleanMessage = data.message?.replace(
+          /\s*\(and \d+ more errors?\)\.?$/i,
+          '',
+        );
+
+        toast.error(detailMessages.join(' ') || cleanMessage || fallback);
+      } catch {
+        toast.error(fallback);
+      }
     },
   });
 
