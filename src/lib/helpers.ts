@@ -21,6 +21,17 @@ dayjs.extend(duration);
 
 export const rupiahFormatter = (number: number) => formatCurrencyIdr(number);
 
+/** Build a public file URL from a storage path (matches usage across the app). */
+export function getPublicFileUrl(path?: string | null): string {
+  if (!path) return "";
+  if (path.startsWith("http://") || path.startsWith("https://")) {
+    return path;
+  }
+  const base = process.env.NEXT_PUBLIC_FILE_URL?.replace(/\/$/, "") ?? "";
+  const normalizedPath = path.replace(/^\//, "");
+  return base ? `${base}/${normalizedPath}` : `/${normalizedPath}`;
+}
+
 /** @deprecated Pass locale — defaults to en for backward compatibility */
 export function formatDateTime(isoString: string, locale: AppLocale = "en") {
   return formatDateTimeLocalized(isoString, locale);

@@ -16,6 +16,7 @@ import { Minus, Plus } from "lucide-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { getRoles } from "@/services/roles";
 import { uploadAttachment } from "@/services/attachments";
+import { getPublicFileUrl } from "@/lib/helpers";
 import { toast } from "sonner";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { cn, stringAvatar } from "@/lib/utils";
@@ -55,15 +56,6 @@ export const PersonalInformationSection = React.memo(
     const { mutate: uploadPhotoProfile, isPending: isPendingPhotoProfile } =
       useMutation({
         mutationFn: uploadAttachment,
-        onSuccess: (res) => {
-          setValue("photo_profile", res.data.path);
-          setValue("photo_profile_url", res.data.url);
-          setPreviewPhotoProfile(res.data.url);
-          setLoadingPhotoProfile(false);
-        },
-        onError: (error) => {
-          toast.error(t("photoUploadFailed", { message: error.message }));
-        },
       });
 
     const roleOptions = React.useMemo(() => {
@@ -83,29 +75,50 @@ export const PersonalInformationSection = React.memo(
     };
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-      setLoadingPhotoProfile(true);
       const file = event.target.files?.[0];
-      if (file) {
-        if (!file.type.startsWith("image/")) {
-          toast.error(t("selectImageFile"));
-          setLoadingPhotoProfile(false);
-          return;
-        }
+      if (!file) return;
 
-        const maxSize = 5 * 1024 * 1024; // 5MB
-        if (file.size > maxSize) {
-          toast.error(t("fileSizeMax5mb"));
-          setLoadingPhotoProfile(false);
-          return;
-        }
-
-        uploadPhotoProfile(file);
-
-        if (fileInputRef.current) {
-          fileInputRef.current.value = "";
-          setLoadingPhotoProfile(false);
-        }
+      if (!file.type.startsWith("image/")) {
+        toast.error(t("selectImageFile"));
+        return;
       }
+
+      const maxSize = 5 * 1024 * 1024; // 5MB
+      if (file.size > maxSize) {
+        toast.error(t("fileSizeMax5mb"));
+        return;
+      }
+
+      const localPreview = URL.createObjectURL(file);
+      setPreviewPhotoProfile(localPreview);
+      setLoadingPhotoProfile(true);
+
+      uploadPhotoProfile(file, {
+        onSuccess: (res) => {
+          setValue("photo_profile", res.data.path);
+          const publicUrl = getPublicFileUrl(res.data.path);
+          const probe = new window.Image();
+          probe.onload = () => {
+            setPreviewPhotoProfile(publicUrl);
+            URL.revokeObjectURL(localPreview);
+          };
+          probe.onerror = () => {
+            setPreviewPhotoProfile(localPreview);
+          };
+          probe.src = publicUrl;
+        },
+        onError: (error: Error) => {
+          URL.revokeObjectURL(localPreview);
+          setPreviewPhotoProfile("");
+          toast.error(t("photoUploadFailed", { message: error.message }));
+        },
+        onSettled: () => {
+          setLoadingPhotoProfile(false);
+          if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+          }
+        },
+      });
     };
 
     React.useEffect(() => {
@@ -271,8 +284,16 @@ export const PersonalInformationSection = React.memo(
           <InputForm name="npwp" label={t("npwp")} />
           <InputForm name="bpjs" label={t("bpjs")} />
 
-          <TextAreaForm name="citizen_id_address" label={t("citizenIdAddress")} />
-          <TextAreaForm name="residential_address" label={t("residentialAddress")} />
+          <TextAreaForm
+            name="citizen_id_address"
+            label={t("citizenIdAddress")}
+            required
+          />
+          <TextAreaForm
+            name="residential_address"
+            label={t("residentialAddress")}
+            required
+          />
           <InputForm name="hobby" label={t("hobby")} />
 
           <TextAreaForm

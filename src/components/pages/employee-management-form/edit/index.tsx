@@ -4,7 +4,6 @@
 import { Form } from "@/components/ui/form";
 import * as React from "react";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { EmployeeinformationSection } from "../sections/employee-information-section";
 import { PersonalInformationSection } from "../sections/personal-information-section";
@@ -14,7 +13,7 @@ import { AttachmentsSection } from "../sections/attachments-section";
 import { Button } from "../../../ui/button";
 import {
   employeeManagementFormDefaultValues,
-  employeeManagementFormScheme,
+  type EmployeeManagementFormValues,
 } from "../types";
 import { IMutateEmployeeRequests } from "@/services/employees/types";
 import dayjs from "dayjs";
@@ -107,8 +106,8 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
       },
     });
 
-  const form = useForm<z.infer<typeof employeeManagementFormScheme>>({
-    // resolver: zodResolver(employeeManagementFormScheme),
+  const form = useForm<EmployeeManagementFormValues>({
+    // resolver: zodResolver(createEmployeeManagementFormScheme(tValidation, t)),
     defaultValues: employeeManagementFormDefaultValues,
     mode: "onChange",
   });
@@ -239,7 +238,7 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
   }, [employeeDetails, form]);
 
   const onSubmit = React.useCallback(
-    (values: z.infer<typeof employeeManagementFormScheme> | any) => {
+    (values: EmployeeManagementFormValues | any) => {
       try {
         const {
           country_code,

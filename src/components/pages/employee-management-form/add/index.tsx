@@ -3,7 +3,6 @@
 import { Form } from "@/components/ui/form";
 import * as React from "react";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { EmployeeinformationSection } from "../sections/employee-information-section";
 import { PersonalInformationSection } from "../sections/personal-information-section";
@@ -12,8 +11,9 @@ import { BankInformationSection } from "../sections/bank-information-section";
 import { AttachmentsSection } from "../sections/attachments-section";
 
 import {
+  createEmployeeManagementFormScheme,
   employeeManagementFormDefaultValues,
-  employeeManagementFormScheme,
+  type EmployeeManagementFormValues,
 } from "../types";
 import { IMutateEmployeeRequests } from "@/services/employees/types";
 import dayjs from "dayjs";
@@ -26,15 +26,59 @@ import { ApiErrorResponse } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { useTranslations } from "next-intl";
 
-type EmployeeFormValues = z.infer<typeof employeeManagementFormScheme>;
+type EmployeeFormValues = EmployeeManagementFormValues;
+
+const serverFieldToFormField: Record<string, string> = {
+  team_id: "team_member",
+};
+
+function mapServerFieldToFormField(fieldName: string): string {
+  if (serverFieldToFormField[fieldName]) {
+    return serverFieldToFormField[fieldName];
+  }
+
+  const attachmentMatch = fieldName.match(/^attachments\.(\d+)\.path$/);
+  if (attachmentMatch) {
+    return `attachments.${attachmentMatch[1]}.path`;
+  }
+
+  return fieldName;
+}
+
+function applyServerValidationErrors(
+  form: ReturnType<typeof useForm<EmployeeFormValues>>,
+  errors: Record<string, string[]>,
+) {
+  Object.entries(errors).forEach(([fieldName, messages]) => {
+    form.setError(mapServerFieldToFormField(fieldName) as keyof EmployeeFormValues, {
+      type: "server",
+      message: messages[0],
+    });
+  });
+}
+
+function scrollToFirstValidationError() {
+  requestAnimationFrame(() => {
+    const firstInvalid = document.querySelector(
+      '[data-invalid="true"], [aria-invalid="true"]',
+    );
+    firstInvalid?.scrollIntoView({ behavior: "smooth", block: "center" });
+  });
+}
 
 export const AddEmployeeForm = React.memo(function AddEmployee() {
   const router = useRouter();
   const t = useTranslations("employee");
   const tCommon = useTranslations("common");
+  const tValidation = useTranslations("validation");
+
+  const employeeSchema = React.useMemo(
+    () => createEmployeeManagementFormScheme(tValidation, t),
+    [tValidation, t],
+  );
 
   const form = useForm<EmployeeFormValues>({
-    resolver: zodResolver(employeeManagementFormScheme),
+    resolver: zodResolver(employeeSchema),
     defaultValues: employeeManagementFormDefaultValues,
     mode: "onChange",
   });
@@ -50,7 +94,11 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
       if (error?.response) {
         try {
           const errorData: ApiErrorResponse = await error.response.json();
+          if (errorData.errors) {
+            applyServerValidationErrors(form, errorData.errors);
+          }
           toast.error(errorData.message || t("employeeAddFailed"));
+          scrollToFirstValidationError();
         } catch {
           toast.error(t("employeeAddServerError"));
         }
@@ -68,7 +116,7 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
         (account) => account?.type.trim() !== "" && account?.url.trim() !== "",
       );
 
-      const { end_date, countryCode, ...restValues } = values;
+      const { end_date, countryCode, team_member, ...restValues } = values;
 
       const params: IMutateEmployeeRequests = {
         ...restValues,
@@ -81,7 +129,7 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
         }),
         country_code: String(values.country_code),
         branch_id: Number(values.branch_id),
-        team_id: Number(values.team_member),
+        team_id: Number(team_member),
         date_of_birth: dayjs(values.date_of_birth).format("YYYY-MM-DD"),
         start_date: dayjs(values.start_date).format("YYYY-MM-DD"),
         ...(end_date && dayjs(end_date).isValid()
@@ -132,13 +180,14 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
     const isValid = await form.trigger();
 
     if (!isValid) {
-      console.log("# VALIDATION ERRORS ", form.formState.errors);
+      toast.error(t("formValidationFailed"));
+      scrollToFirstValidationError();
       return;
     }
 
     const formData = form.getValues();
     onSubmit(formData);
-  }, [form, onSubmit]);
+  }, [form, onSubmit, t]);
 
   return (
     <>
