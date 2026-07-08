@@ -1,25 +1,35 @@
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { IKPIDetails } from "@/services/performances/kpi/types";
-import * as React from "react";
+} from '@/components/ui/dialog';
+import { IKPIDetails } from '@/services/performances/kpi/types';
+import { useTranslations } from 'next-intl';
+import * as React from 'react';
 
 interface IDetailModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   data: IKPIDetails | undefined;
+  getFrequencyLabel: (frequency: number) => string;
+  getDirectionLabel: (direction: number) => string;
+  isLoading?: boolean;
 }
 
 export const DetailModal: React.FC<IDetailModalProps> = ({
   open,
   onOpenChange,
   data,
+  getFrequencyLabel,
+  getDirectionLabel,
+  isLoading,
 }) => {
+  const t = useTranslations('performance');
+  const tCommon = useTranslations('common');
+
   return (
     <Dialog
       open={open}
@@ -32,56 +42,66 @@ export const DetailModal: React.FC<IDetailModalProps> = ({
       <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto p-0 bg-white">
         <DialogHeader className="px-6 pt-6 pb-4">
           <DialogTitle className="text-xl font-semibold">
-            KPI Details
+            {t('kpiDetails')}
           </DialogTitle>
         </DialogHeader>
-        {!data ? (
+        {isLoading || !data ? (
           <div className="px-6 py-8 text-center text-gray-500">
-            Loading KPI details...
+            {t('loadingKpiDetails')}
           </div>
         ) : (
           <>
             <div className="px-6">
-              <h2 className="text-base font-semibold mb-4">KPI Information</h2>
+              <h2 className="text-base font-semibold mb-4">
+                {t('kpiInformation')}
+              </h2>
               <div className="flex flex-col gap-4">
                 <div className="flex flex-col gap-2">
-                  <span className="text-text-disabled text-sm">KPI Name</span>
-                  <span className="text-foreground">{data?.name}</span>
+                  <span className="text-text-disabled text-sm">
+                    {t('kpiName')}
+                  </span>
+                  <span className="text-foreground">{data.name}</span>
                 </div>
                 <div className="flex flex-col gap-2">
                   <span className="text-text-disabled text-sm">
-                    Description
+                    {tCommon('description')}
                   </span>
                   <span className="text-foreground">
-                    {data?.description || "-"}
+                    {data.description || '-'}
                   </span>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="flex flex-col gap-2">
-                    <span className="text-text-disabled text-sm">Target</span>
-                    <span className="text-foreground">{data?.target}</span>
+                    <span className="text-text-disabled text-sm">
+                      {t('target')}
+                    </span>
+                    <span className="text-foreground">{data.target}</span>
                   </div>
                   <div className="flex flex-col gap-2">
                     <span className="text-text-disabled text-sm">
-                      Direction
+                      {t('direction')}
                     </span>
-                    <span className="text-foreground">{data?.direction}</span>
+                    <span className="text-foreground">
+                      {getDirectionLabel(data.direction)}
+                    </span>
                   </div>
                   <div className="flex flex-col gap-2">
                     <span className="text-text-disabled text-sm">
-                      Frequency
+                      {t('frequency')}
                     </span>
-                    <span className="text-foreground">{data?.frequency}</span>
+                    <span className="text-foreground">
+                      {getFrequencyLabel(data.frequency)}
+                    </span>
                   </div>
                 </div>
               </div>
             </div>
             <div className="px-6">
-              <h2 className="text-base font-semibold mb-4">Assignee</h2>
+              <h2 className="text-base font-semibold mb-4">{t('assignee')}</h2>
               <div className="flex flex-col gap-4">
                 <div className="flex flex-col gap-2">
                   <span className="text-text-disabled text-sm">
-                    Job Position
+                    {t('jobPosition')}
                   </span>
                   <div className="flex flex-wrap gap-2">
                     {data.job_positions.map((position) => (
@@ -97,7 +117,9 @@ export const DetailModal: React.FC<IDetailModalProps> = ({
                   </div>
                 </div>
                 <div className="flex flex-col gap-2">
-                  <span className="text-text-disabled text-sm">Job Level</span>
+                  <span className="text-text-disabled text-sm">
+                    {t('jobLevel')}
+                  </span>
                   <div className="flex flex-wrap gap-2">
                     {data.job_levels.map((level) => (
                       <div
@@ -117,7 +139,7 @@ export const DetailModal: React.FC<IDetailModalProps> = ({
         )}
         <DialogFooter className="px-6 pb-6">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Close
+            {tCommon('close')}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import {
   AlertDialog,
@@ -13,6 +15,7 @@ import dayjs from 'dayjs';
 import { RequestOvertime } from '@/services/overtime/types';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { useTranslations } from 'next-intl';
 
 interface Props {
   onUpdate: (e?: React.FormEvent) => void;
@@ -29,8 +32,10 @@ export default function OvertimeAddModal({
   formData,
   setFormData,
 }: Props) {
+  const t = useTranslations('attendance');
+  const tCommon = useTranslations('common');
+
   const handleUpdate = async (e: React.MouseEvent) => {
-    console.log('Employee data updated');
     e.preventDefault();
     e.stopPropagation();
 
@@ -47,13 +52,13 @@ export default function OvertimeAddModal({
         <AlertDialogContent className="max-w-md mx-auto bg-white rounded-lg shadow-lg p-6">
           <AlertDialogHeader className="text-center items-center justify-center">
             <AlertDialogTitle className="text-lg text-center font-semibold text-black mb-2">
-              Add Overtime Request
+              {t('newOvertimeRequest')}
             </AlertDialogTitle>
             <AlertDialogDescription></AlertDialogDescription>
           </AlertDialogHeader>
           <div className="grid grid-cols-3 gap-3 space-y-2 mb-4">
             <div className="col-span-2">
-              <div className="text-sm text-gray-500">Overtime Date</div>
+              <div className="text-sm text-gray-500">{t('overtimeDate')}</div>
               <Input
                 type="date"
                 value={formData.overtime_date}
@@ -69,7 +74,7 @@ export default function OvertimeAddModal({
             </div>
             <div></div>
             <div className="col-span-1">
-              <div className="text-sm text-gray-500">Start Time</div>
+              <div className="text-sm text-gray-500">{t('startTime')}</div>
               <Input
                 type="time"
                 value={formData.start_time}
@@ -82,7 +87,7 @@ export default function OvertimeAddModal({
               />
             </div>
             <div className="col-span-1">
-              <div className="text-sm text-gray-500">End Time</div>
+              <div className="text-sm text-gray-500">{t('endTime')}</div>
               <Input
                 type="time"
                 value={formData.end_time}
@@ -95,7 +100,7 @@ export default function OvertimeAddModal({
               />
             </div>
             <div className="col-span-3">
-              <div className="text-sm text-gray-500">Notes</div>
+              <div className="text-sm text-gray-500">{tCommon('notes')}</div>
               <Textarea
                 rows={5}
                 value={formData.notes}
@@ -113,13 +118,13 @@ export default function OvertimeAddModal({
               onClick={() => setIsOpen(false)}
               className="flex-1 border text-primary border-primary bg-white hover:bg-blue-50 rounded-md py-2 font-medium"
             >
-              Cancel
+              {tCommon('cancel')}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleUpdate}
               className="flex-1 bg-primary text-white rounded-md py-2 font-medium"
             >
-              Save
+              {tCommon('save')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

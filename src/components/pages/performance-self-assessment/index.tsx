@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { DataTable } from "@/components/tables/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -11,9 +12,11 @@ import { useSelfAssessment } from "./hook";
 import { ISelfAssessmentResponse } from "@/services/employees/self-assessment/types";
 import dayjs from "dayjs";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/shared/status-badge";
 
 export default function SelfAssessmentList() {
+  const t = useTranslations("performance");
+  const tCommon = useTranslations("common");
   const {
     assessments,
     handleNew,
@@ -38,7 +41,7 @@ export default function SelfAssessmentList() {
 
         return (
           <div className="flex flex-row gap-2 items-center">
-            <span>Assessment Period</span>
+            <span>{t("assessmentPeriod")}</span>
             <button
               type="button"
               onClick={() => column.toggleSorting(isSorted === "asc")}
@@ -70,7 +73,7 @@ export default function SelfAssessmentList() {
 
         return (
           <div className="flex flex-row gap-2 items-center">
-            <span>Status</span>
+            <span>{tCommon("status")}</span>
             <button
               type="button"
               onClick={() => column.toggleSorting(isSorted === "asc")}
@@ -82,11 +85,9 @@ export default function SelfAssessmentList() {
         );
       },
       cell: ({ row }) => {
-        const status = getStatusSelfAssessment(row.original.status);
+        const { key, variant, className } = getStatusSelfAssessment(row.original.status);
         return (
-          <Badge variant={status.variant} className={status.className}>
-            {status.label}
-          </Badge>
+          <StatusBadge statusKey={key} variant={variant} className={className} />
         );
       },
     },
@@ -105,7 +106,7 @@ export default function SelfAssessmentList() {
 
         return (
           <div className="flex flex-row gap-2 items-center">
-            <span>Start Date</span>
+            <span>{t("startDate")}</span>
             <button
               type="button"
               onClick={() => column.toggleSorting(isSorted === "asc")}
@@ -133,7 +134,7 @@ export default function SelfAssessmentList() {
 
         return (
           <div className="flex flex-row gap-2 items-center">
-            <span>End Date</span>
+            <span>{t("endDate")}</span>
             <button
               type="button"
               onClick={() => column.toggleSorting(isSorted === "asc")}
@@ -161,7 +162,7 @@ export default function SelfAssessmentList() {
 
         return (
           <div className="flex flex-row gap-2 items-center">
-            <span>Created At</span>
+            <span>{t("createdAt")}</span>
             <button
               type="button"
               onClick={() => column.toggleSorting(isSorted === "asc")}
@@ -176,7 +177,7 @@ export default function SelfAssessmentList() {
     },
     {
       accessorKey: "submitted",
-      header: "Submitted",
+      header: t("submitted"),
       cell: ({ row }) => {
         return (
           <div className="flex">
@@ -184,7 +185,7 @@ export default function SelfAssessmentList() {
               {row.original.submitted}
             </span>
             <span className="text-text-disabled font-normal">
-              /{row.original.total_employees} Employees
+              /{row.original.total_employees} {tCommon("employees")}
             </span>
           </div>
         );
@@ -192,14 +193,14 @@ export default function SelfAssessmentList() {
     },
     {
       accessorKey: "progress",
-      header: "Progress",
+      header: t("progress"),
       cell: ({ row }) => {
         return <span>{row.original.progress}%</span>;
       },
     },
     {
       accessorKey: "created_by",
-      header: "Created By",
+      header: t("createdBy"),
       cell: ({ row }) => {
         return <span>{row.original.creator.name}</span>;
       },
@@ -234,10 +235,10 @@ export default function SelfAssessmentList() {
         <div className="rounded-md bg-white border shadow-sm border-grayscale-20 flex flex-col gap-4 p-6">
           <div className="flex flex-col sm:flex-row justify-between w-full items-start sm:items-center gap-4 sm:gap-0">
             <div className="flex gap-2 items-center flex-wrap">
-              <h2 className="font-semibold text-xl">Self Assessment</h2>
+              <h2 className="font-semibold text-xl">{t("selfAssessment")}</h2>
             </div>
             <Button onClick={() => handleNew()} className="whitespace-nowrap">
-              + New Assessment
+              {t("newAssessment")}
             </Button>
           </div>
           <DataTable

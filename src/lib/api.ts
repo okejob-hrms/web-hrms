@@ -1,7 +1,13 @@
 import ky from 'ky';
 import { useLoadingStore } from '@/hooks/use-loading-store';
+import { getLocaleFromDocumentCookie } from '@/lib/i18n/locale';
 
-// ====== Global loading triggers ======
+const setAcceptLanguage = (request: Request) => {
+  if (typeof window !== 'undefined') {
+    request.headers.set('Accept-Language', getLocaleFromDocumentCookie());
+  }
+};
+
 const startLoading = () => {
   if (typeof window !== 'undefined') {
     useLoadingStore.getState().start();
@@ -22,7 +28,9 @@ const BASE_URL_RECOGNITION =
   process.env.NEXT_PUBLIC_BASE_URL_RECOGNITION || 'https://face.okejobhub.fun/api/v1';
 
 const BASE_URL_EMPLOYEE =
-  process.env.BASE_URL_EMPLOYEE || 'https://api.okejobhub.fun/api';
+  process.env.NEXT_PUBLIC_BASE_URL_EMPLOYEE ||
+  process.env.BASE_URL_EMPLOYEE ||
+  'https://api.okejobhub.fun/api';
 
 // ====== Public API (no auth) ======
 export const apiPublic = ky.create({
@@ -31,8 +39,9 @@ export const apiPublic = ky.create({
   retry: { limit: 0 },
   hooks: {
     beforeRequest: [
-      () => {
+      (request) => {
         startLoading();
+        setAcceptLanguage(request);
       },
     ],
     afterResponse: [
@@ -62,6 +71,7 @@ export const api = ky.create({
     beforeRequest: [
       (request) => {
         startLoading();
+        setAcceptLanguage(request);
         const token =
           typeof window !== 'undefined' ? localStorage.getItem('token') : null;
         if (token) {
@@ -99,6 +109,7 @@ export const apiUpload = ky.create({
     beforeRequest: [
       (request) => {
         startLoading();
+        setAcceptLanguage(request);
         const token =
           typeof window !== 'undefined' ? localStorage.getItem('token') : null;
         if (token) {
@@ -129,6 +140,7 @@ export const apiRecognition = ky.create({
     beforeRequest: [
       (request, options) => {
         startLoading();
+        setAcceptLanguage(request);
 
         const token =
           typeof window !== 'undefined' ? localStorage.getItem('token') : null;
@@ -177,6 +189,7 @@ export const apiEmployee = ky.create({
     beforeRequest: [
       (request) => {
         startLoading();
+        setAcceptLanguage(request);
         const token =
           typeof window !== 'undefined' ? localStorage.getItem('token') : null;
         if (token) {

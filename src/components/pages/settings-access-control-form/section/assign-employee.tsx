@@ -27,6 +27,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { stringAvatar } from '@/lib/utils';
+import { useTranslations } from 'next-intl';
 
 type AssignEmployeeProps = {
   open: boolean;
@@ -52,8 +53,9 @@ export default function AssignEmployee({
   onOpenChange,
 }: AssignEmployeeProps) {
   const isMobile = useIsMobile();
-
-  console.log(selectedEmployees);
+  const t = useTranslations('settings');
+  const tCommon = useTranslations('common');
+  const tEmployee = useTranslations('employee');
 
   const employees = React.useMemo<IEmployee[]>(() => {
     if (!pagination) return [];
@@ -81,7 +83,7 @@ export default function AssignEmployee({
   const columns: ColumnDef<IEmployee>[] = [
     {
       accessorKey: 'name',
-      header: 'Name',
+      header: tCommon('name'),
       cell: ({ row }) => (
         <div className="flex gap-4 items-center min-w-[150px]">
           <Avatar className="h-10 w-10">
@@ -99,10 +101,10 @@ export default function AssignEmployee({
         </div>
       ),
     },
-    { accessorKey: 'code', header: 'Employee Code', size: 200 },
-    { accessorKey: 'email', header: 'Email', size: 200 },
-    { accessorKey: 'department', header: 'Department', size: 200 },
-    { accessorKey: 'job_level', header: 'Job Level', size: 200 },
+    { accessorKey: 'code', header: t('employeeCode'), size: 200 },
+    { accessorKey: 'email', header: tCommon('email'), size: 200 },
+    { accessorKey: 'department', header: tCommon('department'), size: 200 },
+    { accessorKey: 'job_level', header: tEmployee('jobLevel'), size: 200 },
     {
       id: 'actions',
       header: '',
@@ -139,7 +141,7 @@ export default function AssignEmployee({
             <Checkbox
               checked={table.getIsAllPageRowsSelected()}
               onCheckedChange={(val) => table.toggleAllPageRowsSelected(!!val)}
-              aria-label="Select all"
+              aria-label={t('selectAll')}
             />
           )}
         </>
@@ -148,17 +150,17 @@ export default function AssignEmployee({
         <Checkbox
           checked={row.getIsSelected()}
           onCheckedChange={(val) => row.toggleSelected(!!val)}
-          aria-label="Select row"
+          aria-label={t('selectRow')}
         />
       ),
       size: 40,
       enableSorting: false,
       enableHiding: false,
     },
-    { accessorKey: 'name', header: 'Name', size: 250 },
-    { accessorKey: 'job_position', header: 'Position', size: 180 },
-    { accessorKey: 'department', header: 'Department', size: 180 },
-    { accessorKey: 'job_level', header: 'Job Level', size: 180 },
+    { accessorKey: 'name', header: tCommon('name'), size: 250 },
+    { accessorKey: 'job_position', header: tCommon('position'), size: 180 },
+    { accessorKey: 'department', header: tCommon('department'), size: 180 },
+    { accessorKey: 'job_level', header: tEmployee('jobLevel'), size: 180 },
   ];
 
   // ketika modal dibuka, set initial selection berdasarkan selectedEmployees
@@ -171,8 +173,6 @@ export default function AssignEmployee({
         }
       });
       onRowSelectionChange(initialSelection);
-      console.log('selectedEmployees', selectedEmployees);
-      console.log('initialSelection', initialSelection);
     }
   }, [open, selectedEmployees, employees, onRowSelectionChange]);
 
@@ -187,9 +187,11 @@ export default function AssignEmployee({
         <div className="rounded-md bg-white border shadow-sm border-grayscale-20 flex flex-col gap-4 p-6">
           <div className="flex flex-col sm:flex-row justify-between w-full items-start sm:items-center gap-4 sm:gap-0">
             <div className="flex gap-2 items-center flex-wrap">
-              <h2 className="font-semibold text-xl">Assign Employees</h2>
+              <h2 className="font-semibold text-xl">{t('assignEmployees')}</h2>
               <Badge className="bg-primary-background text-primary rounded-full">
-                {selectedEmployees.length} Employee
+                {t('assignedEmployeeCount', {
+                  count: selectedEmployees.length,
+                })}
               </Badge>
             </div>
             <Button
@@ -197,7 +199,7 @@ export default function AssignEmployee({
               onClick={() => onOpenChange(true)}
               className="whitespace-nowrap"
             >
-              + Add Assignee
+              {t('addAssignee')}
             </Button>
           </div>
 
@@ -217,7 +219,7 @@ export default function AssignEmployee({
           onEscapeKeyDown={(e) => e.preventDefault()}
         >
           <DialogHeader>
-            <DialogTitle>Assign Employee</DialogTitle>
+            <DialogTitle>{t('assignEmployee')}</DialogTitle>
           </DialogHeader>
 
           {/* <>
@@ -239,7 +241,7 @@ export default function AssignEmployee({
 
           <DialogFooter>
             <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              {tCommon('cancel')}
             </Button>
             <Button
               onClick={() => {
@@ -267,7 +269,7 @@ export default function AssignEmployee({
                 onRowSelectionChange({});
               }}
             >
-              Select Candidate
+              {t('selectCandidate')}
             </Button>
           </DialogFooter>
         </DialogContent>

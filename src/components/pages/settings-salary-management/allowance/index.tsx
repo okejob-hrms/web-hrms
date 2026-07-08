@@ -1,12 +1,15 @@
 'use client';
 
 import * as React from 'react';
+import { useTranslations, useLocale } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/tables/data-table';
 import { ColumnDef } from '@tanstack/react-table';
 import { Plus, Trash2, CalendarIcon } from 'lucide-react';
 import { RowActions } from '@/components/tables/row-actions';
 import dayjs from 'dayjs';
+import { formatDate } from '@/lib/formatting';
+import { resolveLocale } from '@/lib/i18n/locale';
 import {
   Dialog,
   DialogContent,
@@ -58,6 +61,10 @@ import Image from 'next/image';
 // Component
 // =======================
 export default function SettingsBaseAllowance() {
+  const t = useTranslations('settings');
+  const tEmployee = useTranslations('employee');
+  const tCommon = useTranslations('common');
+  const locale = resolveLocale(useLocale());
   const [open, setOpen] = React.useState(false);
   const [openDelete, setOpenDelete] = React.useState(false);
   const [openDetail, setOpenDetail] = React.useState(false);
@@ -84,11 +91,11 @@ export default function SettingsBaseAllowance() {
   const columns: ColumnDef<AllowanceItem>[] = [
     {
       accessorKey: 'name',
-      header: 'Allowance Type',
+      header: t('allowanceType'),
     },
     {
       accessorKey: 'job_levels',
-      header: 'Job Level',
+      header: tEmployee('jobLevel'),
       meta: {
         className: 'min-w-[300px] w-[340px]',
       },
@@ -112,15 +119,23 @@ export default function SettingsBaseAllowance() {
     },
     {
       accessorKey: 'effective_date',
-      header: 'Effective Date',
+      header: t('effectiveDate'),
       cell: ({ row }) =>
-        dayjs(row.original.effective_date).format('MMMM D, YYYY') ?? '-',
+        formatDate(row.original.effective_date, locale, {
+          month: 'long',
+          day: 'numeric',
+          year: 'numeric',
+        }),
     },
     {
       accessorKey: 'updated_at',
-      header: 'Last Update',
+      header: tCommon('lastUpdate'),
       cell: ({ row }) =>
-        dayjs(row.original.updated_at).format('MMMM D, YYYY') ?? '-',
+        formatDate(row.original.updated_at, locale, {
+          month: 'long',
+          day: 'numeric',
+          year: 'numeric',
+        }),
     },
     {
       id: 'actions',
@@ -166,14 +181,14 @@ export default function SettingsBaseAllowance() {
     },
     onMutate: () => setLoading(true),
     onSuccess: () => {
-      toast.success('Allowance successfully save');
+      toast.success(t('allowanceSaved'));
       queryClient.invalidateQueries({ queryKey: ['getAllowance'] });
       allowanceDataRefetch();
       setOpen(false);
       setEditing(null);
     },
     onError: (err) => {
-      toast.error(`Failed to save: ${err.message}`);
+      toast.error(tCommon('saveFailed', { message: err.message }));
     },
     onSettled: () => setLoading(false),
   });
@@ -183,14 +198,14 @@ export default function SettingsBaseAllowance() {
     mutationFn: (id) => removeAllowance(id),
     onMutate: () => setLoading(true),
     onSuccess: () => {
-      toast.success('Allowance deleted successfully');
+      toast.success(t('allowanceDeleted'));
       queryClient.invalidateQueries({ queryKey: ['getAllowance'] });
       allowanceDataRefetch();
       setOpenDelete(false);
       setEditing(null);
     },
     onError: (err) => {
-      toast.error(`Failed to delete: ${err.message}`);
+      toast.error(tCommon('deleteFailed', { message: err.message }));
     },
     onSettled: () => setLoading(false),
   });
@@ -223,7 +238,7 @@ export default function SettingsBaseAllowance() {
 
   const handleSave = () => {
     if (!form.name || !form.effective_date || !form.expire_date)
-      return toast.error('Please fill all required fields');
+      return toast.error(t('fillRequiredFields'));
 
     const payload = {
       ...form,
@@ -252,7 +267,7 @@ export default function SettingsBaseAllowance() {
   return (
     <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6">
       <div className="flex flex-col sm:flex-row sm:gap-4 justify-between">
-        <h2 className="font-semibold text-xl">Allowance Management</h2>
+        <h2 className="font-semibold text-xl">{t('allowanceManagement')}</h2>
         <Button
           className="flex flex-row items-center gap-2"
           onClick={() => {
@@ -262,7 +277,7 @@ export default function SettingsBaseAllowance() {
           }}
         >
           <Plus className="w-4 h-4" />
-          Set Up Allowance
+          {t('setupAllowance')}
         </Button>
       </div>
 
@@ -273,7 +288,7 @@ export default function SettingsBaseAllowance() {
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white">
           <DialogHeader>
             <DialogTitle>
-              {editing ? 'Edit Base Allowance' : 'Set Up Base Allowance'}
+              {editing ? t('editBaseAllowance') : t('setupBaseAllowance')}
             </DialogTitle>
           </DialogHeader>
 
@@ -281,10 +296,10 @@ export default function SettingsBaseAllowance() {
           <div className="grid gap-4 py-2">
             <div className="space-y-2">
               <Label>
-                Allowance Name<span className="text-red-500">*</span>
+                {t('allowanceName')}<span className="text-red-500">*</span>
               </Label>
               <Input
-                placeholder="e.g. Transportation"
+                placeholder={t('transportationPlaceholder')}
                 value={form.name}
                 onChange={(e) =>
                   setForm((prev) => ({
@@ -297,7 +312,7 @@ export default function SettingsBaseAllowance() {
 
             <div className="space-y-2">
               <Label>
-                Effective Date<span className="text-red-500">*</span>
+                {t('effectiveDate')}<span className="text-red-500">*</span>
               </Label>
               <Input
                 type="date"
@@ -313,7 +328,7 @@ export default function SettingsBaseAllowance() {
 
             <div className="space-y-2">
               <Label>
-                Effective To<span className="text-red-500">*</span>
+                {t('effectiveTo')}<span className="text-red-500">*</span>
               </Label>
               <Input
                 type="date"
@@ -328,7 +343,7 @@ export default function SettingsBaseAllowance() {
             </div>
 
             <hr className="my-2" />
-            <h4 className="font-medium">Base Allowance</h4>
+            <h4 className="font-medium">{t('baseAllowance')}</h4>
 
             {form.job_levels.map((jl, idx) => (
               <div
@@ -337,7 +352,7 @@ export default function SettingsBaseAllowance() {
               >
                 <div className="space-y-2">
                   <Label>
-                    Job Level<span className="text-red-500">*</span>
+                    {tEmployee('jobLevel')}<span className="text-red-500">*</span>
                   </Label>
                   <Select
                     value={String(jl.job_level_id)}
@@ -349,7 +364,7 @@ export default function SettingsBaseAllowance() {
                     }}
                   >
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select Job Level" />
+                      <SelectValue placeholder={t('selectJobLevel')} />
                     </SelectTrigger>
                     <SelectContent>
                       {jobLevel?.data.map((item) => (
@@ -364,7 +379,7 @@ export default function SettingsBaseAllowance() {
                 <div className="flex items-center gap-2">
                   <div className="flex-1 space-y-2">
                     <Label>
-                      Base Allowance Amount
+                      {t('baseAllowanceAmount')}
                       <span className="text-red-500">*</span>
                     </Label>
                     <Input
@@ -413,15 +428,15 @@ export default function SettingsBaseAllowance() {
                 }))
               }
             >
-              + Add Job Level
+              {t('addJobLevel')}
             </Button>
           </div>
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>
-              Cancel
+              {tCommon('cancel')}
             </Button>
-            <Button onClick={handleSave}>Save</Button>
+            <Button onClick={handleSave}>{tCommon('save')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -440,10 +455,10 @@ export default function SettingsBaseAllowance() {
               />
             </span>
             <AlertDialogTitle className="text-xl font-bold mb-2">
-              Are you sure you want to delete this configuration?
+              {t('deleteConfigurationTitle')}
             </AlertDialogTitle>
             <div className="text-gray-600 text-sm mb-4">
-              Employees linked to this configuration may be affected
+              {t('deleteConfigurationDesc')}
             </div>
           </div>
           <AlertDialogFooter className="flex flex-row gap-4 w-full justify-center">
@@ -452,14 +467,14 @@ export default function SettingsBaseAllowance() {
               onClick={handleDelete}
               isLoading={loading}
             >
-              Delete Configuration
+              {t('deleteConfiguration')}
             </Button>
             <Button
               className="w-1/2 bg-[#18618B] hover:bg-[#14506e] text-white font-medium py-2 rounded-lg"
               onClick={() => setOpenDelete(false)}
               disabled={loading}
             >
-              Cancel
+              {tCommon('cancel')}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -469,37 +484,49 @@ export default function SettingsBaseAllowance() {
       <Dialog open={openDetail} onOpenChange={setOpenDetail}>
         <DialogContent className="max-w-md bg-white">
           <DialogHeader>
-            <DialogTitle>Detail Allowance</DialogTitle>
+            <DialogTitle>{t('detailAllowance')}</DialogTitle>
           </DialogHeader>
 
           <div className="grid gap-4 py-2">
             <div className="space-y-2">
-              <Label>Allowance Name</Label>
+              <Label>{t('allowanceName')}</Label>
               <Label className="font-semibold">{editing?.name}</Label>
             </div>
             <div className="space-y-2">
-              <Label>Effective Date</Label>
+              <Label>{t('effectiveDate')}</Label>
               <Label className="font-semibold">
-                {dayjs(editing?.effective_date).format('MMMM D, YYYY')}
+                {editing?.effective_date
+                  ? formatDate(editing.effective_date, locale, {
+                      month: 'long',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })
+                  : '-'}
               </Label>
             </div>
 
             <div className="space-y-2">
-              <Label>Effective To</Label>
+              <Label>{t('effectiveTo')}</Label>
               <Label className="font-semibold">
-                {dayjs(editing?.expire_date).format('MMMM D, YYYY')}
+                {editing?.expire_date
+                  ? formatDate(editing.expire_date, locale, {
+                      month: 'long',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })
+                  : '-'}
               </Label>
             </div>
 
             <hr />
-            <h1>Base Allowance</h1>
+            <h1>{t('baseAllowance')}</h1>
 
             {editing?.job_levels.map((jl, idx) => (
               <div className="flex gap-3" key={idx}>
                 <Label>#{idx + 1}</Label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-end relative">
                   <div className="space-y-2">
-                    <Label>Job Level</Label>
+                    <Label>{tEmployee('jobLevel')}</Label>
                     <Label className="font-semibold">
                       {jobLevel?.data.filter(
                         (item) => item.id === jl.job_level_id,
@@ -509,7 +536,7 @@ export default function SettingsBaseAllowance() {
 
                   <div className="flex items-center gap-2">
                     <div className="flex-1 space-y-2">
-                      <Label>Base Allowance Amount</Label>
+                      <Label>{t('baseAllowanceAmount')}</Label>
                       <Label className="font-semibold">
                         {`Rp ${Number(jl.amount).toLocaleString('id-ID')}`}
                       </Label>
@@ -526,11 +553,11 @@ export default function SettingsBaseAllowance() {
               onClick={handleDelete}
               isLoading={loading}
             >
-              Delete
+              {tCommon('delete')}
             </Button>
             <div className="flex gap-3">
               <Button variant="outline" onClick={() => setOpenDetail(false)}>
-                Cancel
+                {tCommon('cancel')}
               </Button>
               <Button
                 onClick={() => {
@@ -542,7 +569,7 @@ export default function SettingsBaseAllowance() {
                   }
                 }}
               >
-                Edit
+                {tCommon('edit')}
               </Button>
             </div>
           </div>

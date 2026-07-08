@@ -21,6 +21,8 @@ import { CancelPayrunsModal } from "./modals/cancel-payruns-modal";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
+import { resolveLocale } from "@/lib/i18n/locale";
 
 interface Props {
   offboarding_id: number;
@@ -29,6 +31,10 @@ interface Props {
 export const FinalSalaryBenefits = React.memo(function FinalSalaryBenefits({
   offboarding_id,
 }: Props) {
+  const t = useTranslations("offboarding");
+  const tEmployee = useTranslations("employee");
+  const tCommon = useTranslations("common");
+  const locale = resolveLocale(useLocale());
   const router = useRouter();
   const { data: salary } = useQuery({
     queryKey: ["salary", offboarding_id],
@@ -42,7 +48,7 @@ export const FinalSalaryBenefits = React.memo(function FinalSalaryBenefits({
       <div className="border rounded-xl border-grayscale-20 shadow-sm shadow-[#1018281A] w-full">
         <div className="flex justify-between items-center p-4">
           <h4 className="font-semibold text-xl text-gray-900">
-            Final Salary & Benefits
+            {t("finalSalaryBenefits")}
           </h4>
           <Button
             className="font-semibold text-white text-sm hover:text-white"
@@ -52,8 +58,8 @@ export const FinalSalaryBenefits = React.memo(function FinalSalaryBenefits({
               )
             }
           >
-            <Image src="/icons/edit.svg" width={24} height={24} alt="edit" />{" "}
-            Salary Adjustment
+            <Image src="/icons/edit.svg" width={24} height={24} alt={tCommon("edit")} />{" "}
+            {t("salaryAdjustment")}
           </Button>
         </div>
         <Table>
@@ -63,13 +69,13 @@ export const FinalSalaryBenefits = React.memo(function FinalSalaryBenefits({
                 className="text-text-secondary text-xs py-4 px-6"
                 colSpan={2}
               >
-                Component
+                {t("component")}
               </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             <TableRow>
-              <TableCell className="py-4 px-6">Base Nett Salary</TableCell>
+              <TableCell className="py-4 px-6">{t("baseNettSalary")}</TableCell>
               <TableCell className="py-4 px-6">
                 {salary?.data?.salary_nett
                   ? `${rupiahFormatter(Number(salary?.data?.salary_nett))}`
@@ -77,7 +83,7 @@ export const FinalSalaryBenefits = React.memo(function FinalSalaryBenefits({
               </TableCell>
             </TableRow>
             <TableRow>
-              <TableCell className="py-4 px-6">Overtime</TableCell>
+              <TableCell className="py-4 px-6">{t("overtime")}</TableCell>
               <TableCell className="py-4 px-6">
                 {salary?.data?.overtime_amount
                   ? `${rupiahFormatter(Number(salary?.data?.overtime_amount))}`
@@ -85,7 +91,7 @@ export const FinalSalaryBenefits = React.memo(function FinalSalaryBenefits({
               </TableCell>
             </TableRow>
             <TableRow>
-              <TableCell className="py-4 px-6">Allowance</TableCell>
+              <TableCell className="py-4 px-6">{tEmployee("allowance")}</TableCell>
               <TableCell className="py-4 px-6">
                 {salary?.data?.allowance_amount
                   ? `${rupiahFormatter(Number(salary?.data?.allowance_amount))}`
@@ -93,7 +99,7 @@ export const FinalSalaryBenefits = React.memo(function FinalSalaryBenefits({
               </TableCell>
             </TableRow>
             <TableRow>
-              <TableCell className="py-4 px-6">Bonus</TableCell>
+              <TableCell className="py-4 px-6">{t("bonus")}</TableCell>
               <TableCell className="py-4 px-6">
                 {salary?.data?.bonus_amount
                   ? `${rupiahFormatter(Number(salary?.data?.bonus_amount))}`
@@ -101,7 +107,7 @@ export const FinalSalaryBenefits = React.memo(function FinalSalaryBenefits({
               </TableCell>
             </TableRow>
             <TableRow>
-              <TableCell className="py-4 px-6">Reimbursement</TableCell>
+              <TableCell className="py-4 px-6">{t("reimbursement")}</TableCell>
               <TableCell className="py-4 px-6">
                 {salary?.data?.reimbursement_amount
                   ? `${rupiahFormatter(Number(salary?.data?.reimbursement_amount))}`
@@ -109,7 +115,7 @@ export const FinalSalaryBenefits = React.memo(function FinalSalaryBenefits({
               </TableCell>
             </TableRow>
             <TableRow>
-              <TableCell className="py-4 px-6">Deduction</TableCell>
+              <TableCell className="py-4 px-6">{t("deduction")}</TableCell>
               <TableCell className="py-4 px-6">
                 {salary?.data?.deduction_amount
                   ? `${rupiahFormatter(Number(salary?.data?.deduction_amount))}`
@@ -119,7 +125,7 @@ export const FinalSalaryBenefits = React.memo(function FinalSalaryBenefits({
           </TableBody>
           <TableFooter className="bg-primary-background">
             <TableRow>
-              <TableCell className="py-4 px-6">Total Gross Pay</TableCell>
+              <TableCell className="py-4 px-6">{t("totalGrossPay")}</TableCell>
               <TableCell className="py-4 px-6">
                 {salary?.data?.total_amount
                   ? `${rupiahFormatter(Number(salary?.data?.total_amount))}`
@@ -134,18 +140,15 @@ export const FinalSalaryBenefits = React.memo(function FinalSalaryBenefits({
           <Alert className="flex items-center border border-primary-border bg-primary-background shadow-sm justify-between">
             <div>
               <AlertTitle className="text-primary font-semibold text-lg">
-                Final Salary & Benefit Payout
+                {t("finalSalaryPayoutTitle")}
               </AlertTitle>
               <AlertDescription className="text-black">
                 <span>
-                  The final salary and benefit components have been successfully
-                  assigned to the{" "}
-                  <span className="font-semibold">
-                    {dayjs(salary.data.assigned_payrun_date)
-                      .locale("id")
-                      .format("MMMM YYYY")}
-                  </span>{" "}
-                  payrun.
+                  {t("finalSalaryPayoutAssigned", {
+                    month: dayjs(salary.data.assigned_payrun_date)
+                      .locale(locale)
+                      .format("MMMM YYYY"),
+                  })}
                 </span>
               </AlertDescription>
             </div>
@@ -158,11 +161,10 @@ export const FinalSalaryBenefits = React.memo(function FinalSalaryBenefits({
           <Alert className="flex items-center border border-grayscale-20 shadow-sm justify-between">
             <div>
               <AlertTitle className="text-primary font-semibold text-lg">
-                Final Salary & Benefit Payout
+                {t("finalSalaryPayoutTitle")}
               </AlertTitle>
               <AlertDescription className="text-black">
-                Set up final salary and benefit components to be included in a
-                payrun
+                {t("finalSalaryPayoutSetup")}
               </AlertDescription>
             </div>
             <AssignPayrunsModal offboarding_id={offboarding_id} />

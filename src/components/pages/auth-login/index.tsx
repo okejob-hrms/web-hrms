@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Eye, EyeOff } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import {
   Form,
   FormControl,
@@ -20,19 +20,22 @@ import { useRouter } from 'next/navigation';
 import { postLogin } from '@/services/auth';
 import { toast } from 'sonner';
 import Image from 'next/image';
-
-const loginSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-});
-
-type LoginFormValues = z.infer<typeof loginSchema>;
+import { LanguageSwitch } from '@/components/shared/language-switch';
+import { createLoginSchema } from '@/lib/validation/schemas';
+import { translateApiMessage } from '@/lib/i18n/api-messages';
+import { useState } from 'react';
 
 export default function AuthLogin() {
   const router = useRouter();
+  const t = useTranslations('auth');
+  const tValidation = useTranslations('validation');
+  const tToast = useTranslations('toast');
+  const tApi = useTranslations('api');
   const [showPassword, setShowPassword] = useState(false);
 
-  const form = useForm<LoginFormValues>({
+  const loginSchema = useMemo(() => createLoginSchema(tValidation), [tValidation]);
+
+  const form = useForm({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: '',
@@ -40,7 +43,7 @@ export default function AuthLogin() {
     },
   });
 
-  const onSubmit = async (values: LoginFormValues) => {
+  const onSubmit = async (values: { email: string; password: string }) => {
     try {
       const res = await postLogin(values);
 
@@ -50,11 +53,10 @@ export default function AuthLogin() {
         localStorage.setItem('user_role', JSON.stringify(res.data.roles));
 
         if (res.data.user.is_first_login) {
-          toast.success('Login successful. This is your first login.');
+          toast.success(tToast('loginFirstTime'));
           router.push('/auth/change-password');
         } else {
           const roles = res.data.roles || [];
-
           const isEmployee = roles.some((role) =>
             role.toLowerCase().includes('employee'),
           );
@@ -65,19 +67,23 @@ export default function AuthLogin() {
             router.push('/dashboard?overview=offboarding-active');
           }
 
-          toast.success('Login successful!');
+          toast.success(tToast('loginSuccess'));
         }
       } else {
-        toast.error(res.message || 'Login failed, please try again.');
+        const message = res.message || tToast('loginFailed');
+        toast.error(translateApiMessage(message, tApi));
       }
     } catch (err) {
       console.log(err);
-      toast.error('Server error. Please try again later.');
+      toast.error(tToast('serverError'));
     }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-r from-blue-50 to-white">
+    <div className="relative flex min-h-screen items-center justify-center bg-gradient-to-r from-blue-50 to-white">
+      <div className="absolute right-4 top-4">
+        <LanguageSwitch showOnMobile />
+      </div>
       <Card className="w-full max-w-md">
         <CardHeader className="flex justify-center">
           <Image src="/logo.png" alt="logo" width={80} height={80} />
@@ -85,21 +91,16 @@ export default function AuthLogin() {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              {/* Email */}
               <FormField
                 control={form.control}
                 name="email"
                 render={({ field }) => (
                   <FormItem className="flex flex-col w-full">
-                    <FormLabel className="mb-1">Email</FormLabel>
+                    <FormLabel className="mb-1">{t('email')}</FormLabel>
                     <FormControl>
                       <div className="relative w-full">
-                        {/* <Mail
-                          className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                          size={18}
-                        /> */}
                         <Input
-                          placeholder="john@gmail.com"
+                          placeholder={t('emailPlaceholder')}
                           type="email"
                           className="w-full"
                           {...field}
@@ -111,21 +112,16 @@ export default function AuthLogin() {
                 )}
               />
 
-              {/* Password */}
               <FormField
                 control={form.control}
                 name="password"
                 render={({ field }) => (
                   <FormItem className="flex flex-col w-full">
-                    <FormLabel className="mb-1">Password</FormLabel>
+                    <FormLabel className="mb-1">{t('password')}</FormLabel>
                     <FormControl>
                       <div className="relative w-full">
-                        {/* <KeyRound
-                          className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                          size={18}
-                        /> */}
                         <Input
-                          placeholder="Input your password"
+                          placeholder={t('passwordPlaceholder')}
                           type={showPassword ? 'text' : 'password'}
                           className="absolute w-full"
                           {...field}
@@ -148,23 +144,21 @@ export default function AuthLogin() {
                 )}
               />
 
-              {/* Reset Password */}
               <div className="text-right">
                 <a
                   href="/auth/reset-password"
                   className="text-sm text-blue-600 hover:underline"
                 >
-                  Reset Password
+                  {t('resetPassword')}
                 </a>
               </div>
 
-              {/* Submit Button */}
               <Button
                 type="submit"
                 className="w-full"
                 disabled={form.formState.isSubmitting}
               >
-                {form.formState.isSubmitting ? 'Signing in...' : 'Sign in'}
+                {form.formState.isSubmitting ? t('signingIn') : t('signIn')}
               </Button>
             </form>
           </Form>

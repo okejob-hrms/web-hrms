@@ -8,38 +8,42 @@ import {
   UserStarIcon,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import * as React from 'react';
 
 export const EssQuickActions = () => {
   const router = useRouter();
+  const t = useTranslations('ess');
+  const tSidebar = useTranslations('sidebar');
+
   const pannel = [
     {
-      title: 'Leave Request',
+      title: tSidebar('leaveRequest'),
       path: '/ess/leave',
       icon: <Target className="text-white" />,
     },
     {
-      title: 'Overtime Request',
+      title: tSidebar('overtimeRequest'),
       path: '/ess/overtime',
       icon: <ClockPlusIcon className="text-white" />,
     },
     {
-      title: 'My OKR',
+      title: t('myOkr'),
       path: '/ess/okr',
       icon: <Target className="text-white" />,
     },
     {
-      title: 'Business Trip',
+      title: tSidebar('businessTrip'),
       path: '/ess/business-trip',
       icon: <Plane className="text-white" />,
     },
     {
-      title: 'Self Assessment',
+      title: tSidebar('selfAssessment'),
       path: '/ess/assessment',
       icon: <UserStarIcon className="text-white" />,
     },
     {
-      title: 'Organization Structure',
+      title: t('organizationStructure'),
       path: '/ess/organization',
       icon: <GitCompareArrowsIcon className="text-white" />,
     },
@@ -47,7 +51,7 @@ export const EssQuickActions = () => {
 
   return (
     <div className="font-sans flex flex-col space-y-6">
-      <div className="font-bold text-xl text-primary">Quick Actions</div>
+      <div className="font-bold text-xl text-primary">{t('quickActions')}</div>
       <div className="grid grid-cols-1 md:grid-cols-6 gap-8">
         {pannel.map((item, id) => (
           <div

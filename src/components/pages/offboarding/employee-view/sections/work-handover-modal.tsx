@@ -1,17 +1,24 @@
 'use client';
 
-import React, { useEffect } from "react";
-import { useForm, SubmitHandler } from "react-hook-form";
-import { Button } from "@/components/ui/button";
+import React, { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Form, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Textarea } from "@/components/ui/textarea";
-import { MultiSelectForm } from "@/components/ui/multi-select"; // Use MultiSelect instead
+} from '@/components/ui/dialog';
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Textarea } from '@/components/ui/textarea';
+import { MultiSelectForm } from '@/components/ui/multi-select';
+import { useTranslations } from 'next-intl';
 
 interface WorkHandoverFormData {
   works: string;
@@ -44,9 +51,12 @@ const WorkHandoverFormModal: React.FC<WorkHandoverFormModalProps> = ({
   setSearchEmployee,
   isSubmitting,
 }) => {
+  const t = useTranslations('offboarding');
+  const tCommon = useTranslations('common');
+
   const form = useForm<WorkHandoverFormData>({
     defaultValues: {
-      works: "",
+      works: '',
       handover_to_user_ids: [],
     },
   });
@@ -55,7 +65,7 @@ const WorkHandoverFormModal: React.FC<WorkHandoverFormModalProps> = ({
     if (initialData) {
       form.reset(initialData);
     } else {
-      form.reset({ works: "", handover_to_user_ids: [] });
+      form.reset({ works: '', handover_to_user_ids: [] });
     }
   }, [initialData, form, open]);
 
@@ -64,7 +74,7 @@ const WorkHandoverFormModal: React.FC<WorkHandoverFormModalProps> = ({
       <DialogContent className="max-w-[500px] bg-white">
         <DialogHeader>
           <DialogTitle>
-            {initialData ? "Edit Work & Responsibilities Handover" : "Work & Responsibilities Handover"}
+            {initialData ? t('editWorkHandover') : t('workHandoverModalAddTitle')}
           </DialogTitle>
         </DialogHeader>
 
@@ -75,8 +85,15 @@ const WorkHandoverFormModal: React.FC<WorkHandoverFormModalProps> = ({
               name="works"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Works<span className="text-red-500 ml-1">*</span></FormLabel>
-                  <Textarea className="h-[135px]" placeholder="High-Fidelity design HRMS" {...field} />
+                  <FormLabel>
+                    {t('works')}
+                    <span className="text-red-500 ml-1">*</span>
+                  </FormLabel>
+                  <Textarea
+                    className="h-[135px]"
+                    placeholder={t('workHandoverPlaceholder')}
+                    {...field}
+                  />
                   <FormMessage />
                 </FormItem>
               )}
@@ -84,13 +101,14 @@ const WorkHandoverFormModal: React.FC<WorkHandoverFormModalProps> = ({
 
             <div className="flex flex-col gap-2">
               <label className="text-sm font-medium text-gray-700">
-                Handed Over To<span className="text-red-500 ml-1">*</span>
+                {t('handedOverTo')}
+                <span className="text-red-500 ml-1">*</span>
               </label>
               <MultiSelectForm
                 options={employeesOptions}
                 name="handover_to_user_ids"
                 maxCount={5}
-                searchPlaceholder="Search Employee"
+                searchPlaceholder={tCommon('searchEmployee')}
                 hideSelectAll
                 valueTransformer={(value: string) => value}
                 searchValue={searchEmployee}
@@ -99,9 +117,15 @@ const WorkHandoverFormModal: React.FC<WorkHandoverFormModalProps> = ({
             </div>
 
             <div className="flex justify-end gap-3 pt-4">
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+              >
+                {tCommon('cancel')}
+              </Button>
               <Button type="submit" className="bg-[#2B5783] text-white">
-                {isSubmitting ? "Saving..." : "Save"}
+                {isSubmitting ? tCommon('saving') : tCommon('save')}
               </Button>
             </div>
           </form>

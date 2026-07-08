@@ -8,6 +8,7 @@ import {
   Plus,
   XCircle,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,15 +21,22 @@ import EssBusinessTripDetailModal from "./sections/ess-business-trip-detail-moda
 import EssBusinessTripAddModal from "./sections/ess-business-trip-add-modal";
 import EssBusinessTripCancelModal from "./sections/ess-business-trip-cancel-modal";
 
-const statusTabs = [
-  { name: "All", value: "all", icon: <Clock4Icon /> },
-  { name: "Waiting", value: 0, icon: <Clock4Icon /> },
-  { name: "Approved", value: 1, icon: <CircleCheckBigIcon /> },
-  { name: "Rejected", value: 2, icon: <CircleXIcon /> },
-  { name: "Cancelled", value: 3, icon: <XCircle /> },
-];
-
 export default function EssBusinessTripList() {
+  const t = useTranslations("attendance");
+  const tCommon = useTranslations("common");
+  const tStatus = useTranslations("status");
+
+  const statusTabs = React.useMemo(
+    () => [
+      { name: tCommon("all"), value: "all", icon: <Clock4Icon /> },
+      { name: tStatus("waiting"), value: 0, icon: <Clock4Icon /> },
+      { name: tStatus("approved"), value: 1, icon: <CircleCheckBigIcon /> },
+      { name: tStatus("rejected"), value: 2, icon: <CircleXIcon /> },
+      { name: tStatus("cancelled"), value: 3, icon: <XCircle /> },
+    ],
+    [tCommon, tStatus],
+  );
+
   const {
     rows,
     apiPagination,
@@ -58,9 +66,9 @@ export default function EssBusinessTripList() {
   return (
     <div className="font-sans min-h-screen flex flex-col space-y-6 px-6 md:px-12">
       <div className="flex md:flex-row flex-col md:items-center items-start justify-between gap-4">
-        <h2 className="font-semibold text-xl">My Business Trip</h2>
+        <h2 className="font-semibold text-xl">{t("myBusinessTrip")}</h2>
         <Button onClick={() => openModal("add")}>
-          <Plus className="w-4 h-4" /> New Business Trip Request
+          <Plus className="w-4 h-4" /> {t("newBusinessTrip")}
         </Button>
       </div>
 
@@ -93,7 +101,7 @@ export default function EssBusinessTripList() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div className="flex flex-col gap-1">
-          <span className="text-sm text-text-secondary">Start Date</span>
+          <span className="text-sm text-text-secondary">{t("startDate")}</span>
           <Input
             type="date"
             value={dateFilters.start_date}
@@ -107,7 +115,7 @@ export default function EssBusinessTripList() {
           />
         </div>
         <div className="flex flex-col gap-1">
-          <span className="text-sm text-text-secondary">End Date</span>
+          <span className="text-sm text-text-secondary">{t("endDate")}</span>
           <Input
             type="date"
             value={dateFilters.end_date}

@@ -2,12 +2,13 @@
 
 import { Form } from '@/components/ui/form';
 import * as React from 'react';
+import { useTranslations } from 'next-intl';
 import { useLeaveRequestForm } from './hook';
 import { SelectEmployeeForm, SelectForm } from '@/components/ui/select-form';
 import { MultiSelectForm } from '@/components/ui/multi-select';
 import { DatePicker } from '@/components/ui/date-picker';
 import { TextAreaForm } from '@/components/ui/textarea';
-import { Button, UploadButton } from '@/components/ui/button';
+import { Button } from '@/components/ui/button';
 import AppSkeleton from '@/components/partials/app-skeleton';
 import { Plus, X } from 'lucide-react';
 import Image from 'next/image';
@@ -20,6 +21,9 @@ export const AttendanceLeaveRequestForm = React.memo(
   function AttendanceLeaveRequestForm({
     isEmployee,
   }: AttendanceLeaveRequestFormProps) {
+    const t = useTranslations('attendance');
+    const tCommon = useTranslations('common');
+    const tOffboarding = useTranslations('offboarding');
     const {
       form,
       isLoadingEmployees,
@@ -43,7 +47,7 @@ export const AttendanceLeaveRequestForm = React.memo(
     if (isEditMode && isLoadingDetail) {
       return <AppSkeleton />;
     }
-    console.log(form.watch('attachments'))
+
     return (
       <div className="font-sans md:px-[125px] px-4 space-y-4">
         <Form {...form}>
@@ -51,7 +55,7 @@ export const AttendanceLeaveRequestForm = React.memo(
             {!isEmployee && (
               <SelectEmployeeForm
                 name="user_id"
-                label="Employee Name"
+                label={t('employeeName')}
                 required
                 options={employeesOptions}
                 disabled={isEditMode}
@@ -59,13 +63,13 @@ export const AttendanceLeaveRequestForm = React.memo(
             )}
             {!isEmployee && (
               <span className="text-sm text-text-secondary">
-                Used Leave Balance :{' '}
+                {t('usedLeaveBalance')} :{' '}
                 {leaveBalance?.data ? (
                   <span>
-                    {leaveBalance.data.time_off_used} /{' '}
-                    <span className="text-text-disabled">
-                      {leaveBalance.data.available_time_off} Days
-                    </span>
+                    {t('leaveBalanceDays', {
+                      used: leaveBalance.data.time_off_used,
+                      available: leaveBalance.data.available_time_off,
+                    })}
                   </span>
                 ) : (
                   <span>-</span>
@@ -83,14 +87,13 @@ export const AttendanceLeaveRequestForm = React.memo(
                         : 'text-gray-700'
                     }`}
                   >
-                    Assigned Approver
-                    {/* <span className="text-red-500 ml-1">*</span> */}
+                    {tOffboarding('assignedApprover')}
                   </label>
                   <MultiSelectForm
                     options={employeesOptions}
                     name="approvers"
                     maxCount={3}
-                    searchPlaceholder="Search Employee"
+                    searchPlaceholder={t('searchEmployeeShort')}
                     hideSelectAll
                     disabled={isLoadingEmployees}
                     valueTransformer={valueTransformer}
@@ -101,36 +104,30 @@ export const AttendanceLeaveRequestForm = React.memo(
               )}
               <SelectForm
                 name="leave_type_id"
-                label="Leave Type"
+                label={t('leaveType')}
                 required
                 options={leaveTypeOptions}
               />
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <DatePicker name="start_date" label="Start Date" />
-                <DatePicker name="end_date" label="End Date" />
+                <DatePicker name="start_date" label={t('startDate')} />
+                <DatePicker name="end_date" label={t('endDate')} />
               </div>
             </div>
 
             <TextAreaForm
-              label="Reason"
+              label={t('reason')}
               name="reason"
               className="md:col-span-2"
             />
-            {/* <UploadButton
-              key="1"
-              name="attachments"
-              label="Attachments"
-              required={false}
-            /> */}
             <div className="flex flex-col space-y-3">
-              <div className="mb-2 text-sm">Attachments</div>
+              <div className="mb-2 text-sm">{t('attachments')}</div>
               {isUploadingLogo ? (
-                <div className="text-sm text-gray-500">Uploading...</div>
+                <div className="text-sm text-gray-500">{tCommon('loading')}</div>
               ) : form.watch('attachments') ? (
                 <div className="relative w-fit">
                   <Image
                     src={`${process.env.NEXT_PUBLIC_FILE_URL}/${form.watch('attachments')}`}
-                    alt="Attachment Preview"
+                    alt={t('attachmentPreview')}
                     className="object-cover rounded-md border"
                     width={160}
                     height={160}
@@ -156,7 +153,7 @@ export const AttendanceLeaveRequestForm = React.memo(
                   disabled={isPending}
                 >
                   <Plus />
-                  Select Attachments
+                  {t('selectAttachments')}
                 </Button>
               )}
             </div>
@@ -176,7 +173,7 @@ export const AttendanceLeaveRequestForm = React.memo(
               className="min-w-[186px]"
               onClick={handleCancel}
             >
-              Cancel
+              {tCommon('cancel')}
             </Button>
             <Button
               type="submit"
@@ -185,10 +182,10 @@ export const AttendanceLeaveRequestForm = React.memo(
               onClick={form.handleSubmit(onSubmit)}
             >
               {isPending
-                ? 'Loading...'
+                ? tCommon('loading')
                 : isEditMode
-                  ? 'Update Leave Request'
-                  : 'Add Leave Request'}
+                  ? t('updateLeaveRequest')
+                  : t('addLeaveRequest')}
             </Button>
           </div>
         </Form>

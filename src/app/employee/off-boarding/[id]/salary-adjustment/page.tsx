@@ -6,12 +6,14 @@ import { getEmployeeDetailByUserId } from "@/services/employees";
 import { useQuery } from "@tanstack/react-query";
 import { SalaryAdjustmentForm } from "@/components/pages/offboarding-details/sections/salary-adjustment-form";
 import { getDetailOffboarding } from "@/services/employees/offboardings";
+import { useTranslations } from "next-intl";
 
 export default function OffboardingSalaryAdjustmentPage({
   params,
 }: {
   params: Promise<{ id: number }>;
 }) {
+  const t = useTranslations("offboarding");
   const { id } = React.use(params);
 
   const numericId = Number(id);
@@ -46,7 +48,7 @@ export default function OffboardingSalaryAdjustmentPage({
     !employeeDetails ||
     !offboardingDetails
   ) {
-    return <div>Data not found</div>;
+    return <div>{t("dataNotFound")}</div>;
   }
 
   return (

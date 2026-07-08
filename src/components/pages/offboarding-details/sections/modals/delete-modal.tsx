@@ -6,6 +6,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 
 export default function DeleteDialog({
   open,
@@ -18,6 +19,9 @@ export default function DeleteDialog({
   onDelete: () => void;
   isLoading?: boolean;
 }) {
+  const t = useTranslations("offboarding");
+  const tCommon = useTranslations("common");
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-full max-w-md sm:max-w-md text-center bg-white">
@@ -27,11 +31,11 @@ export default function DeleteDialog({
               src={"/icons/delete.svg"}
               width={50}
               height={50}
-              alt={`icon-delete`}
+              alt={tCommon("delete")}
             />
           </span>
           <DialogTitle className="text-xl font-bold mb-2">
-            Are you sure you want to delete this item?
+            {t("deleteItemConfirm")}
           </DialogTitle>
         </div>
         <DialogFooter className="flex flex-row gap-4 w-full justify-center">
@@ -41,7 +45,7 @@ export default function DeleteDialog({
             disabled={isLoading}
             type="button"
           >
-            {isLoading ? "Deleting..." : "Delete Item"}
+            {isLoading ? tCommon("deleting") : t("deleteItem")}
           </Button>
           <Button
             className="w-1/2 bg-[#18618B] hover:bg-[#14506e] text-white font-medium py-2 rounded-lg"
@@ -49,7 +53,7 @@ export default function DeleteDialog({
             disabled={isLoading}
             type="button"
           >
-            Cancel
+            {tCommon("cancel")}
           </Button>
         </DialogFooter>
       </DialogContent>

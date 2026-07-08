@@ -2,7 +2,7 @@ import { Layout, Navbar, Footer } from 'nextra-theme-docs';
 import { getPageMap } from 'nextra/page-map';
 import 'nextra-theme-docs/style.css';
 import themeConfig from '../../../../theme.config';
-import { DocsLanguageSwitch } from './components/DocsLanguageSwitch';
+import { LanguageSwitch } from '@/components/shared/language-switch';
 
 export default async function DocsLayout({
   children,
@@ -13,7 +13,7 @@ export default async function DocsLayout({
 
   const navbar = (
     <Navbar logo={themeConfig.logo} projectLink={undefined}>
-      <DocsLanguageSwitch />
+      <LanguageSwitch />
     </Navbar>
   );
 

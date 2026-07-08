@@ -24,8 +24,16 @@ import { toast } from "sonner";
 import { HandoverItem } from "@/services/offboarding-employee/types";
 import { deleteHandoverItem, submitHandover } from "@/services/offboarding-employee";
 import DeleteHandoverDialog from "./delete-handover-modal";
+import { useTranslations } from "next-intl";
+import {
+  resolveOffboardingRecipientStatusKey,
+  translateOffboardingHandoverStatusLabel,
+} from "@/lib/i18n/status";
 
 export default function WorkHandover() {
+  const t = useTranslations("offboarding");
+  const tCommon = useTranslations("common");
+  const tStatus = useTranslations("status");
 
   const { 
     setOpenFormModal, 
@@ -48,11 +56,15 @@ export default function WorkHandover() {
       queryClient.invalidateQueries({ queryKey: ["offboardingProgress"] });
       queryClient.invalidateQueries({ queryKey: ["handoverItems", "work"] });
       
-      toast.success(`Handover item ${selectedHandover?.id ? 'updated' : 'added'} successfully`);
+      toast.success(
+        selectedHandover?.id
+          ? t("handoverItemUpdated")
+          : t("handoverItemAdded"),
+      );
       setOpenFormModal(false);
     },
     onError: (error: any) => {
-      toast.error("Failed to submit handover");
+      toast.error(t("handoverSubmitFailed"));
     }
   });
 
@@ -64,10 +76,10 @@ export default function WorkHandover() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["handoverItems", "work"] });
       queryClient.invalidateQueries({ queryKey: ["offboardingProgress"] });
-      toast.success("Handover item deleted successfully");
+      toast.success(t("handoverItemDeleted"));
       setOpenDeleteModal(false);
     },
-    onError: () => toast.error("Failed to delete item"),
+    onError: () => toast.error(t("handoverItemDeleteFailed")),
   });
 
   const confirmDelete = (id: number) => {
@@ -116,12 +128,12 @@ export default function WorkHandover() {
     () => [
       {
         accessorKey: "name", // Matches "Project Alpha Documentation asd"
-        header: "Works",
+        header: t("works"),
         size: 250,
       },
       {
         id: "handover_to",
-        header: "Handed Over To",
+        header: t("handedOverTo"),
         cell: ({ row }) => {
           const recipients = row.original.recipients || [];
           
@@ -143,7 +155,7 @@ export default function WorkHandover() {
       },
       {
         accessorKey: "status",
-        header: "Status",
+        header: tCommon("status"),
         size: 160,
         cell: ({ row }) => {
           const status = row.original.status;
@@ -152,14 +164,20 @@ export default function WorkHandover() {
 
           return (
             <Badge variant={variant} className={className}>
-              {label}
+              {translateOffboardingHandoverStatusLabel(
+                status,
+                label,
+                resolveOffboardingRecipientStatusKey,
+                t,
+                tStatus,
+              )}
             </Badge>
           );
         },
       },
       {
         accessorKey: "updated_at",
-        header: "Last Update",
+        header: t("lastUpdate"),
         size: 200,
         cell: ({ row }) => (
           <div className="flex flex-col">
@@ -181,26 +199,26 @@ export default function WorkHandover() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => handleEdit(row.original)}>
-                <Edit3 className="w-4 h-4 mr-2" /> Edit
+                <Edit3 className="w-4 h-4 mr-2" /> {tCommon("edit")}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => confirmDelete(row.original.id)}>
-                <Trash className="w-4 h-4 mr-2" /> Delete
+                <Trash className="w-4 h-4 mr-2" /> {tCommon("delete")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         ),
       },
     ],
-    []
+    [t, tCommon, tStatus],
   );
   return (
     <div className="min-h-screen bg-white p-6">
       <div className="max-w-4xl mx-auto">
         <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6">
           <div className="flex md:flex-row flex-col justify-between w-full md:items-center items-start gap-4">
-            <h2 className="font-semibold text-xl">Work & Responsibility Handover</h2>
+            <h2 className="font-semibold text-xl">{t("workResponsibilityHandoverTitle")}</h2>
             <Button onClick={handleAdd}>
-              <Plus className="mr-2 h-4 w-4" /> Add
+              <Plus className="mr-2 h-4 w-4" /> {tCommon("add")}
             </Button>
           </div>
 

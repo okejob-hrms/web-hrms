@@ -10,6 +10,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { stringAvatar } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getEmployeeDetailByUserId } from "@/services/employees";
+import { useLocale, useTranslations } from "next-intl";
+import { resolveLocale } from "@/lib/i18n/locale";
 
 dayjs.extend(customParseFormat);
 
@@ -62,6 +64,9 @@ const EmployeeProfile = React.memo(function EmployeeProfile({
 export const InterviewSchedule = React.memo(function InterviewSchedule({
   offboarding_id,
 }: Props) {
+  const t = useTranslations("offboarding");
+  const tCommon = useTranslations("common");
+  const locale = resolveLocale(useLocale());
   const [openForm, setOpenForm] = React.useState(false);
   const { data } = useQuery({
     queryKey: ["interview-schedule"],
@@ -82,34 +87,34 @@ export const InterviewSchedule = React.memo(function InterviewSchedule({
         <div className="border border-grayscale-20 rounded-sm p-4 w-full">
           <div className="flex justify-between items-center">
             <h3 className="font-semibold text-lg text-black">
-              Interview Schedule
+              {t("tabInterviewSchedule")}
             </h3>
             <Button variant="outline" type="button" onClick={handleEditClick}>
               <Image
                 src="/icons/editBlue.svg"
                 width={20}
                 height={20}
-                alt="edit"
+                alt={tCommon("edit")}
               />
-              Edit Interview Schedule
+              {t("editInterviewSchedule")}
             </Button>
           </div>
           <div className="grid grid-cols-3 gap-2">
             <div className="flex flex-col gap-1">
-              <span className="text-text-disabled text-sm">Date</span>
+              <span className="text-text-disabled text-sm">{tCommon("date")}</span>
               <span className="text-black text-base">
-                {dayjs(data.data.date).format("MMMM D, YYYY")}
+                {dayjs(data.data.date).locale(locale).format("MMMM D, YYYY")}
               </span>
             </div>
             <div className="flex flex-col gap-1">
-              <span className="text-text-disabled text-sm">Time</span>
+              <span className="text-text-disabled text-sm">{t("time")}</span>
               <span className="text-black text-base">
                 {dayjs(data.data.start_time, "HH:mm:ss").format("HH:mm A")} -{" "}
                 {dayjs(data.data.end_time, "HH:mm:ss").format("HH:mm A")}
               </span>
             </div>
             <div className="flex flex-col gap-2 col-start-1 col-end-3">
-              <span className="text-text-disabled text-sm">Participant</span>
+              <span className="text-text-disabled text-sm">{t("participant")}</span>
               {data.data.participants
                 ? data.data.participants.map((item) => (
                     <div key={item.user_id} className="block ml-4">
@@ -119,7 +124,7 @@ export const InterviewSchedule = React.memo(function InterviewSchedule({
                 : "-"}
             </div>
             <div className="flex flex-col gap-1 col-start-1 col-end-3">
-              <span className="text-text-disabled text-sm">Notes</span>
+              <span className="text-text-disabled text-sm">{tCommon("notes")}</span>
               {data.data.notes ? (
                 <div dangerouslySetInnerHTML={{ __html: data.data.notes }} />
               ) : (

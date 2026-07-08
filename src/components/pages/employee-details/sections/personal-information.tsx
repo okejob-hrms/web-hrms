@@ -17,6 +17,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getFace, postFace, removeFace } from "@/services/face-recognitions";
 import { FaceRequest, FaceResponse } from "@/services/face-recognitions/types";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 dayjs.extend(localizedFormat);
 
@@ -138,6 +139,8 @@ const SocialMediaItem: React.FC<SocialMediaItemProps> = ({ type, url }) => {
 
 export const PersonalInformationDetail = React.memo(
   function PersonalInformationDetail({ data }: Props) {
+    const t = useTranslations("employee");
+    const tCommon = useTranslations("common");
     const [primaryDirectReports, setPrimaryDirectReports] = React.useState<
       DirectReportEmployee[]
     >([]);
@@ -184,13 +187,13 @@ export const PersonalInformationDetail = React.memo(
 
                 return {
                   id: employee.id || 0,
-                  name: employee.user?.name || "Unknown",
+                  name: employee.user?.name || t("unknown"),
                   position:
                     employee.employment?.job_position?.name ||
-                    "Unknown Position",
+                    t("unknownPosition"),
                   department:
                     employee.employment?.department?.name ||
-                    "Unknown Department",
+                    t("unknownDepartment"),
                 };
               } catch (error) {
                 console.error(
@@ -216,13 +219,13 @@ export const PersonalInformationDetail = React.memo(
 
                 return {
                   id: employee.id || 0,
-                  name: employee.user?.name || "Unknown",
+                  name: employee.user?.name || t("unknown"),
                   position:
                     employee.employment?.job_position?.name ||
-                    "Unknown Position",
+                    t("unknownPosition"),
                   department:
                     employee.employment?.department?.name ||
-                    "Unknown Department",
+                    t("unknownDepartment"),
                 };
               } catch (error) {
                 console.error(
@@ -251,7 +254,7 @@ export const PersonalInformationDetail = React.memo(
           );
         } catch (error) {
           console.error("Error fetching direct reports:", error);
-          setError("Failed to load direct reports");
+          setError(t("failedToLoad"));
         } finally {
           setIsLoading(false);
         }
@@ -275,12 +278,12 @@ export const PersonalInformationDetail = React.memo(
       mutationFn: (id) => removeFace(id),
       onMutate: () => setLoadingFace(true),
       onSuccess: () => {
-        toast.success("Face deleted successfully");
+        toast.success(t("faceDeletedSuccess"));
         queryClient.invalidateQueries({ queryKey: ["getFaces"] });
         faceRefetch();
       },
       onError: (err) => {
-        toast.error(`Failed to delete: ${err.message}`);
+        toast.error(tCommon("deleteFailed", { message: err.message }));
       },
       onSettled: () => setLoadingFace(false),
     });
@@ -295,13 +298,13 @@ export const PersonalInformationDetail = React.memo(
       },
       onMutate: () => setLoadingFace(true),
       onSuccess: () => {
-        toast.success("Score successfully save");
+        toast.success(t("faceSavedSuccess"));
         queryClient.invalidateQueries({ queryKey: ["getFaces"] });
         faceRefetch();
       },
       onError: (err) => {
         console.log(err);
-        toast.error(`Failed to save a face recognition`);
+        toast.error(t("failedSaveFace"));
       },
       onSettled: () => setLoadingFace(false),
     });
@@ -310,7 +313,7 @@ export const PersonalInformationDetail = React.memo(
       return (
         <div className="flex flex-col w-full gap-4 p-2">
           <div className="text-center text-gray-500">
-            No employee data available
+            {t("noEmployeeData")}
           </div>
         </div>
       );
@@ -320,10 +323,10 @@ export const PersonalInformationDetail = React.memo(
       <div className="flex flex-col w-full gap-4 p-2">
         <div className="grid md:grid-cols-3 grid-cols-1 gap-4">
           <h2 className="font-semibold text-lg md:col-span-3">
-            Personal Information
+            {t("personalInformation")}
           </h2>
           <div className="flex flex-col md:col-span-3 gap-2">
-            <p className="text-sm text-text-disabled">Face Recognition</p>
+            <p className="text-sm text-text-disabled">{t("faceRecognition")}</p>
             <div className="grid grid-cols-2 md:grid-cols-8 gap-2">
               {faces?.data.faces.map((item, i) => {
                 return (
@@ -362,7 +365,7 @@ export const PersonalInformationDetail = React.memo(
                   >
                     <Plus size={38} className="mb-3" />
                     <div className="text-center text-gray-400 text-sm">
-                      Add new face
+                      {t("addNewFace")}
                     </div>
                   </button>
 
@@ -394,92 +397,89 @@ export const PersonalInformationDetail = React.memo(
               onClick={() => setShowFormFace(!showFormFace)}
               isLoading={loadingFace}
             >
-              <Upload /> {showFormFace ? "Submit" : "Edit"} Face Recognition
+              <Upload />{" "}
+              {showFormFace ? t("submitFaceRecognition") : t("editFaceRecognition")}
             </Button>
             {/* <CardItem /> */}
           </div>
           <div className="flex flex-col">
-            <p className="text-sm text-text-disabled">User Role</p>
+            <p className="text-sm text-text-disabled">{t("userRole")}</p>
             <p>{safeGet(data.employment?.job_level?.name)}</p>
           </div>
           <div className="flex flex-col">
-            <p className="text-sm text-text-disabled">Email</p>
+            <p className="text-sm text-text-disabled">{tCommon("email")}</p>
             <p>{safeGet(data.user?.email)}</p>
           </div>
           <div className="flex flex-col">
-            <p className="text-sm text-text-disabled">Phone Number</p>
+            <p className="text-sm text-text-disabled">{t("phoneNumber")}</p>
             <p>{safeGet(data.phone_number)}</p>
           </div>
           <div className="flex flex-col">
-            <p className="text-sm text-text-disabled">Gender</p>
+            <p className="text-sm text-text-disabled">{t("gender")}</p>
             <p>{safeGet(data.gender)}</p>
           </div>
           <div className="flex flex-col">
-            <p className="text-sm text-text-disabled">Place of Birth</p>
+            <p className="text-sm text-text-disabled">{t("placeOfBirth")}</p>
             <p>{safeGet(data.place_of_birth)}</p>
           </div>
           <div className="flex flex-col">
-            <p className="text-sm text-text-disabled">Born Date</p>
+            <p className="text-sm text-text-disabled">{t("bornDate")}</p>
             <p>{formatDate(data.date_of_birth)}</p>
           </div>
           <div className="grid grid-cols-2">
             <div className="flex flex-col">
-              <p className="text-sm text-text-disabled">Marital Status</p>
+              <p className="text-sm text-text-disabled">{t("maritalStatus")}</p>
               <p>{safeGet(data.marital_status_label)}</p>
             </div>
             <div className="flex flex-col">
-              <p className="text-sm text-text-disabled">Blood Type</p>
+              <p className="text-sm text-text-disabled">{t("bloodType")}</p>
               <p>{safeGet(data.blood_type)}</p>
             </div>
           </div>
           <div className="grid grid-cols-2">
             <div className="flex flex-col">
-              <p className="text-sm text-text-disabled">Height</p>
+              <p className="text-sm text-text-disabled">{t("height")}</p>
               <p>{safeGet(data.height)}</p>
             </div>
             <div className="flex flex-col">
-              <p className="text-sm text-text-disabled">Weight</p>
+              <p className="text-sm text-text-disabled">{t("weight")}</p>
               <p>{safeGet(data.weight)}</p>
             </div>
           </div>
           <div className="flex flex-col">
-            <p className="text-sm text-text-disabled">ID Number</p>
+            <p className="text-sm text-text-disabled">{t("idNumber")}</p>
             <p>{safeGet(data.id_number)}</p>
           </div>
           <div className="flex flex-col">
-            <p className="text-sm text-text-disabled">
-              Taxpayer ID Number (NPWP)
-            </p>
+            <p className="text-sm text-text-disabled">{t("npwp")}</p>
             <p>{safeGet(data.npwp)}</p>
           </div>
           <div className="flex flex-col">
-            <p className="text-sm text-text-disabled">
-              Health Insurance Number (BPJS)
-            </p>
+            <p className="text-sm text-text-disabled">{t("bpjs")}</p>
             <p>{safeGet(data.bpjs)}</p>
           </div>
           <div className="flex flex-col">
-            <p className="text-sm text-text-disabled">Hobby</p>
+            <p className="text-sm text-text-disabled">{t("hobby")}</p>
             <p>{safeGet(data.hobby)}</p>
           </div>
           <div className="flex flex-col">
-            <p className="text-sm text-text-disabled">Citizen ID Address</p>
+            <p className="text-sm text-text-disabled">{t("citizenIdAddress")}</p>
             <p>{safeGet(data.citizen_id_address)}</p>
           </div>
           <div className="flex flex-col col-start-1">
-            <p className="text-sm text-text-disabled">Residental Address</p>
+            <p className="text-sm text-text-disabled">{t("residentialAddress")}</p>
             <p>{safeGet(data.residential_address)}</p>
           </div>
           <div className="flex flex-col col-start-1 col-span-3">
-            <p className="text-sm text-text-disabled">Achievement</p>
+            <p className="text-sm text-text-disabled">{t("achievement")}</p>
             <p>{safeGet(data.achievement)}</p>
           </div>
           <div className="flex flex-col col-start-1 col-span-3">
-            <p className="text-sm text-text-disabled">Personal Description</p>
+            <p className="text-sm text-text-disabled">{t("personalDescription")}</p>
             <p>{safeGet(data.personal_description)}</p>
           </div>
           <div className="flex flex-col col-start-1 col-span-3">
-            <p className="text-sm text-text-disabled">Social Media</p>
+            <p className="text-sm text-text-disabled">{t("socialMedia")}</p>
             <div className="flex flex-col gap-2">
               {data.social_media_accounts &&
               data.social_media_accounts.length > 0 ? (
@@ -502,31 +502,31 @@ export const PersonalInformationDetail = React.memo(
 
         <div className="grid md:grid-cols-3 grid-cols-1 gap-4">
           <h2 className="font-semibold text-lg md:col-span-3">
-            Employee Information
+            {t("employmentInformation")}
           </h2>
           <div className="flex flex-col">
-            <p className="text-sm text-text-disabled">Branch</p>
+            <p className="text-sm text-text-disabled">{t("branch")}</p>
             <p>{safeGet(data.branch?.name)}</p>
           </div>
           <div className="flex flex-col">
-            <p className="text-sm text-text-disabled">Position</p>
+            <p className="text-sm text-text-disabled">{tCommon("position")}</p>
             <p>{safeGet(data.employment?.job_position?.name)}</p>
           </div>
           <div className="flex flex-col">
-            <p className="text-sm text-text-disabled">Department</p>
+            <p className="text-sm text-text-disabled">{tCommon("department")}</p>
             <p>{safeGet(data.employment?.department?.name)}</p>
           </div>
           <div className="flex flex-col">
-            <p className="text-sm text-text-disabled">Job Level</p>
+            <p className="text-sm text-text-disabled">{t("jobLevel")}</p>
             <p>{safeGet(data.employment?.job_level?.name)}</p>
           </div>
           <div className="flex flex-col">
-            <p className="text-sm text-text-disabled">Primary Direct Report</p>
+            <p className="text-sm text-text-disabled">{t("primaryDirectReport")}</p>
             <div>
               {isLoading ? (
-                <p className="text-sm text-gray-500">Loading...</p>
+                <p className="text-sm text-gray-500">{tCommon("loading")}</p>
               ) : error ? (
-                <p className="text-sm text-red-500">Failed to load</p>
+                <p className="text-sm text-red-500">{t("failedToLoad")}</p>
               ) : primaryDirectReports.length > 0 ? (
                 <div className="space-y-1">
                   {primaryDirectReports.map((employee) => (
@@ -548,13 +548,13 @@ export const PersonalInformationDetail = React.memo(
           </div>
           <div className="flex flex-col">
             <p className="text-sm text-text-disabled">
-              Additional Direct Report
+              {t("additionalDirectReport")}
             </p>
             <div>
               {isLoading ? (
-                <p className="text-sm text-gray-500">Loading...</p>
+                <p className="text-sm text-gray-500">{tCommon("loading")}</p>
               ) : error ? (
-                <p className="text-sm text-red-500">Failed to load</p>
+                <p className="text-sm text-red-500">{t("failedToLoad")}</p>
               ) : additionalDirectReports.length > 0 ? (
                 <div className="space-y-1">
                   {additionalDirectReports.map((employee) => (
@@ -575,15 +575,15 @@ export const PersonalInformationDetail = React.memo(
             </div>
           </div>
           <div className="flex flex-col">
-            <p className="text-sm text-text-disabled">Team</p>
+            <p className="text-sm text-text-disabled">{t("team")}</p>
             <p>{data.team_member && data.team_member.name}</p>
           </div>
           <div className="flex flex-col">
-            <p className="text-sm text-text-disabled">Employee Start Date</p>
+            <p className="text-sm text-text-disabled">{t("employeeStartDate")}</p>
             <p>{formatDate(data.employment?.start_date)}</p>
           </div>
           <div className="flex flex-col">
-            <p className="text-sm text-text-disabled">Employee End Date</p>
+            <p className="text-sm text-text-disabled">{t("employeeEndDate")}</p>
             <p>{formatDate(data.employment?.end_date)}</p>
           </div>
           <Separator className="md:col-span-3" />
@@ -591,14 +591,14 @@ export const PersonalInformationDetail = React.memo(
 
         <div className="grid md:grid-cols-3 grid-cols-1 gap-4">
           <h2 className="font-semibold text-lg md:col-span-3">
-            Salary Information
+            {t("salaryInformation")}
           </h2>
           <div className="flex flex-col">
-            <p className="text-sm text-text-disabled">Base Salary</p>
+            <p className="text-sm text-text-disabled">{t("baseSalary")}</p>
             <p>{formatCurrency(data.employment?.base_salary)}</p>
           </div>
           <div className="flex flex-col">
-            <p className="text-sm text-text-disabled">Salary (Nett)</p>
+            <p className="text-sm text-text-disabled">{t("salaryNett")}</p>
             <p>{formatCurrency(data.employment?.salary_nett)}</p>
           </div>
           <Separator className="md:col-span-3" />
@@ -606,18 +606,18 @@ export const PersonalInformationDetail = React.memo(
 
         <div className="grid md:grid-cols-3 grid-cols-1 gap-4">
           <h2 className="font-semibold text-lg md:col-span-3">
-            Bank Information
+            {t("bankInformation")}
           </h2>
           <div className="flex flex-col">
-            <p className="text-sm text-text-disabled">Bank</p>
+            <p className="text-sm text-text-disabled">{t("bank")}</p>
             <p>{safeGet(data.bank_account?.bank.bank_name)}</p>
           </div>
           <div className="flex flex-col">
-            <p className="text-sm text-text-disabled">Account Number</p>
+            <p className="text-sm text-text-disabled">{t("accountNumber")}</p>
             <p>{safeGet(data.bank_account?.account_number)}</p>
           </div>
           <div className="flex flex-col">
-            <p className="text-sm text-text-disabled">Account Name</p>
+            <p className="text-sm text-text-disabled">{t("accountName")}</p>
             <p>{safeGet(data.bank_account?.account_name)}</p>
           </div>
           <Separator className="md:col-span-3" />

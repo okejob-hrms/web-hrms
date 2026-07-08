@@ -11,6 +11,7 @@ import {
 import { deletePenalty } from "@/services/employees/penalties";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 interface DeletePenaltyAlertProps {
   penaltyId: number | null;
@@ -25,19 +26,21 @@ export function DeletePenaltyAlert({
   open,
   onOpenChange,
 }: DeletePenaltyAlertProps) {
+  const t = useTranslations("employee");
+  const tCommon = useTranslations("common");
   const queryClient = useQueryClient();
 
   const { mutate: handleDelete, isPending } = useMutation({
     mutationFn: () => deletePenalty(penaltyId!),
     onSuccess: () => {
-      toast.success("Penalty deleted successfully");
+      toast.success(t("penaltyDeletedSuccess"));
       queryClient.invalidateQueries({
         queryKey: ["employee-penalties", userId],
       });
       onOpenChange(false);
     },
     onError: (error: any) => {
-      toast.error(error.message || "Failed to delete penalty");
+      toast.error(error.message || t("penaltyDeleteFailed"));
     },
   });
 
@@ -45,14 +48,15 @@ export function DeletePenaltyAlert({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent className="bg-white">
         <AlertDialogHeader>
-          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+          <AlertDialogTitle>{t("penaltyDeleteTitle")}</AlertDialogTitle>
           <AlertDialogDescription>
-            This action cannot be undone. This will permanently delete the
-            penalty from the employee's record.
+            {t("penaltyDeleteDesc")}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
+          <AlertDialogCancel disabled={isPending}>
+            {tCommon("cancel")}
+          </AlertDialogCancel>
           <AlertDialogAction
             onClick={(e) => {
               e.preventDefault();
@@ -61,7 +65,7 @@ export function DeletePenaltyAlert({
             disabled={isPending}
             className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
           >
-            {isPending ? "Deleting..." : "Delete"}
+            {isPending ? tCommon("deleting") : tCommon("delete")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

@@ -19,48 +19,65 @@ import { useRouter, usePathname } from "next/navigation";
 import * as React from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { z } from "zod";
 
 
 export const useLeaveRequestForm = (isEmployee?: boolean) => {
-  const CreateLeaveRequestSchema = z.object({
-    user_id: isEmployee ? z.string().optional() : z.string().min(1, "Employee name is required"),
-    leave_type_id: z.string().min(1, "Leave type is required"),
-    start_date: z.union([z.date(), z.string().min(1, "Start date is required")]),
-    end_date: z.union([z.date(), z.string().min(1, "End date is required")]),
-    reason: z.string().min(1, "Reason is required"),
-    attachments: z
-      .string()
-      .optional(),
-    approvers: isEmployee 
-      ? z.array(
-        z.object({
-          id: z.number(),
-          user_id: z.number(),
+  const t = useTranslations('attendance');
+  const tCommon = useTranslations('common');
+
+  const CreateLeaveRequestSchema = React.useMemo(
+    () =>
+      z
+        .object({
+          user_id: isEmployee
+            ? z.string().optional()
+            : z.string().min(1, t('employeeNameRequired')),
+          leave_type_id: z.string().min(1, t('leaveTypeRequired')),
+          start_date: z.union([
+            z.date(),
+            z.string().min(1, t('startDateRequired')),
+          ]),
+          end_date: z.union([
+            z.date(),
+            z.string().min(1, t('endDateRequired')),
+          ]),
+          reason: z.string().min(1, t('reasonRequired')),
+          attachments: z.string().optional(),
+          approvers: isEmployee
+            ? z
+                .array(
+                  z.object({
+                    id: z.number(),
+                    user_id: z.number(),
+                  }),
+                )
+                .optional()
+            : z.array(
+                z.object({
+                  id: z.number(),
+                  user_id: z.number(),
+                }),
+              ),
+        })
+        .superRefine((data, ctx) => {
+          if (data.start_date && data.end_date) {
+            if (new Date(data.end_date) < new Date(data.start_date)) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: t('endDateAfterStart'),
+                path: ['end_date'],
+              });
+            }
+          }
         }),
-      ).optional()
-      : z.array(
-        z.object({
-          id: z.number(),
-          user_id: z.number(),
-        }),
-      ),
-    // .min(1, "Approver is required"),
-  }).superRefine((data, ctx) => {
-    if (data.start_date && data.end_date) {
-      if (new Date(data.end_date) < new Date(data.start_date)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "End date must be on or after start date",
-          path: ["end_date"],
-        });
-      }
-    }
-  });
-  
+    [isEmployee, t],
+  );
+
   type ICreateLeaveRequest = z.infer<typeof CreateLeaveRequestSchema>;
 
-  const form = useForm<z.infer<typeof CreateLeaveRequestSchema>>({
+  const form = useForm<ICreateLeaveRequest>({
     resolver: zodResolver(CreateLeaveRequestSchema),
     defaultValues: {
       user_id: "",
@@ -113,19 +130,19 @@ export const useLeaveRequestForm = (isEmployee?: boolean) => {
           error.response
             .json()
             .then((errorData: ApiErrorResponse) => {
-              toast.error(errorData.message || "Failed to fetch leave balance");
+              toast.error(errorData.message || t('fetchLeaveBalanceFailed'));
             })
             .catch(() => {
-              toast.error("Failed to fetch leave balance");
+              toast.error(t('fetchLeaveBalanceFailed'));
             });
         } catch {
-          toast.error("Failed to fetch leave balance");
+          toast.error(t('fetchLeaveBalanceFailed'));
         }
       } else {
-        toast.error(error.message || "Failed to fetch leave balance");
+        toast.error(error.message || t('fetchLeaveBalanceFailed'));
       }
     }
-  }, [leaveBalanceError]);
+  }, [leaveBalanceError, t]);
 
   const { data: leaveTypes } = useQuery({
     queryKey: ["leave-types"],
@@ -212,7 +229,7 @@ export const useLeaveRequestForm = (isEmployee?: boolean) => {
     useMutation({
       mutationFn: (params: IMutateLeaveRequest) => createLeave(params),
       onSuccess: () => {
-        toast.success("Create leave successfully!");
+        toast.success(t('createLeaveSuccess'));
         queryClient.invalidateQueries({ queryKey: ["leaves"] });
         queryClient.invalidateQueries({ queryKey: ["leavesEmployee"] });
         router.push("/attendance/leave-request");
@@ -227,7 +244,7 @@ export const useLeaveRequestForm = (isEmployee?: boolean) => {
       mutationFn: (params: IMutateLeaveRequest) =>
         updateLeave(params, leaveId!),
       onSuccess: () => {
-        toast.success("Update leave successfully!");
+        toast.success(t('updateLeaveSuccess'));
         queryClient.invalidateQueries({ queryKey: ["leaves"] });
         queryClient.invalidateQueries({ queryKey: ["leavesEmployee"] });
         queryClient.invalidateQueries({ queryKey: ["leave-detail", leaveId] });
@@ -256,22 +273,22 @@ export const useLeaveRequestForm = (isEmployee?: boolean) => {
             }
             toast.error(
               errorData.message ||
-                `Failed to ${isEditMode ? "update" : "create"} leave`,
+                (isEditMode ? t('failedUpdateLeave') : t('failedCreateLeave')),
             );
           })
           .catch(() => {
             toast.error(
-              `Failed to ${isEditMode ? "update" : "create"} leave: Server error`,
+              `${isEditMode ? t('failedUpdateLeave') : t('failedCreateLeave')}: ${tCommon('errorLoading')}`,
             );
           });
-      } catch (parseError) {
+      } catch {
         toast.error(
-          `Failed to ${isEditMode ? "update" : "create"} leave: Server error`,
+          `${isEditMode ? t('failedUpdateLeave') : t('failedCreateLeave')}: ${tCommon('errorLoading')}`,
         );
       }
     } else {
       toast.error(
-        `Failed to ${isEditMode ? "update" : "create"} leave: ${error.message || "Unknown error"}`,
+        `${isEditMode ? t('failedUpdateLeave') : t('failedCreateLeave')}: ${error.message || tCommon('errorLoading')}`,
       );
     }
   };
@@ -284,7 +301,7 @@ export const useLeaveRequestForm = (isEmployee?: boolean) => {
     useMutation({
       mutationFn: (params: IMutateLeaveRequest) => createLeaveEmployee(params),
       onSuccess: () => {
-        toast.success("Create leave successfully!");
+        toast.success(t('createLeaveSuccess'));
         queryClient.invalidateQueries({ queryKey: ["leaves"] });
         queryClient.invalidateQueries({ queryKey: ["leavesEmployee"] });
         router.push("/ess/leave");
@@ -332,7 +349,7 @@ export const useLeaveRequestForm = (isEmployee?: boolean) => {
       form.setValue("attachments", photoUrl, { shouldValidate: true });
     },
     onError: (error) => {
-      toast.error(`Failed to upload image: ${error.message}`);
+      toast.error(t('failedUploadImage', { message: error.message }));
     },
   });
 

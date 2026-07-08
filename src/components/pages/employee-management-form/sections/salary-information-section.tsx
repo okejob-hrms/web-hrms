@@ -19,9 +19,12 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { getBaseSalary } from "@/services/salary";
+import { useTranslations } from "next-intl";
 
 export const SalaryInformationSection = React.memo(
   function SalaryInformation() {
+    const t = useTranslations("employee");
+    const tCommon = useTranslations("common");
     const { control, watch, getValues, setValue } = useFormContext();
     const [isModalOpen, setIsModalOpen] = React.useState(false);
     const [tempAllowances, setTempAllowances] = React.useState<any[]>([]);
@@ -136,12 +139,13 @@ export const SalaryInformationSection = React.memo(
     return (
       <React.Fragment>
         <h2 className="font-semibold text-lg leading-5 mb-3">
-          Salary Information
+          {t("salaryInformation")}
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-start">
           <div className="flex gap-2 items-center md:col-span-2">
             <FormLabel className="text-base font-normal">
-              Allowance<span className="text-text-disabled">(Optional)</span>
+              {t("allowance")}
+              <span className="text-text-disabled">({t("optionalLabel")})</span>
             </FormLabel>
             {hasAllowances && (
               <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
@@ -152,14 +156,14 @@ export const SalaryInformationSection = React.memo(
                     type="button"
                     onClick={handleOpenModal}
                   >
-                    <Edit className="w-4 h-4" /> Edit Allowances
+                    <Edit className="w-4 h-4" /> {t("editAllowances")}
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="min-w-4xl max-h-[80vh] overflow-y-auto bg-white">
                   <DialogHeader>
-                    <DialogTitle>Edit Allowances</DialogTitle>
+                    <DialogTitle>{t("editAllowances")}</DialogTitle>
                     <DialogDescription>
-                      Modify allowance types and values for this employee.
+                      {t("editAllowancesDesc")}
                     </DialogDescription>
                   </DialogHeader>
 
@@ -171,7 +175,7 @@ export const SalaryInformationSection = React.memo(
                       >
                         <div className="flex flex-col gap-2">
                           <label className="text-sm font-medium">
-                            Allowance Type
+                            {t("allowanceType")}
                           </label>
                           <select
                             className="border rounded-md p-2"
@@ -180,7 +184,7 @@ export const SalaryInformationSection = React.memo(
                               handleAllowanceTypeChange(index, e.target.value)
                             }
                           >
-                            <option value="">Select allowance type</option>
+                            <option value="">{t("selectAllowanceType")}</option>
                             {allowanceTypesOptions.map((option) => (
                               <option key={option.value} value={option.value}>
                                 {option.label}
@@ -191,7 +195,7 @@ export const SalaryInformationSection = React.memo(
                         <div className="flex gap-2 items-end">
                           <div className="flex flex-col gap-2 w-full">
                             <label className="text-sm font-medium">
-                              Allowance Value
+                              {t("allowanceValue")}
                             </label>
                             <div className="flex items-center border rounded-md">
                               <span className="px-3 text-text-disabled">
@@ -231,7 +235,7 @@ export const SalaryInformationSection = React.memo(
                       type="button"
                       onClick={handleAddAllowance}
                     >
-                      <Plus /> Add Another Allowance
+                      <Plus /> {t("addAnotherAllowance")}
                     </Button>
 
                     <div className="flex gap-2 justify-end mt-4">
@@ -240,10 +244,10 @@ export const SalaryInformationSection = React.memo(
                         type="button"
                         onClick={handleCancel}
                       >
-                        Cancel
+                        {tCommon("cancel")}
                       </Button>
                       <Button type="button" onClick={handleSaveAllowances}>
-                        Save Allowances
+                        {t("saveAllowances")}
                       </Button>
                     </div>
                   </div>
@@ -253,7 +257,7 @@ export const SalaryInformationSection = React.memo(
           </div>
           <InputForm
             name="base_salary"
-            label="Base Salary"
+            label={t("baseSalary")}
             disabled
             required
             iconPosition="left"
@@ -262,7 +266,7 @@ export const SalaryInformationSection = React.memo(
           />
           <InputForm
             name="salary_nett"
-            label="Salary (Nett)"
+            label={t("salaryNett")}
             required
             iconPosition="left"
             type="number"
@@ -273,13 +277,12 @@ export const SalaryInformationSection = React.memo(
           {!hasAllowances && (
             <div className="w-full bg-primary-background border border-primary-border rounded-xl flex flex-col gap-2 md:col-span-2 text-center items-center p-4">
               <span className="font-semibold text-primary text-base">
-                No allowance data to show yet.
+                {t("noAllowanceData")}
               </span>
               <span className="text-text-secondary text-sm">
-                Please select a <span className="font-semibold">Job Level</span>{" "}
-                to display the suggested allowance values
+                {t("selectJobLevelForAllowance")}
               </span>
-              <span className="text-text-disabled">Or</span>
+              <span className="text-text-disabled">{t("orLabel")}</span>
 
               <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
                 <DialogTrigger asChild>
@@ -289,14 +292,14 @@ export const SalaryInformationSection = React.memo(
                     type="button"
                     onClick={handleOpenModal}
                   >
-                    <Plus /> Add Allowance Manually
+                    <Plus /> {t("addAllowanceManually")}
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="min-w-4xl max-h-[80vh] overflow-y-auto bg-white">
                   <DialogHeader>
-                    <DialogTitle>Add Allowance Manually</DialogTitle>
+                    <DialogTitle>{t("addAllowanceManually")}</DialogTitle>
                     <DialogDescription>
-                      Add allowance types and values for this employee.
+                      {t("addAllowancesManuallyDesc")}
                     </DialogDescription>
                   </DialogHeader>
 
@@ -308,7 +311,7 @@ export const SalaryInformationSection = React.memo(
                       >
                         <div className="flex flex-col gap-2">
                           <label className="text-sm font-medium">
-                            Allowance Type
+                            {t("allowanceType")}
                           </label>
                           <select
                             className="border rounded-md p-2"
@@ -317,7 +320,7 @@ export const SalaryInformationSection = React.memo(
                               handleAllowanceTypeChange(index, e.target.value)
                             }
                           >
-                            <option value="">Select allowance type</option>
+                            <option value="">{t("selectAllowanceType")}</option>
                             {allowanceTypesOptions.map((option) => (
                               <option key={option.value} value={option.value}>
                                 {option.label}
@@ -328,7 +331,7 @@ export const SalaryInformationSection = React.memo(
                         <div className="flex gap-2 items-end">
                           <div className="flex flex-col gap-2 w-full">
                             <label className="text-sm font-medium">
-                              Allowance Value
+                              {t("allowanceValue")}
                             </label>
                             <div className="flex items-center border rounded-md">
                               <span className="px-3 text-text-disabled">
@@ -368,7 +371,7 @@ export const SalaryInformationSection = React.memo(
                       type="button"
                       onClick={handleAddAllowance}
                     >
-                      <Plus /> Add Another Allowance
+                      <Plus /> {t("addAnotherAllowance")}
                     </Button>
 
                     <div className="flex gap-2 justify-end mt-4">
@@ -377,10 +380,10 @@ export const SalaryInformationSection = React.memo(
                         type="button"
                         onClick={handleCancel}
                       >
-                        Cancel
+                        {tCommon("cancel")}
                       </Button>
                       <Button type="button" onClick={handleSaveAllowances}>
-                        Save Allowances
+                        {t("saveAllowances")}
                       </Button>
                     </div>
                   </div>

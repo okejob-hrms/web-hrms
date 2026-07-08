@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useTranslations } from 'next-intl';
 import { DataTable } from '@/components/tables/data-table';
 import { ColumnDef, PaginationState } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
@@ -20,7 +21,7 @@ import {
   Search,
   XCircle,
 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { StatusBadge } from '@/components/shared/status-badge';
 import { getStatusPayrollReq } from '@/lib/helpers';
 import { InputForm } from '@/components/ui/input';
 import { Form } from '@/components/ui/form';
@@ -47,6 +48,10 @@ export interface Filters {
 }
 
 export const PayrollRequest = () => {
+  const t = useTranslations('payroll');
+  const tCommon = useTranslations('common');
+  const tAttendance = useTranslations('attendance');
+  const tToast = useTranslations('toast');
   const [filters, setFilters] = React.useState<Filters>({
     date: '',
     search: '',
@@ -108,7 +113,7 @@ export const PayrollRequest = () => {
   const columns: ColumnDef<PayrunViewResponseList>[] = [
     {
       accessorKey: 'period_label',
-      header: 'Request By',
+      header: t('requestBy'),
       size: 200,
       cell: ({ row }) => (
         <div className="flex gap-4 items-center min-w-[250px]">
@@ -129,7 +134,7 @@ export const PayrollRequest = () => {
     },
     {
       accessorKey: 'payrun.period_label',
-      header: 'Payrun Request',
+      header: t('payrunRequest'),
       size: 200,
       cell: ({ row }) => (
         <span className="text-gray-600">
@@ -139,7 +144,7 @@ export const PayrollRequest = () => {
     },
     {
       accessorKey: 'payrun.period_year',
-      header: 'Request On',
+      header: t('requestOn'),
       size: 200,
       cell: ({ row }) => (
         <span className="text-gray-400">
@@ -155,24 +160,22 @@ export const PayrollRequest = () => {
     },
     {
       accessorKey: 'print_access_status_label',
-      header: 'Request Status',
+      header: t('requestStatus'),
       size: 160,
       cell: ({ row }) => {
         const status =
           activeTab === 'print-list'
             ? row.original.print_access_status_label
             : row.original.view_access_status_label;
-        const { variant, className, label } = getStatusPayrollReq(status);
+        const { variant, className, key } = getStatusPayrollReq(status);
         return (
-          <Badge variant={variant} className={className}>
-            {label}
-          </Badge>
+          <StatusBadge statusKey={key} variant={variant} className={className} />
         );
       },
     },
     {
       accessorKey: 'updated_at',
-      header: 'Last Updated',
+      header: tCommon('lastUpdated'),
       size: 200,
       cell: ({ row }) => (
         <span className="text-gray-400">
@@ -200,7 +203,7 @@ export const PayrollRequest = () => {
                       className="flex gap-2"
                     >
                       <Clock4Icon />
-                      Approve Request
+                      {tAttendance('approveRequest')}
                     </button>
                   </DropdownMenuItem>
 
@@ -210,7 +213,7 @@ export const PayrollRequest = () => {
                       className="flex gap-2"
                     >
                       <XCircle />
-                      Reject Request
+                      {tAttendance('rejectRequest')}
                     </button>
                   </DropdownMenuItem>
                   {/* <DropdownMenuItem>
@@ -243,12 +246,12 @@ export const PayrollRequest = () => {
     onMutate: () => setLoading(true),
 
     onSuccess: () => {
-      toast.success('Print request successfully updated');
+      toast.success(t('printRequestUpdated'));
       payrollViewRefetch();
     },
 
     onError: (err) => {
-      toast.error(`Failed to save: ${err.message}`);
+      toast.error(tToast('saveFailed', { message: err.message }));
     },
 
     onSettled: () => setLoading(false),
@@ -266,12 +269,12 @@ export const PayrollRequest = () => {
     onMutate: () => setLoading(true),
 
     onSuccess: () => {
-      toast.success('View request successfully updated');
+      toast.success(t('viewRequestUpdated'));
       payrollViewRefetch();
     },
 
     onError: (err) => {
-      toast.error(`Failed to save: ${err.message}`);
+      toast.error(tToast('saveFailed', { message: err.message }));
     },
 
     onSettled: () => setLoading(false),
@@ -322,7 +325,7 @@ export const PayrollRequest = () => {
           <form className="flex flex-col md:flex-row md:items-end gap-2 md:h-10">
             <InputForm
               name="search"
-              placeholder="Search by employee name"
+              placeholder={t('searchEmployeeName')}
               icon={<Search className="size-5 text-grayscale-20" />}
               iconPosition="right"
               value={filters.search}
@@ -354,7 +357,7 @@ export const PayrollRequest = () => {
         <Separator />
         <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6">
           <div className="flex md:flex-row flex-col justify-between w-full md:items-center items-start gap-4">
-            <h2 className="font-semibold text-xl">Print Payroll Request</h2>
+            <h2 className="font-semibold text-xl">{t('printPayrollRequest')}</h2>
           </div>
 
           <DataTable
@@ -376,7 +379,7 @@ export const PayrollRequest = () => {
           <form className="flex flex-col md:flex-row md:items-end gap-2 md:h-10">
             <InputForm
               name="search"
-              placeholder="Search by employee name"
+              placeholder={t('searchEmployeeName')}
               icon={<Search className="size-5 text-grayscale-20" />}
               iconPosition="right"
               value={filters.search}
@@ -408,7 +411,7 @@ export const PayrollRequest = () => {
         <Separator />
         <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6">
           <div className="flex md:flex-row flex-col justify-between w-full md:items-center items-start gap-4">
-            <h2 className="font-semibold text-xl">View Payroll Request</h2>
+            <h2 className="font-semibold text-xl">{t('viewPayrollRequest')}</h2>
           </div>
 
           <DataTable
@@ -423,20 +426,23 @@ export const PayrollRequest = () => {
     );
   };
 
-  const tabs = [
-    {
-      name: 'Print Request',
-      value: 'print-list',
-      content: <PrintList />,
-      icon: <Printer />,
-    },
-    {
-      name: 'View Payslip Request',
-      value: 'view-list',
-      content: <ViewList />,
-      icon: <Eye />,
-    },
-  ];
+  const tabs = React.useMemo(
+    () => [
+      {
+        name: t('printRequest'),
+        value: 'print-list',
+        content: <PrintList />,
+        icon: <Printer />,
+      },
+      {
+        name: t('viewPayslipRequest'),
+        value: 'view-list',
+        content: <ViewList />,
+        icon: <Eye />,
+      },
+    ],
+    [t],
+  );
 
   return (
     <div className="font-sans min-h-screen flex flex-col space-y-6 md:px-[40px] px-6">

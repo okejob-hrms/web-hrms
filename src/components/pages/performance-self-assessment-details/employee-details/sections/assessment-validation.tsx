@@ -22,6 +22,7 @@ export const AssessmentValidation = ({ data }: AssessmentValidationProps) => {
       </h3>
       <AssessmentResultTable
         data={data?.data}
+        formId={data?.form_id}
         scoreHeaderClassName="text-center"
       />
       <div className="flex gap-2 items-center">

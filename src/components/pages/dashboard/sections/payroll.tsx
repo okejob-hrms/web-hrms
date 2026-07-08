@@ -12,62 +12,64 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
 import { useDashboardPayroll } from '../hooks/payroll';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
+import { useLocale, useTranslations } from 'next-intl';
+import { formatChartMonthLabel } from '@/lib/formatting';
+import { resolveLocale } from '@/lib/i18n/locale';
 
 export const Payroll = () => {
+  const t = useTranslations('dashboard');
+  const tPayroll = useTranslations('payroll');
+  const tAtt = useTranslations('attendance');
+  const tSettings = useTranslations('settings');
+  const tSidebar = useTranslations('sidebar');
+  const locale = resolveLocale(useLocale());
+  const chartMonth = React.useCallback(
+    (period: string) => formatChartMonthLabel(period, locale, 'short'),
+    [locale],
+  );
   const {
     payrolls,
     payrollsLoading,
-    search,
-    setSearch,
     filters,
     setFilters,
     payrollTrend,
-    payrollTrendLoading,
   } = useDashboardPayroll();
 
   const pannel = [
     {
-      title: 'Base Salary',
+      title: tSettings('baseSalary'),
       increase: payrolls?.data.base_salary.percentage_change,
       value: payrolls?.data.base_salary.last_year_count,
     },
     {
-      title: 'Allowance',
+      title: tPayroll('allowance'),
       increase: payrolls?.data.allowance.percentage_change,
       value: payrolls?.data.allowance.last_year_count,
     },
     {
-      title: 'Overtime',
+      title: tAtt('overtime'),
       increase: payrolls?.data.overtime_payroll.percentage_change,
       value: payrolls?.data.overtime_payroll.last_year_count,
     },
-    { title: 'Salary Deduction (Employee)', increase: 0, value: 0 },
-    { title: 'Salary Dedcution (Employer)', increase: 0, value: 0 },
+    { title: t('salaryDeductionEmployee'), increase: 0, value: 0 },
+    { title: t('salaryDeductionEmployer'), increase: 0, value: 0 },
     {
-      title: 'Penalties',
+      title: t('penalties'),
       increase: payrolls?.data.penalties.percentage_change,
       value: payrolls?.data.penalties.percentage_change,
     },
     {
-      title: 'Payslip Request',
+      title: tSidebar('payslipRequest'),
       increase: payrolls?.data.payslip.percentage_change,
       value: payrolls?.data.payslip.percentage_change,
     },
   ];
 
   const data = payrollTrend?.data.map((item) => ({
-    month: item.month,
+    month: chartMonth(item.month),
     overtime: item.overtime,
     allowance: item.allowance,
     total: item.total_salary,
@@ -100,7 +102,7 @@ export const Payroll = () => {
       <div className="flex flex-col justify-between gap-6 mt-5">
         <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6">
           <div className="flex md:flex-row flex-col justify-between w-full md:items-center items-start gap-4">
-            <h2 className="font-bold text-xl text-gray-600">Sum of Payroll</h2>
+            <h2 className="font-bold text-xl text-gray-600">{t('sumOfPayroll')}</h2>
           </div>
 
           <div className="space-y-1">
@@ -161,26 +163,25 @@ export const Payroll = () => {
 
               <Legend />
 
-              {/* Order follows stacking from bottom to top */}
               <Bar
                 dataKey="overtime"
                 stackId="a"
-                name="Overtime"
+                name={tAtt('overtime')}
                 fill="#6bd8c8"
                 barSize={40}
               />
               <Bar
                 dataKey="allowance"
                 stackId="a"
-                name="Allowance"
+                name={tPayroll('allowance')}
                 fill="#ffc159"
                 barSize={40}
               />
               <Bar
                 dataKey="total"
                 stackId="a"
-                name="Total Salary"
-                fill="#1b5e7d"
+                name={tPayroll('totalSalary')}
+                fill="#1b5e7f"
                 barSize={40}
                 radius={[10, 10, 0, 0]}
               />

@@ -13,6 +13,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { IPermissionModule } from '@/services/settings/types';
 import { snakeToTitleCase } from '@/lib/helpers';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useTranslations } from 'next-intl';
 
 type PermissionTableProps = {
   data: IPermissionModule[];
@@ -25,6 +26,8 @@ export function PermissionTable({
   selected,
   onToggle,
 }: PermissionTableProps) {
+  const t = useTranslations('settings');
+
   if (!data || data.length === 0) {
     return (
       <div className="space-y-8">
@@ -42,7 +45,7 @@ export function PermissionTable({
 
   return (
     <div className="space-y-6">
-      <h2 className="font-semibold text-xl">Permissions</h2>
+      <h2 className="font-semibold text-xl">{t('permissions')}</h2>
 
       {data &&
         data.map((item) => (
@@ -56,7 +59,7 @@ export function PermissionTable({
                 <TableHeader className="bg-neutral-50">
                   <TableRow>
                     <TableHead className="text-left font-semibold py-3">
-                      Functionality
+                      {t('functionality')}
                     </TableHead>
                     {item.columns.map((col) => (
                       <TableHead

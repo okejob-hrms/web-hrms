@@ -25,21 +25,10 @@ import { EmployeeNode, NodeCardData } from './types';
 import DownloadButton from './sections/download-button';
 import { getEmployees } from '@/services/employees';
 import { useDebounce } from '@/hooks/use-debounce';
-import { Check, ChevronsUpDown, X } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+import { SearchableSelect } from '@/components/ui/combobox';
+import { useTranslations } from 'next-intl';
+import { OrgChartDepthFilter } from './sections/org-chart-depth-filter';
+import { OrgChartFitView } from './sections/org-chart-fit-view';
 
 const nodeWidth = 220;
 const nodeHeight = 140;
@@ -85,12 +74,13 @@ export default function OrganizationChart({
   isEmployee = false,
 }: OrganizationChartProps) {
   const router = useRouter();
+  const t = useTranslations('employee');
+  const tCommon = useTranslations('common');
   const [user, setUser] = React.useState<{ name: string; id: string } | null>(null);
   const [isHydrated, setIsHydrated] = React.useState(false);
-  const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
-  const [selectedLabel, setSelectedLabel] = useState('');
+  const [maxDepth, setMaxDepth] = useState<number | null>(null);
 
   useEffect(() => {
     try {
@@ -137,9 +127,9 @@ export default function OrganizationChart({
     isLoading,
     isError,
   } = useQuery<EmployeeNode[], Error>({
-    queryKey: ['orgChart', selectedEmployeeId],
+    queryKey: ['orgChart', selectedEmployeeId, maxDepth],
     queryFn: async () => {
-      const response = await getOrgChart(selectedEmployeeId || '');
+      const response = await getOrgChart(selectedEmployeeId || '', maxDepth);
       return flattenOrgData(response.data);
     },
     staleTime: 1000 * 60 * 5,
@@ -169,6 +159,8 @@ export default function OrganizationChart({
     setEdges(layoutResult.edges);
   }, [layoutResult]);
 
+  const fitViewTrigger = `${selectedEmployeeId ?? 'all'}:${maxDepth ?? 'all'}:${nodes.length}`;
+
   const handleEditClick = () => {
     router.push('structure/edit');
   };
@@ -183,80 +175,30 @@ export default function OrganizationChart({
             <div className="flex flex-col sm:flex-row justify-between w-full items-start sm:items-center gap-4 sm:gap-0">
               <div className="flex gap-4 items-center flex-wrap">
                 <h2 className="font-semibold text-xl">
-                  Organization Structure
+                  {t('orgStructure')}
                 </h2>
 
-                {/* FILTER */}
-                <Popover open={open} onOpenChange={setOpen}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      aria-expanded={open}
-                      className="w-[250px] justify-between bg-white"
-                    >
-                      {selectedLabel || 'Filter by employee'}
-                      {selectedEmployeeId ? (
-                        <div
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedEmployeeId(null);
-                            setSelectedLabel('');
-                            setSearch('');
-                          }}
-                          className="ml-2 rounded-full hover:bg-gray-200 p-1"
-                        >
-                          <X className="h-3 w-3 opacity-50" />
-                        </div>
-                      ) : (
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                      )}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-[250px] p-0" align="start">
-                    <Command shouldFilter={false}>
-                      <CommandInput
-                        placeholder="Search employee name..."
-                        value={search}
-                        onValueChange={setSearch}
-                      />
-                      <CommandList>
-                        {isSearching ? (
-                          <div className="py-6 text-center text-sm text-muted-foreground">
-                            Loading...
-                          </div>
-                        ) : (
-                          <>
-                            <CommandEmpty>No employee found.</CommandEmpty>
-                            <CommandGroup>
-                              {employeeOptions.map((item) => (
-                                <CommandItem
-                                  key={item.value}
-                                  value={item.value}
-                                  onSelect={() => {
-                                    setSelectedEmployeeId(item.value);
-                                    setSelectedLabel(item.label);
-                                    setOpen(false);
-                                  }}
-                                >
-                                  <Check
-                                    className={cn(
-                                      'mr-2 h-4 w-4',
-                                      selectedEmployeeId === item.value
-                                        ? 'opacity-100'
-                                        : 'opacity-0',
-                                    )}
-                                  />
-                                  {item.label}
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                          </>
-                        )}
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
+                <SearchableSelect
+                  value={selectedEmployeeId}
+                  onValueChange={(value) =>
+                    setSelectedEmployeeId(value ? value.toString() : null)
+                  }
+                  options={employeeOptions}
+                  placeholder={t('filterByEmployee')}
+                  searchValue={search}
+                  onSearchChange={setSearch}
+                  searchPlaceholder={t('searchEmployee')}
+                  emptyMessage={t('noEmployeeFound')}
+                  isLoading={isSearching}
+                  loadingMessage={tCommon('loading')}
+                  className="w-[250px] bg-white"
+                  popoverClassName="w-[250px]"
+                />
+
+                <OrgChartDepthFilter
+                  value={maxDepth}
+                  onChange={setMaxDepth}
+                />
               </div>
               <div className="flex flex-row gap-2">
                 <DownloadButton />
@@ -267,19 +209,25 @@ export default function OrganizationChart({
                     height={18}
                     alt="edit icon"
                   />
-                  Edit Structure
+                  {t('editStructure')}
                 </Button>
               </div>
             </div>
           </div>
         ) : (
-          <h2 className="font-semibold text-xl mb-3">
-            My Organization Structure
-          </h2>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-3">
+            <h2 className="font-semibold text-xl">
+              {t('myOrgStructure')}
+            </h2>
+            <OrgChartDepthFilter
+              value={maxDepth}
+              onChange={setMaxDepth}
+            />
+          </div>
         )}
 
         <div style={{ width: '100%', height: '80vh' }}>
-          {isError && <div>Failed to load organization chart</div>}
+          {isError && <div>{t('failedLoadOrgChart')}</div>}
 
           {!isLoading && !isError && (
             <ReactFlow
@@ -294,6 +242,10 @@ export default function OrganizationChart({
             >
               <Background />
               <CustomControls />
+              <OrgChartFitView
+                trigger={fitViewTrigger}
+                enabled={nodes.length > 0}
+              />
             </ReactFlow>
           )}
         </div>

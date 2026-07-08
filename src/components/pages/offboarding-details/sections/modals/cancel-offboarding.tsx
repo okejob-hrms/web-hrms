@@ -18,6 +18,7 @@ import { postCancelledOffboarding } from "@/services/employees/offboardings/comp
 import { ApiErrorResponse } from "@/lib/types";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 interface Props {
   offboardingId: number;
@@ -25,11 +26,13 @@ interface Props {
 
 export const CancelOffboardingModal = React.memo(
   function CancelOffboardingModal({ offboardingId }: Props) {
+    const t = useTranslations("offboarding");
+    const tCommon = useTranslations("common");
     const router = useRouter();
     const cancelMutation = useMutation({
       mutationFn: () => postCancelledOffboarding(offboardingId),
       onSuccess: () => {
-        toast.success("Success cancel offboarding process");
+        toast.success(t("cancelOffboardingSuccess"));
         router.push("/employee/off-boarding");
       },
       onError: (error: any) => {
@@ -39,23 +42,22 @@ export const CancelOffboardingModal = React.memo(
               .json()
               .then((errorData: ApiErrorResponse) => {
                 toast.error(
-                  errorData.message || "Failed to cancel offboarding process",
+                  errorData.message || t("cancelOffboardingFailed"),
                 );
               })
               .catch(() => {
                 toast.error(
-                  "Failed to cancel offboarding process: Server error",
+                  `${t("cancelOffboardingFailed")}: ${t("serverError")}`,
                 );
               });
           } catch (parseError) {
             toast.error(
-              "Failed to cancel offboarding process: Server error : " +
-                parseError,
+              `${t("cancelOffboardingFailed")}: ${t("serverError")} : ${parseError}`,
             );
           }
         } else {
           toast.error(
-            `Failed to cancel offboarding process: ${error.message || "Unknown error"}`,
+            `${t("cancelOffboardingFailed")}: ${error.message || t("unknownError")}`,
           );
         }
       },
@@ -67,7 +69,7 @@ export const CancelOffboardingModal = React.memo(
             variant="ghost"
             className="text-error hover:bg-error-background hover:text-error"
           >
-            Cancel Offboarding Process
+            {t("cancelOffboardingProcess")}
           </Button>
         </AlertDialogTrigger>
         <AlertDialogContent className="bg-white">
@@ -76,23 +78,22 @@ export const CancelOffboardingModal = React.memo(
               src="/icons/alert.svg"
               width={56}
               height={56}
-              alt="cancel offboarding"
+              alt={t("cancelOffboarding")}
             />
             <AlertDialogTitle className="text-center">
-              Are you sure you want to cancel this offboarding process?
+              {t("cancelOffboardingConfirmTitle")}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-center text-text-secondary">
-              All progress and records related to this offboarding will be
-              permanently removed
+              {t("cancelOffboardingConfirmDesc")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="w-full grid grid-cols-2">
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{tCommon("cancel")}</AlertDialogCancel>
             <AlertDialogAction
               className="bg-error text-white"
               onClick={() => cancelMutation.mutate()}
             >
-              Cancel Offboarding
+              {t("cancelOffboarding")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

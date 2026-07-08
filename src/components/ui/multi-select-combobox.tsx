@@ -20,6 +20,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { ComboboxGroup, ComboboxOption } from "@/lib/types";
+import { useTranslations } from "next-intl";
 
 interface MultiSelectComboboxProps {
   label: string;
@@ -42,12 +43,16 @@ export function MultiSelectComboboxForm({
   labelClassName,
   formItemClassName,
   isOptional,
-  placeholder = "Select",
+  placeholder,
   options = [],
   groups = [],
-  emptyMessage = "No data found.",
+  emptyMessage,
   renderOption,
 }: MultiSelectComboboxProps) {
+  const t = useTranslations("ui.combobox");
+  const tCommon = useTranslations("common");
+  const effectivePlaceholder = placeholder ?? t("placeholder");
+  const effectiveEmptyMessage = emptyMessage ?? t("noDataFound");
   const { control, setValue, getValues } = useFormContext();
   const [open, setOpen] = React.useState(false);
   const [searchValue, setSearchValue] = React.useState("");
@@ -111,7 +116,7 @@ export function MultiSelectComboboxForm({
             <FormLabel className={cn("text-sm font-normal", labelClassName)}>
               {label}{" "}
               {isOptional && (
-                <span className="text-text-disabled"> (optional)</span>
+                <span className="text-text-disabled"> {tCommon("optional")}</span>
               )}
             </FormLabel>
 
@@ -119,7 +124,7 @@ export function MultiSelectComboboxForm({
               <Command shouldFilter={false} className="overflow-visible">
                 <div className="relative">
                   <CommandInput
-                    placeholder={placeholder}
+                    placeholder={effectivePlaceholder}
                     value={searchValue}
                     onValueChange={setSearchValue}
                     onFocus={() => setOpen(true)}
@@ -130,7 +135,7 @@ export function MultiSelectComboboxForm({
 
                 {open && (
                   <CommandList className="absolute top-full left-0 right-0 z-50 mt-1 bg-white border border-input rounded-sm shadow-lg">
-                    <CommandEmpty>{emptyMessage}</CommandEmpty>
+                    <CommandEmpty>{effectiveEmptyMessage}</CommandEmpty>
                     {options.length > 0 && (
                       <CommandGroup>
                         {options.map((option) => (

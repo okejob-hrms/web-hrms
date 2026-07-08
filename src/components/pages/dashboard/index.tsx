@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useTranslations } from 'next-intl';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { Payroll } from './sections/payroll';
@@ -11,6 +12,7 @@ import { Analytics } from './sections/analytics';
 import AppSkeleton from '@/components/partials/app-skeleton';
 
 export default function DashboardLive() {
+  const t = useTranslations('dashboard');
   const [user, setUser] = React.useState<string | null>(null);
 
   React.useEffect(() => {
@@ -20,37 +22,40 @@ export default function DashboardLive() {
 
   console.log(user);
 
-  const tabs = [
-    {
-      name: 'Pending Action Overview',
-      value: 'pending-actions',
-      content: (
-        <React.Suspense fallback={<AppSkeleton />}>
-          <PendingAction />
-        </React.Suspense>
-      ),
-    },
-    {
-      name: 'Analytics Dashboard',
-      value: 'analytics',
-      content: <Analytics />,
-    },
-    {
-      name: 'Offboarding',
-      value: 'offboarding',
-      content: <Offboarding />,
-    },
-    {
-      name: 'Payroll',
-      value: 'payroll',
-      content: <Payroll />,
-    },
-    {
-      name: 'Assessment Dashboard',
-      value: 'assessment-dashboard',
-      content: <Assessment />,
-    },
-  ];
+  const tabs = React.useMemo(
+    () => [
+      {
+        name: t('pendingOverview'),
+        value: 'pending-actions',
+        content: (
+          <React.Suspense fallback={<AppSkeleton />}>
+            <PendingAction />
+          </React.Suspense>
+        ),
+      },
+      {
+        name: t('analytics'),
+        value: 'analytics',
+        content: <Analytics />,
+      },
+      {
+        name: t('offboarding'),
+        value: 'offboarding',
+        content: <Offboarding />,
+      },
+      {
+        name: t('payroll'),
+        value: 'payroll',
+        content: <Payroll />,
+      },
+      {
+        name: t('assessment'),
+        value: 'assessment-dashboard',
+        content: <Assessment />,
+      },
+    ],
+    [t],
+  );
 
   return (
     <div className="mx-auto font-sans min-h-screen">

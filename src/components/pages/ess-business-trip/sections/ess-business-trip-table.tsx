@@ -1,12 +1,14 @@
 "use client";
 
 import * as React from "react";
+import { useLocale } from "next-intl";
+import { resolveLocale } from "@/lib/i18n/locale";
 import dayjs from "dayjs";
 import { ColumnDef, PaginationState } from "@tanstack/react-table";
 import { Ellipsis, Eye, XCircle } from "lucide-react";
 
 import { DataTable } from "@/components/tables/data-table";
-import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/shared/status-badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -42,6 +44,7 @@ export default function EssBusinessTripTable({
   onSelectTrip,
   onOpenModal,
 }: Props) {
+  const locale = resolveLocale(useLocale());
   const columns: ColumnDef<IBusinessTripResponse>[] = React.useMemo(
     () => [
       {
@@ -61,9 +64,9 @@ export default function EssBusinessTripTable({
           if (!trip?.start_date || !trip?.end_date) return "-";
           return (
             <div className="flex flex-col">
-              <span>{formatDayDifference(trip.start_date, trip.end_date)}</span>
+              <span>{formatDayDifference(trip.start_date, trip.end_date, locale)}</span>
               <span className="text-primary">
-                {formatDateRange(trip.start_date, trip.end_date)}
+                {formatDateRange(trip.start_date, trip.end_date, locale)}
               </span>
             </div>
           );
@@ -88,13 +91,11 @@ export default function EssBusinessTripTable({
         header: "Status",
         size: 140,
         cell: ({ row }) => {
-          const { variant, className, label } = getStatusBusinessTrip(
+          const { variant, className, key } = getStatusBusinessTrip(
             row.original.status,
           );
           return (
-            <Badge variant={variant} className={className}>
-              {label}
-            </Badge>
+            <StatusBadge statusKey={key} variant={variant} className={className} />
           );
         },
       },

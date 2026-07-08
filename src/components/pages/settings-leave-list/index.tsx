@@ -1,21 +1,27 @@
 'use client';
 
 import * as React from 'react';
+import { useTranslations, useLocale } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/tables/data-table';
 import { ColumnDef } from '@tanstack/react-table';
 import { CalendarClock, Plus, TimerResetIcon } from 'lucide-react';
 import { useLeaveManagement } from './hook';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { cn, month } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { RowActions } from '@/components/tables/row-actions';
 import { LeaveBalanceItem, LeaveConfigItem } from '@/services/settings/types';
 import LeaveBalanceForm from './section/form-modal';
-import dayjs from 'dayjs';
+import { formatDate, getMonthLabel } from '@/lib/formatting';
+import { resolveLocale } from '@/lib/i18n/locale';
 import LeaveBalanceDelete from './section/delete-modal';
 import LeaveTypeDelete from './section/delete-type';
 
 export default function SettingsLeaveConfiguration() {
+  const t = useTranslations('settings');
+  const tEmployee = useTranslations('employee');
+  const tCommon = useTranslations('common');
+  const locale = resolveLocale(useLocale());
   const {
     loadingType,
     leaveTypeData,
@@ -41,13 +47,19 @@ export default function SettingsLeaveConfiguration() {
   // Table Columns
   // =======================
   const columnsType: ColumnDef<LeaveConfigItem>[] = [
-    { accessorKey: 'name', header: 'Leave Name', size: 160 },
+    { accessorKey: 'name', header: t('leaveName'), size: 160 },
     {
       accessorKey: 'updated_at',
-      header: 'Last Updated',
+      header: tCommon('lastUpdated'),
       size: 200,
       cell: ({ row }) =>
-        dayjs(row.original.updated_at).format('MMMM D, YYYY') || '-',
+        row.original.updated_at
+          ? formatDate(row.original.updated_at, locale, {
+              month: 'long',
+              day: 'numeric',
+              year: 'numeric',
+            })
+          : '-',
     },
     {
       id: 'actions',
@@ -75,35 +87,40 @@ export default function SettingsLeaveConfiguration() {
   const columnsBalance: ColumnDef<LeaveBalanceItem>[] = [
     {
       accessorKey: 'job_level_id',
-      header: 'Job Level',
+      header: tEmployee('jobLevel'),
       size: 160,
       cell: ({ row }) => {
         const item = row.original;
         return <div className="flex">{item.job_level.name}</div>;
       },
     },
-    { accessorKey: 'balance', header: 'Leave Balance', size: 160 },
+    { accessorKey: 'balance', header: t('leaveBalance'), size: 160 },
     {
       id: 'reset_period_days',
-      header: 'Reset Period',
+      header: t('resetPeriod'),
       size: 160,
       cell: ({ row }) => {
         const item = row.original;
         return (
           <div className="flex">
             {item.reset_period_day}{' '}
-            {month.filter((a) => a.id === item.reset_period_month)[0].label ??
-              'Unknown'}
+            {getMonthLabel(item.reset_period_month, locale)}
           </div>
         );
       },
     },
     {
       accessorKey: 'updated_at',
-      header: 'Last Updated',
+      header: tCommon('lastUpdated'),
       size: 200,
       cell: ({ row }) =>
-        dayjs(row.original.updated_at).format('MMMM D, YYYY') || '-',
+        row.original.updated_at
+          ? formatDate(row.original.updated_at, locale, {
+              month: 'long',
+              day: 'numeric',
+              year: 'numeric',
+            })
+          : '-',
     },
     {
       id: 'actions',
@@ -133,13 +150,13 @@ export default function SettingsLeaveConfiguration() {
     return (
       <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6">
         <div className="flex flex-col sm:flex-row sm:gap-4 justify-between">
-          <h2 className="font-semibold text-xl">Leave Type</h2>
+          <h2 className="font-semibold text-xl">{t('leaveType')}</h2>
           <Button
             className="flex flex-row gap-6"
             onClick={() => handleAddType()}
           >
             <Plus />
-            New Leave Type
+            {t('newLeaveType')}
           </Button>
         </div>
 
@@ -152,13 +169,13 @@ export default function SettingsLeaveConfiguration() {
     return (
       <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6">
         <div className="flex flex-col sm:flex-row sm:gap-4 justify-between">
-          <h2 className="font-semibold text-xl">Leave Balance</h2>
+          <h2 className="font-semibold text-xl">{t('leaveBalance')}</h2>
           <Button
             className="flex flex-row gap-6"
             onClick={() => setOpenFormBalance(true)}
           >
             <Plus />
-            New Leave Balance
+            {t('newLeaveBalance')}
           </Button>
         </div>
 
@@ -169,13 +186,13 @@ export default function SettingsLeaveConfiguration() {
 
   const tabs = [
     {
-      name: 'Leave Type',
+      name: t('leaveType'),
       value: 'leave-type',
       content: <LeaveType />,
       icon: <CalendarClock />,
     },
     {
-      name: 'Leave Balance',
+      name: t('leaveBalance'),
       value: 'leave-balance',
       content: <LeaveBalance />,
       icon: <TimerResetIcon />,

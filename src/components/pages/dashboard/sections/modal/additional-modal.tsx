@@ -16,6 +16,7 @@ import { Input } from '@/components/ui/input';
 import { AdditionalListDetailData } from '@/services/dashboard/types';
 import { ColumnDef } from '@tanstack/react-table';
 import { snakeToTitleCase } from '@/lib/helpers';
+import { useTranslations } from 'next-intl';
 
 interface AdditionalModalProps {
   open: boolean;
@@ -28,6 +29,9 @@ export default function AdditionalModal({
   onOpenChange,
   dashboardAnalytics,
 }: AdditionalModalProps) {
+  const t = useTranslations('dashboard');
+  const tCommon = useTranslations('common');
+  const tEmployee = useTranslations('employee');
   const {
     additionalStatDetail,
     additionalStatDetailLoading,
@@ -39,29 +43,29 @@ export default function AdditionalModal({
     setSearchAdd,
   } = dashboardAnalytics;
 
+  const typeTitleMap: Record<string, string> = {
+    job_position: tCommon('position'),
+    team: tEmployee('teams'),
+    job_level: tEmployee('jobLevel'),
+    departments: tEmployee('departments'),
+  };
+
   const columns = React.useMemo<ColumnDef<AdditionalListDetailData>[]>(
     () => [
-      {
-        accessorKey: 'branch_name',
-        header: 'Branch',
-      },
-      {
-        accessorKey: 'name',
-        header: 'Name',
-      },
-      {
-        accessorKey: 'total',
-        header: 'Total',
-      },
+      { accessorKey: 'branch_name', header: t('branch') },
+      { accessorKey: 'name', header: tCommon('name') },
+      { accessorKey: 'total', header: t('total') },
     ],
-    [],
+    [t, tCommon],
   );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-screen sm:max-w-7xl p-6 rounded-2xl bg-white overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{snakeToTitleCase(typeAdditional)}</DialogTitle>
+          <DialogTitle>
+            {typeTitleMap[typeAdditional] ?? snakeToTitleCase(typeAdditional)}
+          </DialogTitle>
         </DialogHeader>
         <div className="flex flex-col justify-between gap-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -70,7 +74,7 @@ export default function AdditionalModal({
                 type="text"
                 className="w-full"
                 value={searchAdd}
-                placeholder="Search name"
+                placeholder={t('searchName')}
                 onChange={(e) => {
                   setSearchAdd(e.target.value);
                 }}
@@ -97,11 +101,10 @@ export default function AdditionalModal({
           )}
         </div>
 
-        {/* Footer */}
         <DialogFooter className="mt-6 flex justify-between items-center w-full">
           <div className="flex gap-3">
             <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              {tCommon('cancel')}
             </Button>
           </div>
         </DialogFooter>

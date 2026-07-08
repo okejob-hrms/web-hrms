@@ -17,17 +17,88 @@ import { useESS } from './hook';
 import { EssQuickActions } from './sections/quick-access';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Bell, Clock } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
-import dayjs from 'dayjs';
+import { useLocale, useTranslations } from 'next-intl';
+import { resolveLocale, toIntlLocale } from '@/lib/i18n/locale';
+import type { WaitingApprovalDataMeta } from '@/services/ess/types';
+
+function WaitingApprovalCard({
+  title,
+  item,
+  formatDate,
+  notesLabel,
+  waitingLabel,
+}: {
+  title: string;
+  item: WaitingApprovalDataMeta;
+  formatDate: (date: string) => string;
+  notesLabel: string;
+  waitingLabel: string;
+}) {
+  return (
+    <div className="border rounded-lg p-4 space-y-2">
+      <p className="font-medium text-sm">{title}</p>
+      <div className="flex items-center justify-between">
+        <p className="font-semibold">
+          {item.created_at ? formatDate(item.created_at) : '-'}
+        </p>
+        <Badge
+          variant="secondary"
+          className="flex items-center gap-1 bg-yellow-50 border-yellow-800 text-yellow-800"
+        >
+          <Clock className="w-3 h-3" /> {waitingLabel}
+        </Badge>
+      </div>
+      {item.comments ? (
+        <>
+          <Separator />
+          <div className="text-sm">
+            <div className="space-y-2">
+              <div className="text-muted-foreground">{notesLabel}</div>
+              <span className="font-medium text-foreground">{item.comments}</span>
+            </div>
+          </div>
+        </>
+      ) : null}
+    </div>
+  );
+}
 
 export const EssPage = () => {
-  const dashboardAnalytics = useESS();
   const router = useRouter();
-  const { offboardingData, offboardingLoading } = useESS();
+  const t = useTranslations('ess');
+  const tDashboard = useTranslations('dashboard');
+  const tAtt = useTranslations('attendance');
+  const tSidebar = useTranslations('sidebar');
+  const tStatus = useTranslations('status');
+  const tCommon = useTranslations('common');
+  const locale = resolveLocale(useLocale());
+
+  const dashboardAnalytics = useESS();
+  const { offboardingData } = dashboardAnalytics;
+
+  const formatDate = React.useCallback(
+    (date: string) =>
+      new Intl.DateTimeFormat(toIntlLocale(locale), {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      }).format(new Date(date)),
+    [locale],
+  );
+
+  const todayLabel = React.useMemo(
+    () =>
+      new Intl.DateTimeFormat(toIntlLocale(locale), {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      }).format(new Date()),
+    [locale],
+  );
 
   const lineData = dashboardAnalytics.attendanceStat?.data.trend.map(
     (item) => ({
@@ -40,32 +111,60 @@ export const EssPage = () => {
     }),
   );
 
-  const lineTitle = ['On Time', 'Late', 'Absent', 'Overtime', 'Leave'];
+  const lineTitle = React.useMemo(
+    () => [
+      tAtt('onTime'),
+      tDashboard('late'),
+      tAtt('absent'),
+      tAtt('overtime'),
+      tDashboard('leave'),
+    ],
+    [tAtt, tDashboard],
+  );
   const lineColor = ['#18618B', '#FFB84D', '#C964A2', '#64C9B1', '#367839'];
 
-  const pannel = [
-    {
-      title: 'On Time',
-      value: dashboardAnalytics.attendanceStat?.data.summary.total_ontime ?? 0,
-    },
-    {
-      title: 'Late Clock In',
-      value: dashboardAnalytics.attendanceStat?.data.summary?.total_late ?? 0,
-    },
-    {
-      title: 'Overtime',
-      value:
-        dashboardAnalytics.attendanceStat?.data.summary?.total_overtime ?? 0,
-    },
-    {
-      title: 'Absent',
-      value: dashboardAnalytics.attendanceStat?.data.summary?.total_absent ?? 0,
-    },
-    {
-      title: 'Leave',
-      value: dashboardAnalytics.attendanceStat?.data.summary?.total_leave ?? 0,
-    },
-  ];
+  const pannel = React.useMemo(
+    () => [
+      {
+        title: tAtt('onTime'),
+        value: dashboardAnalytics.attendanceStat?.data.summary.total_ontime ?? 0,
+      },
+      {
+        title: tAtt('lateClockIn'),
+        value: dashboardAnalytics.attendanceStat?.data.summary?.total_late ?? 0,
+      },
+      {
+        title: tAtt('overtime'),
+        value:
+          dashboardAnalytics.attendanceStat?.data.summary?.total_overtime ?? 0,
+      },
+      {
+        title: tAtt('absent'),
+        value: dashboardAnalytics.attendanceStat?.data.summary?.total_absent ?? 0,
+      },
+      {
+        title: tDashboard('leave'),
+        value: dashboardAnalytics.attendanceStat?.data.summary?.total_leave ?? 0,
+      },
+    ],
+    [dashboardAnalytics.attendanceStat?.data.summary, tAtt, tDashboard],
+  );
+
+  const waitingItems = React.useMemo(() => {
+    const overtimes =
+      dashboardAnalytics.waitingStat?.data.overtimes.map((item) => ({
+        key: `overtime-${item.id}`,
+        title: tSidebar('overtimeRequest'),
+        item,
+      })) ?? [];
+    const leaves =
+      dashboardAnalytics.waitingStat?.data.leaves.map((item) => ({
+        key: `leave-${item.id}`,
+        title: tSidebar('leaveRequest'),
+        item,
+      })) ?? [];
+    return [...overtimes, ...leaves];
+  }, [dashboardAnalytics.waitingStat?.data, tSidebar]);
 
   const LineChartComponent = () => (
     <ResponsiveContainer width="100%" height={200}>
@@ -132,24 +231,24 @@ export const EssPage = () => {
       <EssQuickActions />
 
       <div className="font-sans flex flex-col space-y-6">
-        <div className="font-bold text-xl text-primary">For You Today</div>
+        <div className="font-bold text-xl text-primary">{t('forYouToday')}</div>
         {offboardingData && (
           <div className="w-full p-6 bg-yellow-50 border border-yellow-500 rounded-xl">
             <div className="space-y-2">
               <div className="flex gap-3 items-center">
                 <Bell className="text-orange-500" />
                 <div className="text-primary font-semibold">
-                  Complate your offboarding journey!
+                  {t('completeOffboardingJourney')}
                 </div>
               </div>
               <div className="text-gray-500">
-                Let’s wrap things up smoothly before you leave
+                {t('completeOffboardingJourneyDesc')}
               </div>
               <Button
                 onClick={() => router.push('/ess/offboarding')}
                 variant="default"
               >
-                Start Offboarding Process
+                {t('startOffboardingProcess')}
               </Button>
             </div>
           </div>
@@ -160,7 +259,7 @@ export const EssPage = () => {
             <div className="space-y-3">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <h2 className="font-bold text-xl text-gray-600">
-                  Attendance Trend
+                  {tDashboard('attendanceTrend')}
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Input
@@ -222,6 +321,7 @@ export const EssPage = () => {
                     key={id}
                     title={item.title}
                     value={item.value}
+                    numeric
                   />
                 ))}
               </div>
@@ -229,153 +329,50 @@ export const EssPage = () => {
           </div>
 
           <div className="col-span-1 space-y-6">
-            {/* Waiting for Approval */}
             <Card className="bg-white py-4 rounded-xl shadow-sm border-0">
               <CardHeader className="pb-2">
                 <CardTitle className="font-bold text-xl text-gray-600">
-                  Waiting For Approval{' '}
+                  {t('waitingForApproval')}{' '}
                   <span className="text-muted-foreground">
-                    ({dashboardAnalytics.waitingStat?.data.total})
+                    ({dashboardAnalytics.waitingStat?.data.total ?? 0})
                   </span>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4 max-h-[300px] overflow-y-scroll">
-                {/* Overtime */}
                 {dashboardAnalytics.waitingStatLoading ? (
                   <Skeleton className="h-80" />
+                ) : waitingItems.length > 0 ? (
+                  waitingItems.map(({ key, title, item }) => (
+                    <WaitingApprovalCard
+                      key={key}
+                      title={title}
+                      item={item}
+                      formatDate={formatDate}
+                      notesLabel={tCommon('notes')}
+                      waitingLabel={tStatus('waitingForApproval')}
+                    />
+                  ))
                 ) : (
-                  <>
-                    {dashboardAnalytics.waitingStat?.data.overtimes.map(
-                      (item, key) => (
-                        <div
-                          key={key}
-                          className="border rounded-lg p-4 space-y-2"
-                        >
-                          <p className="font-medium text-sm">
-                            Overtime Request
-                          </p>
-                          <div className="flex items-center justify-between">
-                            <p className="font-semibold">
-                              {dayjs(item.created_at).format('MMMM D, YYYY') ||
-                                '-'}
-                            </p>
-                            <Badge
-                              variant="secondary"
-                              className="flex items-center gap-1 bg-yellow-50 border-yellow-800 text-yellow-800"
-                            >
-                              <Clock className="w-3 h-3" /> Waiting for Approval
-                            </Badge>
-                          </div>
-                          <Separator />
-                          <div className="text-sm">
-                            <div className="space-y-2">
-                              <div className="text-muted-foreground">
-                                Duration
-                              </div>
-                              <span className="font-medium text-foreground">
-                                5h 0m
-                              </span>{' '}
-                              (05:00 PM - 10:00 PM)
-                            </div>
-                            <div className="space-y-2">
-                              <div className="text-muted-foreground">Notes</div>
-                              <span className="font-medium text-foreground">
-                                Machine Troubleshooting
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      ),
-                    )}
-                  </>
-                )}
-
-                {/* Leave */}
-                {dashboardAnalytics.waitingStatLoading ? (
-                  <Skeleton className="h-80" />
-                ) : (
-                  <>
-                    {dashboardAnalytics.waitingStat?.data.leaves.map(
-                      (item, key) => (
-                        <div
-                          key={key}
-                          className="border rounded-lg p-4 space-y-2"
-                        >
-                          <p className="font-medium text-sm">
-                            Overtime Request
-                          </p>
-                          <div className="flex items-center justify-between">
-                            <p className="font-semibold">
-                              {dayjs(item.created_at).format('MMMM D, YYYY') ||
-                                '-'}
-                            </p>
-                            <Badge
-                              variant="secondary"
-                              className="flex items-center gap-1 bg-yellow-50 border-yellow-800 text-yellow-800"
-                            >
-                              <Clock className="w-3 h-3" /> Waiting for Approval
-                            </Badge>
-                          </div>
-                          <Separator />
-                          <div className="text-sm">
-                            <div className="space-y-2">
-                              <div className="text-muted-foreground">
-                                Duration
-                              </div>
-                              <span className="font-medium text-foreground">
-                                5h 0m
-                              </span>{' '}
-                              (05:00 PM - 10:00 PM)
-                            </div>
-                            <div className="space-y-2">
-                              <div className="text-muted-foreground">Notes</div>
-                              <span className="font-medium text-foreground">
-                                Machine Troubleshooting
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      ),
-                    )}
-                  </>
+                  <p className="text-sm text-muted-foreground">
+                    {tCommon('noData')}
+                  </p>
                 )}
               </CardContent>
             </Card>
 
-            {/* On Leave Today */}
             <Card className="bg-white py-4 rounded-xl shadow-sm border-0">
               <CardHeader className="pb-2 flex flex-row items-center justify-between">
                 <CardTitle className="font-bold text-xl text-gray-600">
-                  On Leave Today
+                  {t('onLeaveToday')}
                 </CardTitle>
                 <span className="text-sm text-muted-foreground">
-                  November 18, 2025
+                  {todayLabel}
                 </span>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <Avatar>
-                    <AvatarImage src="/avatar1.png" />
-                    <AvatarFallback>OR</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-medium">Olivia Rhye</p>
-                    <p className="text-sm text-muted-foreground">CEO</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <Avatar>
-                    <AvatarImage src="/avatar2.png" />
-                    <AvatarFallback>OT</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-medium">Olivia Turner</p>
-                    <p className="text-sm text-muted-foreground">
-                      Head of Production
-                    </p>
-                  </div>
-                </div>
+                <p className="text-sm text-muted-foreground">
+                  {tCommon('noData')}
+                </p>
               </CardContent>
             </Card>
           </div>

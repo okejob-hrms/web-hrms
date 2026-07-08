@@ -1,3 +1,5 @@
+'use client';
+
 import * as React from "react";
 import {
   Dialog,
@@ -11,6 +13,7 @@ import { useForm } from "react-hook-form";
 import { Form } from "@/components/ui/form";
 import { SelectForm } from "@/components/ui/select-form";
 import { IMutateFormRequest } from "@/services/form/types";
+import { useTranslations } from "next-intl";
 
 interface FormAddModalProps {
   open: boolean;
@@ -32,6 +35,8 @@ export const FormAddModal: React.FC<FormAddModalProps> = ({
   initialValues,
   isEditMode,
 }) => {
+  const t = useTranslations('settings');
+  const tCommon = useTranslations('common');
   const form = useForm({
     defaultValues: { name: "", type: "" },
   });
@@ -70,21 +75,21 @@ export const FormAddModal: React.FC<FormAddModalProps> = ({
       <DialogContent className="sm:max-w-[600px] p-0 bg-white">
         <DialogHeader className="px-6 pt-6 pb-4">
           <DialogTitle className="text-xl font-semibold">
-            {isEditMode ? "Edit Form" : "Create New Form"}
+            {isEditMode ? t('editForm') : t('createNewForm')}
           </DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
           <form className="px-6 pb-6 space-y-5">
             <div className="space-y-2">
-              <InputForm name="name" label="Form Name" required />
+              <InputForm name="name" label={t('formName')} required />
             </div>
 
             {!isEditMode && (
               <div className="space-y-2">
                 <SelectForm
                   name="type"
-                  label="Form Usage"
+                  label={t('formUsage')}
                   required
                   options={formOptions}
                   className="w-full"
@@ -99,14 +104,14 @@ export const FormAddModal: React.FC<FormAddModalProps> = ({
                 onClick={handleClose}
                 className="px-6 border-[#0e7490] text-[#0e7490] hover:bg-[#0e7490]/5"
               >
-                Cancel
+                {tCommon('cancel')}
               </Button>
               <Button
                 type="button"
                 onClick={handleSave}
                 className="px-8 bg-[#0e7490] hover:bg-[#0c6380] text-white"
               >
-                Save
+                {tCommon('save')}
               </Button>
             </div>
           </form>

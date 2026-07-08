@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import Image from "next/image";
 import { RefreshCw } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface Props {
   onArchieve: () => void;
@@ -25,6 +26,9 @@ export default function DeleteDocumentModal({
   isOpen,
   onClose,
 }: Props) {
+  const t = useTranslations("employee");
+  const tCommon = useTranslations("common");
+
   const handleArchieve = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -49,11 +53,10 @@ export default function DeleteDocumentModal({
             className="mb-4"
           />
           <AlertDialogTitle className="text-lg font-semibold text-black mb-2">
-            Are you sure you want to delete this document?
+            {t("documentDeleteTitle")}
           </AlertDialogTitle>
           <AlertDialogDescription className="text-sm text-text-secondary text-center">
-            Once deleted, this document will be permanently removed and cannot
-            be restored. Please confirm before proceeding.
+            {t("documentDeleteDesc")}
           </AlertDialogDescription>
         </AlertDialogHeader>
 
@@ -66,17 +69,17 @@ export default function DeleteDocumentModal({
             {disabled ? (
               <>
                 <RefreshCw className="h-4 w-4 animate-spin mr-2" />
-                Deleting...
+                {tCommon("deleting")}
               </>
             ) : (
-              "Delete Document"
+              t("deleteDocument")
             )}
           </AlertDialogAction>
           <AlertDialogCancel
             onClick={onClose}
             className="flex-1 border bg-primary text-white border-primary hover:text-white rounded-md py-2 font-semibold"
           >
-            Cancel
+            {tCommon("cancel")}
           </AlertDialogCancel>
         </AlertDialogFooter>
       </AlertDialogContent>

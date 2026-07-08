@@ -1,40 +1,35 @@
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Form } from "@/components/ui/form";
-import { InputForm } from "@/components/ui/input";
-import { SelectForm } from "@/components/ui/select-form";
-import { MultiSelectForm } from "@/components/ui/multi-select";
+} from '@/components/ui/dialog';
+import { Form } from '@/components/ui/form';
+import { InputForm } from '@/components/ui/input';
+import { SelectForm } from '@/components/ui/select-form';
+import { MultiSelectForm } from '@/components/ui/multi-select';
 import {
   IKPIDetails,
   IMutateKPIRequest,
-} from "@/services/performances/kpi/types";
-import * as React from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+} from '@/services/performances/kpi/types';
+import * as React from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslations } from 'next-intl';
+import { z } from 'zod';
 
-const kpiFormSchema = z.object({
-  name: z.string().min(1, "KPI Name is required"),
-  description: z.string().min(1, "Description is required"),
-  frequency: z.string().min(1, "Frequency is required"),
-  format: z.string().min(1, "Format is required"),
-  job_position_ids: z
-    .array(z.number())
-    .min(1, "At least one Job Position is required"),
-  job_level_ids: z
-    .array(z.number())
-    .min(1, "At least one Job Level is required"),
-  target: z.string().optional(),
-  direction: z.string().optional(),
-  aggregation: z.string().min(1, "KPI Aggregation is required"),
-});
-
-type KPIFormValues = z.infer<typeof kpiFormSchema>;
+type KPIFormValues = {
+  name: string;
+  description: string;
+  frequency: string;
+  format: string;
+  job_position_ids: number[];
+  job_level_ids: number[];
+  target?: string;
+  direction?: string;
+  aggregation: string;
+};
 
 interface IOption {
   label: string;
@@ -70,45 +65,66 @@ export default function FormModal({
   editMode,
   isLoadingDetails,
 }: FormAddModalProps) {
+  const t = useTranslations('performance');
+  const tCommon = useTranslations('common');
+
+  const kpiFormSchema = React.useMemo(
+    () =>
+      z.object({
+        name: z.string().min(1, t('kpiNameRequired')),
+        description: z.string().min(1, t('descriptionRequired')),
+        frequency: z.string().min(1, t('frequencyRequired')),
+        format: z.string().min(1, t('formatRequired')),
+        job_position_ids: z
+          .array(z.number())
+          .min(1, t('jobPositionRequired')),
+        job_level_ids: z.array(z.number()).min(1, t('jobLevelRequired')),
+        target: z.string().optional(),
+        direction: z.string().optional(),
+        aggregation: z.string().min(1, t('kpiAggregationRequired')),
+      }),
+    [t],
+  );
+
   const form = useForm<KPIFormValues>({
     resolver: zodResolver(kpiFormSchema),
     defaultValues: {
-      name: "",
-      description: "",
-      frequency: "",
-      format: "",
+      name: '',
+      description: '',
+      frequency: '',
+      format: '',
       job_position_ids: [],
       job_level_ids: [],
-      target: "",
-      direction: "",
-      aggregation: "",
+      target: '',
+      direction: '',
+      aggregation: '',
     },
   });
 
   React.useEffect(() => {
     if (editMode && kpiDetails && open) {
       form.reset({
-        name: kpiDetails.name || "",
-        description: kpiDetails.description || "",
-        frequency: kpiDetails.frequency?.toString() || "",
-        format: kpiDetails.format?.toString() || "",
+        name: kpiDetails.name || '',
+        description: kpiDetails.description || '',
+        frequency: kpiDetails.frequency?.toString() || '',
+        format: kpiDetails.format?.toString() || '',
         job_position_ids: kpiDetails.job_position_ids || [],
         job_level_ids: kpiDetails.job_level_ids || [],
-        target: kpiDetails.target?.toString() || "",
-        direction: kpiDetails.direction?.toString() || "",
-        aggregation: kpiDetails.aggregation?.toString() || "",
+        target: kpiDetails.target?.toString() || '',
+        direction: kpiDetails.direction?.toString() || '',
+        aggregation: kpiDetails.aggregation?.toString() || '',
       });
     } else if (!editMode && open) {
       form.reset({
-        name: "",
-        description: "",
-        frequency: "",
-        format: "",
+        name: '',
+        description: '',
+        frequency: '',
+        format: '',
         job_position_ids: [],
         job_level_ids: [],
-        target: "",
-        direction: "",
-        aggregation: "",
+        target: '',
+        direction: '',
+        aggregation: '',
       });
     }
   }, [editMode, kpiDetails, open, form]);
@@ -146,81 +162,83 @@ export default function FormModal({
       <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto p-0 bg-white">
         <DialogHeader className="px-6 pt-6 pb-4">
           <DialogTitle className="text-xl font-semibold">
-            {editMode ? "Edit KPI" : "Create New KPI"}
+            {editMode ? t('editKpi') : t('createNewKpi')}
           </DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form className="px-6 pb-6 space-y-5">
-            <p className="font-semibold">KPI Information</p>
+            <p className="font-semibold">{t('kpiInformation')}</p>
             <InputForm
               name="name"
-              label="KPI Name"
+              label={t('kpiName')}
               required
               className="w-full"
             />
             <InputForm
               name="description"
-              label="Description"
+              label={tCommon('description')}
               required
               className="w-full"
             />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2 w-full items-start">
               <SelectForm
                 name="frequency"
-                label="Frequency"
+                label={t('frequency')}
                 required
                 options={frequencyOptions}
               />
               <SelectForm
                 name="format"
-                label="Format"
+                label={t('format')}
                 required
                 options={formatOptions}
               />
             </div>
             <div className="flex flex-col gap-2">
               <label className="text-sm text-text-secondary">
-                Job Position<span className="text-error">*</span>
+                {t('jobPosition')}
+                <span className="text-error">*</span>
               </label>
               <MultiSelectForm
                 options={jobPositionOptions}
                 name="job_position_ids"
                 maxCount={3}
-                searchPlaceholder="Search Job Position"
+                searchPlaceholder={t('searchJobPosition')}
                 hideSelectAll
                 valueTransformer={(value) => Number(value)}
               />
             </div>
             <div className="flex flex-col gap-2">
               <label className="text-sm text-text-secondary">
-                Job Level<span className="text-error">*</span>
+                {t('jobLevel')}
+                <span className="text-error">*</span>
               </label>
               <MultiSelectForm
                 options={jobLevelOptions}
                 name="job_level_ids"
                 maxCount={3}
-                searchPlaceholder="Search Job Level"
+                searchPlaceholder={t('searchJobLevel')}
                 hideSelectAll
                 valueTransformer={(value) => Number(value)}
               />
             </div>
-            <p className="font-semibold">KPI Target</p>
+            <p className="font-semibold">{t('kpiTargetSection')}</p>
             <InputForm
               name="target"
-              label="Target"
+              label={t('target')}
               isOptional
               className="w-full"
             />
             <SelectForm
               name="direction"
-              label="Direction"
+              label={t('direction')}
               isOptional
               className="w-full"
               options={directionOptions}
             />
             <SelectForm
               name="aggregation"
-              label="KPI Aggregation"
+              label={t('kpiAggregation')}
               required
               className="w-full"
               options={aggregationOptions}
@@ -232,7 +250,7 @@ export default function FormModal({
                 onClick={handleClose}
                 className="px-6 border-[#0e7490] text-[#0e7490] hover:bg-[#0e7490]/5"
               >
-                Cancel
+                {tCommon('cancel')}
               </Button>
               <Button
                 type="button"
@@ -240,7 +258,7 @@ export default function FormModal({
                 disabled={isLoadingDetails && editMode}
                 className="px-8 bg-[#0e7490] hover:bg-[#0c6380] text-white"
               >
-                {editMode ? "Update" : "Create"}
+                {editMode ? t('updateKpi') : t('createKpi')}
               </Button>
             </div>
           </form>

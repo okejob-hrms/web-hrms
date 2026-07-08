@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import {
   Dialog,
@@ -9,6 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { WorkHourPayrun } from '@/services/payroll/types';
+import { useTranslations } from 'next-intl';
 
 interface WorkHourModalProps {
   open: boolean;
@@ -25,20 +28,21 @@ export default function WorkHourModal({
   setData,
   onSave,
 }: WorkHourModalProps) {
+  const t = useTranslations('payroll');
+  const tCommon = useTranslations('common');
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-xl p-6 rounded-2xl bg-white">
         <DialogHeader>
-          <DialogTitle>Working Time</DialogTitle>
+          <DialogTitle>{t('workingTime')}</DialogTitle>
         </DialogHeader>
 
-        {/* Form */}
         <div className="space-y-4">
           <div className="grid grid-cols-12 gap-3 items-end">
-            {/* Value */}
             <div className="col-span-6">
               <label className="text-sm font-medium mb-1 block">
-                Working Days
+                {t('workingDays')}
               </label>
               <Input
                 type="number"
@@ -53,10 +57,9 @@ export default function WorkHourModal({
               />
             </div>
 
-            {/* Value */}
             <div className="col-span-6">
               <label className="text-sm font-medium mb-1 block">
-                Working Hour
+                {t('workingHour')}
               </label>
               <Input
                 type="number"
@@ -73,17 +76,16 @@ export default function WorkHourModal({
           </div>
         </div>
 
-        {/* Footer */}
         <DialogFooter className="mt-6 flex justify-between items-center w-full">
           <div className="flex gap-3">
             <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              {tCommon('cancel')}
             </Button>
             <Button
               onClick={onSave}
               disabled={!data.working_days && !data.working_hours}
             >
-              Save
+              {tCommon('save')}
             </Button>
           </div>
         </DialogFooter>

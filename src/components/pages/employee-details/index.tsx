@@ -18,6 +18,8 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Clock, Gavel } from "lucide-react";
 import { PenaltyDetail } from "./sections/penalty";
+import { useTranslations } from "next-intl";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Props {
   id: number;
@@ -28,33 +30,34 @@ interface TabProps {
 }
 
 export function Tab({ data }: TabProps) {
+  const t = useTranslations("employee");
   const tabs = [
     {
-      name: "Personal Information",
+      name: t("personalInformation"),
       value: "personal-information",
       content: <PersonalInformationDetail data={data} />,
       icon: <Icon name="userSolid" size={18} color="currentColor" />,
     },
     {
-      name: "Document",
+      name: t("document"),
       value: "document",
       content: <DocumentDetail userId={data.user_id} />,
       icon: <Icon name="documentOutlined" size={18} color="currentColor" />,
     },
     {
-      name: "Payroll",
+      name: t("payroll"),
       value: "payroll",
       content: <PayrollDetail userId={data.user_id} />,
       icon: <Icon name="debit" size={18} color="currentColor" />,
     },
     {
-      name: "Attendance",
+      name: t("attendance"),
       value: "attendance",
       content: <AttendanceDetail data={data} />,
       icon: <Clock size={18} color="currentColor" />,
     },
     {
-      name: "Penalty",
+      name: t("penalty"),
       value: "penalty",
       content: <PenaltyDetail userId={data.user_id} />,
       icon: <Gavel size={18} color="currentColor" />,
@@ -91,12 +94,39 @@ export const EmployeeDetail = React.memo(function EmployeeDetail({
   id,
 }: Props) {
   const router = useRouter();
-  const { data: employeeDetails } = useQuery({
+  const t = useTranslations("employee");
+  const tCommon = useTranslations("common");
+  const { data: employeeDetails, isLoading, isError } = useQuery({
     queryKey: ["employee-detail", id],
     queryFn: () => getEmployeeDetail(id),
   });
   const data = employeeDetails?.data;
-  console.log("# details", data);
+
+  if (isLoading) {
+    return (
+      <div className="w-full flex flex-col gap-4 md:px-[125px] px-4 py-8">
+        <Skeleton className="h-20 w-20 rounded-full mx-auto" />
+        <Skeleton className="h-6 w-48 mx-auto" />
+        <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-64 w-full" />
+      </div>
+    );
+  }
+
+  if (isError || !data) {
+    return (
+      <div className="w-full flex flex-col items-center gap-4 md:px-[125px] px-4 py-8">
+        <p className="text-text-secondary">{t("failedLoadEmployee")}</p>
+        <Button
+          variant="outline"
+          onClick={() => router.push("/employee/employee-management")}
+        >
+          {tCommon("goBack")}
+        </Button>
+      </div>
+    );
+  }
+
   if (data) {
     return (
       <div className="w-full flex flex-col gap-4 md:px-[125px] px-4">
@@ -114,13 +144,14 @@ export const EmployeeDetail = React.memo(function EmployeeDetail({
             </Avatar>
             <h3 className="text-lg font-semibold">{data.user.name}</h3>
             <p className="text-sm">
-              Employee ID <span className="font-semibold">{data.code}</span>
+              {t("employeeId")}{" "}
+              <span className="font-semibold">{data.code}</span>
             </p>
             <Badge
               variant="default"
               className={cn(
                 "rounded-full",
-                data.employment.status === 1
+                data.employment?.status === 1
                   ? "bg-success-focused "
                   : "bg-error-focused ",
               )}
@@ -128,15 +159,17 @@ export const EmployeeDetail = React.memo(function EmployeeDetail({
               <div
                 className={cn(
                   "size-2 rounded-full",
-                  data.employment.status === 1 ? "bg-success" : "bg-error",
+                  data.employment?.status === 1 ? "bg-success" : "bg-error",
                 )}
               />
               <span
                 className={cn(
-                  data.employment.status === 1 ? "text-success" : "text-error",
+                  data.employment?.status === 1 ? "text-success" : "text-error",
                 )}
               >
-                {data.employment.status === 1 ? "Active" : "Inactive"}
+                {data.employment?.status === 1
+                  ? tCommon("active")
+                  : tCommon("inactive")}
               </span>
             </Badge>
           </div>
@@ -153,7 +186,7 @@ export const EmployeeDetail = React.memo(function EmployeeDetail({
               height={24}
               alt="edit"
             />
-            Edit Employee Data
+            {t("editEmployeeData")}
           </Button>
         </div>
         <Tab data={data} />

@@ -1,6 +1,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { getFields } from "@/services/form";
 import {
   getEmployeeSelfAssessmentDetail,
@@ -21,6 +22,9 @@ export const SectionAssessmentDetail: React.FC<
   SectionAssessmentDetailProps
 > = ({ assessmentId, formId }) => {
   const router = useRouter();
+  const t = useTranslations("performance");
+  const tCommon = useTranslations("common");
+
   const { data: formDetail, isLoading: isLoadingForm } = useQuery({
     queryKey: ["form-detail", formId],
     queryFn: () => getFields({ form_id: formId! }),
@@ -37,7 +41,7 @@ export const SectionAssessmentDetail: React.FC<
     mutationFn: (data: IMutateEmployeeSelfAssessmentRequest) =>
       submitEmployeeSelfAssessment(Number(assessmentId), data),
     onSuccess: () => {
-      toast.success("Assessment submitted successfully");
+      toast.success(t("submitAssessmentSuccess"));
       router.push("/ess/assessment");
     },
     onError: (error: any) => {
@@ -46,18 +50,18 @@ export const SectionAssessmentDetail: React.FC<
           error.response
             .json()
             .then((errorData: ApiErrorResponse) => {
-              toast.error(errorData.message || "Failed to submit assessment");
+              toast.error(
+                errorData.message || t("submitAssessmentFailed"),
+              );
             })
             .catch(() => {
-              toast.error("Failed to submit assessment: Server error");
+              toast.error(t("submitAssessmentServerError"));
             });
-        } catch (parseError) {
-          toast.error("Failed to submit assessment: Server error");
+        } catch {
+          toast.error(t("submitAssessmentServerError"));
         }
       } else {
-        toast.error(
-          `Failed to delete leave request: ${error.message || "Unknown error"}`,
-        );
+        toast.error(t("submitAssessmentFailed"));
       }
     },
   });
@@ -74,9 +78,9 @@ export const SectionAssessmentDetail: React.FC<
     <div className="px-4 md:px-10 mx-auto space-y-6 w-full">
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-bold text-gray-900">
-          Self Assessment Form
+          {t("employeeSelfAssessmentForm")}
         </h1>
-        <p className="text-gray-500">Please fill out the form below.</p>
+        <p className="text-gray-500">{t("fillFormBelow")}</p>
       </div>
 
       <div className="bg-white rounded-lg shadow-sm border p-6 w-full">
@@ -91,7 +95,7 @@ export const SectionAssessmentDetail: React.FC<
           />
         ) : (
           <div className="text-center text-gray-500 py-8">
-            No fields found for this form.
+            {t("noFormFields")}
           </div>
         )}
       </div>

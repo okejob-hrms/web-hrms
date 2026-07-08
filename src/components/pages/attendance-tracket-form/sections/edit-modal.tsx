@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
 
 interface Props {
   onUpdate: () => void;
@@ -18,10 +19,11 @@ interface Props {
 }
 
 export default function EmployeeUpdateModal({ onUpdate, isLoading }: Props) {
+  const t = useTranslations('attendance');
+  const tCommon = useTranslations('common');
   const [isOpen, setIsOpen] = useState(false);
 
   const handleUpdate = async (e: React.MouseEvent) => {
-    console.log('Employee data updated');
     e.preventDefault();
     e.stopPropagation();
 
@@ -45,7 +47,7 @@ export default function EmployeeUpdateModal({ onUpdate, isLoading }: Props) {
         className="md:min-w-[100px]"
         isLoading={isLoading}
       >
-        Update
+        {tCommon('update')}
       </Button>
 
       <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
@@ -55,13 +57,13 @@ export default function EmployeeUpdateModal({ onUpdate, isLoading }: Props) {
               src="/icons/confirmation.svg"
               height={56}
               width={56}
-              alt="confirmation"
+              alt={tCommon('update')}
             />
             <AlertDialogTitle className="text-lg font-semibold text-black mb-2">
-              Are you sure want to update this attendance data?
+              {t('updateAttendanceConfirmTitle')}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-sm text-text-secondary">
-              Please make sure all information is accurate before proceeding.
+              {t('confirmBeforeProceeding')}
             </AlertDialogDescription>
           </AlertDialogHeader>
 
@@ -70,13 +72,13 @@ export default function EmployeeUpdateModal({ onUpdate, isLoading }: Props) {
               onClick={handleCancel}
               className="flex-1 border text-primary border-primary bg-white hover:bg-blue-50 rounded-md py-2 font-medium"
             >
-              Cancel
+              {tCommon('cancel')}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleUpdate}
               className="flex-1 bg-primary text-white rounded-md py-2 font-medium"
             >
-              Update
+              {tCommon('update')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

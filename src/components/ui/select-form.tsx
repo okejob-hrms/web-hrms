@@ -10,13 +10,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { cn, stringAvatar } from "@/lib/utils";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Command as CommandPrimitive, useCommandState } from "cmdk";
 import { forwardRef } from "react";
 import { OptionFormProps, SelectFilterProps } from "@/lib/types";
@@ -31,6 +24,8 @@ import {
   CommandItem,
   CommandList,
 } from "./command";
+import { useTranslations } from "next-intl";
+import { ComboboxForm, SearchableSelect } from "./combobox";
 
 const SelectForm: React.FC<OptionFormProps> = ({
   name,
@@ -44,60 +39,28 @@ const SelectForm: React.FC<OptionFormProps> = ({
   modalChildren,
   type,
   required,
+  disabled,
+  searchValue,
+  onSearchChange,
 }) => {
-  const { control } = useFormContext();
+  const tCommon = useTranslations("common");
+
   return (
-    <FormField
-      control={control}
+    <ComboboxForm
       name={name}
-      render={({ field }) => {
-        const value =
-          field.value !== undefined && field.value !== null
-            ? field.value.toString()
-            : "";
-        return (
-          <FormItem className={formItemClassName}>
-            {label && (
-              <FormLabel className={cn("text-sm font-normal", labelClassName)}>
-                {label}
-                {required && <span className="text-error">*</span>}
-                {isOptional && (
-                  <span className="text-text-disabled"> (optional)</span>
-                )}
-              </FormLabel>
-            )}
-            <FormControl>
-              <Select
-                onValueChange={(value) => {
-                  if (type === "number") {
-                    field.onChange(Number(value));
-                  } else {
-                    field.onChange(value);
-                  }
-                }}
-                defaultValue={field.value?.toString()}
-                value={value}
-              >
-                <FormControl>
-                  <SelectTrigger className={className}>
-                    <SelectValue placeholder={placeholder ?? "Select"} />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {modalChildren && modalChildren}
-                  {options.map((item) => (
-                    <SelectItem key={item.value} value={item.value}>
-                      {item.icon && item.icon}
-                      {item.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        );
-      }}
+      label={label}
+      isOptional={isOptional}
+      labelClassName={labelClassName}
+      formItemClassName={formItemClassName}
+      options={options}
+      placeholder={placeholder ?? tCommon("select")}
+      className={className}
+      modalChildren={modalChildren}
+      valueType={type}
+      required={required}
+      disabled={disabled}
+      searchValue={searchValue}
+      onSearchChange={onSearchChange}
     />
   );
 };
@@ -106,194 +69,33 @@ const SelectFilter = React.memo(function SelectField({
   placeholder,
   options,
   label,
+  value,
+  onValueChange,
 }: SelectFilterProps) {
+  const tCommon = useTranslations("common");
+  const [internalValue, setInternalValue] = React.useState<string>("");
+
+  const currentValue = value ?? internalValue;
+  const handleChange = (newValue: string | number | null) => {
+    const stringValue = newValue?.toString() ?? "";
+    setInternalValue(stringValue);
+    onValueChange?.(stringValue);
+  };
+
   return (
     <div className="flex flex-col gap-1">
-      <label className="text-sm text-text-secondary">{label}</label>
-      <Select>
-        <SelectTrigger className="w-[180px] h-10">
-          <SelectValue placeholder={placeholder} />
-        </SelectTrigger>
-        <SelectContent>
-          {options.map((item) => (
-            <SelectItem key={item.value} value={item.value}>
-              {item.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      {label && <label className="text-sm text-text-secondary">{label}</label>}
+      <SearchableSelect
+        value={currentValue}
+        onValueChange={handleChange}
+        options={options}
+        placeholder={placeholder ?? tCommon("select")}
+        className="w-[180px] h-10"
+        allowClear={false}
+      />
     </div>
   );
 });
-
-// const SelectEmployeeForm: React.FC<OptionFormProps> = ({
-//   name,
-//   label,
-//   isOptional,
-//   labelClassName,
-//   formItemClassName,
-//   options,
-//   placeholder,
-//   className,
-//   modalChildren,
-//   type,
-// }) => {
-//   const { control } = useFormContext();
-//   const [searchValue, setSearchValue] = React.useState("");
-//   const [open, setOpen] = React.useState(false);
-
-//   // Fungsi untuk mendapatkan item yang dipilih berdasarkan value
-//   const getSelectedItem = (value: string) => {
-//     return options.find((option) => option.value === value);
-//   };
-
-//   // Filter opsi berdasarkan pencarian
-//   const filteredOptions = React.useMemo(() => {
-//     if (!searchValue) return options;
-
-//     return options.filter(
-//       (option) =>
-//         option.label.toLowerCase().includes(searchValue.toLowerCase()) ||
-//         (option.subtitle &&
-//           option.subtitle.toLowerCase().includes(searchValue.toLowerCase())),
-//     );
-//   }, [options, searchValue]);
-
-//   return (
-//     <FormField
-//       control={control}
-//       name={name}
-//       render={({ field }) => {
-//         const value =
-//           field.value !== undefined && field.value !== null
-//             ? field.value.toString()
-//             : "";
-
-//         const selectedItem = getSelectedItem(value);
-
-//         return (
-//           <FormItem className={formItemClassName}>
-//             {label && (
-//               <FormLabel className={cn("text-sm font-normal", labelClassName)}>
-//                 {label}
-//                 {isOptional && (
-//                   <span className="text-text-disabled"> (optional)</span>
-//                 )}
-//               </FormLabel>
-//             )}
-//             <FormControl>
-//               <Popover open={open} onOpenChange={setOpen}>
-//                 <PopoverTrigger asChild>
-//                   <Button
-//                     variant="outline"
-//                     role="combobox"
-//                     aria-expanded={open}
-//                     className={cn(
-//                       "w-full justify-between h-auto min-h-[40px] p-3",
-//                       className,
-//                     )}
-//                   >
-//                     {selectedItem ? (
-//                       <div className="flex items-center gap-2 flex-1">
-//                         <Avatar className="h-8 w-8">
-//                           <AvatarImage
-//                             className="size-8"
-//                             src={`${process.env.NEXT_PUBLIC_FILE_URL}/${selectedItem.image}`}
-//                             alt={selectedItem.label}
-//                           />
-//                           <AvatarFallback className="text-base font-medium">
-//                             {stringAvatar(selectedItem.label)}
-//                           </AvatarFallback>
-//                         </Avatar>
-//                         <div className="flex text-left items-center gap-2">
-//                           <span className="text-foreground text-base">
-//                             {selectedItem.label}
-//                           </span>
-//                           <span className="text-text-disabled text-xs">
-//                             {selectedItem.subtitle ?? "-"}
-//                           </span>
-//                         </div>
-//                       </div>
-//                     ) : (
-//                       <span className="text-muted-foreground">
-//                         {placeholder ?? "Select"}
-//                       </span>
-//                     )}
-//                     <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-//                   </Button>
-//                 </PopoverTrigger>
-//                 <PopoverContent className="w-full p-0" align="start">
-//                   <Command>
-//                     <CommandInput
-//                       placeholder="Search employee..."
-//                       value={searchValue}
-//                       onValueChange={setSearchValue}
-//                       className="h-9"
-//                     />
-//                     <CommandEmpty>No employee found.</CommandEmpty>
-//                     <CommandList>
-//                       <CommandGroup>
-//                         {modalChildren && modalChildren}
-//                         {filteredOptions.map((item: any) => (
-//                           <CommandItem
-//                             key={item.value}
-//                             value={item.value}
-//                             onSelect={(currentValue) => {
-//                               const newValue =
-//                                 currentValue === value ? "" : currentValue;
-//                               if (type === "number") {
-//                                 field.onChange(
-//                                   newValue ? Number(newValue) : "",
-//                                 );
-//                               } else {
-//                                 field.onChange(newValue);
-//                               }
-//                               setOpen(false);
-//                               setSearchValue("");
-//                             }}
-//                             className="flex items-center gap-3 p-3"
-//                           >
-//                             <Avatar className="h-8 w-8">
-//                               <AvatarImage
-//                                 className="size-8"
-//                                 src={`${process.env.NEXT_PUBLIC_FILE_URL}/${item.image}`}
-//                                 alt={item.label}
-//                               />
-//                               <AvatarFallback className="text-base font-medium">
-//                                 {stringAvatar(item.label)}
-//                               </AvatarFallback>
-//                             </Avatar>
-//                             <div className="flex flex-col flex-1">
-//                               <span className="text-foreground text-base">
-//                                 {item.label}
-//                               </span>
-//                               <span className="text-text-disabled text-xs">
-//                                 {item.subtitle ?? "-"}
-//                               </span>
-//                             </div>
-//                             <Check
-//                               className={cn(
-//                                 "ml-auto h-4 w-4",
-//                                 value === item.value
-//                                   ? "opacity-100"
-//                                   : "opacity-0",
-//                               )}
-//                             />
-//                           </CommandItem>
-//                         ))}
-//                       </CommandGroup>
-//                     </CommandList>
-//                   </Command>
-//                 </PopoverContent>
-//               </Popover>
-//             </FormControl>
-//             <FormMessage />
-//           </FormItem>
-//         );
-//       }}
-//     />
-//   );
-// };
 
 const SelectEmployeeForm: React.FC<OptionFormProps> = ({
   name,
@@ -311,6 +113,7 @@ const SelectEmployeeForm: React.FC<OptionFormProps> = ({
   required,
 }) => {
   const { control } = useFormContext();
+  const tCommon = useTranslations("common");
   const [internalSearchValue, setInternalSearchValue] = React.useState("");
   const [open, setOpen] = React.useState(false);
   const [cachedSelectedItem, setCachedSelectedItem] = React.useState<any>(null);
@@ -351,7 +154,7 @@ const SelectEmployeeForm: React.FC<OptionFormProps> = ({
                 {label}
                 {required && <span className="text-error">*</span>}
                 {isOptional && (
-                  <span className="text-text-disabled"> (optional)</span>
+                  <span className="text-text-disabled"> {tCommon("optional")}</span>
                 )}
               </FormLabel>
             )}
@@ -390,7 +193,7 @@ const SelectEmployeeForm: React.FC<OptionFormProps> = ({
                       </div>
                     ) : (
                       <span className="text-muted-foreground">
-                        {placeholder ?? "Select"}
+                        {placeholder ?? tCommon("select")}
                       </span>
                     )}
                     <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -400,12 +203,12 @@ const SelectEmployeeForm: React.FC<OptionFormProps> = ({
                 <PopoverContent className="w-full p-0" align="start">
                   <Command filter={() => 1}>
                     <CommandInput
-                      placeholder="Search employee..."
+                      placeholder={tCommon("searchEmployee")}
                       value={searchValue}
                       onValueChange={setSearchValue}
                       className="h-9"
                     />
-                    <CommandEmpty>No employee found.</CommandEmpty>
+                    <CommandEmpty>{tCommon("noEmployeeFound")}</CommandEmpty>
                     <CommandList key={searchValue}>
                       <CommandGroup>
                         {modalChildren && modalChildren}

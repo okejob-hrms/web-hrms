@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import {
   Dialog,
@@ -18,6 +20,7 @@ import {
 import { Trash2 } from 'lucide-react';
 import { AllowanceItem } from '@/services/payroll/types';
 import { usePayrollDetail } from '../hook';
+import { useTranslations } from 'next-intl';
 
 interface AllowanceModalProps {
   open: boolean;
@@ -34,9 +37,11 @@ export default function AllowanceModal({
   setData,
   onSave,
 }: AllowanceModalProps) {
+  const t = useTranslations('payroll');
+  const tCommon = useTranslations('common');
+  const tSettings = useTranslations('settings');
   const { allowanceType } = usePayrollDetail();
 
-  // ADD
   const handleAdd = () => {
     setData([
       ...data,
@@ -48,7 +53,6 @@ export default function AllowanceModal({
     ]);
   };
 
-  // CHANGE (by index)
   const handleChange = (
     index: number,
     key: 'allowance_type_id' | 'allowance_value' | 'allowance_name',
@@ -58,11 +62,9 @@ export default function AllowanceModal({
       data.map((item, i) => {
         if (i !== index) return item;
 
-        // kalau yang berubah adalah allowance_type_id
         if (key === 'allowance_type_id') {
-          // cari name dari list type
           const selected = allowanceType?.data.find(
-            (t) => String(t.id) === val,
+            (type) => String(type.id) === val,
           );
 
           return {
@@ -72,13 +74,11 @@ export default function AllowanceModal({
           };
         }
 
-        // default update
         return { ...item, [key]: val };
       }),
     );
   };
 
-  // REMOVE (by index)
   const handleRemove = (index: number) => {
     setData(data.filter((_, i) => i !== index));
   };
@@ -89,17 +89,15 @@ export default function AllowanceModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-xl p-6 rounded-2xl bg-white">
         <DialogHeader>
-          <DialogTitle>Allowance</DialogTitle>
+          <DialogTitle>{t('allowance')}</DialogTitle>
         </DialogHeader>
 
-        {/* List */}
         <div className="space-y-4">
           {data.map((item, index) => (
             <div key={index} className="grid grid-cols-12 gap-3 items-end">
-              {/* Type */}
               <div className="col-span-6">
                 <label className="text-sm font-medium mb-1 block">
-                  Allowance Type
+                  {t('allowanceType')}
                 </label>
                 <Select
                   value={item.allowance_type_id}
@@ -108,7 +106,7 @@ export default function AllowanceModal({
                   }
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select Type" />
+                    <SelectValue placeholder={tSettings('selectType')} />
                   </SelectTrigger>
                   <SelectContent>
                     {allowanceType?.data.map((opt) => (
@@ -120,10 +118,9 @@ export default function AllowanceModal({
                 </Select>
               </div>
 
-              {/* Value */}
               <div className="col-span-5">
                 <label className="text-sm font-medium mb-1 block">
-                  Allowance Value
+                  {t('allowanceValue')}
                 </label>
                 <Input
                   value={item.allowance_value}
@@ -134,7 +131,6 @@ export default function AllowanceModal({
                 />
               </div>
 
-              {/* Delete */}
               <div className="col-span-1 flex justify-center pb-1">
                 <Button
                   variant="outline"
@@ -147,25 +143,23 @@ export default function AllowanceModal({
               </div>
             </div>
           ))}
-          {/* Add */}
           <Button
             variant="outline"
             className="border-0"
             onClick={handleAdd}
             type="button"
           >
-            + Add Allowance
+            {t('addAllowance')}
           </Button>
         </div>
 
-        {/* Footer */}
         <DialogFooter className="mt-6 flex justify-between items-center w-full">
           <div className="flex gap-3">
             <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              {tCommon('cancel')}
             </Button>
             <Button onClick={onSave} disabled={isInvalid}>
-              Save
+              {tCommon('save')}
             </Button>
           </div>
         </DialogFooter>

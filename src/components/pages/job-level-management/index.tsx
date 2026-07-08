@@ -2,12 +2,13 @@
 
 import { Button } from "@/components/ui/button";
 import * as React from "react";
+import { useTranslations, useLocale } from "next-intl";
 import { DataTable } from "@/components/tables/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { RowActions } from "@/components/tables/row-actions";
 import { useIsMobile } from "@/hooks/use-mobile";
-// import { ArrowUp, ArrowDown, ChevronsUpDown } from "lucide-react";
-import { formatDateTime } from "@/lib/helpers";
+import { formatDateTime } from "@/lib/formatting";
+import { resolveLocale } from "@/lib/i18n/locale";
 import { Skeleton } from "@/components/ui/skeleton";
 import { JobLevel } from "@/services/job-levels/types";
 import { useJobLevels } from "./hooks/useJobLevel";
@@ -15,6 +16,9 @@ import DeleteJobLevelDialog from "./sections/delete-modal";
 import JobLevelModal from "./sections/edit-modal";
 
 export default function JobLevelList() {
+  const t = useTranslations("employee");
+  const tCommon = useTranslations("common");
+  const locale = resolveLocale(useLocale());
   const {
     job_levels,
     isLoading,
@@ -33,77 +37,57 @@ export default function JobLevelList() {
     setPagination,
   } = useJobLevels();
 
-  const columns: ColumnDef<JobLevel>[] = [
-    {
-      accessorKey: "name",
-      header: "Job Level",
-      size: 300,
-    },
-    {
-      accessorKey: "level",
-      header: "Level",
-      size: 300,
-    },
-    {
-      accessorKey: "lastUpdate",
-      header: ({}) => {
-        // const isSorted = column.getIsSorted();
-        // const SortIcon = () =>
-        //   isSorted === "asc" ? (
-        //     <ArrowUp className="w-3 h-3" />
-        //   ) : isSorted === "desc" ? (
-        //     <ArrowDown className="w-3 h-3" />
-        //   ) : (
-        //     <ChevronsUpDown className="w-3 h-3 opacity-50" />
-        //   );
+  const columns = React.useMemo<ColumnDef<JobLevel>[]>(
+    () => [
+      {
+        accessorKey: "name",
+        header: t("jobLevel"),
+        size: 300,
+      },
+      {
+        accessorKey: "level",
+        header: t("level"),
+        size: 300,
+      },
+      {
+        accessorKey: "lastUpdate",
+        header: tCommon("lastUpdate"),
+        size: 160,
+        cell: ({ row }) => {
+          const { date, hour } = formatDateTime(row.original.updated_at, locale);
 
-        return (
-          <div className="flex flex-row gap-2">
-            <span>Last Update</span>
-            {/* <button
-              type="button"
-              onClick={() => column.toggleSorting(isSorted === "asc")}
-              className="flex items-center gap-1"
-            >
-              <SortIcon />
-            </button> */}
-          </div>
-        );
+          return (
+            <div>
+              <span>{date}</span>
+              <br />
+              <span>{hour}</span>
+            </div>
+          );
+        },
       },
-      size: 160,
-      cell: ({ row }) => {
-        const { date, hour } = formatDateTime(row.original.updated_at);
-
-        return (
-          <div>
-            <span>{date}</span>
-            <br />
-            <span>{hour}</span>
-          </div>
-        );
+      {
+        id: "actions",
+        header: "",
+        size: 80,
+        cell: ({ row }) => {
+          const item = row.original;
+          return (
+            <div className="flex justify-end">
+              <RowActions
+                onEdit={() => {
+                  handleEdit(item);
+                }}
+                onDelete={() => {
+                  handleDeleteClick(item);
+                }}
+              />
+            </div>
+          );
+        },
       },
-    },
-    {
-      id: "actions",
-      header: "",
-      size: 80,
-      cell: ({ row }) => {
-        const item = row.original;
-        return (
-          <div className="flex justify-end">
-            <RowActions
-              onEdit={() => {
-                handleEdit(item);
-              }}
-              onDelete={() => {
-                handleDeleteClick(item);
-              }}
-            />
-          </div>
-        );
-      },
-    },
-  ];
+    ],
+    [t, tCommon, locale, handleEdit, handleDeleteClick],
+  );
 
   const isMobile = useIsMobile();
 
@@ -112,10 +96,10 @@ export default function JobLevelList() {
       <div className="rounded-md bg-white border shadow-sm border-grayscale-20 flex flex-col gap-4 p-6">
         <div className="flex flex-col sm:flex-row justify-between w-full items-start sm:items-center gap-4 sm:gap-0">
           <div className="flex gap-2 items-center flex-wrap">
-            <h2 className="font-semibold text-xl">Job Levels</h2>
+            <h2 className="font-semibold text-xl">{t("jobLevels")}</h2>
           </div>
           <Button onClick={handleCreate} className="whitespace-nowrap">
-            + New Job Level
+            {t("newJobLevel")}
           </Button>
         </div>
         {isLoading ? (
@@ -136,7 +120,6 @@ export default function JobLevelList() {
           />
         )}
       </div>
-      {/* Modals */}
       <DeleteJobLevelDialog
         open={isDeleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}

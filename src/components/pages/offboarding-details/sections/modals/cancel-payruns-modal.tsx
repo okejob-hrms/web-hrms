@@ -18,6 +18,7 @@ import { postCancelledOffboarding } from "@/services/employees/offboardings/comp
 import { ApiErrorResponse } from "@/lib/types";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 interface Props {
   offboardingId: number;
@@ -26,11 +27,13 @@ interface Props {
 export const CancelPayrunsModal = React.memo(function CancelPayrunsModal({
   offboardingId,
 }: Props) {
+  const t = useTranslations("offboarding");
+  const tCommon = useTranslations("common");
   const router = useRouter();
   const cancelMutation = useMutation({
     mutationFn: () => postCancelledOffboarding(offboardingId),
     onSuccess: () => {
-      toast.success("Success cancel offboarding process");
+      toast.success(t("cancelOffboardingSuccess"));
       router.push("/employee/off-boarding");
     },
     onError: (error: any) => {
@@ -40,21 +43,22 @@ export const CancelPayrunsModal = React.memo(function CancelPayrunsModal({
             .json()
             .then((errorData: ApiErrorResponse) => {
               toast.error(
-                errorData.message || "Failed to cancel offboarding process",
+                errorData.message || t("cancelOffboardingFailed"),
               );
             })
             .catch(() => {
-              toast.error("Failed to cancel offboarding process: Server error");
+              toast.error(
+                `${t("cancelOffboardingFailed")}: ${t("serverError")}`,
+              );
             });
         } catch (parseError) {
           toast.error(
-            "Failed to cancel offboarding process: Server error : " +
-              parseError,
+            `${t("cancelOffboardingFailed")}: ${t("serverError")} : ${parseError}`,
           );
         }
       } else {
         toast.error(
-          `Failed to cancel offboarding process: ${error.message || "Unknown error"}`,
+          `${t("cancelOffboardingFailed")}: ${error.message || t("unknownError")}`,
         );
       }
     },
@@ -66,8 +70,8 @@ export const CancelPayrunsModal = React.memo(function CancelPayrunsModal({
           variant="ghost"
           className="font-semibold text-error text-sm hover:text-error"
         >
-          <Image src="/icons/close.svg" width={24} height={24} alt="edit" />{" "}
-          Cancel
+          <Image src="/icons/close.svg" width={24} height={24} alt={tCommon("cancel")} />{" "}
+          {tCommon("cancel")}
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent className="bg-white">
@@ -76,23 +80,22 @@ export const CancelPayrunsModal = React.memo(function CancelPayrunsModal({
             src="/icons/confirmation.svg"
             width={56}
             height={56}
-            alt="cancel offboarding"
+            alt={t("cancelAssignment")}
           />
           <AlertDialogTitle className="text-center">
-            Are you sure you want to cancel assigning payruns?
+            {t("cancelPayrunsConfirmTitle")}
           </AlertDialogTitle>
           <AlertDialogDescription className="text-center text-text-secondary">
-            The final salary and benefit components will not be assigned to the
-            selected payruns
+            {t("cancelPayrunsConfirmDesc")}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter className="w-full grid grid-cols-2">
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel>{tCommon("cancel")}</AlertDialogCancel>
           <AlertDialogAction
             className="bg-error text-white"
             onClick={() => cancelMutation.mutate()}
           >
-            Cancel Assignment
+            {t("cancelAssignment")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

@@ -22,29 +22,36 @@ import { IPenaltyRequest } from "@/services/employees/penalties/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import dayjs from "dayjs";
 import { ApiErrorResponse } from "@/lib/types";
+import { useTranslations } from "next-intl";
 
-const penaltySchema = z.object({
-  point: z.coerce.number().min(1, "Point must be at least 1"),
-  name: z.string().min(1, "Name is required"),
-  description: z.string().min(1, "Description is required"),
-  valid_until: z.date().nullable().optional(),
-});
+type PenaltyFormValues = z.infer<ReturnType<typeof createPenaltySchema>>;
 
-type PenaltyFormValues = z.infer<typeof penaltySchema>;
+function createPenaltySchema(t: (key: string) => string) {
+  return z.object({
+    point: z.coerce.number().min(1, t("penaltyPointMin")),
+    name: z.string().min(1, t("nameRequired")),
+    description: z.string().min(1, t("descriptionRequired")),
+    valid_until: z.date().nullable().optional(),
+  });
+}
 
 interface AddPenaltyModalProps {
   userId: number;
 }
 
 export function AddPenaltyModal({ userId }: AddPenaltyModalProps) {
+  const t = useTranslations("employee");
+  const tCommon = useTranslations("common");
   const [open, setOpen] = useState(false);
   const queryClient = useQueryClient();
+
+  const penaltySchema = useMemo(() => createPenaltySchema(t), [t]);
 
   const form = useForm({
     resolver: zodResolver(penaltySchema),
@@ -59,7 +66,7 @@ export function AddPenaltyModal({ userId }: AddPenaltyModalProps) {
   const { mutate: submitPenalty, isPending } = useMutation({
     mutationFn: (data: IPenaltyRequest) => createPenalty(data),
     onSuccess: () => {
-      toast.success("Penalty added successfully");
+      toast.success(t("penaltyAddedSuccess"));
       queryClient.invalidateQueries({
         queryKey: ["employee-penalties", userId],
       });
@@ -72,17 +79,17 @@ export function AddPenaltyModal({ userId }: AddPenaltyModalProps) {
           error.response
             .json()
             .then((errorData: ApiErrorResponse) => {
-              toast.error(errorData.message || "Failed to add penalty");
+              toast.error(errorData.message || t("penaltyAddFailed"));
             })
             .catch(() => {
-              toast.error("Failed to add penalty: Server error");
+              toast.error(`${t("penaltyAddFailed")}: ${tCommon("failed")}`);
             });
-        } catch (parseError) {
-          toast.error("Failed to add penalty: Server error");
+        } catch {
+          toast.error(`${t("penaltyAddFailed")}: ${tCommon("failed")}`);
         }
       } else {
         toast.error(
-          `Failed to add penalty: ${error.message || "Unknown error"}`,
+          `${t("penaltyAddFailed")}: ${error.message || tCommon("failed")}`,
         );
       }
     },
@@ -105,12 +112,12 @@ export function AddPenaltyModal({ userId }: AddPenaltyModalProps) {
       <DialogTrigger asChild>
         <Button>
           <Plus className="mr-2 h-4 w-4" />
-          Add Penalty
+          {t("addPenalty")}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Add Penalty</DialogTitle>
+          <DialogTitle>{t("addPenalty")}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -119,7 +126,7 @@ export function AddPenaltyModal({ userId }: AddPenaltyModalProps) {
               name="point"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Point</FormLabel>
+                  <FormLabel>{t("penaltyPoint")}</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
@@ -136,9 +143,9 @@ export function AddPenaltyModal({ userId }: AddPenaltyModalProps) {
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel>{tCommon("name")}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Teguran Lisan" {...field} />
+                    <Input placeholder={t("penaltyNamePlaceholder")} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -149,9 +156,12 @@ export function AddPenaltyModal({ userId }: AddPenaltyModalProps) {
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description</FormLabel>
+                  <FormLabel>{tCommon("description")}</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Description..." {...field} />
+                    <Textarea
+                      placeholder={t("descriptionPlaceholder")}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -159,9 +169,9 @@ export function AddPenaltyModal({ userId }: AddPenaltyModalProps) {
             />
             <DatePicker
               name="valid_until"
-              label="Valid Until"
+              label={t("validUntil")}
               isOptional
-              placeholder="Pick a date"
+              placeholder={tCommon("pickDate")}
             />
             <div className="flex justify-end gap-2 pt-4">
               <Button
@@ -169,10 +179,10 @@ export function AddPenaltyModal({ userId }: AddPenaltyModalProps) {
                 variant="outline"
                 onClick={() => setOpen(false)}
               >
-                Cancel
+                {tCommon("cancel")}
               </Button>
               <Button type="submit" disabled={isPending}>
-                {isPending ? "Submitting..." : "Submit"}
+                {isPending ? tCommon("submitting") : tCommon("submit")}
               </Button>
             </div>
           </form>

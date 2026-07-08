@@ -48,6 +48,7 @@ import { uploadAttachment } from "@/services/attachments";
 import { toast } from "sonner";
 import AppSkeleton from "@/components/partials/app-skeleton";
 import ManageAccessModal from "./manage-acccess-modal";
+import { useTranslations } from "next-intl";
 
 interface DragnDropProps {
   handleDrop:
@@ -76,19 +77,6 @@ interface UploadedFile {
   error?: string;
 }
 
-const tabs = [
-  {
-    name: "Upload From My Computer",
-    value: "my-computer",
-    icon: <Icon name="computer" color="currentColor" size={14} />,
-  },
-  {
-    name: "File Library",
-    value: "file-library",
-    icon: <Icon name="storage" color="currentColor" size={14} />,
-  },
-];
-
 const getFileExtension = (filename: string): string => {
   return filename.split(".").pop()?.toLowerCase() || "";
 };
@@ -116,6 +104,7 @@ const DocumentPreview = React.memo(function DocumentPreview({
 }: {
   file: IDocument;
 }) {
+  const t = useTranslations("employee");
   const fileUrl = `${process.env.NEXT_PUBLIC_FILE_URL}/${file.path}`;
   const fileType = getFileType(file.filename);
   const extension = getFileExtension(file.filename);
@@ -140,7 +129,7 @@ const DocumentPreview = React.memo(function DocumentPreview({
               <div className="text-center">
                 <FileImage className="mx-auto mb-2 text-gray-400" size={32} />
                 <p className="text-sm text-gray-500">
-                  Image preview unavailable
+                  {t("imagePreviewUnavailable")}
                 </p>
               </div>
             </div>
@@ -154,7 +143,7 @@ const DocumentPreview = React.memo(function DocumentPreview({
             <p className="text-sm font-medium text-red-700 uppercase">
               {extension}
             </p>
-            <p className="text-xs text-red-600">Document</p>
+            <p className="text-xs text-red-600">{t("documentTypeLabel")}</p>
           </div>
         );
 
@@ -170,7 +159,7 @@ const DocumentPreview = React.memo(function DocumentPreview({
               <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
                 <div className="text-center text-white">
                   <Video className="mx-auto mb-2" size={32} />
-                  <p className="text-sm">Video preview</p>
+                  <p className="text-sm">{t("videoPreview")}</p>
                 </div>
               </div>
             </video>
@@ -184,7 +173,7 @@ const DocumentPreview = React.memo(function DocumentPreview({
             <p className="text-sm font-medium text-purple-700 uppercase">
               {extension}
             </p>
-            <p className="text-xs text-purple-600">Audio File</p>
+            <p className="text-xs text-purple-600">{t("audioFile")}</p>
           </div>
         );
 
@@ -195,7 +184,7 @@ const DocumentPreview = React.memo(function DocumentPreview({
             <p className="text-sm font-medium text-yellow-700 uppercase">
               {extension}
             </p>
-            <p className="text-xs text-yellow-600">Archive</p>
+            <p className="text-xs text-yellow-600">{t("archiveFile")}</p>
           </div>
         );
 
@@ -206,7 +195,7 @@ const DocumentPreview = React.memo(function DocumentPreview({
             <p className="text-sm font-medium text-gray-700 uppercase">
               {extension || "file"}
             </p>
-            <p className="text-xs text-gray-600">Unknown Type</p>
+            <p className="text-xs text-gray-600">{t("unknownType")}</p>
           </div>
         );
     }
@@ -222,6 +211,8 @@ const FileUploadPreview = React.memo(function FileUploadPreview({
   uploadedFile: UploadedFile;
   onRemove: () => void;
 }) {
+  const t = useTranslations("employee");
+  const tCommon = useTranslations("common");
   const fileType = getFileType(uploadedFile.file.name);
   const extension = getFileExtension(uploadedFile.file.name);
 
@@ -230,7 +221,7 @@ const FileUploadPreview = React.memo(function FileUploadPreview({
       return (
         <div className="flex flex-col items-center justify-center h-full bg-gray-100 rounded-t-md min-h-36">
           <RefreshCw className="mb-2 text-gray-500 animate-spin" size={32} />
-          <p className="text-sm text-gray-600">Uploading...</p>
+          <p className="text-sm text-gray-600">{tCommon("uploading")}</p>
         </div>
       );
     }
@@ -239,7 +230,7 @@ const FileUploadPreview = React.memo(function FileUploadPreview({
       return (
         <div className="flex flex-col items-center justify-center h-full bg-red-50 rounded-t-md min-h-36">
           <FileIcon className="mb-2 text-red-500" size={32} />
-          <p className="text-sm text-red-600">Upload failed</p>
+          <p className="text-sm text-red-600">{t("uploadFailed")}</p>
         </div>
       );
     }
@@ -264,7 +255,7 @@ const FileUploadPreview = React.memo(function FileUploadPreview({
             <p className="text-sm font-medium text-red-700 uppercase">
               {extension}
             </p>
-            <p className="text-xs text-red-600">Document</p>
+            <p className="text-xs text-red-600">{t("documentTypeLabel")}</p>
           </div>
         );
 
@@ -275,7 +266,7 @@ const FileUploadPreview = React.memo(function FileUploadPreview({
             <p className="text-sm font-medium text-gray-700 uppercase">
               {extension || "file"}
             </p>
-            <p className="text-xs text-gray-600">Unknown Type</p>
+            <p className="text-xs text-gray-600">{t("unknownType")}</p>
           </div>
         );
     }
@@ -334,6 +325,8 @@ const DragnDrop = React.memo(function DragnDrop({
 });
 
 const CardItem = React.memo(function CardItem({ file, userId }: CardItemProps) {
+  const t = useTranslations("employee");
+  const tCommon = useTranslations("common");
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
   const [isManageAccessOpen, setIsManageAccessOpen] = React.useState(false);
@@ -342,12 +335,12 @@ const CardItem = React.memo(function CardItem({ file, userId }: CardItemProps) {
   const { mutate: deleteDocument, isPending: isPendingDelete } = useMutation({
     mutationFn: () => deleteEmployeeDocument(userId, file.id),
     onSuccess: () => {
-      toast.success("Document deleted successfully!");
+      toast.success(t("documentDeletedSuccess"));
       queryClient.invalidateQueries({ queryKey: ["document-employee"] });
       setDropdownOpen(false);
     },
     onError: (error) => {
-      toast.error(`Failed to delete document: ${error.message}`);
+      toast.error(t("documentDeleteFailed", { message: error.message }));
     },
   });
 
@@ -404,7 +397,7 @@ const CardItem = React.memo(function CardItem({ file, userId }: CardItemProps) {
                   src="/icons/openNewTabGrey.svg"
                   alt="Open Document"
                 />
-                Open Document
+                {t("openDocument")}
               </DropdownMenuItem>
               <DropdownMenuItem
                 onSelect={(e) => {
@@ -418,7 +411,7 @@ const CardItem = React.memo(function CardItem({ file, userId }: CardItemProps) {
                   src="/icons/editGrey.svg"
                   alt="Edit"
                 />
-                Edit
+                {tCommon("edit")}
               </DropdownMenuItem>
               <DropdownMenuItem
                 onSelect={(e) => {
@@ -437,7 +430,7 @@ const CardItem = React.memo(function CardItem({ file, userId }: CardItemProps) {
                     src="/icons/downloadGrey.svg"
                     alt="Download"
                   />
-                  Download
+                  {tCommon("download")}
                 </a>
               </DropdownMenuItem>
               <DropdownMenuItem
@@ -454,7 +447,7 @@ const CardItem = React.memo(function CardItem({ file, userId }: CardItemProps) {
                   src="/icons/delete.svg"
                   alt="Delete"
                 />
-                Delete
+                {tCommon("delete")}
               </DropdownMenuItem>
               <DropdownMenuItem
                 onSelect={(e) => {
@@ -471,7 +464,7 @@ const CardItem = React.memo(function CardItem({ file, userId }: CardItemProps) {
                   src="/icons/totalCustomer.svg"
                   alt="Manage Access"
                 />
-                Manage Access
+                {t("manageAccess")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -491,7 +484,7 @@ const CardItem = React.memo(function CardItem({ file, userId }: CardItemProps) {
         </div>
         <p className="text-xs text-text-disabled mt-1">{file.uploaded_at}</p>
         <p className="text-text-disabled text-xs">
-          uploaded by{" "}
+          {t("uploadedBy")}{" "}
           <span className="text-text-secondary">{file.uploaded_by.name}</span>
         </p>
       </div>
@@ -508,14 +501,31 @@ const MenuTab = React.memo(function MenuTab({
   uploadedFiles: UploadedFile[];
   onRemoveFile: (index: number) => void;
 }) {
+  const t = useTranslations("employee");
+  const tabItems = React.useMemo(
+    () => [
+      {
+        name: t("uploadFromComputer"),
+        value: "my-computer",
+        icon: <Icon name="computer" color="currentColor" size={14} />,
+      },
+      {
+        name: t("fileLibrary"),
+        value: "file-library",
+        icon: <Icon name="storage" color="currentColor" size={14} />,
+      },
+    ],
+    [t],
+  );
+
   return (
     <Tabs
       orientation="vertical"
-      defaultValue={tabs[0].value}
+      defaultValue={tabItems[0].value}
       className="w-full grid grid-cols-1 md:grid-cols-5 items-start gap-4 justify-center"
     >
       <TabsList className="shrink-0 grid grid-cols-1 gap-1 p-0 bg-background">
-        {tabs.map((tab) => (
+        {tabItems.map((tab) => (
           <TabsTrigger
             key={tab.value}
             value={tab.value}
@@ -527,9 +537,9 @@ const MenuTab = React.memo(function MenuTab({
       </TabsList>
 
       <div className="flex flex-col items-center justify-center w-full border rounded-md font-medium text-muted-foreground col-span-4">
-        {tabs.map((tab) => (
+        {tabItems.map((tab) => (
           <TabsContent key={tab.value} value={tab.value} className="w-full">
-            {tab.name === "my-computer" ? (
+            {tab.value === "my-computer" ? (
               <div className="space-y-4">
                 <DragnDrop
                   files={uploadedFiles.map((f) => f.file)}
@@ -539,7 +549,7 @@ const MenuTab = React.memo(function MenuTab({
                 {uploadedFiles.length > 0 && (
                   <div className="space-y-4">
                     <h3 className="font-medium text-sm">
-                      Selected Files ({uploadedFiles.length})
+                      {t("selectedFiles", { count: uploadedFiles.length })}
                     </h3>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                       {uploadedFiles.map((uploadedFile, index) => (
@@ -563,7 +573,7 @@ const MenuTab = React.memo(function MenuTab({
                 {uploadedFiles.length > 0 && (
                   <div className="space-y-4">
                     <h3 className="font-medium text-sm">
-                      Selected Files ({uploadedFiles.length})
+                      {t("selectedFiles", { count: uploadedFiles.length })}
                     </h3>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                       {uploadedFiles.map((uploadedFile, index) => (
@@ -590,6 +600,8 @@ const UploadDocumentModal = React.memo(function UploadDocumentModal({
 }: {
   userId: number;
 }) {
+  const t = useTranslations("employee");
+  const tCommon = useTranslations("common");
   const [open, setOpen] = React.useState(false);
   const [uploadedFiles, setUploadedFiles] = React.useState<UploadedFile[]>([]);
   const queryClient = useQueryClient();
@@ -619,7 +631,7 @@ const UploadDocumentModal = React.memo(function UploadDocumentModal({
             : f,
         ),
       );
-      toast.error(`Failed to upload ${file.name}: ${error.message}`);
+      toast.error(t("fileUploadFailed", { name: file.name, message: error.message }));
     },
   });
 
@@ -629,9 +641,7 @@ const UploadDocumentModal = React.memo(function UploadDocumentModal({
       const validFiles = uploadedFiles.filter((f) => f.path && !f.error);
 
       if (validFiles.length === 0) {
-        throw new Error(
-          "No files are ready for upload. Please wait for file uploads to complete or fix any errors.",
-        );
+        throw new Error(t("noFilesReadyUpload"));
       }
 
       const attachments = validFiles.map((f) => ({
@@ -645,13 +655,13 @@ const UploadDocumentModal = React.memo(function UploadDocumentModal({
       });
     },
     onSuccess: () => {
-      toast.success("Documents created successfully!");
+      toast.success(t("documentsCreatedSuccess"));
       queryClient.invalidateQueries({ queryKey: ["document-employee"] });
       setOpen(false);
       setUploadedFiles([]);
     },
     onError: (error) => {
-      toast.error(`Failed to create documents: ${error.message}`);
+      toast.error(t("documentsCreateFailed", { message: error.message }));
     },
   });
 
@@ -681,12 +691,12 @@ const UploadDocumentModal = React.memo(function UploadDocumentModal({
     const hasErrors = uploadedFiles.some((f) => f.error);
 
     if (hasUploadingFiles) {
-      toast.warning("Please wait for all files to finish uploading");
+      toast.warning(t("waitFilesUploading"));
       return;
     }
 
     if (hasErrors) {
-      toast.error("Please resolve upload errors before proceeding");
+      toast.error(t("resolveUploadErrors"));
       return;
     }
 
@@ -700,11 +710,11 @@ const UploadDocumentModal = React.memo(function UploadDocumentModal({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>+ Upload Document</Button>
+        <Button>{t("uploadDocumentButton")}</Button>
       </DialogTrigger>
       <DialogContent className="bg-white md:min-w-5xl overflow-y-scroll max-h-[90vh]">
         <DialogHeader>
-          <DialogTitle>Upload Document</DialogTitle>
+          <DialogTitle>{t("uploadDocument")}</DialogTitle>
         </DialogHeader>
 
         <MenuTab
@@ -723,21 +733,21 @@ const UploadDocumentModal = React.memo(function UploadDocumentModal({
             }}
             disabled={isCreating || isUploading}
           >
-            Cancel
+            {tCommon("cancel")}
           </Button>
           <Button type="button" onClick={handleUpload} disabled={!canUpload}>
             {isCreating ? (
               <>
                 <RefreshCw className="h-4 w-4 animate-spin mr-2" />
-                Creating Documents...
+                {t("creatingDocuments")}
               </>
             ) : isUploading ? (
               <>
                 <RefreshCw className="h-4 w-4 animate-spin mr-2" />
-                Uploading Files...
+                {t("uploadingFiles")}
               </>
             ) : (
-              "Create Documents"
+              t("createDocuments")
             )}
           </Button>
         </DialogFooter>
@@ -749,6 +759,7 @@ const UploadDocumentModal = React.memo(function UploadDocumentModal({
 export const DocumentDetail = React.memo(function DocumentDetail({
   userId,
 }: Props) {
+  const t = useTranslations("employee");
   const {
     data: documents,
     isLoading,
@@ -764,7 +775,7 @@ export const DocumentDetail = React.memo(function DocumentDetail({
   return (
     <div className="flex flex-col w-full gap-2 p-2">
       <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-        <h1 className="font-semibold text-lg">Employee Document</h1>
+        <h1 className="font-semibold text-lg">{t("employeeDocument")}</h1>
         <UploadDocumentModal userId={userId} />
       </div>
 
@@ -778,11 +789,10 @@ export const DocumentDetail = React.memo(function DocumentDetail({
             </div>
             <div className="space-y-2">
               <h3 className="font-semibold text-lg text-gray-900">
-                No Documents Found
+                {t("noDocumentsFound")}
               </h3>
               <p className="text-sm text-text-secondary">
-                This employee doesn&apos;t have any documents uploaded yet.
-                Start by uploading their first document.
+                {t("noDocumentsDesc")}
               </p>
             </div>
             <UploadDocumentModal userId={userId} />

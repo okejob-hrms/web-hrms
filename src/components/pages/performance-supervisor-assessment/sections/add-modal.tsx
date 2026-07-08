@@ -8,6 +8,7 @@ import {
 import { Form } from "@/components/ui/form";
 import { SelectEmployeeForm, SelectForm } from "@/components/ui/select-form";
 import React from "react";
+import { useTranslations } from "next-intl";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { MultiSelectForm } from "@/components/ui/multi-select";
 import { ISupervisorAssessmentMutation } from "@/services/performances/supervisor-assessment/types";
@@ -77,6 +78,7 @@ const SupervisorAssessmentFormModal: React.FC<
   isSubmitting,
   assessorsOptions,
 }) => {
+  const t = useTranslations("performance");
   const form = useForm<AssessmentFormData>();
 
   const handleFormSubmit: SubmitHandler<AssessmentFormData> = (data) => {
@@ -132,7 +134,7 @@ const SupervisorAssessmentFormModal: React.FC<
                 options={assessorsOptions}
                 name="assessors"
                 maxCount={3}
-                searchPlaceholder="Search Assessor"
+                searchPlaceholder={t("searchAssessor")}
                 hideSelectAll
                 disabled={isLoadingEmployees}
                 valueTransformer={(value: string) => Number(value)}

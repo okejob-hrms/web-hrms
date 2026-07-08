@@ -12,12 +12,18 @@ import { IKPI, IMutateKPIRequest } from "@/services/performances/kpi/types";
 import { getJobPosition } from "@/services/job-position";
 import { getJobLevels } from "@/services/job-levels";
 import { toast } from "sonner";
+import { useLocale, useTranslations } from "next-intl";
+import { resolveLocale, toIntlLocale } from "@/lib/i18n/locale";
 import { ApiErrorResponse } from "@/lib/types";
 import { useFormContext } from "react-hook-form";
 
 export const useKPIs = () => {
   const queryClient = useQueryClient();
   const form = useFormContext();
+  const t = useTranslations("performance");
+  const tStatus = useTranslations("status");
+  const locale = resolveLocale(useLocale());
+  const intlLocale = toIntlLocale(locale);
   const [openForm, setOpenForm] = React.useState(false);
   const [openDetail, setOpenDetail] = React.useState(false);
   const [openDelete, setOpenDelete] = React.useState(false);
@@ -65,7 +71,7 @@ export const useKPIs = () => {
   const deleteMutation = useMutation({
     mutationFn: (id: number) => deleteKPI(id),
     onSuccess: () => {
-      toast.success("Delete KPI successfully!");
+      toast.success(t("deleteKpiSuccess"));
       queryClient.invalidateQueries({ queryKey: ["kpis"] });
       setOpenDelete(false);
       setDeleteKpiId(null);
@@ -86,17 +92,17 @@ export const useKPIs = () => {
                   },
                 );
               }
-              toast.error(errorData.message || "Failed to delete KPI");
+              toast.error(errorData.message || t("deleteKpiFailed"));
             })
             .catch(() => {
-              toast.error("Failed to delete KPI: Server error");
+              toast.error(`${t("deleteKpiFailed")}: ${t("kpiServerError")}`);
             });
-        } catch (parseError) {
-          toast.error("Failed to delete KPI: Server error");
+        } catch {
+          toast.error(`${t("deleteKpiFailed")}: ${t("kpiServerError")}`);
         }
       } else {
         toast.error(
-          `Failed to delete KPI: ${error.message || "Unknown error"}`,
+          `${t("deleteKpiFailed")}: ${error.message || tStatus("unknown")}`,
         );
       }
     },
@@ -105,7 +111,7 @@ export const useKPIs = () => {
   const addKPIMutation = useMutation({
     mutationFn: postAddKPI,
     onSuccess: () => {
-      toast.success("Add new KPI successfully!");
+      toast.success(t("addKpiSuccess"));
       queryClient.invalidateQueries({ queryKey: ["kpis"] });
       setOpenForm(false);
     },
@@ -125,16 +131,18 @@ export const useKPIs = () => {
                   },
                 );
               }
-              toast.error(errorData.message || "Failed to add KPI");
+              toast.error(errorData.message || t("addKpiFailed"));
             })
             .catch(() => {
-              toast.error("Failed to add KPI: Server error");
+              toast.error(`${t("addKpiFailed")}: ${t("kpiServerError")}`);
             });
-        } catch (parseError) {
-          toast.error("Failed to add KPI: Server error");
+        } catch {
+          toast.error(`${t("addKpiFailed")}: ${t("kpiServerError")}`);
         }
       } else {
-        toast.error(`Failed to add KPI: ${error.message || "Unknown error"}`);
+        toast.error(
+          `${t("addKpiFailed")}: ${error.message || tStatus("unknown")}`,
+        );
       }
     },
   });
@@ -143,7 +151,7 @@ export const useKPIs = () => {
     mutationFn: ({ params, id }: { params: IMutateKPIRequest; id: number }) =>
       updateKPI(params, id),
     onSuccess: () => {
-      toast.success("Update KPI successfully!");
+      toast.success(t("updateKpiSuccess"));
       queryClient.invalidateQueries({ queryKey: ["kpis"] });
       setOpenForm(false);
       setEditKpiId(null);
@@ -164,17 +172,17 @@ export const useKPIs = () => {
                   },
                 );
               }
-              toast.error(errorData.message || "Failed to update KPI");
+              toast.error(errorData.message || t("updateKpiFailed"));
             })
             .catch(() => {
-              toast.error("Failed to update KPI: Server error");
+              toast.error(`${t("updateKpiFailed")}: ${t("kpiServerError")}`);
             });
-        } catch (parseError) {
-          toast.error("Failed to update KPI: Server error");
+        } catch {
+          toast.error(`${t("updateKpiFailed")}: ${t("kpiServerError")}`);
         }
       } else {
         toast.error(
-          `Failed to update KPI: ${error.message || "Unknown error"}`,
+          `${t("updateKpiFailed")}: ${error.message || tStatus("unknown")}`,
         );
       }
     },
@@ -249,84 +257,105 @@ export const useKPIs = () => {
     return [];
   }, [jobLevels?.data]);
 
-  const frequencyOptions = [
-    { label: "Not Set", value: "0" },
-    { label: "Daily", value: "1" },
-    { label: "Weekly", value: "2" },
-    { label: "Monthly", value: "3" },
-    { label: "Quarterly", value: "4" },
-    { label: "Yearly", value: "5" },
-  ];
+  const frequencyOptions = React.useMemo(
+    () => [
+      { label: t("freqNotSet"), value: "0" },
+      { label: t("freqDaily"), value: "1" },
+      { label: t("freqWeekly"), value: "2" },
+      { label: t("freqMonthly"), value: "3" },
+      { label: t("freqQuarterly"), value: "4" },
+      { label: t("freqYearly"), value: "5" },
+    ],
+    [t],
+  );
 
-  const formatOptions = [
-    { label: "Number", value: "0" },
-    { label: "Number Decimal", value: "1" },
-    { label: "Percent", value: "2" },
-    { label: "Percent Decimal", value: "3" },
-    { label: "Currency IDR", value: "4" },
-    { label: "Time Seconds", value: "5" },
-    { label: "Time Minutes", value: "6" },
-    { label: "Time Hours", value: "7" },
-    { label: "Time Days", value: "8" },
-    { label: "Time Months", value: "9" },
-    { label: "Time Years", value: "10" },
-  ];
+  const formatOptions = React.useMemo(
+    () => [
+      { label: t("formatNumber"), value: "0" },
+      { label: t("formatNumberDecimal"), value: "1" },
+      { label: t("formatPercent"), value: "2" },
+      { label: t("formatPercentDecimal"), value: "3" },
+      { label: t("formatCurrencyIdr"), value: "4" },
+      { label: t("formatTimeSeconds"), value: "5" },
+      { label: t("formatTimeMinutes"), value: "6" },
+      { label: t("formatTimeHours"), value: "7" },
+      { label: t("formatTimeDays"), value: "8" },
+      { label: t("formatTimeMonths"), value: "9" },
+      { label: t("formatTimeYears"), value: "10" },
+    ],
+    [t],
+  );
 
-  const aggregationOptions = [
-    { label: "None", value: "0" },
-    { label: "Sum", value: "1" },
-    { label: "Average", value: "2" },
-  ];
+  const aggregationOptions = React.useMemo(
+    () => [
+      { label: t("aggNone"), value: "0" },
+      { label: t("aggSum"), value: "1" },
+      { label: t("aggAverage"), value: "2" },
+    ],
+    [t],
+  );
 
-  const directionOptions = [
-    { label: "None", value: "0" },
-    { label: "Up", value: "1" },
-    { label: "Down", value: "2" },
-  ];
+  const directionOptions = React.useMemo(
+    () => [
+      { label: t("dirNone"), value: "0" },
+      { label: t("dirUp"), value: "1" },
+      { label: t("dirDown"), value: "2" },
+    ],
+    [t],
+  );
 
-  const getFrequencyLabel = (frequency: number): string => {
-    const labels = {
-      0: "Not Set",
-      1: "Daily",
-      2: "Weekly",
-      3: "Monthly",
-      4: "Quarterly",
-      5: "Yearly",
-    };
-    return labels[frequency as keyof typeof labels] || "Unknown";
-  };
+  const getFrequencyLabel = React.useCallback(
+    (frequency: number): string => {
+      const labels: Record<number, string> = {
+        0: t("freqNotSet"),
+        1: t("freqDaily"),
+        2: t("freqWeekly"),
+        3: t("freqMonthly"),
+        4: t("freqQuarterly"),
+        5: t("freqYearly"),
+      };
+      return labels[frequency] ?? tStatus("unknown");
+    },
+    [t, tStatus],
+  );
 
-  const getDirectionLabel = (direction: number): string => {
-    const labels = {
-      0: "None",
-      1: "Up",
-      2: "Down",
-    };
-    return labels[direction as keyof typeof labels] || "Unknown";
-  };
+  const getDirectionLabel = React.useCallback(
+    (direction: number): string => {
+      const labels: Record<number, string> = {
+        0: t("dirNone"),
+        1: t("dirUp"),
+        2: t("dirDown"),
+      };
+      return labels[direction] ?? tStatus("unknown");
+    },
+    [t, tStatus],
+  );
 
-  const formatTarget = (target: number, format: number): string => {
-    const formats = {
-      0: (val: number) => val.toLocaleString("id-ID"), // Number (1,234)
-      1: (val: number) =>
-        val.toLocaleString("id-ID", {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        }), // Number Decimal (1,234.56)
-      2: (val: number) => `${val}%`, // Percent (12%)
-      3: (val: number) => `${val.toFixed(2)}%`, // Percent Decimal (12.34%)
-      4: (val: number) => `Rp ${val.toLocaleString("id-ID")}`, // Currency IDR
-      5: (val: number) => `${val} secs`, // Time Seconds
-      6: (val: number) => `${val} mins`, // Time Minutes
-      7: (val: number) => `${val} hrs`, // Time Hours
-      8: (val: number) => `${val} days`, // Time Days
-      9: (val: number) => `${val} mths`, // Time Months
-      10: (val: number) => `${val} yrs`, // Time Years
-    };
+  const formatTarget = React.useCallback(
+    (target: number, format: number): string => {
+      const formats: Record<number, (val: number) => string> = {
+        0: (val) => val.toLocaleString(intlLocale),
+        1: (val) =>
+          val.toLocaleString(intlLocale, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          }),
+        2: (val) => `${val}%`,
+        3: (val) => `${val.toFixed(2)}%`,
+        4: (val) => `Rp ${val.toLocaleString(intlLocale)}`,
+        5: (val) => t("timeSecs", { value: val }),
+        6: (val) => t("timeMins", { value: val }),
+        7: (val) => t("timeHrs", { value: val }),
+        8: (val) => t("timeDays", { value: val }),
+        9: (val) => t("timeMths", { value: val }),
+        10: (val) => t("timeYrs", { value: val }),
+      };
 
-    const formatter = formats[format as keyof typeof formats];
-    return formatter ? formatter(target) : target.toString();
-  };
+      const formatter = formats[format];
+      return formatter ? formatter(target) : target.toString();
+    },
+    [intlLocale, t],
+  );
 
   return {
     data: kpiData?.data,

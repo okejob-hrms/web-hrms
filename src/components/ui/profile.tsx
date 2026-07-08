@@ -7,6 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { cn } from '@/lib/utils';
 import { Button } from './button';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 
 interface Props {
   className?: string;
@@ -17,6 +18,7 @@ interface Props {
 
 const Profile = React.memo(function Profile({ className, user }: Props) {
   const router = useRouter();
+  const t = useTranslations('auth');
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -50,7 +52,7 @@ const Profile = React.memo(function Profile({ className, user }: Props) {
             onClick={handleLogout}
           >
             <LogOut className="mr-2 h-4 w-4" />
-            Logout
+            {t('logout')}
           </Button>
         </PopoverContent>
       </Popover>

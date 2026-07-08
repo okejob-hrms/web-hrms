@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import {
   Dialog,
@@ -10,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Trash2 } from 'lucide-react';
 import { AdditionalItem } from '@/services/payroll/types';
+import { useTranslations } from 'next-intl';
 
 interface AdditionalModalProps {
   open: boolean;
@@ -26,7 +29,9 @@ export default function AdditionalModal({
   setData,
   onSave,
 }: AdditionalModalProps) {
-  // ADD
+  const t = useTranslations('payroll');
+  const tCommon = useTranslations('common');
+
   const handleAdd = () => {
     setData([
       ...data,
@@ -37,7 +42,6 @@ export default function AdditionalModal({
     ]);
   };
 
-  // CHANGE (by index)
   const handleChange = (
     index: number,
     key: 'allowance_type_id' | 'amount' | 'name',
@@ -51,7 +55,6 @@ export default function AdditionalModal({
     );
   };
 
-  // REMOVE (by index)
   const handleRemove = (index: number) => {
     setData(data.filter((_, i) => i !== index));
   };
@@ -62,29 +65,26 @@ export default function AdditionalModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-xl p-6 rounded-2xl bg-white">
         <DialogHeader>
-          <DialogTitle>Additional Earnings</DialogTitle>
+          <DialogTitle>{t('additionalEarnings')}</DialogTitle>
         </DialogHeader>
 
-        {/* List */}
         <div className="space-y-4">
           {data.map((item, index) => (
             <div key={index} className="grid grid-cols-12 gap-3 items-end">
-              {/* Name */}
               <div className="col-span-5">
                 <label className="text-sm font-medium mb-1 block">
-                  Additional Name
+                  {t('additionalName')}
                 </label>
                 <Input
                   value={item.name}
                   onChange={(e) => handleChange(index, 'name', e.target.value)}
-                  placeholder="Enter additional name"
+                  placeholder={t('enterAdditionalName')}
                 />
               </div>
 
-              {/* Value */}
               <div className="col-span-5">
                 <label className="text-sm font-medium mb-1 block">
-                  Additional Amount
+                  {t('additionalAmount')}
                 </label>
                 <Input
                   type="number"
@@ -96,7 +96,6 @@ export default function AdditionalModal({
                 />
               </div>
 
-              {/* Delete */}
               <div className="col-span-1 flex justify-center pb-1">
                 <Button
                   variant="outline"
@@ -109,25 +108,23 @@ export default function AdditionalModal({
               </div>
             </div>
           ))}
-          {/* Add */}
           <Button
             variant="outline"
             className="border-0"
             onClick={handleAdd}
             type="button"
           >
-            + Add Earnings
+            {t('addEarnings')}
           </Button>
         </div>
 
-        {/* Footer */}
         <DialogFooter className="mt-6 flex justify-between items-center w-full">
           <div className="flex gap-3">
             <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              {tCommon('cancel')}
             </Button>
             <Button onClick={onSave} disabled={isInvalid}>
-              Save
+              {tCommon('save')}
             </Button>
           </div>
         </DialogFooter>

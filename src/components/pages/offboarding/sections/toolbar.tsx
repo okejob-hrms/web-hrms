@@ -14,6 +14,7 @@ import { getDepartment } from "@/services/department";
 import { getJobPosition } from "@/services/job-position";
 import { useForm, useWatch } from "react-hook-form";
 import { Form } from "@/components/ui/form";
+import { useTranslations } from "next-intl";
 
 interface ToolbarProps {
   onFiltersChange: (filters: Filters) => void;
@@ -22,6 +23,8 @@ interface ToolbarProps {
 export const Toolbar = React.memo(function Toolbar({
   onFiltersChange,
 }: ToolbarProps) {
+  const t = useTranslations("employee");
+  const tCommon = useTranslations("common");
   const initValues = {
     department_id: 0,
     job_position_id: 0,
@@ -150,33 +153,33 @@ export const Toolbar = React.memo(function Toolbar({
         <div className="flex flex-col md:flex-row md:items-end gap-2 md:h-10">
           <InputForm
             name="search"
-            placeholder="Search by Employee Name or ID"
+            placeholder={t("searchEmployeeNameOrId")}
             icon={<Search className="size-5 text-grayscale-20" />}
             iconPosition="right"
             onKeyDown={handleSearchKeyPress}
           />
           <Separator orientation="vertical" />
           <div className="flex flex-col gap-2">
-            <label className="text-sm text-text-secondary">Position</label>
+            <label className="text-sm text-text-secondary">{tCommon("position")}</label>
             <MultiSelectForm
-              placeholder="All Position"
+              placeholder={t("allPosition")}
               options={positionOptions}
               name="job_position_id"
               maxCount={1}
-              searchPlaceholder="Search Position"
-              allSelectLabel="All Position"
+              searchPlaceholder={t("searchPosition")}
+              allSelectLabel={t("allPosition")}
             />
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="text-sm text-text-secondary">Department</label>
+            <label className="text-sm text-text-secondary">{tCommon("department")}</label>
             <MultiSelectForm
-              placeholder="All Department"
+              placeholder={t("allDepartment")}
               options={departmentOptions}
               name="department_id"
               maxCount={1}
-              searchPlaceholder="Search Department"
-              allSelectLabel="All Department"
+              searchPlaceholder={t("searchDepartment")}
+              allSelectLabel={t("allDepartment")}
             />
           </div>
           <Button
@@ -185,7 +188,7 @@ export const Toolbar = React.memo(function Toolbar({
             type="button"
             onClick={() => setIsAdvanced(true)}
           >
-            <Settings /> Advanced Search
+            <Settings /> {t("advancedSearch")}
           </Button>
         </div>
       </form>
