@@ -866,6 +866,7 @@
     "selectLocation": "Select Location",
     "saveLocation": "Save Location",
     "employeeRequired": "Employee is required",
+    "attendanceDateRequired": "Attendance date is required",
     "shiftRequired": "Shift is required",
     "clockInRequired": "Clock-in time is required",
     "clockOutRequired": "Clock-out time is required",

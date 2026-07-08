@@ -866,6 +866,7 @@
     "selectLocation": "Pilih Lokasi",
     "saveLocation": "Simpan Lokasi",
     "employeeRequired": "Karyawan wajib dipilih",
+    "attendanceDateRequired": "Tanggal kehadiran wajib diisi",
     "shiftRequired": "Shift wajib dipilih",
     "clockInRequired": "Waktu jam masuk wajib diisi",
     "clockOutRequired": "Waktu jam keluar wajib diisi",

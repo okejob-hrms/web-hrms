@@ -96,6 +96,14 @@ function routeFromMdxFile(filePath) {
   return `/docs/${segments.join('/')}`
 }
 
+// Docs routes are shaped like /docs/{locale}/..., so the locale is the first
+// segment after "docs". Pagefind buckets pages into per-language indexes based
+// on the <html lang> attribute, so this must reflect the page's real locale.
+function localeFromRoute(route) {
+  const segments = route.split('/').filter(Boolean)
+  return segments[1] || 'en'
+}
+
 function htmlOutputPath(route) {
   const relative = route.replace(/^\//, '')
   const dir = path.dirname(relative)
@@ -107,11 +115,12 @@ function writeHtmlPage(route, source) {
   const titleMatch = source.match(/^#\s+(.+)$/m)
   const title = titleMatch?.[1]?.replace(/\*\*([^*]+)\*\*/g, '$1') ?? 'Documentation'
   const body = mdxToHtmlBody(source)
+  const lang = localeFromRoute(route)
   const outPath = htmlOutputPath(route)
   fs.mkdirSync(path.dirname(outPath), { recursive: true })
 
   const html = `<!DOCTYPE html>
-<html lang="en">
+<html lang="${lang}">
 <head>
   <meta charset="utf-8" />
   <title>${escapeHtml(title)}</title>
@@ -153,11 +162,17 @@ function main() {
   const entry = JSON.parse(
     fs.readFileSync(path.join(OUTPUT_DIR, 'pagefind-entry.json'), 'utf8'),
   )
-  const pages = Object.values(entry.languages ?? {}).reduce(
+  const languages = entry.languages ?? {}
+  const pages = Object.values(languages).reduce(
     (sum, lang) => sum + (lang.page_count ?? 0),
     0,
   )
-  console.log(`Pagefind index ready at public/_pagefind (${pages} pages)`)
+  const perLanguage = Object.entries(languages)
+    .map(([code, lang]) => `${code}=${lang.page_count ?? 0}`)
+    .join(', ')
+  console.log(
+    `Pagefind index ready at public/_pagefind (${pages} pages across ${Object.keys(languages).length} languages: ${perLanguage})`,
+  )
 
   if (pages < 10) {
     console.error('Expected many doc pages in the index; check MDX paths.')
