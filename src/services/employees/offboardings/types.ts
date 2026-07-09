@@ -17,6 +17,7 @@ export type IMutateOffboardingRequests = z.infer<
 export interface IOffboardingResponse {
   id: number;
   user_id: number;
+  code: string | null;
   user_name: string;
   job_position_id: number | null;
   job_position: string | null;

@@ -83,7 +83,7 @@ export const usePerformanceSelfAssessmentForm = () => {
 
   const { data: assessmentForm } = useQuery({
     queryKey: ["assessment-form"],
-    queryFn: getAllForm,
+    queryFn: () => getAllForm(),
   });
 
   const [isParticipantModalOpen, setIsParticipantModalOpen] =

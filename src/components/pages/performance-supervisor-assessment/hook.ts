@@ -112,7 +112,7 @@ export function useSupervisorAssessment() {
     error: formsError,
   } = useQuery({
     queryKey: ["forms"],
-    queryFn: getAllForm,
+    queryFn: () => getAllForm(),
     enabled: openFormModal,
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,

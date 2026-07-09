@@ -6,7 +6,7 @@ import { useTranslations, useLocale } from "next-intl";
 import { DataTable } from "@/components/tables/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { ArrowUp, ArrowDown, ChevronsUpDown, Ellipsis } from "lucide-react";
+import { ArrowUp, ArrowDown, ChevronsUpDown, Ellipsis, Search } from "lucide-react";
 import { formatDateTime } from "@/lib/formatting";
 import { resolveLocale } from "@/lib/i18n/locale";
 import {
@@ -21,6 +21,7 @@ import { useFormTemplateList } from "./hook";
 import { IFormTemplate } from "@/services/form/types";
 import FormDeleteModal from "./sections/delete-modal";
 import { FormAddModal } from "./sections/add-modal";
+import { Input } from "@/components/ui/input";
 
 export default function FormTemplateList() {
   const t = useTranslations("settings");
@@ -28,6 +29,12 @@ export default function FormTemplateList() {
   const locale = resolveLocale(useLocale());
   const {
     forms,
+    apiPagination,
+    loading,
+    pagination,
+    setPagination,
+    filters,
+    handleFiltersChange,
     handleNew,
     openDelete,
     setOpenDelete,
@@ -167,7 +174,24 @@ export default function FormTemplateList() {
               {t("newForm")}
             </Button>
           </div>
-          <DataTable columns={columns} data={forms} customSize={!isMobile} />
+          <div className="relative w-full sm:max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
+            <Input
+              placeholder={t("searchForm")}
+              className="pl-9"
+              value={filters.search}
+              onChange={(e) => handleFiltersChange({ search: e.target.value })}
+            />
+          </div>
+          <DataTable
+            columns={columns}
+            data={forms}
+            customSize={!isMobile}
+            loading={loading}
+            apiPagination={apiPagination}
+            paginationState={pagination}
+            setPaginationState={setPagination}
+          />
         </div>
       </div>
       <FormDeleteModal

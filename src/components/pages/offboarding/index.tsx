@@ -65,7 +65,9 @@ export default function EmployeeOffboardingList({
               <span className="font-semibold text-foreground text-sm">
                 {row.original.user_name}
               </span>
-              <span className="text-text-secondary">{row.original.id}</span>
+              <span className="text-text-secondary">
+                {row.original.code || "-"}
+              </span>
             </div>
           </div>
         ),

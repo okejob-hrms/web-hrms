@@ -351,7 +351,7 @@ export function usePayrollDetail() {
 
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;row-gap:8px;margin-bottom:24px;">
           <div><p style="font-size:12px;margin-bottom:0px">Payroll Period</p><p style="font-weight:600;font-size: 14px; margin-bottom:0px;">${payrun.period_label}</p></div>
-          <div><p style="font-size:12px;margin-bottom:0px;">Employee Name/ID</p><p style="font-weight:600;font-size: 14px; margin-bottom:0px;">${payslip.employee.name}/${payslip.employee.id}</p></div>
+          <div><p style="font-size:12px;margin-bottom:0px;">Employee Name/ID</p><p style="font-weight:600;font-size: 14px; margin-bottom:0px;">${payslip.employee.name}/${payslip.employee.code ?? payslip.employee.id}</p></div>
           <div><p style="font-size:12px;margin-bottom:0px;">Position</p><p style="font-weight:600;font-size: 14px; margin-bottom:0px;">${payslip.employee.job_title}</p></div>
           <div><p style="font-size:12px;margin-bottom:0px;">Job Level</p><p style="font-weight:600;font-size: 14px; margin-bottom:0px;">${payslip.employee.job_level}</p></div>
           <div><p style="font-size:12px;margin-bottom:0px;">Department</p><p style="font-weight:600;font-size: 14px; margin-bottom:0px;">${payslip.employee.department}</p></div>

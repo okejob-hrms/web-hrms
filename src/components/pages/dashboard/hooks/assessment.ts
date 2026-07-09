@@ -26,7 +26,7 @@ export function useDashboarAssessment() {
     isLoading: loadingForm
   } = useQuery({
     queryKey: ["forms"],
-    queryFn: getAllForm,
+    queryFn: () => getAllForm(),
   });
 
   const {
