@@ -186,7 +186,7 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
         personal_description: employeeDetails.personal_description || "",
         photo_profile: employeeDetails.photo_profile || "",
         branch_id: employeeDetails.branch?.id.toString() || "",
-        role_id: employeeDetails.employment?.job_level_id?.toString() || "",
+        role_id: employeeDetails.user?.role_id?.toString() || "",
         job_position_id:
           employeeDetails.employment?.job_position_id?.toString() || "",
         department_id:
