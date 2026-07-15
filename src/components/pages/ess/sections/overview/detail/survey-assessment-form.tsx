@@ -17,21 +17,26 @@ import {
 } from "@/services/employees/self-assessment/types";
 import { useQueryClient } from "@tanstack/react-query";
 
+export type SurveyAssessmentFormMode = "submit" | "validate" | "readonly";
+
 interface SurveyAssessmentFormProps {
   fields: IFieldResponse[];
   onSubmit?: (data: IMutateEmployeeSelfAssessmentRequest) => void;
   isSubmitting?: boolean;
   initialData?: IAssessmentSubmission;
+  mode?: SurveyAssessmentFormMode;
 }
 
 const RadioCardField = ({
   field,
   min = 1,
   max = 5,
+  disabled = false,
 }: {
   field: any;
   min?: number;
   max?: number;
+  disabled?: boolean;
 }) => {
   const options = Array.from({ length: max - min + 1 }, (_, i) => ({
     value: (min + i).toString(),
@@ -43,16 +48,19 @@ const RadioCardField = ({
       <RadioGroupPrimitive.Root
         className="w-full grid grid-cols-5 gap-3"
         value={field.value}
-        onValueChange={field.onChange}
+        onValueChange={disabled ? undefined : field.onChange}
+        disabled={disabled}
       >
         {options.map((option) => (
           <RadioGroupPrimitive.Item
             key={option.value}
             value={option.value}
+            disabled={disabled}
             className={cn(
-              "ring-[1px] ring-border rounded py-1 px-3 focus:outline-none cursor-pointer text-text-disabled",
+              "ring-[1px] ring-border rounded py-1 px-3 focus:outline-none text-text-disabled",
+              disabled ? "cursor-default opacity-90" : "cursor-pointer",
               "data-[state=checked]:ring-primary data-[state=checked]:bg-primary data-[state=checked]:text-white",
-              "hover:bg-gray-50 transition-colors",
+              !disabled && "hover:bg-gray-50 transition-colors",
             )}
           >
             <span className="text-sm font-medium">{option.label}</span>
@@ -64,7 +72,13 @@ const RadioCardField = ({
   );
 };
 
-const SurveyFormFieldRenderer = ({ field }: { field: IFieldResponse }) => {
+const SurveyFormFieldRenderer = ({
+  field,
+  readOnly,
+}: {
+  field: IFieldResponse;
+  readOnly: boolean;
+}) => {
   const { control } = useFormContext();
   const t = useTranslations("performance");
   const fieldName = field.id.toString();
@@ -72,7 +86,8 @@ const SurveyFormFieldRenderer = ({ field }: { field: IFieldResponse }) => {
   const commonProps = {
     name: fieldName,
     label: field.label,
-    required: field.is_required,
+    required: field.is_required && !readOnly,
+    disabled: readOnly,
   };
 
   switch (field.type) {
@@ -82,7 +97,9 @@ const SurveyFormFieldRenderer = ({ field }: { field: IFieldResponse }) => {
           <div className="space-y-4">
             <div className="font-medium text-sm">
               {field.label}
-              {field.is_required && <span className="text-destructive">*</span>}
+              {field.is_required && !readOnly && (
+                <span className="text-destructive">*</span>
+              )}
             </div>
             {field.description && (
               <p className="text-sm text-gray-500">{field.description}</p>
@@ -93,6 +110,7 @@ const SurveyFormFieldRenderer = ({ field }: { field: IFieldResponse }) => {
                   key={option}
                   name={`${fieldName}.${option}`}
                   label={option}
+                  disabled={readOnly}
                 />
               ))}
             </div>
@@ -110,7 +128,7 @@ const SurveyFormFieldRenderer = ({ field }: { field: IFieldResponse }) => {
         />
       );
 
-    case "range":
+    case "range": {
       const min = field.options?.min || 1;
       const max = field.options?.max || 5;
 
@@ -119,24 +137,30 @@ const SurveyFormFieldRenderer = ({ field }: { field: IFieldResponse }) => {
           control={control}
           name={fieldName}
           rules={{
-            required: field.is_required ? t("fieldRequired") : false,
+            required: field.is_required && !readOnly ? t("fieldRequired") : false,
           }}
           render={({ field: formField }) => (
             <div className="space-y-2">
               <div className="font-medium text-sm">
                 {field.label}
-                {field.is_required && (
+                {field.is_required && !readOnly && (
                   <span className="text-destructive">*</span>
                 )}
               </div>
               {field.description && (
                 <p className="text-sm text-gray-500">{field.description}</p>
               )}
-              <RadioCardField field={formField} min={min} max={max} />
+              <RadioCardField
+                field={formField}
+                min={min}
+                max={max}
+                disabled={readOnly}
+              />
             </div>
           )}
         />
       );
+    }
 
     case "text":
     default:
@@ -145,6 +169,7 @@ const SurveyFormFieldRenderer = ({ field }: { field: IFieldResponse }) => {
           {...commonProps}
           placeholder={t("typeHere")}
           labelClassName="font-medium"
+          disabled={readOnly}
         />
       );
   }
@@ -155,10 +180,13 @@ export const SurveyAssessmentForm: React.FC<SurveyAssessmentFormProps> = ({
   onSubmit,
   isSubmitting = false,
   initialData,
+  mode = "submit",
 }) => {
   const queryClient = useQueryClient();
   const t = useTranslations("performance");
   const tCommon = useTranslations("common");
+  const isReadOnly = mode === "readonly";
+  const isValidate = mode === "validate";
 
   const defaultValues = React.useMemo(() => {
     if (!initialData?.data?.fields) {
@@ -192,9 +220,7 @@ export const SurveyAssessmentForm: React.FC<SurveyAssessmentFormProps> = ({
   });
 
   React.useEffect(() => {
-    if (Object.keys(defaultValues).length > 0) {
-      form.reset(defaultValues);
-    }
+    form.reset(defaultValues);
   }, [defaultValues, form]);
 
   const handleFormSubmit = (status: number) => (data: any) => {
@@ -240,27 +266,35 @@ export const SurveyAssessmentForm: React.FC<SurveyAssessmentFormProps> = ({
       <form className="space-y-6">
         {sortedFields.map((field) => (
           <div key={field.id} className="p-4 border rounded-lg bg-white">
-            <SurveyFormFieldRenderer field={field} />
+            <SurveyFormFieldRenderer field={field} readOnly={isReadOnly} />
           </div>
         ))}
 
-        <div className="flex justify-end gap-2 pt-4">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={form.handleSubmit(handleFormSubmit(1))}
-            disabled={isSubmitting}
-          >
-            {t("saveDraft")}
-          </Button>
-          <Button
-            type="button"
-            onClick={form.handleSubmit(handleFormSubmit(2))}
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? tCommon("processing") : t("submitAssessment")}
-          </Button>
-        </div>
+        {!isReadOnly && (
+          <div className="flex justify-end gap-2 pt-4">
+            {!isValidate && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={form.handleSubmit(handleFormSubmit(1))}
+                disabled={isSubmitting}
+              >
+                {t("saveDraft")}
+              </Button>
+            )}
+            <Button
+              type="button"
+              onClick={form.handleSubmit(handleFormSubmit(2))}
+              disabled={isSubmitting}
+            >
+              {isSubmitting
+                ? tCommon("processing")
+                : isValidate
+                  ? t("submitValidation")
+                  : t("submitAssessment")}
+            </Button>
+          </div>
+        )}
       </form>
     </FormProvider>
   );

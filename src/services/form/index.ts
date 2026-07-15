@@ -25,9 +25,15 @@ export const getAllForm = async (
   try {
     const searchParams: Record<string, string> = {};
 
-    // Default large page size for dropdown option loads when callers omit pagination.
-    searchParams.page = String(params?.page ?? 1);
-    searchParams.per_page = String(params?.per_page ?? 10000);
+    // Only send pagination when the caller asks for it. Omitting page/per_page
+    // lets the API return the full list (needed for select/dropdown loads).
+    // Forced per_page defaults like 10000 are rejected (API max is 100).
+    if (params?.page !== undefined) {
+      searchParams.page = String(params.page);
+    }
+    if (params?.per_page !== undefined) {
+      searchParams.per_page = String(params.per_page);
+    }
     if (params?.search) {
       searchParams.search = params.search;
     }

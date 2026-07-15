@@ -17,6 +17,7 @@ import {
 import { toast } from "sonner";
 import { ApiErrorResponse } from "@/lib/types";
 import { useTranslations } from "next-intl";
+import dayjs from "dayjs";
 
 export interface Filters {
   search?: string;
@@ -243,65 +244,86 @@ export const usePerformanceSelfAssessmentForm = () => {
     });
 
   React.useEffect(() => {
-    if (isEditMode && details?.data && assessmentForm?.data) {
-      const assessment = details.data.assessment;
-      const employees = details.data.employees;
+    if (!isEditMode || !details?.data) return;
 
-      const formGroups = employees.reduce((acc: any, employee: any) => {
-        const formName = employee.form_name;
-        if (!acc[formName]) {
-          acc[formName] = {
-            formId: null,
-            participants: [],
-          };
-        }
-        acc[formName].participants.push(employee.id.toString());
-        return acc;
-      }, {});
+    const assessment = details.data.assessment;
+    const employees = details.data.employees ?? [];
 
-      const reconstructedForms = Object.entries(formGroups).map(
-        ([formName, data]: [string, any], index) => {
-          const matchingForm = assessmentForm.data.find(
-            (f) => f.name === formName,
-          );
-          const formId = matchingForm?.id.toString() || "";
+    const parseAssessmentDate = (value: string) => {
+      const parsed = dayjs(value);
+      return parsed.isValid() ? parsed.toDate() : undefined;
+    };
 
-          return {
-            id: `${index + 1}`,
-            formId,
-            selectedParticipants: data.participants,
-          };
-        },
-      );
-
-      if (reconstructedForms.length > 0) {
-        setAssessmentForms(reconstructedForms);
+    const formGroups = employees.reduce((acc: any, employee: any) => {
+      const formKey =
+        employee.form_id != null
+          ? `id:${employee.form_id}`
+          : `name:${employee.form_name ?? ""}`;
+      if (!acc[formKey]) {
+        acc[formKey] = {
+          formId:
+            employee.form_id != null ? employee.form_id.toString() : null,
+          formName: employee.form_name,
+          participants: [],
+        };
       }
-      const normalizedPeriod = assessment.assessment_period.toUpperCase();
-      const matchedPeriod = periodOptions.find(
-        (p) => p.value === normalizedPeriod,
-      );
+      const participantId = (
+        employee.user_id ?? employee.id
+      )?.toString();
+      if (participantId) {
+        acc[formKey].participants.push(participantId);
+      }
+      return acc;
+    }, {});
 
-      const formValues: Record<string, any> = {
-        period: matchedPeriod
-          ? matchedPeriod.value
-          : assessment.assessment_period,
-        year: assessment.year,
-        start_date: assessment.start_date,
-        end_date: assessment.end_date,
-      };
-
-      reconstructedForms.forEach((formItem, index) => {
-        if (formItem.formId) {
-          formValues[`assessment_form_${formItem.id}`] = formItem.formId;
+    const reconstructedForms = Object.values(formGroups).map(
+      (data: any, index) => {
+        let formId = data.formId || "";
+        if (!formId && assessmentForm?.data && data.formName) {
+          const matchingForm = assessmentForm.data.find(
+            (f) => f.name === data.formName,
+          );
+          formId = matchingForm?.id.toString() || "";
         }
-      });
 
-      setTimeout(() => {
-        form.reset(formValues);
-      }, 0);
+        return {
+          id: `${index + 1}`,
+          formId,
+          selectedParticipants: data.participants,
+        };
+      },
+    );
+
+    if (reconstructedForms.length > 0) {
+      setAssessmentForms(reconstructedForms);
     }
-  }, [isEditMode, details, assessmentForm]);
+
+    const normalizedPeriod = assessment.assessment_period?.toUpperCase?.()
+      ? assessment.assessment_period.toUpperCase()
+      : assessment.assessment_period;
+    const matchedPeriod = periodOptions.find(
+      (p) => p.value === normalizedPeriod,
+    );
+
+    const formValues: Record<string, any> = {
+      period: matchedPeriod
+        ? matchedPeriod.value
+        : assessment.assessment_period,
+      year: assessment.year,
+      start_date: parseAssessmentDate(assessment.start_date),
+      end_date: parseAssessmentDate(assessment.end_date),
+    };
+
+    reconstructedForms.forEach((formItem) => {
+      if (formItem.formId) {
+        formValues[`assessment_form_${formItem.id}`] = formItem.formId;
+      }
+    });
+
+    setTimeout(() => {
+      form.reset(formValues);
+    }, 0);
+  }, [isEditMode, details, assessmentForm, form]);
 
   const handleSubmit = React.useCallback(
     (e: React.FormEvent) => {
@@ -339,8 +361,8 @@ export const usePerformanceSelfAssessmentForm = () => {
       const payload = {
         assessment_period: formValues.period,
         year: formValues.year,
-        start_date: formValues.start_date,
-        end_date: formValues.end_date,
+        start_date: dayjs(formValues.start_date).format("YYYY-MM-DD"),
+        end_date: dayjs(formValues.end_date).format("YYYY-MM-DD"),
         forms,
       };
 

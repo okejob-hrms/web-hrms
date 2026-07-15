@@ -44,24 +44,27 @@ export interface ISelfAssessmentResponse {
   creator: IUser;
 }
 
-export interface IEmployeeSelfAssessmentResponse {
+export interface ITeamMember {
   id: number;
   form_id: number;
+  user_name: string;
+  job_position_name: string;
+  job_level_name: string;
+  department_name: string;
+  submitted_at: string | null;
+  validated_at: string | null;
+  photo_profile: string;
+  status_label: string;
+}
+
+export interface IEmployeeSelfAssessmentResponse {
+  id: number | null;
+  form_id: number | null;
   period: string;
   status: string;
   due_date: string;
-  team_member: {
-    id: number;
-    form_id: number;
-    user_name: string;
-    job_position_name: string;
-    job_level_name: string;
-    department_name: string;
-    submitted_at: string | null;
-    validated_at: string | null;
-    photo_profile: string;
-    status_label: string;
-  }[];
+  team_member: ITeamMember[];
+  self_assessment_id?: number;
 }
 
 export interface IFormAssignment {
@@ -172,7 +175,7 @@ export interface IAssessmentSubmission {
   validated_for: number | null;
 }
 
-export interface IEmployeeSelfAssessmentResponse {
+export interface IEmployeeAssessmentAdminDetail {
   assessment_info: IEmployeeAssessmentInfo;
   self_assessment: IAssessmentSubmission;
   self_assessment_validation: IAssessmentSubmission;

@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { getFields } from "@/services/form";
 import {
   getEmployeeSelfAssessmentDetail,
+  getEmployeeSelfAssessments,
   submitEmployeeSelfAssessment,
 } from "@/services/employees/self-assessment";
 import { Loader2 } from "lucide-react";
@@ -36,6 +37,27 @@ export const SectionAssessmentDetail: React.FC<
     queryFn: () => getEmployeeSelfAssessmentDetail(Number(assessmentId)),
     enabled: !!assessmentId,
   });
+
+  const { data: listData } = useQuery({
+    queryKey: ["employee-self-assessment"],
+    queryFn: () => getEmployeeSelfAssessments(),
+  });
+
+  const ownStatus = React.useMemo(() => {
+    return listData?.data?.find((row) => row.id === Number(assessmentId))
+      ?.status;
+  }, [listData?.data, assessmentId]);
+
+  const isReadOnly =
+    ownStatus === "Completed" || ownStatus === "Validated";
+
+  const employeeSubmission = React.useMemo(() => {
+    const submissions = assessmentDetail?.data;
+    if (!submissions?.length) return undefined;
+    return (
+      submissions.find((s) => s.validated_for == null) ?? submissions[0]
+    );
+  }, [assessmentDetail?.data]);
 
   const { mutate: submitAssessment, isPending: isSubmitting } = useMutation({
     mutationFn: (data: IMutateEmployeeSelfAssessmentRequest) =>
@@ -80,18 +102,19 @@ export const SectionAssessmentDetail: React.FC<
         <h1 className="text-2xl font-bold text-gray-900">
           {t("employeeSelfAssessmentForm")}
         </h1>
-        <p className="text-gray-500">{t("fillFormBelow")}</p>
+        <p className="text-gray-500">
+          {isReadOnly ? t("assessmentReadOnly") : t("fillFormBelow")}
+        </p>
       </div>
 
       <div className="bg-white rounded-lg shadow-sm border p-6 w-full">
         {formDetail?.data ? (
           <SurveyAssessmentForm
             fields={formDetail.data}
-            onSubmit={submitAssessment}
+            onSubmit={isReadOnly ? undefined : submitAssessment}
             isSubmitting={isSubmitting}
-            initialData={
-              assessmentDetail?.data ? assessmentDetail.data[0] : undefined
-            }
+            initialData={employeeSubmission}
+            mode={isReadOnly ? "readonly" : "submit"}
           />
         ) : (
           <div className="text-center text-gray-500 py-8">

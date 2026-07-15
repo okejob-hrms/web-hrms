@@ -7,12 +7,12 @@ import { cn, stringAvatar } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SelfAssessment } from "./self-assessment";
 import { AssessmentValidation } from "./assessment-validation";
-import { IEmployeeSelfAssessmentResponse } from "@/services/employees/self-assessment/types";
+import { IEmployeeAssessmentAdminDetail } from "@/services/employees/self-assessment/types";
 
 dayjs.extend(localizedFormat);
 
 interface Props {
-  employeeDetails: IEmployeeSelfAssessmentResponse;
+  employeeDetails: IEmployeeAssessmentAdminDetail;
 }
 
 const formatDate = (date: string | null | undefined): string => {
