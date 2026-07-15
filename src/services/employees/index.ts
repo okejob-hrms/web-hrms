@@ -23,7 +23,7 @@ interface Params {
 }
 
 export const getEmployees = (
-  params: Params,
+  params: Params = {},
 ): Promise<ApiResponse<PaginatedResponse<IEmployeeResponse>>> => {
   const cleanedParams = Object.entries(params ?? {}).reduce<
     Record<string, unknown>
@@ -51,11 +51,17 @@ export const getEmployees = (
     return acc;
   }, {});
 
+  // Backend defaults to per_page=15. Dropdowns that call getEmployees({}) need a full
+  // option list so preselected employee IDs remain visible. Explicit list callers
+  // that pass per_page keep their own page size.
+  if (cleanedParams.per_page == null) {
+    cleanedParams.per_page = 10000;
+  }
+
   const queryString = qs.stringify(cleanedParams, {
     encodeValuesOnly: true,
     arrayFormat: "brackets",
   });
-  console.log(queryString);
   const response = api.get<ApiResponse<PaginatedResponse<IEmployeeResponse>>>(
     `employees${queryString ? `?${queryString}` : ""}`,
   );

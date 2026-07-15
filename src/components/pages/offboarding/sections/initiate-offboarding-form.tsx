@@ -68,7 +68,7 @@ export const InitiateOffboardingEmployee = React.memo(
 
     const { data: forms } = useQuery({
       queryKey: ["forms"],
-      queryFn: getAllForm,
+      queryFn: () => getAllForm(),
       staleTime: 5 * 60 * 1000,
       gcTime: 10 * 60 * 1000,
       refetchOnWindowFocus: false,

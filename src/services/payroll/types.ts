@@ -156,6 +156,7 @@ export interface PayslipAdditionalItem {
 
 export interface PayslipEmployee {
   id: number;
+  code?: string | null;
   name: string;
   email: string;
   salary_nett: string;

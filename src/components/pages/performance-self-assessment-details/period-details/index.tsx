@@ -29,6 +29,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import FormDeleteModal from "../../settings-form-template-list/sections/delete-modal";
 import { DeleteModal } from "./sections/delete-modal";
+import dayjs from "dayjs";
+import localizedFormat from "dayjs/plugin/localizedFormat";
+
+dayjs.extend(localizedFormat);
 
 export const SelfAssessmentPeriodDetails = () => {
   const {
@@ -272,19 +276,29 @@ export const SelfAssessmentPeriodDetails = () => {
       <div className="grid grid-cols-2 gap-4">
         <div className="flex flex-col gap-1">
           <span className="text-text-disabled text-sm">Start Date</span>
-          <span className="text-base">{assessment.start_date}</span>
+          <span className="text-base">
+            {dayjs(assessment.start_date).format("LL")}
+          </span>
         </div>
         <div className="flex flex-col gap-1">
           <span className="text-text-disabled text-sm">End Date</span>
-          <span className="text-base">{assessment.end_date}</span>
+          <span className="text-base">
+            {dayjs(assessment.end_date).format("LL")}
+          </span>
         </div>
       </div>
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+        <StatusCard
+          label="Validated"
+          current={summary.validated ?? 0}
+          total={summary.total}
+          statusColor="#18618B"
+        />
         <StatusCard
           label="Completed"
           current={summary.completed}
           total={summary.total}
-          statusColor="#18618B"
+          statusColor="#0EA5E9"
         />
         <StatusCard
           label="In Progress"

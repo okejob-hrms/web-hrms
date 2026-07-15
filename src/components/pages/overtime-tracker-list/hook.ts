@@ -69,10 +69,15 @@ export function useOvertime(isEmployee: boolean) {
   const [selectedData, setSelectedData] = React.useState<OvertimeListItem>();
 
   const [selectedId, setSelectedId] = React.useState<string>('');
-  const [filters, setFilters] = React.useState<Filters>({
-    date: '',
-    search: '',
-    status: 1,
+  const [filters, setFilters] = React.useState<Filters>(() => {
+    const now = dayjs();
+    return {
+      date: '',
+      start_date: now.startOf('month').format('YYYY-MM-DD'),
+      end_date: now.endOf('month').format('YYYY-MM-DD'),
+      search: '',
+      status: 1,
+    };
   });
   const queryClient = useQueryClient();
 
@@ -83,7 +88,15 @@ export function useOvertime(isEmployee: boolean) {
     isRefetching,
     refetch: refetchOvertime,
   } = useQuery({
-    queryKey: ["overtime", pagination, filters.search, filters.date, filters.status],
+    queryKey: [
+      "overtime",
+      pagination,
+      filters.search,
+      filters.date,
+      filters.start_date,
+      filters.end_date,
+      filters.status,
+    ],
     queryFn: () => getOvertime(pagination, filters),
     placeholderData: keepPreviousData,
     refetchOnMount: "always",
@@ -95,7 +108,15 @@ export function useOvertime(isEmployee: boolean) {
     data: overtimeDataEmployee,
     refetch: refetchOvertimeEmployee,
   } = useQuery({
-    queryKey: ["overtimeEmployee", pagination, filters.search, filters.date, filters.status],
+    queryKey: [
+      "overtimeEmployee",
+      pagination,
+      filters.search,
+      filters.date,
+      filters.start_date,
+      filters.end_date,
+      filters.status,
+    ],
     queryFn: () => getOvertimeEmployee(pagination, filters),
     placeholderData: keepPreviousData,
     refetchOnMount: "always",

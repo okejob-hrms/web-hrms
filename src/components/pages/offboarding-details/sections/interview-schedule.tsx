@@ -54,7 +54,7 @@ const EmployeeProfile = React.memo(function EmployeeProfile({
           {data.data.user.name}
         </span>
         <span className="text-text-disabled text-xs sm:text-sm truncate">
-          ({data.data.user.id}) {data.data.employment.job_position.name}
+          ({data.data.code}) {data.data.employment.job_position.name}
         </span>
       </div>
     </div>

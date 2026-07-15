@@ -157,6 +157,7 @@ export interface IEmployeeDetailsResponse {
     id: number;
     name: string;
     email: string;
+    role_id: number | null;
     email_verified_at: string | null;
     tenant_id: number;
     created_at: string;

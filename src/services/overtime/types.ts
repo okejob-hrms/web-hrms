@@ -49,7 +49,11 @@ export interface Employee {
     name: string;
     tenant_id: number;
     updated_at: string;
-    avatar_url: string;
+    /** May be absent when employee was imported / has no photo. */
+    avatar_url?: string | null;
+    profile?: {
+        photo_profile?: string | null;
+    } | null;
 }
 
 export interface Link {

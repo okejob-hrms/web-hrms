@@ -1,12 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react";
-import { ApiErrorResponse, PaginatedResponse } from "@/lib/types";
+import { ApiErrorResponse } from "@/lib/types";
 import {
   getAllForm,
   postCreateForm,
   postAddField,
   getFormById,
   postUpdateForm,
+  type IFormListResponse,
 } from "@/services/form";
 import {
   IFormTemplate,
@@ -113,9 +114,9 @@ export function useFormTemplateAdd({
     data: formsData,
     isLoading: isFormsLoading,
     error: formsError,
-  } = useQuery<PaginatedResponse<IFormTemplate>>({
+  } = useQuery<IFormListResponse>({
     queryKey: ["form"],
-    queryFn: getAllForm,
+    queryFn: () => getAllForm(),
   });
 
   const { data: editFormData, isLoading: isEditFormLoading } = useQuery({

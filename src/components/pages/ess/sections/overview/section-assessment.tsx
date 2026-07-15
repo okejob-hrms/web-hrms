@@ -31,10 +31,17 @@ export const SectionAssessment = () => {
   );
 
   const handleViewAssessment = React.useCallback(
-    (id: number, formId: number) => {
-      queryClient.invalidateQueries({ queryKey: ["form-detail", formId] });
-      queryClient.invalidateQueries({ queryKey: ["assessment-detail", id] });
-      router.push(`/ess/assessment/${id}?formId=${formId}`);
+    (row: IEmployeeSelfAssessmentResponse) => {
+      if (row.id != null && row.form_id != null) {
+        queryClient.invalidateQueries({
+          queryKey: ["form-detail", row.form_id],
+        });
+        router.push(`/ess/assessment/${row.id}?formId=${row.form_id}`);
+        return;
+      }
+      if (row.self_assessment_id) {
+        router.push(`/ess/assessment/p-${row.self_assessment_id}`);
+      }
     },
     [queryClient, router],
   );
@@ -87,9 +94,7 @@ export const SectionAssessment = () => {
         header: "",
         cell: ({ row }) => (
           <div
-            onClick={() =>
-              handleViewAssessment(row.original.id, row.original.form_id)
-            }
+            onClick={() => handleViewAssessment(row.original)}
             className="p-1 hover:bg-gray-100 rounded-full transition-colors cursor-pointer flex items-center justify-center w-fit"
           >
             <Eye className="w-4 h-4 text-gray-500" />

@@ -57,8 +57,8 @@ export function useSupervisorAssessment() {
     queryFn: () =>
       getEmployees(
         debouncedEmployee
-          ? { search: debouncedEmployee, per_page: 50 }
-          : { per_page: 50 },
+          ? { search: debouncedEmployee, per_page: 10000 }
+          : { per_page: 10000 },
       ),
     enabled: openFormModal,
     placeholderData: keepPreviousData,
@@ -72,8 +72,8 @@ export function useSupervisorAssessment() {
     queryFn: () =>
       getEmployees(
         debouncedAssessor
-          ? { search: debouncedAssessor, per_page: 50 }
-          : { per_page: 50 },
+          ? { search: debouncedAssessor, per_page: 10000 }
+          : { per_page: 10000 },
       ),
     enabled: openFormModal,
     // placeholderData: keepPreviousData,
@@ -112,7 +112,7 @@ export function useSupervisorAssessment() {
     error: formsError,
   } = useQuery({
     queryKey: ["forms"],
-    queryFn: getAllForm,
+    queryFn: () => getAllForm(),
     enabled: openFormModal,
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,

@@ -5,13 +5,12 @@ import {
   IMutateSelfAssessmentRequest,
   ISelfAssessmentDetailResponse,
   IEmployeeSelfAssessmentResponse,
+  IEmployeeAssessmentAdminDetail,
   IAssessmentSubmission,
   IMutateEmployeeSelfAssessmentRequest,
 } from "./types";
-import { api } from "@/lib/api";
+import { api, apiEmployee } from "@/lib/api";
 import { PaginationState } from "@tanstack/react-table";
-
-const ESS_API = "https://api.okejobhub.fun/api";
 
 export const getSelfAssessments = async (
   pagination?: PaginationState,
@@ -72,10 +71,10 @@ export const getDetailSelfAssessment = async (
 
 export const getDetailEmployeeAssessment = async (
   id: number,
-): Promise<ApiResponse<IEmployeeSelfAssessmentResponse>> => {
+): Promise<ApiResponse<IEmployeeAssessmentAdminDetail>> => {
   try {
     const response = await api.get<
-      ApiResponse<IEmployeeSelfAssessmentResponse>
+      ApiResponse<IEmployeeAssessmentAdminDetail>
     >(`employee/self-assessments/${id}/employee`);
     return response.json();
   } catch (error: any) {
@@ -164,10 +163,9 @@ export const getEmployeeSelfAssessments = async (
     searchParams.date = filters.date;
   }
 
-  const response = await api.get<
+  const response = await apiEmployee.get<
     PaginatedResponse<IEmployeeSelfAssessmentResponse>
   >("ess/self-assessment", {
-    prefixUrl: ESS_API,
     searchParams,
   });
 
@@ -177,12 +175,9 @@ export const getEmployeeSelfAssessments = async (
 export const getEmployeeSelfAssessmentDetail = async (
   id: number,
 ): Promise<PaginatedResponse<IAssessmentSubmission>> => {
-  const response = await api.get<PaginatedResponse<IAssessmentSubmission>>(
-    `ess/self-assessment/${id}/submission`,
-    {
-      prefixUrl: ESS_API,
-    },
-  );
+  const response = await apiEmployee.get<
+    PaginatedResponse<IAssessmentSubmission>
+  >(`ess/self-assessment/${id}/submission`);
 
   return response.json();
 };
@@ -192,10 +187,9 @@ export const submitEmployeeSelfAssessment = async (
   params: IMutateEmployeeSelfAssessmentRequest,
 ): Promise<ApiResponse<ISelfAssessmentResponse>> => {
   try {
-    const response = await api.post<ApiResponse<ISelfAssessmentResponse>>(
-      `ess/self-assessment/${id}/submission`,
-      { prefixUrl: ESS_API, json: params },
-    );
+    const response = await apiEmployee.post<
+      ApiResponse<ISelfAssessmentResponse>
+    >(`ess/self-assessment/${id}/submission`, { json: params });
     return response.json();
   } catch (error: any) {
     if (error.name === "HTTPError") {
@@ -216,10 +210,9 @@ export const validateEmployeeSelfAssessment = async (
   params: IMutateEmployeeSelfAssessmentRequest,
 ): Promise<ApiResponse<ISelfAssessmentResponse>> => {
   try {
-    const response = await api.post<ApiResponse<ISelfAssessmentResponse>>(
-      `ess/self-assessment/${id}/submission/validate`,
-      { prefixUrl: ESS_API, json: params },
-    );
+    const response = await apiEmployee.post<
+      ApiResponse<ISelfAssessmentResponse>
+    >(`ess/self-assessment/${id}/submission/validate`, { json: params });
     return response.json();
   } catch (error: any) {
     if (error.name === "HTTPError") {

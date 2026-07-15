@@ -18,6 +18,7 @@ import WorkingHourSummary from './section/working-hour-summary';
 // import { Skeleton } from '@/components/ui/skeleton';
 import { Payslip } from '@/services/payroll/types';
 import { usePathname, useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import PayrunApproveModal from './section/confirm-modal';
 import AllowanceModal from './section/allowance-modal';
 import WorkHourModal from './section/work-hour-modal';
@@ -107,6 +108,12 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
     handleRegenerateCalculate,
   } = usePayrollDetail();
 
+  const t = useTranslations('payroll');
+  const tCommon = useTranslations('common');
+  const tEmployee = useTranslations('employee');
+  const tOffboarding = useTranslations('offboarding');
+  const tAtt = useTranslations('attendance');
+
   React.useEffect(() => {
     if (id !== undefined && id !== null) {
       getDetail(id);
@@ -118,31 +125,32 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
   const isDetail = !pathname.includes('/edit');
   const [openHistory, setOpenHistory] = React.useState(false);
 
-  const dataPayroll = [
-    { name: 'Salary', value: detailDataSpend?.data.net_pay.total },
-    { name: 'Allowance', value: detailDataSpend?.data.allowance.total },
-    { name: 'Overtime', value: detailDataSpend?.data.overtime.total },
-    {
-      name: 'Additional Earnings',
-      value: detailDataSpend?.data.additional_earning.total,
-    },
-    { name: 'Deductions', value: detailDataSpend?.data.deduction.total },
-    { name: 'Penalties', value: detailDataSpend?.data.penalties.total },
-
-    { name: 'Spend', value: detailDataSpend?.data.spend.total },
-
-    ...(detailDataSpend?.data.deductions_by_name?.map((item) => ({
-      name: item.label,
-      value: item.total,
-    })) || []),
-  ];
+  const dataPayroll = React.useMemo(
+    () => [
+      { name: t('salary'), value: detailDataSpend?.data.net_pay.total },
+      { name: t('allowance'), value: detailDataSpend?.data.allowance.total },
+      { name: tAtt('overtime'), value: detailDataSpend?.data.overtime.total },
+      {
+        name: t('additionalEarnings'),
+        value: detailDataSpend?.data.additional_earning.total,
+      },
+      { name: t('deductions'), value: detailDataSpend?.data.deduction.total },
+      { name: t('penalties'), value: detailDataSpend?.data.penalties.total },
+      { name: t('spend'), value: detailDataSpend?.data.spend.total },
+      ...(detailDataSpend?.data.deductions_by_name?.map((item) => ({
+        name: item.label,
+        value: item.total,
+      })) || []),
+    ],
+    [detailDataSpend, t, tAtt],
+  );
 
   const total = detailDataSpend?.data.gross_pay.total;
 
   const baseColumns: ColumnDef<Payslip>[] = [
     {
       accessorKey: 'name',
-      header: 'Name',
+      header: tCommon('name'),
       cell: ({ row }) => (
         <div className="flex gap-4 items-center min-w-[250px]">
           <Avatar className="h-10 w-10">
@@ -156,7 +164,7 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
               {row.original.employee.name}
             </span>
             <span className="text-text-secondary">
-              {row.original.employee.id}
+              {row.original.employee.code || '-'}
             </span>
           </div>
         </div>
@@ -167,15 +175,17 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
     },
     {
       accessorKey: 'working_hour',
-      header: 'Working Hour',
+      header: t('workingHour'),
       cell: ({ row }) => {
         return (
           <div className="flex gap-2 items-center justify-between min-w-[150px]">
             <div className="space-y-2">
-              <div>{row.original.working_days ?? '-'} Days</div>
+              <div>
+                {row.original.working_days ?? '-'} {t('days')}
+              </div>
               <div className="text-primary text-xs">
                 {row.original.working_hours ?? '-'}{' '}
-                <span className="text-muted-foreground">Hours</span>
+                <span className="text-muted-foreground">{t('hours')}</span>
               </div>
             </div>
             {currentStep === 1 && !isDetail && (
@@ -201,7 +211,7 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
     },
     {
       accessorKey: 'allowance',
-      header: 'Allowance',
+      header: t('allowance'),
       cell: ({ row }) => (
         <div className="flex gap-2 items-center justify-between min-w-[150px]">
           <div className="space-y-2">
@@ -215,7 +225,7 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
               variant="default"
               className="bg-primary/10 border-primary text-primary"
             >
-              {row.original.allowance.length} Benefit
+              {t('benefitCount', { count: row.original.allowance.length })}
             </Badge>
           </div>
           {currentStep === 1 && !isDetail && (
@@ -242,7 +252,7 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
     },
     {
       accessorKey: 'overtime',
-      header: 'Overtime',
+      header: tAtt('overtime'),
       cell: ({ row }) => (
         <div className="flex gap-2 items-center justify-between min-w-[150px]">
           <div className="space-y-2">
@@ -281,7 +291,7 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
     },
     {
       accessorKey: 'additional',
-      header: 'Additional Earnings',
+      header: t('additionalEarnings'),
       cell: ({ row }) => (
         <div className="min-w-[250px]">
           <div className="flex items-center justify-between pr-10">
@@ -298,7 +308,9 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
                 variant="default"
                 className="bg-primary/10 border-primary text-primary"
               >
-                {row.original.additional_earning.length} Earnings
+                {t('earningsCount', {
+                  count: row.original.additional_earning.length,
+                })}
               </Badge>
             </div>
             {currentStep === 1 && !isDetail && (
@@ -325,7 +337,7 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
     },
     {
       accessorKey: 'penalty',
-      header: 'Penalty Deduction',
+      header: t('penaltyDeduction'),
       cell: ({ row }) => (
         <div className="flex gap-2 items-center justify-between min-w-[150px]">
           <div className="text-gray-400">
@@ -387,7 +399,7 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
   const payColumns: ColumnDef<Payslip>[] = [
     {
       accessorKey: 'gross_pay',
-      header: 'Gross Pay',
+      header: t('grossPay'),
       cell: ({ row }) => (
         <div className="min-w-[150px]">
           <span className="text-gray-400">
@@ -401,7 +413,7 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
     },
     {
       accessorKey: 'net_pay',
-      header: 'Nett Pay',
+      header: t('nettPay'),
       size: 200,
       cell: ({ row }) => (
         <div className="min-w-[150px] flex items-center justify-between">
@@ -471,7 +483,7 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
       <div className="flex flex-col justify-between gap-6 mt-5">
         <div className="grid md:grid-cols-3 gap-3 space-y-2 mb-4 w-full">
           <div className="col-span-1">
-            <h2 className="font-semibold text-xl mb-0">Payruns Detail</h2>
+            <h2 className="font-semibold text-xl mb-0">{t('payrunDetail')}</h2>
           </div>
           <div className="col-span-2">
             <div className="flex justify-end gap-2">
@@ -483,7 +495,7 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
                   className="min-w-[100px] bg-white text-primary border-1 border font-medium py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Edit3 />
-                  Edit Payruns
+                  {t('editPayrun')}
                 </Button>
               )}
               <Button
@@ -493,7 +505,7 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
                 className="min-w-[100px] bg-white border-orange-500 border-1 border font-medium py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed text-orange-500"
               >
                 <Clock />
-                Payruns History
+                {t('payrunHistory')}
               </Button>
               {employeeList?.data.payrun.status !== 2 && (
                 <Button
@@ -503,13 +515,13 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
                   className="min-w-[100px] bg-white text-primary border-1 border font-medium py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <RefreshCcw />
-                  Regenerate Payrun
+                  {t('regeneratePayrun')}
                 </Button>
               )}
             </div>
           </div>
           <div className="col-span-1">
-            <div className="text-sm text-gray-500">Payment Period</div>
+            <div className="text-sm text-gray-500">{t('paymentPeriod')}</div>
             <div className="text-sm font-semibold">
               {detailData?.data?.period_label}
             </div>
@@ -518,7 +530,7 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
           <div className="col-span-2">
             <div className="grid grid-cols-2 gap-3 space-y-2">
               <div className="col-span-1">
-                <div className="text-sm text-gray-500">Payslip Status</div>
+                <div className="text-sm text-gray-500">{t('payslipStatus')}</div>
                 <div className="flex gap-2">{renderStatus()}</div>
               </div>
             </div>
@@ -526,7 +538,7 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
 
           {detailData?.data?.notes && (
             <div className="col-span-2">
-              <div className="text-sm text-gray-500">Notes</div>
+              <div className="text-sm text-gray-500">{tCommon('notes')}</div>
               <div className="text-sm font-semibold">
                 {detailData?.data?.notes}
               </div>
@@ -539,20 +551,20 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
         <div className="flex md:flex-row flex-col gap-6 w-full">
           {!isDetail && (
             <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col p-6 gap-4 max-h-md md:w-[300px] md:h-[280px]">
-              <div className="font-semibold mb-3">Completion</div>
+              <div className="font-semibold mb-3">{tOffboarding('completion')}</div>
               <div className="flex gap-4 items-center">
                 <div
                   className={`border border-primary flex items-center justify-center h-8 w-8 text-xs rounded-full ${currentStep === 1 ? 'bg-white text-primary' : 'bg-primary text-white'}`}
                 >
                   1
                 </div>
-                <div className="text-primary">Gross Pay</div>
+                <div className="text-primary">{t('grossPay')}</div>
               </div>
               <div className="flex gap-4 items-center">
                 <div className="border border-primary flex items-center justify-center h-8 w-8 text-xs rounded-full">
                   2
                 </div>
-                <div className="text-primary">Review Payruns</div>
+                <div className="text-primary">{t('reviewPayrun')}</div>
               </div>
             </div>
           )}
@@ -563,28 +575,19 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
                 {currentStep === 1 ? (
                   <div>
                     <h2 className="font-semibold text-xl mb-0">
-                      Set Gross Pay
+                      {t('setGrossPay')}
                     </h2>
                     <div className="text-sm text-gray-500 font-medium my-2 md:w-xl">
-                      Please check employee pay rates, including regular,
-                      overtime, and special rate. Ensure the salary amount
-                      aligns with the employment contract and company policy.
-                      Use Regenerate Payrun only when there are changes to
-                      reference data (attendance, leave, overtime, or salary
-                      details). This action will recalculate all payroll values
-                      and reset any manually edited custom values back to their
-                      default.
+                      {t('setGrossPayDesc')}
                     </div>
                   </div>
                 ) : (
                   <div>
                     <h2 className="font-semibold text-xl mb-0">
-                      Review Payruns
+                      {t('reviewPayrun')}
                     </h2>
                     <div className="text-sm text-gray-500 font-medium my-2 md:w-xl">
-                      Check the calculated net pay after tax and mandatory
-                      deductions according to company policy. Make sure all
-                      salary components are accurate before finalizing.
+                      {t('reviewPayrunDesc')}
                     </div>
                   </div>
                 )}
@@ -594,7 +597,7 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
             {(currentStep === 2 || isDetail) && (
               <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6 mt-4">
                 <div className="flex gap-2">
-                  <h2 className="font-semibold text-xl">Total Company Spend</h2>
+                  <h2 className="font-semibold text-xl">{t('totalCompanySpend')}</h2>
                 </div>
                 {!loadingdetailDataSpend && (
                   <div className="flex flex-col items-center justify-center">
@@ -628,7 +631,7 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
                           {currency(total || 0)}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          Total Amount
+                          {t('totalAmount')}
                         </p>
                       </div>
                     </div>
@@ -666,15 +669,19 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
               <div className="flex md:flex-row flex-col justify-between w-full md:items-center items-start gap-4">
                 <div className="flex gap-2 items-center">
                   <h2 className="font-semibold text-xl">
-                    {currentStep === 1 ? 'Employee Gross Pay List' : 'Nett Pay'}
+                    {currentStep === 1
+                      ? t('employeeGrossPayList')
+                      : t('nettPay')}
                   </h2>
                   <Badge className="bg-primary-background text-primary rounded-full">
-                    {dataPagination.total} Employee
+                    {tEmployee('employeeCount', {
+                      count: dataPagination.total,
+                    })}
                   </Badge>
                 </div>
                 <Input
                   className="md:w-sm w-full"
-                  placeholder="Search by Employee Name, ID, or Department"
+                  placeholder={t('searchEmployeePayroll')}
                   value={filters.search}
                   onChange={(e) => {
                     setFilters((prev) => ({
@@ -704,7 +711,7 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
                   variant="outline"
                   className="min-w-[100px] bg-white text-primary border-1 border font-medium py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Cancel
+                  {tCommon('cancel')}
                 </Button>
                 {currentStep === 1 ? (
                   <Button
@@ -715,7 +722,7 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
                     type="button"
                     className="min-w-[100px] bg-primary hover:bg-primary-800 text-white font-medium py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Next
+                    {tCommon('next')}
                   </Button>
                 ) : (
                   <div className="flex gap-6 items-center mt-4">
@@ -729,7 +736,7 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
                       className="min-w-[100px] bg-white text-primary border-1 border font-medium py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <ArrowLeft />
-                      Back
+                      {tCommon('back')}
                     </Button>
                     <Button
                       onClick={() => {
@@ -740,7 +747,7 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
                       isLoading={loadingSave}
                       className="min-w-[100px] bg-primary hover:bg-primary-800 text-white font-medium py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      Finalize Payruns
+                      {t('finalizePayrun')}
                     </Button>
                   </div>
                 )}

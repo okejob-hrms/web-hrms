@@ -56,22 +56,21 @@ export const postJobPositionManagement = async (
 export const getJobPositionPagination = async (
   pagination?: PaginationState,
 ): Promise<PaginatedResponse<JobPositionResponse>> => {
-  let searchParams = {};
+  const searchParams = pagination
+    ? {
+        page: (pagination.pageIndex + 1).toString(),
+        per_page: pagination.pageSize.toString(),
+      }
+    : {
+        page: "1",
+        per_page: "10000",
+      };
 
-  if (pagination) {
-    const page = pagination.pageIndex + 1;
-    const per_page = pagination.pageSize;
-    searchParams = {
-      page: page.toString(),
-      per_page: per_page.toString(),
-    };
-  }
   const response = await api.get<PaginatedResponse<JobPositionResponse>>(
     "job-positions",
     {
       searchParams,
     },
-    // JSON.stringify(payload),
   );
   return response.json();
 };

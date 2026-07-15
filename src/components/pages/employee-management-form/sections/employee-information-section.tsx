@@ -677,7 +677,7 @@ export const EmployeeinformationSection = React.memo(
         queryKey: ["filtered-employees", watchedJobLevelId],
         queryFn: () =>
           getEmployees({
-            per_page: 100,
+            per_page: 10000,
             min_job_level_id: watchedJobLevelId ? watchedJobLevelId : undefined,
           }),
         staleTime: 5 * 60 * 1000,

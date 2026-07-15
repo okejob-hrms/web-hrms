@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { api, apiEmployee } from "@/lib/api";
-import { ApiResponse, PaginatedResponse } from "@/lib/types";
+import { ApiPagination, ApiResponse, PaginatedResponse } from "@/lib/types";
 import {
   IFormTemplate,
   IFormTemplateParams,
@@ -12,13 +12,44 @@ import {
   IExitFormRequest,
   IHandoverRequest,
   IFieldResponse,
+  IFormListParams,
 } from "./types";
 
-export const getAllForm = async (): Promise<
-  PaginatedResponse<IFormTemplate>
-> => {
+export interface IFormListResponse extends ApiResponse<IFormTemplate[]> {
+  pagination?: ApiPagination;
+}
+
+export const getAllForm = async (
+  params?: IFormListParams,
+): Promise<IFormListResponse> => {
   try {
-    const response = await api.get<PaginatedResponse<IFormTemplate>>(`forms`);
+    const searchParams: Record<string, string> = {};
+
+    // Only send pagination when the caller asks for it. Omitting page/per_page
+    // lets the API return the full list (needed for select/dropdown loads).
+    // Forced per_page defaults like 10000 are rejected (API max is 100).
+    if (params?.page !== undefined) {
+      searchParams.page = String(params.page);
+    }
+    if (params?.per_page !== undefined) {
+      searchParams.per_page = String(params.per_page);
+    }
+    if (params?.search) {
+      searchParams.search = params.search;
+    }
+    if (params?.type !== undefined) {
+      searchParams.type = String(params.type);
+    }
+    if (params?.sort_by) {
+      searchParams.sort_by = params.sort_by;
+    }
+    if (params?.sort_dir) {
+      searchParams.sort_dir = params.sort_dir;
+    }
+
+    const response = await api.get<IFormListResponse>(`forms`, {
+      searchParams: Object.keys(searchParams).length > 0 ? searchParams : undefined,
+    });
     return response.json();
   } catch (error: any) {
     if (error.name === "HTTPError") {

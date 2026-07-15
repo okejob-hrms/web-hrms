@@ -15,16 +15,16 @@ export const postTeam = async (
 export const getTeam = async (
   pagination?: PaginationState,
 ): Promise<ApiResponse<PaginatedResponse<TeamResponse>>> => {
-  let searchParams = {};
-
-  if (pagination) {
-    const page = pagination.pageIndex + 1;
-    const per_page = pagination.pageSize;
-    searchParams = {
-      page: page.toString(),
-      per_page: per_page.toString(),
-    };
-  }
+  // Backend defaults to per_page=10; bare getTeam() is used by dropdown MultiSelects.
+  const searchParams = pagination
+    ? {
+        page: (pagination.pageIndex + 1).toString(),
+        per_page: pagination.pageSize.toString(),
+      }
+    : {
+        page: "1",
+        per_page: "10000",
+      };
 
   const response = await api.get<ApiResponse<PaginatedResponse<TeamResponse>>>(
     "teams",

@@ -42,6 +42,7 @@ const ENGLISH_LABEL_TO_KEY: Record<string, StatusKey> = {
   'In Progress': 'inProgress',
   Validated: 'validated',
   Archived: 'archived',
+  'Manager View': 'active',
   Unknown: 'unknown',
 };
 

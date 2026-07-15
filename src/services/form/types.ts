@@ -55,6 +55,15 @@ export interface IFormTemplateParams {
   order?: number;
 }
 
+export interface IFormListParams {
+  page?: number;
+  per_page?: number;
+  search?: string;
+  type?: number;
+  sort_by?: "created_at" | "name" | "updated_at";
+  sort_dir?: "asc" | "desc";
+}
+
 export interface FormFieldData {
   id: number;
   type: 'checkbox' | 'range' | 'textarea' | 'text' | 'select' | 'radio';

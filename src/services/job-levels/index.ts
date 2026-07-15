@@ -27,10 +27,13 @@ export const postJobLevel = async (
 };
 
 export const getJobLevels = async (): Promise<PaginatedResponse<JobLevel>> => {
-  const response = await api.get<PaginatedResponse<JobLevel>>(
-    "job-levels",
-    // JSON.stringify(payload),
-  );
+  // Backend defaults to per_page=10; dropdowns need the full list for preselected IDs.
+  const response = await api.get<PaginatedResponse<JobLevel>>("job-levels", {
+    searchParams: {
+      page: "1",
+      per_page: "10000",
+    },
+  });
   return response.json();
 };
 
@@ -59,23 +62,19 @@ export const postJobLevelManagement = async (
 export const getJobLevelsPagination = async (
   pagination?: PaginationState,
 ): Promise<PaginatedResponse<JobLevel>> => {
-  let searchParams = {};
+  const searchParams = pagination
+    ? {
+        page: (pagination.pageIndex + 1).toString(),
+        per_page: pagination.pageSize.toString(),
+      }
+    : {
+        page: "1",
+        per_page: "10000",
+      };
 
-  if (pagination) {
-    const page = pagination.pageIndex + 1;
-    const per_page = pagination.pageSize;
-    searchParams = {
-      page: page.toString(),
-      per_page: per_page.toString(),
-    };
-  }
-  const response = await api.get<PaginatedResponse<JobLevel>>(
-    "job-levels",
-    {
-      searchParams,
-    },
-    // JSON.stringify(payload),
-  );
+  const response = await api.get<PaginatedResponse<JobLevel>>("job-levels", {
+    searchParams,
+  });
   return response.json();
 };
 
