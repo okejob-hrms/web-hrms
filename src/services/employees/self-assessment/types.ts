@@ -97,6 +97,7 @@ export interface IAssessmentInfo {
 }
 
 export interface IAssessmentSummary {
+  validated: number;
   completed: number;
   in_progress: number;
   not_started: number;

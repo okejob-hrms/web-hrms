@@ -279,12 +279,18 @@ export const SelfAssessmentPeriodDetails = () => {
           <span className="text-base">{assessment.end_date}</span>
         </div>
       </div>
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+        <StatusCard
+          label="Validated"
+          current={summary.validated ?? 0}
+          total={summary.total}
+          statusColor="#18618B"
+        />
         <StatusCard
           label="Completed"
           current={summary.completed}
           total={summary.total}
-          statusColor="#18618B"
+          statusColor="#0EA5E9"
         />
         <StatusCard
           label="In Progress"
