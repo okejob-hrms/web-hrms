@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { stringAvatar } from '@/lib/utils';
+import { getPublicFileUrl } from '@/lib/helpers';
 import dayjs from 'dayjs';
 import { OvertimeListItem, RequestOvertime } from '@/services/overtime/types';
 import { Input } from '@/components/ui/input';
@@ -40,6 +41,9 @@ export default function OvertimeEditModal({
 }: Props) {
   const t = useTranslations('attendance');
   const tCommon = useTranslations('common');
+  const avatarSrc = getPublicFileUrl(
+    data?.employee?.avatar_url ?? data?.employee?.profile?.photo_profile,
+  );
 
   const handleUpdate = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -65,7 +69,7 @@ export default function OvertimeEditModal({
           {!isEmployee && (
             <div className="flex flex-col items-center justify-center">
               <Avatar className="h-18 w-18">
-                <AvatarImage src={`${data?.employee?.avatar_url}`} />
+                {avatarSrc ? <AvatarImage src={avatarSrc} /> : null}
                 <AvatarFallback className="text-primary-hover bg-primary-background text-base font-medium">
                   {stringAvatar(data?.employee?.name ?? '')}
                 </AvatarFallback>

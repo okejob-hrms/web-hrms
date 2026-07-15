@@ -29,7 +29,7 @@ import {
   XCircle,
 } from 'lucide-react';
 import { StatusBadge } from '@/components/shared/status-badge';
-import { getStatusOvertime } from '@/lib/helpers';
+import { getPublicFileUrl, getStatusOvertime } from '@/lib/helpers';
 import OvertimeApproveModal from './sections/approve-modal';
 import OvertimeRejectModal from './sections/reject-modal';
 import OvertimeDeleteModal from './sections/delete-modal';
@@ -115,10 +115,16 @@ export default function OvertimeTrackerList({
           {
             accessorKey: 'employee.name',
             header: tCommon('name'),
-            cell: ({ row }: CellContext<OvertimeListItem, unknown>) => (
+            cell: ({ row }: CellContext<OvertimeListItem, unknown>) => {
+              const avatarSrc = getPublicFileUrl(
+                row.original.employee?.avatar_url ??
+                  row.original.employee?.profile?.photo_profile,
+              );
+
+              return (
               <div className="flex gap-4 items-center min-w-[150px]">
                 <Avatar className="h-10 w-10">
-                  <AvatarImage src={`${row.original.employee?.avatar_url}`} />
+                  {avatarSrc ? <AvatarImage src={avatarSrc} /> : null}
                   <AvatarFallback className="text-primary-hover bg-primary-background text-base font-medium">
                     {stringAvatar(row.original.employee?.name ?? '')}
                   </AvatarFallback>
@@ -132,7 +138,8 @@ export default function OvertimeTrackerList({
                   </span>
                 </div>
               </div>
-            ),
+              );
+            },
           },
         ]
       : []),
@@ -393,10 +400,19 @@ export default function OvertimeTrackerList({
             <DatePicker
               className="min-w-[180px]"
               name="date"
+              value={filters.date || undefined}
               onChange={(e) => {
+                const now = dayjs();
                 setFilters((prev) => ({
                   ...prev,
                   date: e ? dayjs(e).format('YYYY-MM-DD') : '',
+                  // Clear day → restore current-month range hardening
+                  start_date: e
+                    ? prev.start_date
+                    : now.startOf('month').format('YYYY-MM-DD'),
+                  end_date: e
+                    ? prev.end_date
+                    : now.endOf('month').format('YYYY-MM-DD'),
                 }));
                 setPagination((prev) => ({ ...prev, pageIndex: 0 }));
               }}
