@@ -16,7 +16,12 @@ import { ApiResponse, PaginatedResponse } from "@/lib/types";
 import qs from "qs";
 
 export const getAllowance = async (): Promise<ResponseAllowance> => {
-  const response = await api.get("allowance-types");
+  const response = await api.get("allowance-types", {
+    searchParams: {
+      page: "1",
+      per_page: "10000",
+    },
+  });
   return response.json();
 };
 
@@ -142,6 +147,11 @@ export const getDeductionSalaryType = async (): Promise<DeductionSalaryItemTypeL
 };
 
 export const getAllowanceType = async (): Promise<AllowanceTypeResponse> => {
-  const response = await api.get("allowance-types");
+  const response = await api.get("allowance-types", {
+    searchParams: {
+      page: "1",
+      per_page: "10000",
+    },
+  });
   return response.json();
 };

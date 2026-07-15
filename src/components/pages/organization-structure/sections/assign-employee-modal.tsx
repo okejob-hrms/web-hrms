@@ -178,14 +178,28 @@ export default function AssignEmployeeModal({
   }, [secondaryEmployees?.data]);
 
   const departmentOptions = React.useMemo(() => {
-    if (departments?.data?.data) {
-      return departments.data.data.map((item) => ({
+    const options =
+      departments?.data?.data?.map((item) => ({
         label: item.name,
         value: item.id.toString(),
-      }));
+      })) ?? [];
+
+    if (selectedEmployee?.department_id != null && selectedEmployee.department) {
+      const currentId = String(selectedEmployee.department_id);
+      if (!options.some((option) => option.value === currentId)) {
+        options.unshift({
+          label: selectedEmployee.department,
+          value: currentId,
+        });
+      }
     }
-    return [];
-  }, [departments?.data]);
+
+    return options;
+  }, [
+    departments?.data,
+    selectedEmployee?.department,
+    selectedEmployee?.department_id,
+  ]);
 
   const positionOptions = React.useMemo(() => {
     if (positions?.data) {
@@ -365,59 +379,26 @@ export default function AssignEmployeeModal({
                       </label>
                     </div>
                   </div>
-                  <FormField
-                    control={form.control}
+                  <SelectForm
                     name="department_id"
-                    render={({ field }) => (
-                      <FormItem>
-                        <label className="text-sm text-text-secondary">
-                          Department<span className="text-red-500">*</span>
-                        </label>
-                        <SelectForm
-                          options={departmentOptions}
-                          {...field}
-                          required
-                          disabled={isDepartmentsLoading || !!departmentsError}
-                        />
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                    label="Department"
+                    options={departmentOptions}
+                    required
+                    disabled={isDepartmentsLoading || !!departmentsError}
                   />
-                  <FormField
-                    control={form.control}
+                  <SelectForm
                     name="job_position_id"
-                    render={({ field }) => (
-                      <FormItem>
-                        <label className="text-sm text-text-secondary">
-                          Position<span className="text-red-500">*</span>
-                        </label>
-                        <SelectForm
-                          options={positionOptions}
-                          required
-                          disabled={isPositionsLoading || !!positionsError}
-                          {...field}
-                        />
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                    label="Position"
+                    options={positionOptions}
+                    required
+                    disabled={isPositionsLoading || !!positionsError}
                   />
-                  <FormField
-                    control={form.control}
+                  <SelectForm
                     name="job_level_id"
-                    render={({ field }) => (
-                      <FormItem>
-                        <label className="text-sm text-text-secondary">
-                          Job Level<span className="text-red-500">*</span>
-                        </label>
-                        <SelectForm
-                          options={jobLevelOptions}
-                          required
-                          disabled={isJobLevelsLoading || !!jobLevelsError}
-                          {...field}
-                        />
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                    label="Job Level"
+                    options={jobLevelOptions}
+                    required
+                    disabled={isJobLevelsLoading || !!jobLevelsError}
                   />
 
                   <FormField

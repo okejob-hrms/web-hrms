@@ -32,14 +32,12 @@ import { ComboboxOption, ComboboxProps, SearchableSelectProps } from "@/lib/type
 function isSelectedValue(
   optionValue: string,
   fieldValue: string | number | null | undefined,
-  valueType: "string" | "number",
 ) {
   if (fieldValue === undefined || fieldValue === null || fieldValue === "") {
     return false;
   }
-  return valueType === "number"
-    ? optionValue === fieldValue.toString()
-    : optionValue === fieldValue;
+  // Always compare as strings so number form values still match option ids.
+  return optionValue === fieldValue.toString();
 }
 
 export function SearchableSelect({
@@ -69,7 +67,7 @@ export function SearchableSelect({
   const hasValue = value !== undefined && value !== null && value !== "";
 
   const selectedOption = hasValue
-    ? options.find((item) => isSelectedValue(item.value, value, valueType))
+    ? options.find((item) => isSelectedValue(item.value, value))
     : null;
 
   const clearSelection = (e: React.MouseEvent) => {
@@ -179,7 +177,7 @@ export function SearchableSelect({
                       <Check
                         className={cn(
                           "ml-auto size-4",
-                          isSelectedValue(item.value, value, valueType)
+                          isSelectedValue(item.value, value)
                             ? "opacity-100"
                             : "opacity-0",
                         )}

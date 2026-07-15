@@ -25,12 +25,9 @@ export const getAllForm = async (
   try {
     const searchParams: Record<string, string> = {};
 
-    if (params?.page) {
-      searchParams.page = String(params.page);
-    }
-    if (params?.per_page) {
-      searchParams.per_page = String(params.per_page);
-    }
+    // Default large page size for dropdown option loads when callers omit pagination.
+    searchParams.page = String(params?.page ?? 1);
+    searchParams.per_page = String(params?.per_page ?? 10000);
     if (params?.search) {
       searchParams.search = params.search;
     }

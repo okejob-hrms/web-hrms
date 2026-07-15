@@ -27,7 +27,12 @@ import {
 import { ApiResponse, PaginatedResponse } from "@/lib/types";
 
 export const getRoles = async (): Promise<IRolesResponse> => {
-  const response = await api.get("roles");
+  const response = await api.get("roles", {
+    searchParams: {
+      page: "1",
+      per_page: "10000",
+    },
+  });
   return response.json();
 };
 
@@ -39,7 +44,7 @@ export const getRoleById = async (id: number): Promise<IRoleDetailResponse> => {
 export const getUserWithRole = async (
   id: number,
 ): Promise<PaginatedResponse<IEmployee>> => {
-  const response = await api.get(`roles/${id}/users?per_pages=10000`);
+  const response = await api.get(`roles/${id}/users?per_page=10000`);
   return response.json<PaginatedResponse<IEmployee>>();
 };
 
@@ -184,8 +189,9 @@ export const getBranches = async (): Promise<
   PaginatedResponse<ICompanyBranches>
 > => {
   try {
+    // Align with getBranchesAll so branch SelectForms keep preselected IDs visible.
     return api
-      .get(`setting/branch`)
+      .get(`setting/branch?per_page=10000`)
       .json<PaginatedResponse<ICompanyBranches>>();
   } catch (error: any) {
     if (error.name === "HTTPError") {

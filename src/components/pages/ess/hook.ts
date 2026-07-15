@@ -83,8 +83,8 @@ export function useESS({
     queryFn: () =>
       getEmployees(
         debouncedEmployee
-          ? { search: debouncedEmployee, per_page: 50 }
-          : { per_page: 50 },
+          ? { search: debouncedEmployee, per_page: 10000 }
+          : { per_page: 10000 },
       ),
     enabled: openFormModal,
     // placeholderData: keepPreviousData,

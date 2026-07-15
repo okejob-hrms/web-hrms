@@ -229,56 +229,26 @@ const EditView = ({
           </label>
         </div>
       </div>
-      <FormField
-        control={form.control}
+      <SelectForm
         name="department_id"
-        render={({ field }) => (
-          <FormItem>
-            <label className="text-sm text-text-secondary">
-              Department<span className="text-red-500">*</span>
-            </label>
-            <SelectForm
-              options={departmentOptions}
-              {...field}
-              disabled={isDepartmentsLoading || !!departmentsError}
-              required
-            />
-          </FormItem>
-        )}
+        label="Department"
+        options={departmentOptions}
+        disabled={isDepartmentsLoading || !!departmentsError}
+        required
       />
-      <FormField
-        control={form.control}
+      <SelectForm
         name="job_position_id"
-        render={({ field }) => (
-          <FormItem>
-            <label className="text-sm text-text-secondary">
-              Position<span className="text-red-500">*</span>
-            </label>
-            <SelectForm
-              options={positionOptions}
-              disabled={isPositionsLoading || !!positionsError}
-              required
-              {...field}
-            />
-          </FormItem>
-        )}
+        label="Position"
+        options={positionOptions}
+        disabled={isPositionsLoading || !!positionsError}
+        required
       />
-      <FormField
-        control={form.control}
+      <SelectForm
         name="job_level_id"
-        render={({ field }) => (
-          <FormItem>
-            <label className="text-sm text-text-secondary">
-              Job Level<span className="text-red-500">*</span>
-            </label>
-            <SelectForm
-              options={jobLevelOptions}
-              disabled={isJobLevelsLoading || !!jobLevelsError}
-              required
-              {...field}
-            />
-          </FormItem>
-        )}
+        label="Job Level"
+        options={jobLevelOptions}
+        disabled={isJobLevelsLoading || !!jobLevelsError}
+        required
       />
 
       <FormField
@@ -468,14 +438,30 @@ export default function EmployeeProfileModal({
   }, [secondaryEmployees?.data]);
 
   const departmentOptions = React.useMemo(() => {
-    if (departments?.data?.data) {
-      return departments.data.data.map((item) => ({
+    const options =
+      departments?.data?.data?.map((item) => ({
         label: item.name,
         value: item.id.toString(),
-      }));
+      })) ?? [];
+
+    // Keep the employee's current department selectable even if it is missing
+    // from the fetched list (e.g. soft-deleted or outside the page window).
+    if (employeeData?.department_id != null && employeeData.department) {
+      const currentId = String(employeeData.department_id);
+      if (!options.some((option) => option.value === currentId)) {
+        options.unshift({
+          label: employeeData.department,
+          value: currentId,
+        });
+      }
     }
-    return [];
-  }, [departments?.data]);
+
+    return options;
+  }, [
+    departments?.data,
+    employeeData?.department,
+    employeeData?.department_id,
+  ]);
 
   const positionOptions = React.useMemo(() => {
     if (positions?.data) {

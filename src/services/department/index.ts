@@ -16,16 +16,18 @@ export const postDepartment = async (
 export const getDepartment = async (
   pagination?: PaginationState,
 ): Promise<ApiResponse<PaginatedResponse<DepartmentResponse>>> => {
-  let searchParams = {};
+  // Backend defaults to per_page=10. Dropdown callers pass no pagination and need
+  // the full list so pre-selected department_id values remain visible/selectable.
+  const searchParams = pagination
+    ? {
+        page: (pagination.pageIndex + 1).toString(),
+        per_page: pagination.pageSize.toString(),
+      }
+    : {
+        page: "1",
+        per_page: "10000",
+      };
 
-  if (pagination) {
-    const page = pagination.pageIndex + 1;
-    const per_page = pagination.pageSize;
-    searchParams = {
-      page: page.toString(),
-      per_page: per_page.toString(),
-    };
-  }
   const response = await api.get<
     ApiResponse<PaginatedResponse<DepartmentResponse>>
   >("departments", {
