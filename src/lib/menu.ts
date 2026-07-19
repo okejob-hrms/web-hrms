@@ -2,6 +2,8 @@
 export interface MenuItem {
   key: string;
   value?: string;
+  /** Required view permission; omit to always show when parent is visible */
+  permission?: string;
   subItem?: MenuItem[];
 }
 
@@ -10,24 +12,47 @@ export const menus: Record<string, MenuItem[]> = {
     {
       key: 'offboarding',
       value: 'offboarding',
+      permission: 'dashboard.pending_offboarding.view',
       subItem: [
         {
           key: 'activeOffboarding',
           value: 'dashboard?overview=offboarding-active',
+          permission: 'dashboard.pending_offboarding.view',
         },
         {
           key: 'waitingOffboarding',
           value: 'dashboard?overview=offboarding-waiting',
+          permission: 'dashboard.pending_offboarding.view',
         },
       ],
     },
-    { key: 'attendanceApproval', value: 'dashboard?overview=attendance' },
-    { key: 'leaveRequest', value: 'dashboard?overview=leave' },
-    { key: 'overtimeRequest', value: 'dashboard?overview=overtime' },
-    { key: 'payslipRequest', value: 'dashboard?overview=payslip' },
+    {
+      key: 'attendanceApproval',
+      value: 'dashboard?overview=attendance',
+      permission: 'dashboard.pending_attendance.view',
+    },
+    {
+      key: 'leaveRequest',
+      value: 'dashboard?overview=leave',
+      permission: 'dashboard.pending_leave.view',
+    },
+    {
+      key: 'overtimeRequest',
+      value: 'dashboard?overview=overtime',
+      permission: 'dashboard.pending_overtime.view',
+    },
+    {
+      key: 'payslipRequest',
+      value: 'dashboard?overview=payslip',
+      permission: 'dashboard.pending_payslip.view',
+    },
   ],
   employee: [
-    { key: 'employeeManagement', value: 'employee/employee-management' },
+    {
+      key: 'employeeManagement',
+      value: 'employee/employee-management',
+      permission: 'employee_organization.employee_profile.view',
+    },
     {
       key: 'organization',
       value: 'employee/organization',
@@ -35,42 +60,92 @@ export const menus: Record<string, MenuItem[]> = {
         {
           key: 'orgStructureChart',
           value: 'employee/organization/structure',
+          permission: 'employee_organization.organization_structure.view',
         },
-        { key: 'position', value: 'employee/organization/position' },
-        { key: 'teams', value: 'employee/organization/teams' },
-        { key: 'jobLevels', value: 'employee/organization/job-level' },
+        {
+          key: 'position',
+          value: 'employee/organization/position',
+          permission: 'employee_organization.employee_assignment.view',
+        },
+        {
+          key: 'teams',
+          value: 'employee/organization/teams',
+          permission: 'employee_organization.employee_assignment.view',
+        },
+        {
+          key: 'jobLevels',
+          value: 'employee/organization/job-level',
+          permission: 'employee_organization.job_leveling_dictionary.view',
+        },
         {
           key: 'department',
           value: 'employee/organization/department-management',
+          permission: 'employee_organization.employee_assignment.view',
         },
       ],
     },
     {
       key: 'offboarding',
       value: 'employee/off-boarding',
+      permission: 'employee_organization.offboarding.view',
     },
   ],
 
   attendance: [
-    { key: 'attendanceTracker', value: 'attendance/attendance-tracker' },
-    { key: 'leaveRequest', value: 'attendance/leave-request' },
-    { key: 'overtime', value: 'attendance/over-time' },
-    { key: 'businessTrip', value: 'attendance/business-trip' },
+    {
+      key: 'attendanceTracker',
+      value: 'attendance/attendance-tracker',
+      permission: 'time_attendance.attendance_records.view',
+    },
+    {
+      key: 'leaveRequest',
+      value: 'attendance/leave-request',
+      permission: 'time_attendance.leave_requests.view',
+    },
+    {
+      key: 'overtime',
+      value: 'attendance/over-time',
+      permission: 'time_attendance.overtime_requests.view',
+    },
+    {
+      key: 'businessTrip',
+      value: 'attendance/business-trip',
+    },
   ],
 
   payroll: [
-    { key: 'payrunManagement', value: 'payroll/list' },
-    { key: 'requestAccess', value: 'payroll/request' },
+    {
+      key: 'payrunManagement',
+      value: 'payroll/list',
+      permission: 'payroll_management.payruns_setup.view',
+    },
+    {
+      key: 'requestAccess',
+      value: 'payroll/request',
+      permission: 'payroll_management.payslip_access_request.view',
+    },
   ],
 
   settings: [
-    { key: 'accessControl', value: 'settings/access-control' },
+    {
+      key: 'accessControl',
+      value: 'settings/access-control',
+      permission: 'rbac.role_management.view',
+    },
     {
       key: 'company',
       value: 'settings/company',
       subItem: [
-        { key: 'companyProfile', value: 'settings/company/company-profile' },
-        { key: 'branch', value: 'settings/company/company-branch' },
+        {
+          key: 'companyProfile',
+          value: 'settings/company/company-profile',
+          permission: 'general_settings.company_profile.view',
+        },
+        {
+          key: 'branch',
+          value: 'settings/company/company-branch',
+          permission: 'general_settings.company_branch.view',
+        },
       ],
     },
     {
@@ -80,23 +155,35 @@ export const menus: Record<string, MenuItem[]> = {
         {
           key: 'attendanceConfiguration',
           value: 'settings/time-attendance/attendance-configuration',
+          permission: 'time_attendance.attendance_configuration.view',
         },
         {
           key: 'overtimeConfiguration',
           value: 'settings/time-attendance/overtime-configuration',
+          permission: 'time_attendance.overtime_configuration.view',
         },
         {
           key: 'holidayAttendance',
           value: 'settings/time-attendance/holiday',
+          permission: 'time_attendance.holiday_attendance.view',
         },
         {
           key: 'attendanceRule',
           value: 'settings/time-attendance/attendance-rule',
+          permission: 'time_attendance.attendance_configuration.view',
         },
       ],
     },
-    { key: 'leaveConfiguration', value: 'settings/leave-management' },
-    { key: 'formTemplate', value: 'settings/form-template' },
+    {
+      key: 'leaveConfiguration',
+      value: 'settings/leave-management',
+      permission: 'time_attendance.leave_configuration.view',
+    },
+    {
+      key: 'formTemplate',
+      value: 'settings/form-template',
+      permission: 'general_settings.form_template.view',
+    },
     {
       key: 'salaryManagement',
       value: 'settings/salary-management',
@@ -104,14 +191,17 @@ export const menus: Record<string, MenuItem[]> = {
         {
           key: 'baseSalaryManagement',
           value: 'settings/salary-management/base-salary',
+          permission: 'payroll_management.employee_salary_structure.view',
         },
         {
           key: 'allowanceManagement',
           value: 'settings/salary-management/allowance',
+          permission: 'payroll_management.allowances_config.view',
         },
         {
           key: 'salaryDeductionManagement',
           value: 'settings/salary-management/deduction',
+          permission: 'payroll_management.deductions_config.view',
         },
       ],
     },
@@ -122,27 +212,36 @@ export const menus: Record<string, MenuItem[]> = {
         {
           key: 'performanceCompetencies',
           value: 'settings/competencies',
+          permission: 'performance_settings.performance_competencies.view',
         },
         {
           key: 'assessmentScoreThreshold',
           value: 'settings/assessment-score',
+          permission: 'performance_settings.assessment_score_threshold.view',
         },
       ],
     },
   ],
   performance: [
-    { key: 'selfAssessment', value: 'performance/self-assessment' },
+    {
+      key: 'selfAssessment',
+      value: 'performance/self-assessment',
+      permission: 'performance_self_assessment.assessment_cycle.view',
+    },
     {
       key: 'supervisorAssessment',
       value: 'performance/supervisor-assessment',
+      permission: 'performance_supervisor_assessment.assessment_cycle.view',
     },
     {
       key: 'okr',
       value: 'performance/okr',
+      permission: 'performance_okr.okr_cycle.view',
     },
     {
       key: 'kpi',
       value: 'performance/kpi',
+      permission: 'performance_kpi.kpi_cycle.view',
     },
   ],
 };

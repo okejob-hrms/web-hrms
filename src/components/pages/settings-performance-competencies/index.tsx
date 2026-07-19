@@ -19,6 +19,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { CompetencyModalForm } from "./sections/modal-form";
 import DeleteDialog from "./sections/delete-modal";
+import { Can } from "@/components/auth/can";
 
 export const SettingsPerformanceCompetencies = React.memo(
   function SettingsPerformanceCompetencies() {
@@ -81,34 +82,38 @@ export const SettingsPerformanceCompetencies = React.memo(
                     {t("competencyDetails")}
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <button
-                    className="flex gap-2 justify-between items-center"
-                    onClick={() => handleEditClick(row.original.id)}
-                  >
-                    <Image
-                      src="/icons/editGrey.svg"
-                      height={16}
-                      width={16}
-                      alt="icon-edit"
-                    />
-                    {t("editCompetency")}
-                  </button>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <button
-                    className="flex gap-2"
-                    onClick={() => handleDeleteClick(row.original.id)}
-                  >
-                    <Image
-                      src="/icons/delete.svg"
-                      height={16}
-                      width={16}
-                      alt="icon-edit"
-                    />
-                    {t("deleteCompetency")}
-                  </button>
-                </DropdownMenuItem>
+                <Can permission="performance_settings.performance_competencies.edit">
+                  <DropdownMenuItem>
+                    <button
+                      className="flex gap-2 justify-between items-center"
+                      onClick={() => handleEditClick(row.original.id)}
+                    >
+                      <Image
+                        src="/icons/editGrey.svg"
+                        height={16}
+                        width={16}
+                        alt="icon-edit"
+                      />
+                      {t("editCompetency")}
+                    </button>
+                  </DropdownMenuItem>
+                </Can>
+                <Can permission="performance_settings.performance_competencies.delete">
+                  <DropdownMenuItem>
+                    <button
+                      className="flex gap-2"
+                      onClick={() => handleDeleteClick(row.original.id)}
+                    >
+                      <Image
+                        src="/icons/delete.svg"
+                        height={16}
+                        width={16}
+                        alt="icon-edit"
+                      />
+                      {t("deleteCompetency")}
+                    </button>
+                  </DropdownMenuItem>
+                </Can>
               </DropdownMenuContent>
             </DropdownMenu>
           );
@@ -124,12 +129,14 @@ export const SettingsPerformanceCompetencies = React.memo(
               <div className="flex gap-2 items-center flex-wrap">
                 <h2 className="font-semibold text-xl">{t("competencies")}</h2>
               </div>
-              <Button
-                onClick={() => handleAddNew()}
-                className="whitespace-nowrap"
-              >
-                {t("newCompetency")}
-              </Button>
+              <Can permission="performance_settings.performance_competencies.create">
+                <Button
+                  onClick={() => handleAddNew()}
+                  className="whitespace-nowrap"
+                >
+                  {t("newCompetency")}
+                </Button>
+              </Can>
             </div>
             <DataTable
               columns={columns}

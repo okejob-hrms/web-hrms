@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import * as React from "react";
 import { useTranslations } from "next-intl";
+import { Can } from "@/components/auth/can";
 import { DataTable } from "@/components/tables/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -237,9 +238,11 @@ export default function SelfAssessmentList() {
             <div className="flex gap-2 items-center flex-wrap">
               <h2 className="font-semibold text-xl">{t("selfAssessment")}</h2>
             </div>
-            <Button onClick={() => handleNew()} className="whitespace-nowrap">
-              {t("newAssessment")}
-            </Button>
+            <Can permission="performance_self_assessment.assessment_cycle.create">
+              <Button onClick={() => handleNew()} className="whitespace-nowrap">
+                {t("newAssessment")}
+              </Button>
+            </Can>
           </div>
           <DataTable
             columns={columns}

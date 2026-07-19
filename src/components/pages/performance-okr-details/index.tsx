@@ -13,6 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import dayjs from "dayjs";
 import { InitiateModal } from "./sections/initiate-modal";
 import { DeleteModal } from "./sections/delete-modal";
+import { Can } from "@/components/auth/can";
 
 export const PerformanceOKRDetails = () => {
   const {
@@ -86,17 +87,19 @@ export const PerformanceOKRDetails = () => {
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
-            <DropdownMenuItem asChild>
-              <button
-                onClick={() => {
-                  // handleDetail();
-                }}
-                className="flex gap-2 w-full text-left"
-              >
-                <FileDown className="w-4 h-4" />
-                Export OKR
-              </button>
-            </DropdownMenuItem>
+            <Can permission="performance_okr.okr_cycle.export">
+              <DropdownMenuItem asChild>
+                <button
+                  onClick={() => {
+                    // handleDetail();
+                  }}
+                  className="flex gap-2 w-full text-left"
+                >
+                  <FileDown className="w-4 h-4" />
+                  Export OKR
+                </button>
+              </DropdownMenuItem>
+            </Can>
             {
               status.key !== "active" && (
                 <>

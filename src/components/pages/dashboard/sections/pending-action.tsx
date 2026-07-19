@@ -15,12 +15,22 @@ import OvertimeTrackerList from '../../overtime-tracker-list';
 import { PayrollRequest } from '../../payroll-request';
 import { useDashboardPending } from '../hooks/pending';
 import { Skeleton } from '@/components/ui/skeleton';
+import { usePermission } from '@/hooks/use-permission';
+import { filterMenuItemsByPermission } from '@/lib/permissions';
 
 export const PendingAction = () => {
   const searchParams = useSearchParams();
   const overview = searchParams.get('overview');
   const { pendingStat, pendingStatLoading } = useDashboardPending();
   const t = useTranslations('dashboard');
+  const { can, loaded } = usePermission();
+
+  const dashboardMenus = React.useMemo(() => {
+    if (!loaded) {
+      return [];
+    }
+    return filterMenuItemsByPermission(menus['dashboard'] ?? [], can);
+  }, [can, loaded]);
 
   const pannel = React.useMemo(
     () => [
@@ -87,7 +97,7 @@ export const PendingAction = () => {
 
       <SidebarProvider className="mx-auto w-full md:py-10 flex flex-col md:flex-row md:gap-4">
         <SidebarTrigger className="md:hidden" />
-        <AppSidebar title={t('pendingAction')} menuItems={menus['dashboard']} />
+        <AppSidebar title={t('pendingAction')} menuItems={dashboardMenus} />
 
         <main className="w-full px-2 md:px-0 py-3 md:py-0 -px-6">
           {pendingStatLoading ? <AppSkeleton /> : content}

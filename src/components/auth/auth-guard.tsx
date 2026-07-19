@@ -1,36 +1,87 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
+import { toast } from 'sonner';
+import { usePermissionStore } from '@/hooks/use-permission-store';
+import { getRequiredViewPermission } from '@/lib/permissions';
+
+function getFallbackPath(
+  can: (permission: string) => boolean,
+  isEmployeeOnly: boolean,
+): string {
+  if (isEmployeeOnly) {
+    return '/ess';
+  }
+
+  const candidates: Array<{ permission: string; path: string }> = [
+    {
+      permission: 'dashboard.pending_offboarding.view',
+      path: '/dashboard?overview=offboarding-active',
+    },
+    {
+      permission: 'dashboard.pending_attendance.view',
+      path: '/dashboard?overview=attendance',
+    },
+    {
+      permission: 'dashboard.pending_leave.view',
+      path: '/dashboard?overview=leave',
+    },
+    {
+      permission: 'employee_organization.employee_profile.view',
+      path: '/employee/employee-management',
+    },
+    {
+      permission: 'time_attendance.attendance_records.view',
+      path: '/attendance/attendance-tracker',
+    },
+    {
+      permission: 'rbac.role_management.view',
+      path: '/settings/access-control',
+    },
+    {
+      permission: 'ess.ess_portal.view',
+      path: '/ess',
+    },
+  ];
+
+  return candidates.find((item) => can(item.permission))?.path ?? '/ess';
+}
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   const [isReady, setIsReady] = useState(false);
-  const [roles, setRoles] = useState<string[]>([]);
+  const roles = usePermissionStore((state) => state.roles);
+  const loaded = usePermissionStore((state) => state.loaded);
+  const can = usePermissionStore((state) => state.can);
+  const hydrateFromStorage = usePermissionStore(
+    (state) => state.hydrateFromStorage,
+  );
+  const load = usePermissionStore((state) => state.load);
 
   useEffect(() => {
-    try {
-      const savedRoles = localStorage.getItem('user_role');
-      const parsed = savedRoles ? JSON.parse(savedRoles) : [];
-      setRoles(Array.isArray(parsed) ? parsed : []);
-    } catch {
-      setRoles([]);
-    } finally {
+    hydrateFromStorage();
+    const token = localStorage.getItem('token');
+    if (token) {
+      void load().finally(() => setIsReady(true));
+    } else {
       setIsReady(true);
     }
-  }, []);
+  }, [hydrateFromStorage, load]);
 
   const isEmployeeOnly =
     roles.length === 1 && String(roles[0]).toLowerCase() === 'employee';
 
   useEffect(() => {
-    if (!isReady) return;
+    if (!isReady) {
+      return;
+    }
 
     const token = localStorage.getItem('token');
 
-    // Belum login
     if (!token) {
       const isPublicRoute =
         pathname.startsWith('/auth') || pathname.startsWith('/docs');
@@ -40,7 +91,6 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // Employee only restriction
     if (
       isEmployeeOnly &&
       !pathname.startsWith('/auth') &&
@@ -50,9 +100,29 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
       router.replace('/ess');
       return;
     }
-  }, [isReady, isEmployeeOnly, pathname, router]);
 
-  if (!isReady) return null;
+    if (
+      !loaded ||
+      pathname.startsWith('/auth') ||
+      pathname.startsWith('/docs')
+    ) {
+      return;
+    }
+
+    const required = getRequiredViewPermission(pathname, searchParams);
+    if (required && !can(required)) {
+      const fallback = getFallbackPath(can, isEmployeeOnly);
+      const fallbackPath = fallback.split('?')[0];
+      if (pathname !== fallbackPath) {
+        toast.error('You do not have permission to access this page');
+        router.replace(fallback);
+      }
+    }
+  }, [isReady, isEmployeeOnly, pathname, searchParams, router, loaded, can]);
+
+  if (!isReady) {
+    return null;
+  }
 
   return <>{children}</>;
 }

@@ -32,6 +32,8 @@ import { usePathname } from 'next/navigation';
 import { NotificationList } from './notification-list';
 import { LanguageSwitch } from '@/components/shared/language-switch';
 import { toTitleCase } from '@/lib/menu';
+import { usePermissionStore } from '@/hooks/use-permission-store';
+import { canAccessHeaderModule } from '@/lib/permissions';
 
 interface BreadcrumbItemData {
   link: string;
@@ -58,6 +60,7 @@ const NAV_ITEMS = [
       descKey: string;
       path: string;
       icon: string;
+      permission?: string;
     }>,
   },
   {
@@ -71,18 +74,21 @@ const NAV_ITEMS = [
         descKey: 'employeeManagementDesc',
         path: '/employee/employee-management',
         icon: '/icons/user02.svg',
+        permission: 'employee_organization.employee_profile.view',
       },
       {
         labelKey: 'employeeAttendance',
         descKey: 'employeeAttendanceDesc',
         path: '/attendance/attendance-tracker',
         icon: '/icons/clock.svg',
+        permission: 'time_attendance.attendance_records.view',
       },
       {
         labelKey: 'payroll',
         descKey: 'payrollDesc',
         path: '/payroll/list',
         icon: '/icons/cash.svg',
+        permission: 'payroll_management.payruns_setup.view',
       },
     ],
   },
@@ -113,27 +119,133 @@ const HeaderMenu = React.memo(function HeaderMenu() {
   const pathname = usePathname();
   const t = useTranslations('nav');
   const [isMobileMenuOpen, setMobileMenuOpen] = React.useState(false);
-  const [roles, setRoles] = React.useState<string[]>([]);
-
-  React.useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    try {
-      const savedRoles = localStorage.getItem('user_role');
-      const parsed = savedRoles ? JSON.parse(savedRoles) : [];
-      setRoles(Array.isArray(parsed) ? parsed : []);
-    } catch {
-      setRoles([]);
-    }
-  }, []);
+  const roles = usePermissionStore((state) => state.roles);
+  const can = usePermissionStore((state) => state.can);
+  const canAny = usePermissionStore((state) => state.canAny);
+  const loaded = usePermissionStore((state) => state.loaded);
 
   const isEmployeeOnly =
     roles.length === 1 && String(roles[0]).toLowerCase() === 'employee';
 
   const displayedMenuItems = React.useMemo(() => {
-    if (!isEmployeeOnly) return NAV_ITEMS;
-    return NAV_ITEMS.filter((item) => item.name === 'ess');
-  }, [isEmployeeOnly]);
+    if (!loaded) {
+      return [];
+    }
+
+    const base = isEmployeeOnly
+      ? NAV_ITEMS.filter((item) => item.name === 'ess')
+      : NAV_ITEMS;
+
+    const resolvePath = (item: (typeof NAV_ITEMS)[number]) => {
+      if (item.name === 'dashboard') {
+        const overviewPaths: Array<{ permission: string; path: string }> = [
+          {
+            permission: 'dashboard.pending_offboarding.view',
+            path: '/dashboard?overview=offboarding-active',
+          },
+          {
+            permission: 'dashboard.pending_attendance.view',
+            path: '/dashboard?overview=attendance',
+          },
+          {
+            permission: 'dashboard.pending_leave.view',
+            path: '/dashboard?overview=leave',
+          },
+          {
+            permission: 'dashboard.pending_overtime.view',
+            path: '/dashboard?overview=overtime',
+          },
+          {
+            permission: 'dashboard.pending_payslip.view',
+            path: '/dashboard?overview=payslip',
+          },
+        ];
+        return overviewPaths.find((p) => can(p.permission))?.path ?? item.path;
+      }
+
+      if (item.name === 'settings') {
+        const settingsPaths: Array<{ permission: string; path: string }> = [
+          {
+            permission: 'rbac.role_management.view',
+            path: '/settings/access-control',
+          },
+          {
+            permission: 'general_settings.company_profile.view',
+            path: '/settings/company/company-profile',
+          },
+          {
+            permission: 'general_settings.company_branch.view',
+            path: '/settings/company/company-branch',
+          },
+          {
+            permission: 'time_attendance.attendance_configuration.view',
+            path: '/settings/time-attendance/attendance-configuration',
+          },
+          {
+            permission: 'time_attendance.leave_configuration.view',
+            path: '/settings/leave-management',
+          },
+          {
+            permission: 'general_settings.form_template.view',
+            path: '/settings/form-template',
+          },
+        ];
+        return settingsPaths.find((p) => can(p.permission))?.path ?? item.path;
+      }
+
+      if (item.name === 'performance') {
+        const performancePaths: Array<{ permission: string; path: string }> = [
+          {
+            permission: 'performance_self_assessment.assessment_cycle.view',
+            path: '/performance/self-assessment',
+          },
+          {
+            permission:
+              'performance_supervisor_assessment.assessment_cycle.view',
+            path: '/performance/supervisor-assessment',
+          },
+          {
+            permission: 'performance_okr.okr_cycle.view',
+            path: '/performance/okr',
+          },
+          {
+            permission: 'performance_kpi.kpi_cycle.view',
+            path: '/performance/kpi',
+          },
+        ];
+        return (
+          performancePaths.find((p) => can(p.permission))?.path ?? item.path
+        );
+      }
+
+      if (item.children.length > 0) {
+        const firstChild = item.children.find(
+          (child) => !child.permission || can(child.permission),
+        );
+        return firstChild?.path ?? item.path;
+      }
+
+      return item.path;
+    };
+
+    return base
+      .map((item) => {
+        if (!canAccessHeaderModule(item.name, canAny)) {
+          return null;
+        }
+
+        const children = item.children.filter(
+          (child) => !child.permission || can(child.permission),
+        );
+
+        if (item.children.length > 0 && children.length === 0) {
+          return null;
+        }
+
+        return { ...item, children, path: resolvePath({ ...item, children }) };
+      })
+      .filter((item): item is (typeof NAV_ITEMS)[number] => item !== null);
+  }, [isEmployeeOnly, loaded, can, canAny]);
 
   const navigationMenuTriggerStyle = (isActive: boolean) =>
     cn(

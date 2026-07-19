@@ -3,6 +3,7 @@
 import { Plus } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
+import { Can } from '@/components/auth/can';
 
 interface EmptyStateProps {
   onCreate: () => void;
@@ -37,10 +38,12 @@ export default function AttendanceRuleEmptyState({ onCreate }: EmptyStateProps) 
           payroll otomatis menyesuaikan tiap bulan.
         </p>
       </div>
-      <Button onClick={onCreate} className="flex flex-row items-center gap-2">
-        <Plus className="w-4 h-4" />
-        Buat aturan pertama
-      </Button>
+      <Can permission="time_attendance.attendance_configuration.create">
+        <Button onClick={onCreate} className="flex flex-row items-center gap-2">
+          <Plus className="w-4 h-4" />
+          Buat aturan pertama
+        </Button>
+      </Can>
     </div>
   );
 }

@@ -30,6 +30,7 @@ import { useDebounce } from "@/hooks/use-debounce";
 import { Skeleton } from "@/components/ui/skeleton";
 import Image from "next/image";
 import { EmployeeImportDialog } from "./sections/import/import-dialog";
+import { Can } from "@/components/auth/can";
 
 export default function EmployeeManagementList() {
   const router = useRouter();
@@ -142,20 +143,22 @@ export default function EmployeeManagementList() {
                     {t("employeeDetails")}
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Link
-                    href={`/employee/employee-management/edit/${row.original.id}`}
-                    className="flex gap-2 w-full"
-                  >
-                    <Image
-                      src="/icons/editGrey.svg"
-                      height={16}
-                      width={16}
-                      alt="icon-edit"
-                    />
-                    {tCommon("edit")}
-                  </Link>
-                </DropdownMenuItem>
+                <Can permission="employee_organization.employee_profile.edit">
+                  <DropdownMenuItem>
+                    <Link
+                      href={`/employee/employee-management/edit/${row.original.id}`}
+                      className="flex gap-2 w-full"
+                    >
+                      <Image
+                        src="/icons/editGrey.svg"
+                        height={16}
+                        width={16}
+                        alt="icon-edit"
+                      />
+                      {tCommon("edit")}
+                    </Link>
+                  </DropdownMenuItem>
+                </Can>
               </DropdownMenuContent>
             </DropdownMenu>
           );
@@ -220,24 +223,28 @@ export default function EmployeeManagementList() {
             </Badge>
           </div>
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setIsImportOpen(true)}
-              className="flex gap-2"
-            >
-              <Image
-                src="/icons/attachmentBlue.svg"
-                height={16}
-                width={16}
-                alt="icon-import"
-              />
-              {tCommon("import")}
-            </Button>
-            <Button
-              onClick={() => router.push("/employee/employee-management/add")}
-            >
-              {t("newEmployee")}
-            </Button>
+            <Can permission="employee_organization.employee_profile.create">
+              <Button
+                variant="outline"
+                onClick={() => setIsImportOpen(true)}
+                className="flex gap-2"
+              >
+                <Image
+                  src="/icons/attachmentBlue.svg"
+                  height={16}
+                  width={16}
+                  alt="icon-import"
+                />
+                {tCommon("import")}
+              </Button>
+            </Can>
+            <Can permission="employee_organization.employee_profile.create">
+              <Button
+                onClick={() => router.push("/employee/employee-management/add")}
+              >
+                {t("newEmployee")}
+              </Button>
+            </Can>
           </div>
         </div>
         <EmployeeImportDialog

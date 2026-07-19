@@ -20,6 +20,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useCompanyBranchList } from "./hook";
 import DeleteDialog from "./sections/delete-modal";
+import { Can } from "@/components/auth/can";
 
 export default function SettingsCompanyBranchList() {
   const t = useTranslations("settings");
@@ -118,34 +119,38 @@ export default function SettingsCompanyBranchList() {
                     {t("branchDetails")}
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Link
-                    href={`/settings/company/company-branch/edit/${row.original.id}`}
-                    className="flex gap-2 justify-start items-center w-full"
+                <Can permission="general_settings.company_branch.edit">
+                  <DropdownMenuItem>
+                    <Link
+                      href={`/settings/company/company-branch/edit/${row.original.id}`}
+                      className="flex gap-2 justify-start items-center w-full"
+                    >
+                      <Image
+                        src="/icons/editGrey.svg"
+                        height={16}
+                        width={16}
+                        alt="icon-edit"
+                      />
+                      {tCommon("edit")}
+                    </Link>
+                  </DropdownMenuItem>
+                </Can>
+                <Can permission="general_settings.company_branch.delete">
+                  <DropdownMenuItem
+                    className="flex gap-2 items-center"
+                    onClick={() =>
+                      handleOpenDeleteModal(row.original.id.toString())
+                    }
                   >
                     <Image
-                      src="/icons/editGrey.svg"
+                      src="/icons/delete.svg"
                       height={16}
                       width={16}
                       alt="icon-edit"
                     />
-                    {tCommon("edit")}
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  className="flex gap-2 items-center"
-                  onClick={() =>
-                    handleOpenDeleteModal(row.original.id.toString())
-                  }
-                >
-                  <Image
-                    src="/icons/delete.svg"
-                    height={16}
-                    width={16}
-                    alt="icon-edit"
-                  />
-                  {tCommon("delete")}
-                </DropdownMenuItem>
+                    {tCommon("delete")}
+                  </DropdownMenuItem>
+                </Can>
               </DropdownMenuContent>
             </DropdownMenu>
           );
@@ -165,9 +170,11 @@ export default function SettingsCompanyBranchList() {
             <div className="flex gap-2 items-center flex-wrap">
               <h2 className="font-semibold text-xl">{t("companyBranch")}</h2>
             </div>
-            <Button onClick={() => handleNew()} className="whitespace-nowrap">
-              {t("newBranch")}
-            </Button>
+            <Can permission="general_settings.company_branch.create">
+              <Button onClick={() => handleNew()} className="whitespace-nowrap">
+                {t("newBranch")}
+              </Button>
+            </Can>
           </div>
           <DataTable columns={columns} data={branches} customSize={!isMobile} />
         </div>

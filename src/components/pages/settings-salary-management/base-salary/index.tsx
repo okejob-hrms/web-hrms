@@ -7,6 +7,7 @@ import { DataTable } from '@/components/tables/data-table';
 import { ColumnDef } from '@tanstack/react-table';
 import { Plus, CalendarIcon } from 'lucide-react';
 import { RowActions } from '@/components/tables/row-actions';
+import { Can } from '@/components/auth/can';
 import dayjs from 'dayjs';
 import { formatDate } from '@/lib/formatting';
 import { resolveLocale } from '@/lib/i18n/locale';
@@ -176,6 +177,8 @@ export default function SettingsBaseSalary() {
               setEditing(item);
               setOpenDetail(true);
             }}
+            editPermission="payroll_management.employee_salary_structure.edit"
+            deletePermission="payroll_management.employee_salary_structure.delete"
           />
         );
       },
@@ -270,17 +273,19 @@ export default function SettingsBaseSalary() {
     <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6">
       <div className="flex flex-col sm:flex-row sm:gap-4 justify-between">
         <h2 className="font-semibold text-xl">{t('baseSalaryManagement')}</h2>
-        <Button
-          className="flex flex-row items-center gap-2"
-          onClick={() => {
-            setEditing(null);
-            resetForm();
-            setOpen(true);
-          }}
-        >
-          <Plus className="w-4 h-4" />
-          {t('addBaseSalary')}
-        </Button>
+        <Can permission="payroll_management.employee_salary_structure.create">
+          <Button
+            className="flex flex-row items-center gap-2"
+            onClick={() => {
+              setEditing(null);
+              resetForm();
+              setOpen(true);
+            }}
+          >
+            <Plus className="w-4 h-4" />
+            {t('addBaseSalary')}
+          </Button>
+        </Can>
       </div>
 
       <DataTable columns={columns} data={baseSalaryData?.data} />

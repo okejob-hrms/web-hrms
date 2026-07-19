@@ -7,12 +7,16 @@ import {
   DropdownMenuPortal,
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, Edit3, Trash2, Eye } from "lucide-react";
+import { Can } from "@/components/auth/can";
 
 interface RowActionsProps {
   onEdit: () => void;
   onDelete: () => void;
   hideDelete?: boolean;
   onDetail?: () => void;
+  editPermission?: string;
+  deletePermission?: string;
+  detailPermission?: string;
 }
 
 export function RowActions({
@@ -20,7 +24,30 @@ export function RowActions({
   onDelete,
   hideDelete = false,
   onDetail,
+  editPermission,
+  deletePermission,
+  detailPermission,
 }: RowActionsProps) {
+  const editItem = (
+    <DropdownMenuItem
+      className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 cursor-pointer select-none"
+      onClick={onEdit}
+    >
+      <Edit3 className="w-4 h-4" />
+      Edit
+    </DropdownMenuItem>
+  );
+
+  const deleteItem = (
+    <DropdownMenuItem
+      className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 cursor-pointer select-none"
+      onClick={onDelete}
+    >
+      <Trash2 className="w-4 h-4" />
+      Delete
+    </DropdownMenuItem>
+  );
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -40,31 +67,37 @@ export function RowActions({
           align="end"
           sideOffset={-10}
         >
-          {onDetail && (
-            <DropdownMenuItem
-              className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 cursor-pointer select-none"
-              onClick={onDetail}
-            >
-              <Eye className="w-4 h-4" />
-              Detail
-            </DropdownMenuItem>
+          {onDetail &&
+            (detailPermission ? (
+              <Can permission={detailPermission}>
+                <DropdownMenuItem
+                  className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 cursor-pointer select-none"
+                  onClick={onDetail}
+                >
+                  <Eye className="w-4 h-4" />
+                  Detail
+                </DropdownMenuItem>
+              </Can>
+            ) : (
+              <DropdownMenuItem
+                className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 cursor-pointer select-none"
+                onClick={onDetail}
+              >
+                <Eye className="w-4 h-4" />
+                Detail
+              </DropdownMenuItem>
+            ))}
+          {editPermission ? (
+            <Can permission={editPermission}>{editItem}</Can>
+          ) : (
+            editItem
           )}
-          <DropdownMenuItem
-            className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 cursor-pointer select-none"
-            onClick={onEdit}
-          >
-            <Edit3 className="w-4 h-4" />
-            Edit
-          </DropdownMenuItem>
-          {!hideDelete && (
-            <DropdownMenuItem
-              className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 cursor-pointer select-none"
-              onClick={onDelete}
-            >
-              <Trash2 className="w-4 h-4" />
-              Delete
-            </DropdownMenuItem>
-          )}
+          {!hideDelete &&
+            (deletePermission ? (
+              <Can permission={deletePermission}>{deleteItem}</Can>
+            ) : (
+              deleteItem
+            ))}
         </DropdownMenuContent>
       </DropdownMenuPortal>
     </DropdownMenu>

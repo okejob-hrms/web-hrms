@@ -15,6 +15,7 @@ import { resolveLocale } from "@/lib/i18n/locale";
 import DeleteDepartmentDialog from "./sections/delete-modal";
 import { DepartmentResponse } from "@/services/department/types";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Can } from "@/components/auth/can";
 
 export default function DepartmentManagementList() {
   const t = useTranslations("employee");
@@ -81,6 +82,8 @@ export default function DepartmentManagementList() {
                 onDelete={() => {
                   handleDeleteClick(item);
                 }}
+                editPermission="employee_organization.employee_assignment.edit"
+                deletePermission="employee_organization.employee_assignment.delete"
               />
             </div>
           );
@@ -105,9 +108,11 @@ export default function DepartmentManagementList() {
               {t("departmentCount", { count: departmentCount })}
             </Badge>
           </div>
-          <Button onClick={handleCreate} className="whitespace-nowrap">
-            {t("newDepartment")}
-          </Button>
+          <Can permission="employee_organization.employee_assignment.create">
+            <Button onClick={handleCreate} className="whitespace-nowrap">
+              {t("newDepartment")}
+            </Button>
+          </Can>
         </div>
         {isLoading ? (
           <div className="flex flex-col gap-4 items-center w-full">

@@ -29,6 +29,7 @@ import FormModal from "./sections/form-modal";
 import { Input } from "@/components/ui/input";
 import { DetailModal } from "./sections/detail-modal";
 import { DeleteModal } from "./sections/delete-modal";
+import { Can } from "@/components/auth/can";
 
 export default function PerformanceKPI() {
   const t = useTranslations("performance");
@@ -179,28 +180,32 @@ export default function PerformanceKPI() {
                 {t("kpiDetails")}
               </button>
             </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <button
-                onClick={() => {
-                  handleEdit(row.original.id);
-                }}
-                className="flex gap-2 w-full text-left"
-              >
-                <Edit2 className="w-4 h-4" />
-                {t("editKpi")}
-              </button>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <button
-                onClick={() => {
-                  handleDelete(row.original.id);
-                }}
-                className="flex gap-2 w-full text-left"
-              >
-                <Trash className="w-4 h-4" />
-                {t("deleteKpi")}
-              </button>
-            </DropdownMenuItem>
+            <Can permission="performance_kpi.kpi_cycle.edit">
+              <DropdownMenuItem asChild>
+                <button
+                  onClick={() => {
+                    handleEdit(row.original.id);
+                  }}
+                  className="flex gap-2 w-full text-left"
+                >
+                  <Edit2 className="w-4 h-4" />
+                  {t("editKpi")}
+                </button>
+              </DropdownMenuItem>
+            </Can>
+            <Can permission="performance_kpi.kpi_cycle.delete">
+              <DropdownMenuItem asChild>
+                <button
+                  onClick={() => {
+                    handleDelete(row.original.id);
+                  }}
+                  className="flex gap-2 w-full text-left"
+                >
+                  <Trash className="w-4 h-4" />
+                  {t("deleteKpi")}
+                </button>
+              </DropdownMenuItem>
+            </Can>
           </DropdownMenuContent>
         </DropdownMenu>
       ),
@@ -225,9 +230,11 @@ export default function PerformanceKPI() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
-              <Button onClick={() => handleNew()} className="whitespace-nowrap">
-                {t("newKpi")}
-              </Button>
+              <Can permission="performance_kpi.kpi_cycle.create">
+                <Button onClick={() => handleNew()} className="whitespace-nowrap">
+                  {t("newKpi")}
+                </Button>
+              </Can>
             </div>
           </div>
           <DataTable

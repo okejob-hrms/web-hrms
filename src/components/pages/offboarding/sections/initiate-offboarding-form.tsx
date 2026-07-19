@@ -31,6 +31,7 @@ import * as React from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
+import { Can } from "@/components/auth/can";
 
 export const InitiateOffboardingEmployee = React.memo(
   function InitiateOffboardingEmployee() {
@@ -136,12 +137,14 @@ export const InitiateOffboardingEmployee = React.memo(
 
     return (
       <Dialog open={isOpen} onOpenChange={handleDialogOpenChange}>
-        <DialogTrigger asChild>
-          <Button variant="default">
-            <Plus className="mr-2 h-4 w-4" />
-            {t("newOffboardingProcess")}
-          </Button>
-        </DialogTrigger>
+        <Can permission="employee_organization.offboarding.create">
+          <DialogTrigger asChild>
+            <Button variant="default">
+              <Plus className="mr-2 h-4 w-4" />
+              {t("newOffboardingProcess")}
+            </Button>
+          </DialogTrigger>
+        </Can>
 
         <DialogContent className="bg-white md:min-w-5xl overflow-y-auto max-h-[90vh]">
           <DialogHeader>

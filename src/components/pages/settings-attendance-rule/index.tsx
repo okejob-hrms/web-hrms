@@ -24,6 +24,7 @@ import AttendanceRuleForm from './section/form-modal';
 import AttendanceRuleDelete from './section/delete-modal';
 import AttendanceRuleDetail from './section/detail-modal';
 import AttendanceRuleEmptyState from './section/empty-state';
+import { Can } from '@/components/auth/can';
 
 import {
   AttendanceRule,
@@ -175,6 +176,8 @@ export default function SettingsAttendanceRule() {
             onDetail={() => handleDetail(row.original)}
             onEdit={() => handleEdit(row.original)}
             onDelete={() => handleDeleteClick(row.original)}
+            editPermission="time_attendance.attendance_configuration.edit"
+            deletePermission="time_attendance.attendance_configuration.delete"
           />
         </div>
       ),
@@ -216,13 +219,15 @@ export default function SettingsAttendanceRule() {
           </p>
         </div>
         {!isInitiallyEmpty && (
-          <Button
-            className="flex flex-row items-center gap-2"
-            onClick={handleAdd}
-          >
-            <Plus className="w-4 h-4" />
-            Tambah Aturan
-          </Button>
+          <Can permission="time_attendance.attendance_configuration.create">
+            <Button
+              className="flex flex-row items-center gap-2"
+              onClick={handleAdd}
+            >
+              <Plus className="w-4 h-4" />
+              Tambah Aturan
+            </Button>
+          </Can>
         )}
       </div>
 

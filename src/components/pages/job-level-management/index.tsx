@@ -14,6 +14,7 @@ import { JobLevel } from "@/services/job-levels/types";
 import { useJobLevels } from "./hooks/useJobLevel";
 import DeleteJobLevelDialog from "./sections/delete-modal";
 import JobLevelModal from "./sections/edit-modal";
+import { Can } from "@/components/auth/can";
 
 export default function JobLevelList() {
   const t = useTranslations("employee");
@@ -80,6 +81,8 @@ export default function JobLevelList() {
                 onDelete={() => {
                   handleDeleteClick(item);
                 }}
+                editPermission="employee_organization.job_leveling_dictionary.edit"
+                deletePermission="employee_organization.job_leveling_dictionary.delete"
               />
             </div>
           );
@@ -98,9 +101,11 @@ export default function JobLevelList() {
           <div className="flex gap-2 items-center flex-wrap">
             <h2 className="font-semibold text-xl">{t("jobLevels")}</h2>
           </div>
-          <Button onClick={handleCreate} className="whitespace-nowrap">
-            {t("newJobLevel")}
-          </Button>
+          <Can permission="employee_organization.job_leveling_dictionary.create">
+            <Button onClick={handleCreate} className="whitespace-nowrap">
+              {t("newJobLevel")}
+            </Button>
+          </Can>
         </div>
         {isLoading ? (
           <div className="flex flex-col gap-4 items-center w-full">

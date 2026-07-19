@@ -7,6 +7,7 @@ import { Edit3 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useRouter } from "next/navigation";
 import { useCompanyProfile } from "./hook";
+import { Can } from "@/components/auth/can";
 
 function InfoItem({ label, value }: { label: string; value: string }) {
   return (
@@ -84,16 +85,18 @@ export default function SettingsCompanyProfile() {
           </div>
 
           <div className="flex mt-4">
-            <Button
-              variant="outline"
-              className="flex flex-row gap-6"
-              onClick={() =>
-                router.push("/settings/company/company-profile/edit")
-              }
-            >
-              <Edit3 />
-              {t("editCompanyInformation")}
-            </Button>
+            <Can permission="general_settings.company_profile.edit">
+              <Button
+                variant="outline"
+                className="flex flex-row gap-6"
+                onClick={() =>
+                  router.push("/settings/company/company-profile/edit")
+                }
+              >
+                <Edit3 />
+                {t("editCompanyInformation")}
+              </Button>
+            </Can>
           </div>
         </div>
       </div>

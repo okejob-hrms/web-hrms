@@ -22,6 +22,7 @@ import { IFormTemplate } from "@/services/form/types";
 import FormDeleteModal from "./sections/delete-modal";
 import { FormAddModal } from "./sections/add-modal";
 import { Input } from "@/components/ui/input";
+import { Can } from "@/components/auth/can";
 
 export default function FormTemplateList() {
   const t = useTranslations("settings");
@@ -120,37 +121,41 @@ export default function FormTemplateList() {
                     {t("formDetails")}
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Link
-                    href={`/settings/form-template/edit/${row.original.id}`}
-                    className="flex gap-2 justify-baseline items-center w-full"
-                  >
-                    <Image
-                      src="/icons/editGrey.svg"
-                      height={16}
-                      width={16}
-                      alt="icon-edit"
-                    />
-                    {tCommon("edit")}
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <button
-                    className="flex gap-2 justify-baseline items-center w-full cursor-pointer"
-                    onClick={() => {
-                      setSelectedId(String(row.original.id));
-                      setOpenDelete(true);
-                    }}
-                  >
-                    <Image
-                      src="/icons/delete.svg"
-                      height={16}
-                      width={16}
-                      alt="icon-edit"
-                    />
-                    {tCommon("delete")}
-                  </button>
-                </DropdownMenuItem>
+                <Can permission="general_settings.form_template.edit">
+                  <DropdownMenuItem>
+                    <Link
+                      href={`/settings/form-template/edit/${row.original.id}`}
+                      className="flex gap-2 justify-baseline items-center w-full"
+                    >
+                      <Image
+                        src="/icons/editGrey.svg"
+                        height={16}
+                        width={16}
+                        alt="icon-edit"
+                      />
+                      {tCommon("edit")}
+                    </Link>
+                  </DropdownMenuItem>
+                </Can>
+                <Can permission="general_settings.form_template.delete">
+                  <DropdownMenuItem>
+                    <button
+                      className="flex gap-2 justify-baseline items-center w-full cursor-pointer"
+                      onClick={() => {
+                        setSelectedId(String(row.original.id));
+                        setOpenDelete(true);
+                      }}
+                    >
+                      <Image
+                        src="/icons/delete.svg"
+                        height={16}
+                        width={16}
+                        alt="icon-edit"
+                      />
+                      {tCommon("delete")}
+                    </button>
+                  </DropdownMenuItem>
+                </Can>
               </DropdownMenuContent>
             </DropdownMenu>
           );
@@ -170,9 +175,11 @@ export default function FormTemplateList() {
             <div className="flex gap-2 items-center flex-wrap">
               <h2 className="font-semibold text-xl">{t("formList")}</h2>
             </div>
-            <Button onClick={() => handleNew()} className="whitespace-nowrap">
-              {t("newForm")}
-            </Button>
+            <Can permission="general_settings.form_template.create">
+              <Button onClick={() => handleNew()} className="whitespace-nowrap">
+                {t("newForm")}
+              </Button>
+            </Can>
           </div>
           <div className="relative w-full sm:max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />

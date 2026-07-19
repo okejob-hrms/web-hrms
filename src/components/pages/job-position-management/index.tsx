@@ -14,6 +14,7 @@ import DeleteJobLevelDialog from "./sections/delete-modal";
 import JobLevelModal from "./sections/edit-modal";
 import { useJobPositions } from "./hooks/useJobPosition";
 import { JobPositionResponse } from "@/services/job-position/types";
+import { Can } from "@/components/auth/can";
 
 export default function JobPositionList() {
   const t = useTranslations("employee");
@@ -75,6 +76,8 @@ export default function JobPositionList() {
                 onDelete={() => {
                   handleDeleteClick(item);
                 }}
+                editPermission="employee_organization.employee_assignment.edit"
+                deletePermission="employee_organization.employee_assignment.delete"
               />
             </div>
           );
@@ -93,9 +96,11 @@ export default function JobPositionList() {
           <div className="flex gap-2 items-center flex-wrap">
             <h2 className="font-semibold text-xl">{t("jobPositions")}</h2>
           </div>
-          <Button onClick={handleCreate} className="whitespace-nowrap">
-            {t("newJobPosition")}
-          </Button>
+          <Can permission="employee_organization.employee_assignment.create">
+            <Button onClick={handleCreate} className="whitespace-nowrap">
+              {t("newJobPosition")}
+            </Button>
+          </Can>
         </div>
         {isLoading ? (
           <div className="flex flex-col gap-4 items-center w-full">

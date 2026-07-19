@@ -48,6 +48,7 @@ import OvertimeDetailModal from './sections/detail-modal';
 import OvertimeEditModal from './sections/edit-modal';
 import OvertimeAddModal from './sections/add-modal';
 import { Button } from '@/components/ui/button';
+import { Can } from '@/components/auth/can';
 
 interface OvertimeTrackerListProps {
   hidePannel?: boolean;
@@ -230,53 +231,61 @@ export default function OvertimeTrackerList({
                 <>
                   {!isEmployee && (
                     <>
-                      <DropdownMenuItem
-                        onSelect={() => {
-                          setOpenApprove(true);
-                          setSelectedId(String(row.original?.id));
-                          setSelectedData(row.original);
-                        }}
-                      >
-                        <Clock4Icon className="mr-2" />
-                        {t('approveRequest')}
-                      </DropdownMenuItem>
+                      <Can permission="time_attendance.overtime_requests.approval">
+                        <DropdownMenuItem
+                          onSelect={() => {
+                            setOpenApprove(true);
+                            setSelectedId(String(row.original?.id));
+                            setSelectedData(row.original);
+                          }}
+                        >
+                          <Clock4Icon className="mr-2" />
+                          {t('approveRequest')}
+                        </DropdownMenuItem>
+                      </Can>
 
-                      <DropdownMenuItem
-                        onSelect={() => {
-                          setOpenReject(true);
-                          setSelectedId(String(row.original?.id));
-                          setSelectedData(row.original);
-                        }}
-                      >
-                        <XCircle className="mr-2" />
-                        {t('rejectRequest')}
-                      </DropdownMenuItem>
+                      <Can permission="time_attendance.overtime_requests.approval">
+                        <DropdownMenuItem
+                          onSelect={() => {
+                            setOpenReject(true);
+                            setSelectedId(String(row.original?.id));
+                            setSelectedData(row.original);
+                          }}
+                        >
+                          <XCircle className="mr-2" />
+                          {t('rejectRequest')}
+                        </DropdownMenuItem>
+                      </Can>
                     </>
                   )}
-                  <DropdownMenuItem
-                    onSelect={() => {
-                      setOpenEdit(true);
-                      setSelectedId(String(row.original?.id));
-                      setSelectedData(row.original);
-                      setDetail(row.original);
-                    }}
-                  >
-                    <Edit3 className="mr-2" />
-                    {t('editOvertime')}
-                  </DropdownMenuItem>
+                  <Can permission="time_attendance.overtime_requests.edit">
+                    <DropdownMenuItem
+                      onSelect={() => {
+                        setOpenEdit(true);
+                        setSelectedId(String(row.original?.id));
+                        setSelectedData(row.original);
+                        setDetail(row.original);
+                      }}
+                    >
+                      <Edit3 className="mr-2" />
+                      {t('editOvertime')}
+                    </DropdownMenuItem>
+                  </Can>
                 </>
               )}
 
               {!isEmployee && (
-                <DropdownMenuItem
-                  onSelect={() => {
-                    setOpenDelete(true);
-                    setSelectedId(String(row.original?.id));
-                  }}
-                >
-                  <Trash className="mr-2" />
-                  {t('deleteRequest')}
-                </DropdownMenuItem>
+                <Can permission="time_attendance.overtime_requests.delete">
+                  <DropdownMenuItem
+                    onSelect={() => {
+                      setOpenDelete(true);
+                      setSelectedId(String(row.original?.id));
+                    }}
+                  >
+                    <Trash className="mr-2" />
+                    {t('deleteRequest')}
+                  </DropdownMenuItem>
+                </Can>
               )}
             </DropdownMenuContent>
           </DropdownMenu>
@@ -425,9 +434,11 @@ export default function OvertimeTrackerList({
           <div className="flex md:flex-row flex-col justify-between w-full md:items-center items-start gap-4">
             <h2 className="font-semibold text-xl">{t('overtimeRequest')}</h2>
             {isEmployee && (
-              <Button onClick={() => setOpenAdd(true)}>
-                <Plus /> {t('newOvertimeBtn')}
-              </Button>
+              <Can permission="time_attendance.overtime_requests.create">
+                <Button onClick={() => setOpenAdd(true)}>
+                  <Plus /> {t('newOvertimeBtn')}
+                </Button>
+              </Can>
             )}
           </div>
 

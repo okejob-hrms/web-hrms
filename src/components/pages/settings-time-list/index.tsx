@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Can } from "@/components/auth/can";
 
 export default function SettingsAttendanceConfiguration() {
   const router = useRouter();
@@ -125,6 +126,8 @@ export default function SettingsAttendanceConfiguration() {
               onDelete={() => {
                 handleDeleteClick(item);
               }}
+              editPermission="time_attendance.attendance_configuration.edit"
+              deletePermission="time_attendance.attendance_configuration.delete"
             />
           </div>
         );
@@ -142,14 +145,16 @@ export default function SettingsAttendanceConfiguration() {
     return (
       <div className="space-y-4">
         <div className="mt-5 flex justify-end">
-          <Button
-            variant="outline"
-            className="flex flex-row gap-6"
-            onClick={() => goToEdit()}
-          >
-            <Edit3 />
-            {t("editAttendanceConfig")}
-          </Button>
+          <Can permission="time_attendance.attendance_configuration.edit">
+            <Button
+              variant="outline"
+              className="flex flex-row gap-6"
+              onClick={() => goToEdit()}
+            >
+              <Edit3 />
+              {t("editAttendanceConfig")}
+            </Button>
+          </Can>
         </div>
 
         <DataTable columns={columns} data={workingHours} />
@@ -182,14 +187,16 @@ export default function SettingsAttendanceConfiguration() {
     return (
       <div className="space-y-4">
         <div className="mt-5 flex justify-end">
-          <Button
-            variant="outline"
-            className="flex flex-row gap-6"
-            onClick={() => handleAdd()}
-          >
-            <Plus />
-            {t("addLateDeduction")}
-          </Button>
+          <Can permission="time_attendance.attendance_configuration.create">
+            <Button
+              variant="outline"
+              className="flex flex-row gap-6"
+              onClick={() => handleAdd()}
+            >
+              <Plus />
+              {t("addLateDeduction")}
+            </Button>
+          </Can>
         </div>
         <DataTable
           columns={lateDeductionColumn}

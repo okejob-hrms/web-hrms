@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { Button } from './button';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { usePermissionStore } from '@/hooks/use-permission-store';
 
 interface Props {
   className?: string;
@@ -19,9 +20,13 @@ interface Props {
 const Profile = React.memo(function Profile({ className, user }: Props) {
   const router = useRouter();
   const t = useTranslations('auth');
+  const clearPermissions = usePermissionStore((state) => state.clear);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('user_role');
+    clearPermissions();
     router.push('/auth/login');
   };
 

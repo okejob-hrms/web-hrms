@@ -16,6 +16,7 @@ import { formatDate, getMonthLabel } from '@/lib/formatting';
 import { resolveLocale } from '@/lib/i18n/locale';
 import LeaveBalanceDelete from './section/delete-modal';
 import LeaveTypeDelete from './section/delete-type';
+import { Can } from '@/components/auth/can';
 
 export default function SettingsLeaveConfiguration() {
   const t = useTranslations('settings');
@@ -77,6 +78,8 @@ export default function SettingsLeaveConfiguration() {
                 setSelectedType(item);
                 setOpenDeleteType(true);
               }}
+              editPermission="time_attendance.leave_configuration.edit"
+              deletePermission="time_attendance.leave_configuration.delete"
             />
           </div>
         );
@@ -139,6 +142,8 @@ export default function SettingsLeaveConfiguration() {
                 setSelectedBalance(item);
                 setOpenDeleteBalance(true);
               }}
+              editPermission="time_attendance.leave_configuration.edit"
+              deletePermission="time_attendance.leave_configuration.delete"
             />
           </div>
         );
@@ -151,13 +156,15 @@ export default function SettingsLeaveConfiguration() {
       <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6">
         <div className="flex flex-col sm:flex-row sm:gap-4 justify-between">
           <h2 className="font-semibold text-xl">{t('leaveType')}</h2>
-          <Button
-            className="flex flex-row gap-6"
-            onClick={() => handleAddType()}
-          >
-            <Plus />
-            {t('newLeaveType')}
-          </Button>
+          <Can permission="time_attendance.leave_configuration.create">
+            <Button
+              className="flex flex-row gap-6"
+              onClick={() => handleAddType()}
+            >
+              <Plus />
+              {t('newLeaveType')}
+            </Button>
+          </Can>
         </div>
 
         <DataTable columns={columnsType} data={leaveTypeData?.data} />
@@ -170,13 +177,15 @@ export default function SettingsLeaveConfiguration() {
       <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6">
         <div className="flex flex-col sm:flex-row sm:gap-4 justify-between">
           <h2 className="font-semibold text-xl">{t('leaveBalance')}</h2>
-          <Button
-            className="flex flex-row gap-6"
-            onClick={() => setOpenFormBalance(true)}
-          >
-            <Plus />
-            {t('newLeaveBalance')}
-          </Button>
+          <Can permission="time_attendance.leave_configuration.create">
+            <Button
+              className="flex flex-row gap-6"
+              onClick={() => setOpenFormBalance(true)}
+            >
+              <Plus />
+              {t('newLeaveBalance')}
+            </Button>
+          </Can>
         </div>
 
         <DataTable columns={columnsBalance} data={leaveBalanceData?.data} />
