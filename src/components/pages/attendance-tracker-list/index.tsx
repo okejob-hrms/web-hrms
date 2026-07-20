@@ -52,6 +52,7 @@ import AttendanceDeleteModal from './sections/delete-modal';
 import { Input, InputForm } from '@/components/ui/input';
 import { DatePicker } from '@/components/ui/date-picker';
 import dayjs from 'dayjs';
+import { Can } from '@/components/auth/can';
 
 interface AttendanceTrackerListProps {
   hidePannel?: boolean;
@@ -216,59 +217,67 @@ export const AttendanceTrackerList = ({
                 </button>
               </DropdownMenuItem>
               {row.original.latest_attendance?.status !== 1 && (
-                <DropdownMenuItem>
-                  <button
-                    onClick={() => {
-                      setOpenApprove(true);
-                      setSelectedId(
-                        String(row.original?.latest_attendance?.id),
-                      );
-                    }}
-                    className="flex gap-2"
-                  >
-                    <Clock4Icon />
-                    {t('approveAttendance')}
-                  </button>
-                </DropdownMenuItem>
+                <Can permission="time_attendance.attendance_records.approval">
+                  <DropdownMenuItem>
+                    <button
+                      onClick={() => {
+                        setOpenApprove(true);
+                        setSelectedId(
+                          String(row.original?.latest_attendance?.id),
+                        );
+                      }}
+                      className="flex gap-2"
+                    >
+                      <Clock4Icon />
+                      {t('approveAttendance')}
+                    </button>
+                  </DropdownMenuItem>
+                </Can>
               )}
               {row.original.latest_attendance?.status !== 2 && (
+                <Can permission="time_attendance.attendance_records.approval">
+                  <DropdownMenuItem>
+                    <button
+                      onClick={() => {
+                        setOpenReject(true);
+                        setSelectedId(
+                          String(row.original?.latest_attendance?.id),
+                        );
+                      }}
+                      className="flex gap-2"
+                    >
+                      <XCircle />
+                      {t('rejectAttendance')}
+                    </button>
+                  </DropdownMenuItem>
+                </Can>
+              )}
+
+              <Can permission="time_attendance.attendance_records.edit">
+                <DropdownMenuItem>
+                  <Link
+                    href={`/attendance/attendance-tracker/${row.original.id}/${row.original.latest_attendance?.id}`}
+                    className="flex gap-2 justify-between items-center"
+                  >
+                    <Edit3 />
+                    {t('editAttendanceRecord')}
+                  </Link>
+                </DropdownMenuItem>
+              </Can>
+              <Can permission="time_attendance.attendance_records.delete">
                 <DropdownMenuItem>
                   <button
                     onClick={() => {
-                      setOpenReject(true);
-                      setSelectedId(
-                        String(row.original?.latest_attendance?.id),
-                      );
+                      setOpenDelete(true);
+                      setSelectedId(String(row.original?.latest_attendance?.id));
                     }}
                     className="flex gap-2"
                   >
-                    <XCircle />
-                    {t('rejectAttendance')}
+                    <Trash />
+                    {t('deleteAttendance')}
                   </button>
                 </DropdownMenuItem>
-              )}
-
-              <DropdownMenuItem>
-                <Link
-                  href={`/attendance/attendance-tracker/${row.original.id}/${row.original.latest_attendance?.id}`}
-                  className="flex gap-2 justify-between items-center"
-                >
-                  <Edit3 />
-                  {t('editAttendanceRecord')}
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <button
-                  onClick={() => {
-                    setOpenDelete(true);
-                    setSelectedId(String(row.original?.latest_attendance?.id));
-                  }}
-                  className="flex gap-2"
-                >
-                  <Trash />
-                  {t('deleteAttendance')}
-                </button>
-              </DropdownMenuItem>
+              </Can>
             </DropdownMenuContent>
           </DropdownMenu>
         );
@@ -398,11 +407,13 @@ export const AttendanceTrackerList = ({
         <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6">
           <div className="flex md:flex-row flex-col justify-between w-full md:items-center items-start gap-4">
             <h2 className="font-semibold text-xl">{t('attendanceTracker')}</h2>
-            <Button
-              onClick={() => router.push('/attendance/attendance-tracker/add')}
-            >
-              {t('newRecord')}
-            </Button>
+            <Can permission="time_attendance.attendance_records.create">
+              <Button
+                onClick={() => router.push('/attendance/attendance-tracker/add')}
+              >
+                {t('newRecord')}
+              </Button>
+            </Can>
           </div>
 
           <DataTable
@@ -578,31 +589,35 @@ export const AttendanceTrackerList = ({
                             </span>
                             <div className="flex gap-4">
                               {item.status !== 2 && (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="bg-white text-red-500 border-red-500"
-                                  onClick={() => {
-                                    setOpenReject(true);
-                                    setSelectedIdTrackers(String(item.id));
-                                  }}
-                                >
-                                  <X />
-                                  {tCommon('reject')}
-                                </Button>
+                                <Can permission="time_attendance.attendance_records.approval">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="bg-white text-red-500 border-red-500"
+                                    onClick={() => {
+                                      setOpenReject(true);
+                                      setSelectedIdTrackers(String(item.id));
+                                    }}
+                                  >
+                                    <X />
+                                    {tCommon('reject')}
+                                  </Button>
+                                </Can>
                               )}
                               {item.status !== 1 && (
-                                <Button
-                                  variant="default"
-                                  size="sm"
-                                  onClick={() => {
-                                    setOpenApprove(true);
-                                    setSelectedIdTrackers(String(item.id));
-                                  }}
-                                >
-                                  <Check />
-                                  {tCommon('approve')}
-                                </Button>
+                                <Can permission="time_attendance.attendance_records.approval">
+                                  <Button
+                                    variant="default"
+                                    size="sm"
+                                    onClick={() => {
+                                      setOpenApprove(true);
+                                      setSelectedIdTrackers(String(item.id));
+                                    }}
+                                  >
+                                    <Check />
+                                    {tCommon('approve')}
+                                  </Button>
+                                </Can>
                               )}
                             </div>
                           </div>

@@ -37,6 +37,7 @@ import dayjs from 'dayjs';
 import { ILeaveResponse } from '@/services/employees/leave/types';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
+import { Can } from '@/components/auth/can';
 
 interface Props {
   data: ILeaveResponse[] | undefined;
@@ -191,55 +192,63 @@ export default function LeaveTable({
                   <>
                     {leave.status === 1 && (
                       <>
-                        <DropdownMenuItem asChild>
-                          <button
-                            onClick={() => {
-                              onSelectLeave(leave);
-                              setTimeout(() => onOpenModal('approve'), 0);
-                            }}
-                            className="flex gap-2 w-full text-left"
-                          >
-                            <Clock4Icon className="w-4 h-4" />
-                            {t('approveRequest')}
-                          </button>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <button
-                            onClick={() => {
-                              onSelectLeave(leave);
-                              setTimeout(() => onOpenModal('reject'), 0);
-                            }}
-                            className="flex gap-2 w-full text-left"
-                          >
-                            <XCircle className="w-4 h-4" />
-                            {t('rejectRequest')}
-                          </button>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <button
-                            onClick={() =>
-                              router.push(
-                                `/attendance/leave-request/edit/${leave.id}`,
-                              )
-                            }
-                            className="flex gap-2 w-full text-left"
-                          >
-                            <Edit3 className="w-4 h-4" />
-                            {t('editLeaveRequest')}
-                          </button>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <button
-                            onClick={() => {
-                              onSelectLeave(leave);
-                              setTimeout(() => onOpenModal('delete'), 0);
-                            }}
-                            className="flex gap-2 w-full text-left text-red-600"
-                          >
-                            <Trash className="w-4 h-4 text-red-600" />
-                            {t('deleteRequest')}
-                          </button>
-                        </DropdownMenuItem>
+                        <Can permission="time_attendance.leave_requests.approval">
+                          <DropdownMenuItem asChild>
+                            <button
+                              onClick={() => {
+                                onSelectLeave(leave);
+                                setTimeout(() => onOpenModal('approve'), 0);
+                              }}
+                              className="flex gap-2 w-full text-left"
+                            >
+                              <Clock4Icon className="w-4 h-4" />
+                              {t('approveRequest')}
+                            </button>
+                          </DropdownMenuItem>
+                        </Can>
+                        <Can permission="time_attendance.leave_requests.approval">
+                          <DropdownMenuItem asChild>
+                            <button
+                              onClick={() => {
+                                onSelectLeave(leave);
+                                setTimeout(() => onOpenModal('reject'), 0);
+                              }}
+                              className="flex gap-2 w-full text-left"
+                            >
+                              <XCircle className="w-4 h-4" />
+                              {t('rejectRequest')}
+                            </button>
+                          </DropdownMenuItem>
+                        </Can>
+                        <Can permission="time_attendance.leave_requests.edit">
+                          <DropdownMenuItem asChild>
+                            <button
+                              onClick={() =>
+                                router.push(
+                                  `/attendance/leave-request/edit/${leave.id}`,
+                                )
+                              }
+                              className="flex gap-2 w-full text-left"
+                            >
+                              <Edit3 className="w-4 h-4" />
+                              {t('editLeaveRequest')}
+                            </button>
+                          </DropdownMenuItem>
+                        </Can>
+                        <Can permission="time_attendance.leave_requests.delete">
+                          <DropdownMenuItem asChild>
+                            <button
+                              onClick={() => {
+                                onSelectLeave(leave);
+                                setTimeout(() => onOpenModal('delete'), 0);
+                              }}
+                              className="flex gap-2 w-full text-left text-red-600"
+                            >
+                              <Trash className="w-4 h-4 text-red-600" />
+                              {t('deleteRequest')}
+                            </button>
+                          </DropdownMenuItem>
+                        </Can>
                       </>
                     )}
                   </>
@@ -256,9 +265,11 @@ export default function LeaveTable({
     <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6">
       <div className="flex md:flex-row flex-col justify-between w-full md:items-center items-start gap-4">
         <h2 className="font-semibold text-xl">{t('leaveRequest')}</h2>
-        <Button onClick={onNavigateAdd}>
-          <Plus /> {t('newLeaveRequest')}
-        </Button>
+        <Can permission="time_attendance.leave_requests.create">
+          <Button onClick={onNavigateAdd}>
+            <Plus /> {t('newLeaveRequest')}
+          </Button>
+        </Can>
       </div>
 
       <DataTable

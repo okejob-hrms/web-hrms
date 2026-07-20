@@ -7,6 +7,7 @@ import { DataTable } from '@/components/tables/data-table';
 import { ColumnDef, PaginationState } from '@tanstack/react-table';
 import { Plus } from 'lucide-react';
 import { RowActions } from '@/components/tables/row-actions';
+import { Can } from '@/components/auth/can';
 import {
   Dialog,
   DialogContent,
@@ -101,6 +102,8 @@ export default function SettingsHoliday() {
               setEditing(item);
               setOpenDelete(true);
             }}
+            editPermission="time_attendance.holiday_attendance.edit"
+            deletePermission="time_attendance.holiday_attendance.delete"
           />
         );
       },
@@ -186,17 +189,19 @@ export default function SettingsHoliday() {
     <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6">
       <div className="flex flex-col sm:flex-row sm:gap-4 justify-between">
         <h2 className="font-semibold text-xl">{t('holidayList')}</h2>
-        <Button
-          className="flex flex-row items-center gap-2"
-          onClick={() => {
-            setEditing(null);
-            resetForm();
-            setOpen(true);
-          }}
-        >
-          <Plus className="w-4 h-4" />
-          {t('addHoliday')}
-        </Button>
+        <Can permission="time_attendance.holiday_attendance.create">
+          <Button
+            className="flex flex-row items-center gap-2"
+            onClick={() => {
+              setEditing(null);
+              resetForm();
+              setOpen(true);
+            }}
+          >
+            <Plus className="w-4 h-4" />
+            {t('addHoliday')}
+          </Button>
+        </Can>
       </div>
 
       <DataTable columns={columns} data={score} maxBodyHeight={700} />

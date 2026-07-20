@@ -10,6 +10,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ArrowUp, ArrowDown, ChevronsUpDown, Edit3 } from 'lucide-react';
 import { formatDateTime } from '@/lib/helpers';
+import { Can } from '@/components/auth/can';
 
 export default function SettingsAccessControl() {
   const t = useTranslations('settings');
@@ -68,13 +69,15 @@ export default function SettingsAccessControl() {
         const item = row.original;
         return (
           <div className="flex justify-end">
-            <Button
-              variant="link"
-              className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 cursor-pointer select-none"
-              onClick={() => handleEdit(item.id)}
-            >
-              <Edit3 className="w-4 h-4" />
-            </Button>
+            <Can permission="rbac.role_management.edit">
+              <Button
+                variant="link"
+                className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 cursor-pointer select-none"
+                onClick={() => handleEdit(item.id)}
+              >
+                <Edit3 className="w-4 h-4" />
+              </Button>
+            </Can>
           </div>
         );
       },
@@ -91,9 +94,11 @@ export default function SettingsAccessControl() {
             <div className="flex gap-2 items-center flex-wrap">
               <h2 className="font-semibold text-xl">{t('role')}</h2>
             </div>
-            <Button onClick={() => handleNew()} className="whitespace-nowrap">
-              {t('newRole')}
-            </Button>
+            <Can permission="rbac.role_management.create">
+              <Button onClick={() => handleNew()} className="whitespace-nowrap">
+                {t('newRole')}
+              </Button>
+            </Can>
           </div>
           <DataTable columns={columns} data={roles} customSize={!isMobile} />
         </div>

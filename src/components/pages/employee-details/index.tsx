@@ -14,6 +14,7 @@ import { getEmployeeDetail } from "@/services/employees";
 import { IEmployeeDetailsResponse } from "@/services/employees/types";
 import { AttendanceDetail } from "./sections/attendance";
 import { Button } from "@/components/ui/button";
+import { Can } from "@/components/auth/can";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Clock, Gavel } from "lucide-react";
@@ -173,21 +174,23 @@ export const EmployeeDetail = React.memo(function EmployeeDetail({
               </span>
             </Badge>
           </div>
-          <Button
-            variant="ghost"
-            className="text-primary font-semibold text-base w-fit justify-self-end"
-            onClick={() =>
-              router.push(`/employee/employee-management/edit/${id}`)
-            }
-          >
-            <Image
-              src="/icons/editBlue.svg"
-              width={24}
-              height={24}
-              alt="edit"
-            />
-            {t("editEmployeeData")}
-          </Button>
+          <Can permission="employee_organization.employee_profile.edit">
+            <Button
+              variant="ghost"
+              className="text-primary font-semibold text-base w-fit justify-self-end"
+              onClick={() =>
+                router.push(`/employee/employee-management/edit/${id}`)
+              }
+            >
+              <Image
+                src="/icons/editBlue.svg"
+                width={24}
+                height={24}
+                alt="edit"
+              />
+              {t("editEmployeeData")}
+            </Button>
+          </Can>
         </div>
         <Tab data={data} />
       </div>

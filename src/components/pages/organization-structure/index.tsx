@@ -29,6 +29,7 @@ import { SearchableSelect } from '@/components/ui/combobox';
 import { useTranslations } from 'next-intl';
 import { OrgChartDepthFilter } from './sections/org-chart-depth-filter';
 import { OrgChartFitView } from './sections/org-chart-fit-view';
+import { Can } from '@/components/auth/can';
 
 const nodeWidth = 220;
 const nodeHeight = 140;
@@ -201,16 +202,20 @@ export default function OrganizationChart({
                 />
               </div>
               <div className="flex flex-row gap-2">
-                <DownloadButton />
-                <Button onClick={handleEditClick} className="whitespace-nowrap">
-                  <Image
-                    src="/icons/edit.svg"
-                    width={18}
-                    height={18}
-                    alt="edit icon"
-                  />
-                  {t('editStructure')}
-                </Button>
+                <Can permission="employee_organization.organization_structure.export">
+                  <DownloadButton />
+                </Can>
+                <Can permission="employee_organization.organization_structure.edit">
+                  <Button onClick={handleEditClick} className="whitespace-nowrap">
+                    <Image
+                      src="/icons/edit.svg"
+                      width={18}
+                      height={18}
+                      alt="edit icon"
+                    />
+                    {t('editStructure')}
+                  </Button>
+                </Can>
               </div>
             </div>
           </div>

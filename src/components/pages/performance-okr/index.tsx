@@ -2,6 +2,7 @@
 
 import DataTable from "@/components/tables/data-table";
 import { Button } from "@/components/ui/button";
+import { Can } from "@/components/auth/can";
 import { useTranslations } from "next-intl";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ColumnDef } from "@tanstack/react-table";
@@ -282,9 +283,11 @@ export default function PerformanceOKR() {
         <div className="rounded-md bg-white border shadow-sm border-grayscale-20 flex flex-col gap-4 p-6">
           <div className="flex flex-col sm:flex-row justify-between w-full items-start sm:items-center gap-4 sm:gap-0">
             <h2 className="font-semibold text-xl">{t("okrTitle")}</h2>
-            <Button onClick={() => handleNew()} className="whitespace-nowrap">
-              {t("newOkrCycle")}
-            </Button>
+            <Can permission="performance_okr.okr_cycle.create">
+              <Button onClick={() => handleNew()} className="whitespace-nowrap">
+                {t("newOkrCycle")}
+              </Button>
+            </Can>
           </div>
           <DataTable
             columns={columns}

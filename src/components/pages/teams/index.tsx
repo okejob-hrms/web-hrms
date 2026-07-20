@@ -14,6 +14,7 @@ import { resolveLocale } from "@/lib/i18n/locale";
 import DeleteTeamDialog from "./sections/delete-modal";
 import { TeamResponse } from "@/services/team/types";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Can } from "@/components/auth/can";
 
 export default function TeamManagementList() {
   const t = useTranslations("employee");
@@ -79,6 +80,8 @@ export default function TeamManagementList() {
               onDelete={() => {
                 handleDeleteClick(item);
               }}
+              editPermission="employee_organization.employee_assignment.edit"
+              deletePermission="employee_organization.employee_assignment.delete"
             />
           );
         },
@@ -96,9 +99,11 @@ export default function TeamManagementList() {
           <div className="flex gap-2 items-center flex-wrap">
             <h2 className="font-semibold text-xl">{t("teams")}</h2>
           </div>
-          <Button onClick={handleCreate} className="whitespace-nowrap">
-            {t("newTeam")}
-          </Button>
+          <Can permission="employee_organization.employee_assignment.create">
+            <Button onClick={handleCreate} className="whitespace-nowrap">
+              {t("newTeam")}
+            </Button>
+          </Can>
         </div>
         {isLoading ? (
           <div className="flex flex-col gap-4 items-center w-full">

@@ -27,6 +27,7 @@ import { Filters } from './types';
 import PayrunsAddModal from './section/add-modal';
 import { formatCurrency } from '@/lib/utils';
 import { ResponsePayrollItem } from '@/services/payroll/types';
+import { Can } from '@/components/auth/can';
 
 export const PayrollList = () => {
   const router = useRouter();
@@ -146,15 +147,17 @@ export const PayrollList = () => {
                     </Link>
                   </DropdownMenuItem>
                   {!row.original.can_be_sent && (
-                    <DropdownMenuItem>
-                      <Link
-                        href={`/payroll/list/${row.original.id}/edit`}
-                        className="flex gap-2 justify-between items-center"
-                      >
-                        <Edit3 />
-                        {t('editPayrun')}
-                      </Link>
-                    </DropdownMenuItem>
+                    <Can permission="payroll_management.payruns_setup.edit">
+                      <DropdownMenuItem>
+                        <Link
+                          href={`/payroll/list/${row.original.id}/edit`}
+                          className="flex gap-2 justify-between items-center"
+                        >
+                          <Edit3 />
+                          {t('editPayrun')}
+                        </Link>
+                      </DropdownMenuItem>
+                    </Can>
                   )}
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -224,9 +227,11 @@ export const PayrollList = () => {
         <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6">
           <div className="flex md:flex-row flex-col justify-between w-full md:items-center items-start gap-4">
             <h2 className="font-semibold text-xl">{t('payruns')}</h2>
-            <Button onClick={() => setOpenAdd(true)}>
-              <Plus /> {t('newPayrun')}
-            </Button>
+            <Can permission="payroll_management.payruns_setup.create">
+              <Button onClick={() => setOpenAdd(true)}>
+                <Plus /> {t('newPayrun')}
+              </Button>
+            </Can>
           </div>
 
           <DataTable

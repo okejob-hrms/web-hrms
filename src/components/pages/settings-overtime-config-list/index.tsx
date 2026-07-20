@@ -12,6 +12,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import DataTable from '@/components/tables/data-table';
 import { useOvertimeConfig } from './hook';
 import { Exception, TieringRule } from '@/services/settings/types';
+import { Can } from '@/components/auth/can';
 
 function InfoItem({ label, value }: { label: string; value: string }) {
   return (
@@ -130,18 +131,20 @@ export default function SettingsOvertimeConfig() {
           />
 
           <div className="flex mt-4">
-            <Button
-              variant="outline"
-              className="flex flex-row gap-6"
-              onClick={() =>
-                router.push(
-                  '/settings/time-attendance/overtime-configuration/edit',
-                )
-              }
-            >
-              <Edit3 />
-              Edit Overtime Configuration
-            </Button>
+            <Can permission="time_attendance.overtime_configuration.edit">
+              <Button
+                variant="outline"
+                className="flex flex-row gap-6"
+                onClick={() =>
+                  router.push(
+                    '/settings/time-attendance/overtime-configuration/edit',
+                  )
+                }
+              >
+                <Edit3 />
+                Edit Overtime Configuration
+              </Button>
+            </Can>
           </div>
         </div>
       </div>

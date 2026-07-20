@@ -36,3 +36,9 @@ export interface IChangePasswordRequest {
 export interface IChangePasswordResponse {
   message: string;
 }
+
+export interface IUserPermissionsResponse {
+  roles: string[];
+  permissions: string[];
+  permissions_count: number;
+}

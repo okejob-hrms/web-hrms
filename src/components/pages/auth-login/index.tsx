@@ -24,6 +24,7 @@ import { LanguageSwitch } from '@/components/shared/language-switch';
 import { createLoginSchema } from '@/lib/validation/schemas';
 import { translateApiMessage } from '@/lib/i18n/api-messages';
 import { useState } from 'react';
+import { usePermissionStore } from '@/hooks/use-permission-store';
 
 export default function AuthLogin() {
   const router = useRouter();
@@ -32,6 +33,7 @@ export default function AuthLogin() {
   const tToast = useTranslations('toast');
   const tApi = useTranslations('api');
   const [showPassword, setShowPassword] = useState(false);
+  const loadPermissions = usePermissionStore((state) => state.load);
 
   const loginSchema = useMemo(() => createLoginSchema(tValidation), [tValidation]);
 
@@ -51,6 +53,7 @@ export default function AuthLogin() {
         localStorage.setItem('token', res.data.token);
         localStorage.setItem('user', JSON.stringify(res.data.user));
         localStorage.setItem('user_role', JSON.stringify(res.data.roles));
+        await loadPermissions();
 
         if (res.data.user.is_first_login) {
           toast.success(tToast('loginFirstTime'));
