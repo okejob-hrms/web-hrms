@@ -1570,7 +1570,22 @@
     "organizationStructure": "Struktur Organisasi",
     "onLeaveToday": "Sedang Cuti Hari Ini",
     "waitingForApproval": "Menunggu Persetujuan",
-    "pageNotFound": "Halaman tidak ditemukan"
+    "pageNotFound": "Halaman tidak ditemukan",
+    "approvals": "Persetujuan",
+    "approvalsEmpty": "Tidak ada persetujuan menunggu",
+    "approvalsDetail": "Detail Persetujuan",
+    "approvalsType": "Jenis",
+    "approvalsEmployee": "Karyawan",
+    "approvalsLeaveType": "Jenis Cuti",
+    "approvalsReason": "Alasan",
+    "approvalsOvertimeDate": "Tanggal Lembur",
+    "approvalsTime": "Waktu",
+    "approvalsNotesOptional": "Catatan (opsional)",
+    "approvalsNotesHint": "Tambahkan catatan",
+    "approvalsApproveSuccess": "Permintaan disetujui",
+    "approvalsRejectSuccess": "Permintaan ditolak",
+    "approvalsActionFailed": "Gagal memperbarui persetujuan",
+    "approveRequest": "Setujui Permintaan"
   },
   "formatting": {
     "days": "{count} hari",

@@ -1570,7 +1570,22 @@
     "organizationStructure": "Organization Structure",
     "onLeaveToday": "On Leave Today",
     "waitingForApproval": "Waiting For Approval",
-    "pageNotFound": "Page not found"
+    "pageNotFound": "Page not found",
+    "approvals": "Approvals",
+    "approvalsEmpty": "No pending approvals",
+    "approvalsDetail": "Approval Detail",
+    "approvalsType": "Type",
+    "approvalsEmployee": "Employee",
+    "approvalsLeaveType": "Leave Type",
+    "approvalsReason": "Reason",
+    "approvalsOvertimeDate": "Overtime Date",
+    "approvalsTime": "Time",
+    "approvalsNotesOptional": "Notes (optional)",
+    "approvalsNotesHint": "Add a note",
+    "approvalsApproveSuccess": "Request approved",
+    "approvalsRejectSuccess": "Request rejected",
+    "approvalsActionFailed": "Failed to update approval",
+    "approveRequest": "Approve Request"
   },
   "formatting": {
     "days": "{count} days",

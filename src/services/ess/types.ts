@@ -36,21 +36,49 @@ export interface WaitingResponse {
 }
 
 export interface WaitingApprovalData {
-  leaves: WaitingApprovalDataMeta[];
-  overtimes: WaitingApprovalDataMeta[];
-  offboardings: WaitingApprovalDataMeta[];
+  leaves: WaitingApprovalItem[];
+  overtimes: WaitingApprovalItem[];
+  offboardings: WaitingApprovalItem[];
   total: number;
 }
 
-export interface WaitingApprovalDataMeta {
-    approver_status: number;
+/** @deprecated Use WaitingApprovalItem */
+export type WaitingApprovalDataMeta = WaitingApprovalItem;
+
+export interface WaitingApprovalItem {
+  id: number;
+  type: 'leave' | 'overtime' | 'offboarding' | string;
+  user: {
     id: number;
-    comments: string;
-    created_at: string;
-    type: string;
-    user: {
-        name: string;
-        id: number;
-        email: string;
-    }
+    name: string;
+    email: string;
+  };
+  leave_type?: {
+    id: number;
+    name: string;
+  } | null;
+  start_date?: string;
+  end_date?: string;
+  reason?: string;
+  overtime_date?: string;
+  request_date?: string;
+  start_time?: string;
+  end_time?: string;
+  duration?: string | number;
+  notes?: string;
+  comments?: string;
+  status?: number;
+  status_label?: string;
+  approver_status?: number;
+  approver_notes?: string;
+  created_at?: string;
+}
+
+export interface EssLeaveActionPayload {
+  action: 'approve' | 'reject';
+  notes?: string;
+}
+
+export interface EssOvertimeStatusPayload {
+  status: 2 | 3;
 }

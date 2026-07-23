@@ -1,5 +1,10 @@
 import { apiEmployee } from "@/lib/api";
-import { DashboardAttendanceResponse, WaitingResponse } from "./types";
+import {
+  DashboardAttendanceResponse,
+  EssLeaveActionPayload,
+  EssOvertimeStatusPayload,
+  WaitingResponse,
+} from "./types";
 
 export const getAttendanceDashboardEmployee = async (
   filters: { start_date?: string; end_date?: string }
@@ -29,3 +34,25 @@ export const getWaitingDashboardEmployee = async (): Promise<WaitingResponse> =>
 
   return response.json()
 }
+
+export const essLeaveAction = async (
+  leaveId: number,
+  payload: EssLeaveActionPayload,
+) => {
+  const response = await apiEmployee.post(
+    `ess/leave/${leaveId}/action`,
+    { json: payload },
+  );
+  return response.json();
+};
+
+export const essOvertimeStatus = async (
+  overtimeId: number,
+  payload: EssOvertimeStatusPayload,
+) => {
+  const response = await apiEmployee.post(
+    `ess/overtime/${overtimeId}/status`,
+    { json: payload },
+  );
+  return response.json();
+};
