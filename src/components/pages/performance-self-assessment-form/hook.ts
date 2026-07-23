@@ -83,8 +83,8 @@ export const usePerformanceSelfAssessmentForm = () => {
   });
 
   const { data: assessmentForm } = useQuery({
-    queryKey: ["assessment-form"],
-    queryFn: () => getAllForm(),
+    queryKey: ["assessment-form", { type: 2 }],
+    queryFn: () => getAllForm({ type: 2 }),
   });
 
   const [isParticipantModalOpen, setIsParticipantModalOpen] =
@@ -114,14 +114,38 @@ export const usePerformanceSelfAssessmentForm = () => {
     });
   };
 
+  const lockedParticipantIds = React.useMemo(() => {
+    const locked = new Set<string>();
+    const employees = details?.data?.employees ?? [];
+    for (const employee of employees) {
+      if (employee.user_id == null) continue;
+      const status = (employee.submission_status ?? "").toLowerCase();
+      if (status === "completed" || status === "validated") {
+        locked.add(employee.user_id.toString());
+      }
+    }
+    return locked;
+  }, [details?.data?.employees]);
+
   const handleUpdateSelectedParticipants = (participantIds: string[]) => {
     if (currentFormIndex !== null) {
       setAssessmentForms((prev) =>
-        prev.map((item, index) =>
-          index === currentFormIndex
-            ? { ...item, selectedParticipants: participantIds }
-            : item,
-        ),
+        prev.map((item, index) => {
+          if (index !== currentFormIndex) return item;
+
+          const next = new Set(participantIds);
+          // Submitted participants on this form cannot be dropped from the UI.
+          item.selectedParticipants.forEach((id) => {
+            if (lockedParticipantIds.has(id)) {
+              next.add(id);
+            }
+          });
+
+          return {
+            ...item,
+            selectedParticipants: Array.from(next),
+          };
+        }),
       );
     }
   };
@@ -255,6 +279,10 @@ export const usePerformanceSelfAssessmentForm = () => {
     };
 
     const formGroups = employees.reduce((acc: any, employee: any) => {
+      if (employee.user_id == null) {
+        return acc;
+      }
+
       const formKey =
         employee.form_id != null
           ? `id:${employee.form_id}`
@@ -267,12 +295,7 @@ export const usePerformanceSelfAssessmentForm = () => {
           participants: [],
         };
       }
-      const participantId = (
-        employee.user_id ?? employee.id
-      )?.toString();
-      if (participantId) {
-        acc[formKey].participants.push(participantId);
-      }
+      acc[formKey].participants.push(employee.user_id.toString());
       return acc;
     }, {});
 
@@ -349,7 +372,7 @@ export const usePerformanceSelfAssessmentForm = () => {
       }
 
       const forms = assessmentForms
-        .filter((item, index) => {
+        .filter((item) => {
           const formId = formValues[`assessment_form_${item.id}`];
           return formId && item.selectedParticipants.length > 0;
         })
@@ -357,6 +380,17 @@ export const usePerformanceSelfAssessmentForm = () => {
           form_id: parseInt(formValues[`assessment_form_${item.id}`]),
           users: item.selectedParticipants.map((id) => parseInt(id)),
         }));
+
+      const seenUserIds = new Set<number>();
+      for (const formItem of forms) {
+        for (const userId of formItem.users) {
+          if (seenUserIds.has(userId)) {
+            toast.error(t("participantAlreadyAssigned"));
+            return;
+          }
+          seenUserIds.add(userId);
+        }
+      }
 
       const payload = {
         assessment_period: formValues.period,
@@ -405,5 +439,6 @@ export const usePerformanceSelfAssessmentForm = () => {
     isPendingAddAssessment: isPendingAddAssessment || isPendingUpdateAssessment,
     isEditMode,
     isLoadingDetails,
+    lockedParticipantIds,
   };
 };

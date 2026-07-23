@@ -12,18 +12,24 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn, stringAvatar } from "@/lib/utils";
 import { IEmployeeResponse } from "@/services/employees/types";
-import { ColumnDef } from "@tanstack/react-table";
+import { ColumnDef, OnChangeFn, PaginationState } from "@tanstack/react-table";
 import * as React from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { formatDate } from "@/lib/formatting";
 import { resolveLocale } from "@/lib/i18n/locale";
-import { usePerformanceSelfAssessmentForm } from "../hook";
 import { Skeleton } from "@/components/ui/skeleton";
 import DataTable from "@/components/tables/data-table";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useQuery } from "@tanstack/react-query";
 import { getEmployees } from "@/services/employees";
+import { PaginatedResponse } from "@/lib/types";
+import { Filters } from "../hook";
 
 interface ModalProps {
   isOpen: boolean;
@@ -35,6 +41,14 @@ interface ModalProps {
     selectedParticipants: string[];
   }>;
   onUpdateSelectedParticipants: (participantIds: string[]) => void;
+  employeeList?: PaginatedResponse<IEmployeeResponse>;
+  isLoadingEmployees: boolean;
+  pagination: PaginationState;
+  handlePaginationChange: OnChangeFn<PaginationState>;
+  handleSearchChange: (search: string) => void;
+  filters: Filters;
+  totalEmployees?: number;
+  lockedParticipantIds: Set<string>;
 }
 
 export const ParticipantListModal = React.memo(function ParticipantListModal({
@@ -43,33 +57,49 @@ export const ParticipantListModal = React.memo(function ParticipantListModal({
   currentFormIndex,
   assessmentForms,
   onUpdateSelectedParticipants,
+  employeeList,
+  isLoadingEmployees,
+  pagination,
+  handlePaginationChange,
+  handleSearchChange,
+  filters,
+  totalEmployees,
+  lockedParticipantIds,
 }: ModalProps) {
   const locale = resolveLocale(useLocale());
   const t = useTranslations("performance");
   const tCommon = useTranslations("common");
   const tEmployee = useTranslations("employee");
-  const {
-    isLoadingEmployees,
-    employeeList,
-    pagination,
-    handlePaginationChange,
-    handleSearchChange,
-    filters,
-    totalEmployees,
-  } = usePerformanceSelfAssessmentForm();
 
   const [selectedRows, setSelectedRows] = React.useState<Set<string>>(
     new Set(),
   );
 
-  const { data: allEmployees, isLoading: isLoadingAllEmployees } = useQuery({
-    queryKey: ["participants"],
-    queryFn: () => getEmployees({ page: 1, per_page: 10 }),
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
-    refetchOnWindowFocus: false,
-    enabled: isOpen,
-  });
+  const participantsAssignedElsewhere = React.useMemo(() => {
+    const assigned = new Set<string>();
+    if (currentFormIndex === null) return assigned;
+    assessmentForms.forEach((formItem, index) => {
+      if (index === currentFormIndex) return;
+      formItem.selectedParticipants.forEach((id) => assigned.add(id));
+    });
+    return assigned;
+  }, [assessmentForms, currentFormIndex]);
+
+  const lockedOnCurrentForm = React.useMemo(() => {
+    if (currentFormIndex === null) return new Set<string>();
+    const current = assessmentForms[currentFormIndex]?.selectedParticipants ?? [];
+    return new Set(current.filter((id) => lockedParticipantIds.has(id)));
+  }, [assessmentForms, currentFormIndex, lockedParticipantIds]);
+
+  const { data: allActiveEmployees, isLoading: isLoadingAllEmployees } =
+    useQuery({
+      queryKey: ["self-assessment-participants-all-active"],
+      queryFn: () => getEmployees({ status: "1" }),
+      staleTime: 5 * 60 * 1000,
+      gcTime: 10 * 60 * 1000,
+      refetchOnWindowFocus: false,
+      enabled: isOpen,
+    });
 
   React.useEffect(() => {
     if (isOpen && currentFormIndex !== null) {
@@ -84,7 +114,16 @@ export const ParticipantListModal = React.memo(function ParticipantListModal({
     }
   }, [isOpen, handleSearchChange]);
 
+  const eligibleAllUserIds = React.useMemo(() => {
+    const rows = allActiveEmployees?.data?.data ?? [];
+    return rows
+      .map((emp) => emp.user_id.toString())
+      .filter((userId) => !participantsAssignedElsewhere.has(userId));
+  }, [allActiveEmployees?.data?.data, participantsAssignedElsewhere]);
+
   const handleRowSelection = (employeeId: string, checked: boolean) => {
+    if (participantsAssignedElsewhere.has(employeeId)) return;
+    if (!checked && lockedOnCurrentForm.has(employeeId)) return;
     setSelectedRows((prev) => {
       const newSet = new Set(prev);
       if (checked) {
@@ -98,16 +137,22 @@ export const ParticipantListModal = React.memo(function ParticipantListModal({
 
   const handleSelectAll = (checked: boolean | "indeterminate") => {
     if (checked === true) {
-      const allIds =
-        allEmployees?.data?.data?.map((emp) => emp.user_id.toString()) || [];
-      setSelectedRows(new Set(allIds));
+      const next = new Set(eligibleAllUserIds);
+      lockedOnCurrentForm.forEach((id) => next.add(id));
+      setSelectedRows(next);
     } else {
-      setSelectedRows(new Set());
+      setSelectedRows(new Set(lockedOnCurrentForm));
     }
   };
 
   const handleSave = () => {
-    onUpdateSelectedParticipants(Array.from(selectedRows));
+    const filtered = Array.from(selectedRows).filter(
+      (id) => !participantsAssignedElsewhere.has(id),
+    );
+    lockedOnCurrentForm.forEach((id) => {
+      if (!filtered.includes(id)) filtered.push(id);
+    });
+    onUpdateSelectedParticipants(filtered);
     onClose(false);
   };
 
@@ -124,58 +169,102 @@ export const ParticipantListModal = React.memo(function ParticipantListModal({
       {
         accessorKey: "selected",
         header: () => {
-          const totalEmployeeCount = allEmployees?.data?.total || 0;
-          const allEmployeeIds =
-            allEmployees?.data?.data?.map((emp) => emp.user_id.toString()) || [];
+          const selectableIds = eligibleAllUserIds.filter(
+            (userId) => !lockedOnCurrentForm.has(userId),
+          );
+          const allSelectableChecked =
+            selectableIds.length > 0 &&
+            selectableIds.every((userId) => selectedRows.has(userId));
           const isAllSelected =
-            totalEmployeeCount > 0 &&
-            allEmployeeIds.length > 0 &&
-            allEmployeeIds.every((user_id) => selectedRows.has(user_id));
-          const isSomeSelected = selectedRows.size > 0 && !isAllSelected;
+            eligibleAllUserIds.length > 0 &&
+            eligibleAllUserIds.every((userId) => selectedRows.has(userId));
+          const isSomeSelected =
+            selectedRows.size > 0 &&
+            !isAllSelected &&
+            eligibleAllUserIds.some((userId) => selectedRows.has(userId));
 
           return (
             <Checkbox
               checked={
-                isAllSelected ? true : isSomeSelected ? "indeterminate" : false
+                isAllSelected || allSelectableChecked
+                  ? true
+                  : isSomeSelected
+                    ? "indeterminate"
+                    : false
               }
               onCheckedChange={handleSelectAll}
+              disabled={
+                isLoadingAllEmployees ||
+                (eligibleAllUserIds.length === 0 &&
+                  lockedOnCurrentForm.size === 0)
+              }
             />
           );
         },
         size: 5,
-        cell: ({ row }) => (
-          <Checkbox
-            checked={selectedRows.has(row.original.user_id.toString())}
-            onCheckedChange={(checked) =>
-              handleRowSelection(
-                row.original.user_id.toString(),
-                checked as boolean,
-              )
-            }
-          />
-        ),
+        cell: ({ row }) => {
+          const userId = row.original.user_id.toString();
+          const assignedElsewhere = participantsAssignedElsewhere.has(userId);
+          const isLockedSubmitted = lockedOnCurrentForm.has(userId);
+          const isDisabled = assignedElsewhere || isLockedSubmitted;
+
+          const checkbox = (
+            <Checkbox
+              checked={selectedRows.has(userId)}
+              disabled={isDisabled}
+              onCheckedChange={(checked) =>
+                handleRowSelection(userId, checked as boolean)
+              }
+            />
+          );
+
+          if (!isLockedSubmitted) {
+            return checkbox;
+          }
+
+          return (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="inline-flex cursor-not-allowed">
+                  {checkbox}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-64 z-[100]">
+                {t("participantCannotRemoveSubmitted")}
+              </TooltipContent>
+            </Tooltip>
+          );
+        },
       },
       {
         accessorKey: "name",
         header: tCommon("name"),
-        cell: ({ row }) => (
-          <div className="flex gap-4 items-center min-w-[150px]">
-            <Avatar className="h-10 w-10">
-              <AvatarImage
-                src={`${process.env.NEXT_PUBLIC_FILE_URL}/${row.original.photo_profile}`}
-              />
-              <AvatarFallback className="text-primary-hover bg-primary-background text-base font-medium">
-                {stringAvatar(row.original.name)}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex flex-col">
-              <span className="font-semibold text-foreground text-sm">
-                {row.original.name}
-              </span>
-              <span className="text-text-secondary">{row.original.id}</span>
+        cell: ({ row }) => {
+          const assignedElsewhere = participantsAssignedElsewhere.has(userId);
+          return (
+            <div className="flex gap-4 items-center min-w-[150px]">
+              <Avatar className="h-10 w-10">
+                <AvatarImage
+                  src={`${process.env.NEXT_PUBLIC_FILE_URL}/${row.original.photo_profile}`}
+                />
+                <AvatarFallback className="text-primary-hover bg-primary-background text-base font-medium">
+                  {stringAvatar(row.original.name)}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex flex-col">
+                <span className="font-semibold text-foreground text-sm">
+                  {row.original.name}
+                </span>
+                <span className="text-text-secondary">{row.original.id}</span>
+                {assignedElsewhere ? (
+                  <span className="text-xs text-text-disabled">
+                    {t("participantAssignedOtherForm")}
+                  </span>
+                ) : null}
+              </div>
             </div>
-          </div>
-        ),
+          );
+        },
       },
       {
         accessorKey: "job_position",
@@ -231,9 +320,11 @@ export const ParticipantListModal = React.memo(function ParticipantListModal({
       },
     ],
     [
-      allEmployees?.data?.data,
-      allEmployees?.data?.total,
+      eligibleAllUserIds,
+      isLoadingAllEmployees,
       locale,
+      lockedOnCurrentForm,
+      participantsAssignedElsewhere,
       selectedRows,
       t,
       tCommon,
