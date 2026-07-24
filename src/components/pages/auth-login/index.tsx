@@ -25,6 +25,7 @@ import { createLoginSchema } from '@/lib/validation/schemas';
 import { translateApiMessage } from '@/lib/i18n/api-messages';
 import { useState } from 'react';
 import { usePermissionStore } from '@/hooks/use-permission-store';
+import { hasFullRbacAccess } from '@/lib/permissions';
 
 export default function AuthLogin() {
   const router = useRouter();
@@ -60,9 +61,9 @@ export default function AuthLogin() {
           router.push('/auth/change-password');
         } else {
           const roles = res.data.roles || [];
-          const isEmployee = roles.some((role) =>
-            role.toLowerCase().includes('employee'),
-          );
+          const isEmployee =
+            !hasFullRbacAccess(roles) &&
+            roles.some((role) => role.toLowerCase().includes('employee'));
 
           if (isEmployee) {
             router.push('/ess');

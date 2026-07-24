@@ -268,3 +268,55 @@ export function canAccessHeaderModule(
   }
   return canAny(permissions);
 }
+
+function normalizeRoleName(role: string): string {
+  return role
+    .toLowerCase()
+    .replace(/[_-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/** Matches Spatie role `Super Admin` and common variants. */
+export function hasSuperAdminRole(roles: string[]): boolean {
+  return roles.some((role) => {
+    const normalized = normalizeRoleName(role);
+    return normalized === 'super admin' || normalized === 'superadmin';
+  });
+}
+
+function getStoredUserEmail(): string {
+  if (typeof window === 'undefined') {
+    return '';
+  }
+
+  try {
+    const raw = localStorage.getItem('user');
+    const user = raw ? JSON.parse(raw) : null;
+    return typeof user?.email === 'string' ? user.email : '';
+  } catch {
+    return '';
+  }
+}
+
+/**
+ * Full frontend RBAC bypass:
+ * 1. User has Super Admin role → allow all
+ * 2. Otherwise, email contains "superadmin" → allow all
+ */
+export function hasFullRbacAccess(roles: string[]): boolean {
+  if (hasSuperAdminRole(roles)) {
+    return true;
+  }
+
+  return getStoredUserEmail().toLowerCase().includes('superadmin');
+}
+
+/** Employee-only UX should not apply to Super Admin / email-based full access. */
+export function isEmployeeOnlyAccess(roles: string[]): boolean {
+  if (hasFullRbacAccess(roles)) {
+    return false;
+  }
+
+  return roles.length === 1 && String(roles[0]).toLowerCase() === 'employee';
+}

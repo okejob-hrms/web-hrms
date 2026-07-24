@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { usePermissionStore } from '@/hooks/use-permission-store';
-import { getRequiredViewPermission } from '@/lib/permissions';
+import { getRequiredViewPermission, isEmployeeOnlyAccess } from '@/lib/permissions';
 
 function getFallbackPath(
   can: (permission: string) => boolean,
@@ -72,8 +72,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     }
   }, [hydrateFromStorage, load]);
 
-  const isEmployeeOnly =
-    roles.length === 1 && String(roles[0]).toLowerCase() === 'employee';
+  const isEmployeeOnly = isEmployeeOnlyAccess(roles);
 
   useEffect(() => {
     if (!isReady) {

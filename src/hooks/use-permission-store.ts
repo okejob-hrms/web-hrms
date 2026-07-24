@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { hasFullRbacAccess } from '@/lib/permissions';
 import { getMyPermissions } from '@/services/auth/permissions';
 
 const STORAGE_KEY = 'user_permissions';
@@ -121,11 +122,17 @@ export const usePermissionStore = create<PermissionState>((set, get) => ({
     if (!permission) {
       return true;
     }
+    if (hasFullRbacAccess(get().roles)) {
+      return true;
+    }
     return get().permissions.includes(permission);
   },
 
   canAny: (permissions) => {
     if (!permissions.length) {
+      return true;
+    }
+    if (hasFullRbacAccess(get().roles)) {
       return true;
     }
     const setPermissions = get().permissions;
@@ -134,6 +141,9 @@ export const usePermissionStore = create<PermissionState>((set, get) => ({
 
   canAll: (permissions) => {
     if (!permissions.length) {
+      return true;
+    }
+    if (hasFullRbacAccess(get().roles)) {
       return true;
     }
     const setPermissions = get().permissions;

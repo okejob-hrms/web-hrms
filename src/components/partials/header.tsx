@@ -33,7 +33,7 @@ import { NotificationList } from './notification-list';
 import { LanguageSwitch } from '@/components/shared/language-switch';
 import { toTitleCase } from '@/lib/menu';
 import { usePermissionStore } from '@/hooks/use-permission-store';
-import { canAccessHeaderModule } from '@/lib/permissions';
+import { canAccessHeaderModule, isEmployeeOnlyAccess } from '@/lib/permissions';
 
 interface BreadcrumbItemData {
   link: string;
@@ -124,8 +124,7 @@ const HeaderMenu = React.memo(function HeaderMenu() {
   const canAny = usePermissionStore((state) => state.canAny);
   const loaded = usePermissionStore((state) => state.loaded);
 
-  const isEmployeeOnly =
-    roles.length === 1 && String(roles[0]).toLowerCase() === 'employee';
+  const isEmployeeOnly = isEmployeeOnlyAccess(roles);
 
   const displayedMenuItems = React.useMemo(() => {
     if (!loaded) {
