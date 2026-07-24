@@ -240,6 +240,7 @@ export const ParticipantListModal = React.memo(function ParticipantListModal({
         accessorKey: "name",
         header: tCommon("name"),
         cell: ({ row }) => {
+          const userId = row.original.user_id.toString();
           const assignedElsewhere = participantsAssignedElsewhere.has(userId);
           return (
             <div className="flex gap-4 items-center min-w-[150px]">
