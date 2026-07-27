@@ -189,7 +189,13 @@ export default function LeaveDetailModal({
                 <div className="flex flex-col items-center">
                   <div className="font-medium">
                     <span>{data?.user?.name}</span>
-                    <span>(#{data?.user?.id})</span>
+                    <span>
+                      (
+                      {data?.user?.profile?.code ||
+                        data?.user?.employee_code ||
+                        '-'}
+                      )
+                    </span>
                   </div>
                   <div className="font-medium text-grayscale-100">
                     <span>

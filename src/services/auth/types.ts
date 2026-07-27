@@ -27,6 +27,17 @@ export interface IResetResponse {
   message: string;
 }
 
+export interface IResetPasswordRequest {
+  token: string;
+  email: string;
+  password: string;
+  password_confirmation: string;
+}
+
+export interface IResetPasswordResponse {
+  message: string;
+}
+
 export interface IChangePasswordRequest {
   current_password: string;
   new_password: string;

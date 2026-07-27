@@ -1,7 +1,7 @@
 // services/auth.ts
 import { api, apiPublic } from "@/lib/api";
 import { ApiResponse } from "@/lib/types";
-import { IChangePasswordRequest, IChangePasswordResponse, ILoginRequest, ILoginResponse, IResetRequest, IResetResponse } from "./types";
+import { IChangePasswordRequest, IChangePasswordResponse, ILoginRequest, ILoginResponse, IResetPasswordRequest, IResetPasswordResponse, IResetRequest, IResetResponse } from "./types";
 
 export const postLogin = async (
   payload: ILoginRequest,
@@ -17,6 +17,15 @@ export const postRequestReset = async (
   payload: IResetRequest,
 ): Promise<ApiResponse<IResetResponse>> => {
   const response = await apiPublic.post<ApiResponse<IResetResponse>>("password/forgot", {
+    json: payload,
+  });
+  return response.json();
+};
+
+export const postResetPassword = async (
+  payload: IResetPasswordRequest,
+): Promise<ApiResponse<IResetPasswordResponse>> => {
+  const response = await apiPublic.post<ApiResponse<IResetPasswordResponse>>("password/reset", {
     json: payload,
   });
   return response.json();

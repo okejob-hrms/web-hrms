@@ -118,3 +118,42 @@ export const getAttendanceDetailById = (
   );
   return response.json();
 };
+
+export const exportAttendanceExcel = async (params?: {
+  start_date?: string;
+  end_date?: string;
+  date?: string;
+}): Promise<Blob> => {
+  const searchParams: Record<string, string> = {};
+  if (params?.start_date) {
+    searchParams.start_date = params.start_date;
+  }
+  if (params?.end_date) {
+    searchParams.end_date = params.end_date;
+  }
+  if (params?.date) {
+    searchParams.date = params.date;
+  }
+
+  try {
+    const response = await api.get("employee/attendances/export", {
+      searchParams,
+      timeout: 120000,
+    });
+    return response.blob();
+  } catch (error: any) {
+    if (error?.name === "HTTPError" && error.response) {
+      let message = "Failed to export attendance";
+      try {
+        const errorResponse = await error.response.json();
+        if (errorResponse?.message) {
+          message = errorResponse.message;
+        }
+      } catch {
+        // response body may not be JSON (e.g. fatal PHP error)
+      }
+      throw new Error(message);
+    }
+    throw error;
+  }
+};

@@ -127,7 +127,9 @@ export const PayrollRequest = () => {
             <span className="font-semibold text-foreground text-sm">
               {row.original.employee.name}
             </span>
-            <span className="text-text-secondary">#{row.original.id}</span>
+            <span className="text-text-secondary">
+              {row.original.employee.employee_code || '-'}
+            </span>
           </div>
         </div>
       ),

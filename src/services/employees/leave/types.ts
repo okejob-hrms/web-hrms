@@ -10,6 +10,12 @@ export interface IUser {
   first_login_at: string | null;
   deleted_at: string | null;
   avatar_url?: string | null;
+  employee_code?: string | null;
+  profile?: {
+    id?: number;
+    code?: string | null;
+    photo_profile?: string | null;
+  } | null;
 }
 
 export interface ILeaveType {

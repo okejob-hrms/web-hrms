@@ -135,7 +135,7 @@ export default function OvertimeTrackerList({
                     {row.original.employee?.name}
                   </span>
                   <span className="text-text-secondary">
-                    #{row.original.employee?.id}
+                    {row.original.employee?.profile?.code || '-'}
                   </span>
                 </div>
               </div>
