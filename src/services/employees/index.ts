@@ -146,3 +146,27 @@ export const getEmployeeDetailByUserId = (
   );
   return response.json();
 };
+
+export const resendEmployeeInvite = async (
+  id: number,
+): Promise<ApiResponse<null>> => {
+  try {
+    const response = await api.post<ApiResponse<null>>(
+      `employees/${id}/resend-invite`,
+    );
+    return response.json();
+  } catch (error: any) {
+    if (error.name === "HTTPError") {
+      const errorResponse = await error.response.json();
+      const enhancedError = new Error(
+        errorResponse?.message || error.message,
+      );
+      (enhancedError as any).response = {
+        json: () => Promise.resolve(errorResponse),
+        status: error.response.status,
+      };
+      throw enhancedError;
+    }
+    throw error;
+  }
+};
