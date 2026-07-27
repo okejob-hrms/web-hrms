@@ -31,19 +31,26 @@ function WaitingApprovalCard({
   formatDate,
   notesLabel,
   waitingLabel,
+  onClick,
 }: {
   title: string;
   item: WaitingApprovalDataMeta;
   formatDate: (date: string) => string;
   notesLabel: string;
   waitingLabel: string;
+  onClick?: () => void;
 }) {
   return (
-    <div className="border rounded-lg p-4 space-y-2">
+    <button
+      type="button"
+      className="w-full text-left border rounded-lg p-4 space-y-2 hover:bg-muted/40 transition-colors"
+      onClick={onClick}
+    >
       <p className="font-medium text-sm">{title}</p>
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2">
         <p className="font-semibold">
-          {item.created_at ? formatDate(item.created_at) : '-'}
+          {item.user?.name ??
+            (item.created_at ? formatDate(item.created_at) : '-')}
         </p>
         <Badge
           variant="secondary"
@@ -52,6 +59,11 @@ function WaitingApprovalCard({
           <Clock className="w-3 h-3" /> {waitingLabel}
         </Badge>
       </div>
+      {item.created_at ? (
+        <p className="text-xs text-muted-foreground">
+          {formatDate(item.created_at)}
+        </p>
+      ) : null}
       {item.comments ? (
         <>
           <Separator />
@@ -63,7 +75,7 @@ function WaitingApprovalCard({
           </div>
         </>
       ) : null}
-    </div>
+    </button>
   );
 }
 
@@ -350,6 +362,7 @@ export const EssPage = () => {
                       formatDate={formatDate}
                       notesLabel={tCommon('notes')}
                       waitingLabel={tStatus('waitingForApproval')}
+                      onClick={() => router.push('/ess/approvals')}
                     />
                   ))
                 ) : (

@@ -110,6 +110,8 @@ export interface IAssessmentSummary {
 
 export interface IEmployeeAssessment {
   id: number;
+  user_id: number;
+  form_id: number;
   name: string;
   position: string;
   submission_status: string;
