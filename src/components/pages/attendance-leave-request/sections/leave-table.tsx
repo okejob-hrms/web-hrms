@@ -90,7 +90,9 @@ export default function LeaveTable({
                       {row.original.user?.name}
                     </span>
                     <span className="text-text-secondary">
-                      #{row.original.user?.id}
+                      {row.original.user?.profile?.code ||
+                        row.original.user?.employee_code ||
+                        '-'}
                     </span>
                   </div>
                 </div>

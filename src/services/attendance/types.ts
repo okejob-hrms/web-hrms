@@ -2,7 +2,8 @@ export interface Attendance {
   id: number;
   name: string;
   email: string;
-  id_number: string;
+  employee_profile_id: number | null;
+  employee_code: string;
   avatar: string;
   latest_attendance: LatestAttendance | null;
   has_attendance: boolean;
@@ -35,6 +36,7 @@ export interface LatestAttendance {
   approved_at: string | null;
   rejected_reason: string | null;
   remarks: string | null;
+  source: string | null;
   metadata: {
     created_via: string;
     created_at: string;
@@ -176,6 +178,7 @@ export interface AttendanceDetail {
   approved_at: string | null;
   rejected_reason: string | null;
   remarks: string | null;
+  source: string | null;
   metadata: {
     created_via: string;
     created_at: string;

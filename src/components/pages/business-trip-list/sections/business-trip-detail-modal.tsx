@@ -94,7 +94,7 @@ export default function BusinessTripDetailModal({
                   <span>{data.user?.name}</span>{" "}
                   {data.user?.employee_code && (
                     <span className="text-text-disabled">
-                      (#{data.user.employee_code})
+                      ({data.user.employee_code})
                     </span>
                   )}
                 </div>

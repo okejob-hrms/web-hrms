@@ -86,7 +86,7 @@ export default function OvertimeDetailModal({
             <div className="flex gap-3">
               <div className="font-medium">{data?.employee?.name}</div>
               <div className="font-medium text-gray-600">
-                (#{data?.employee?.id})
+                ({data?.employee?.profile?.code || '-'})
               </div>
             </div>
           </div>
