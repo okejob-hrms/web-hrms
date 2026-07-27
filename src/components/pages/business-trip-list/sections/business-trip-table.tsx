@@ -72,9 +72,7 @@ export default function BusinessTripTable({
                 {row.original.user?.name}
               </span>
               <span className="text-text-secondary text-xs">
-                {row.original.user?.employee_code
-                  ? `#${row.original.user.employee_code}`
-                  : `#${row.original.user?.id ?? "-"}`}
+                {row.original.user?.employee_code || '-'}
               </span>
             </div>
           </div>

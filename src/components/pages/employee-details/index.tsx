@@ -10,17 +10,19 @@ import { PersonalInformationDetail } from "./sections/personal-information";
 import { DocumentDetail } from "./sections/document";
 import { PayrollDetail } from "./sections/payroll";
 import { useQuery } from "@tanstack/react-query";
-import { getEmployeeDetail } from "@/services/employees";
+import { getEmployeeDetail, resendEmployeeInvite } from "@/services/employees";
 import { IEmployeeDetailsResponse } from "@/services/employees/types";
 import { AttendanceDetail } from "./sections/attendance";
 import { Button } from "@/components/ui/button";
 import { Can } from "@/components/auth/can";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Clock, Gavel } from "lucide-react";
+import { Clock, Gavel, Mail } from "lucide-react";
 import { PenaltyDetail } from "./sections/penalty";
 import { useTranslations } from "next-intl";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 interface Props {
   id: number;
@@ -97,11 +99,22 @@ export const EmployeeDetail = React.memo(function EmployeeDetail({
   const router = useRouter();
   const t = useTranslations("employee");
   const tCommon = useTranslations("common");
-  const { data: employeeDetails, isLoading, isError } = useQuery({
+  const { data: employeeDetails, isLoading, isError, refetch } = useQuery({
     queryKey: ["employee-detail", id],
     queryFn: () => getEmployeeDetail(id),
   });
   const data = employeeDetails?.data;
+
+  const resendInviteMutation = useMutation({
+    mutationFn: () => resendEmployeeInvite(id),
+    onSuccess: () => {
+      toast.success(t("resendInviteSuccess"));
+      void refetch();
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || t("resendInviteFailed"));
+    },
+  });
 
   if (isLoading) {
     return (
@@ -174,23 +187,40 @@ export const EmployeeDetail = React.memo(function EmployeeDetail({
               </span>
             </Badge>
           </div>
-          <Can permission="employee_organization.employee_profile.edit">
-            <Button
-              variant="ghost"
-              className="text-primary font-semibold text-base w-fit justify-self-end"
-              onClick={() =>
-                router.push(`/employee/employee-management/edit/${id}`)
-              }
-            >
-              <Image
-                src="/icons/editBlue.svg"
-                width={24}
-                height={24}
-                alt="edit"
-              />
-              {t("editEmployeeData")}
-            </Button>
-          </Can>
+          <div className="flex flex-col items-end gap-2 justify-self-end">
+            {data.user.is_first_login ? (
+              <Can permission="employee_organization.employee_profile.edit">
+                <Button
+                  variant="outline"
+                  className="text-primary font-semibold text-base w-fit border-primary"
+                  disabled={resendInviteMutation.isPending}
+                  onClick={() => resendInviteMutation.mutate()}
+                >
+                  <Mail className="h-4 w-4" />
+                  {resendInviteMutation.isPending
+                    ? tCommon("processing")
+                    : t("resendInvite")}
+                </Button>
+              </Can>
+            ) : null}
+            <Can permission="employee_organization.employee_profile.edit">
+              <Button
+                variant="ghost"
+                className="text-primary font-semibold text-base w-fit"
+                onClick={() =>
+                  router.push(`/employee/employee-management/edit/${id}`)
+                }
+              >
+                <Image
+                  src="/icons/editBlue.svg"
+                  width={24}
+                  height={24}
+                  alt="edit"
+                />
+                {t("editEmployeeData")}
+              </Button>
+            </Can>
+          </div>
         </div>
         <Tab data={data} />
       </div>

@@ -25,6 +25,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Clock4Icon,
+  Download,
   Edit3,
   Ellipsis,
   Eye,
@@ -49,6 +50,7 @@ import { getStatusAttendance } from '@/lib/helpers';
 import AttendanceApproveModal from './sections/approve-modal';
 import AttendanceRejectModal from './sections/reject-modal';
 import AttendanceDeleteModal from './sections/delete-modal';
+import AttendanceExportModal from './sections/export-modal';
 import { Input, InputForm } from '@/components/ui/input';
 import { DatePicker } from '@/components/ui/date-picker';
 import dayjs from 'dayjs';
@@ -100,6 +102,8 @@ export const AttendanceTrackerList = ({
     setSelectedIdTrackers,
   } = useAttendance();
 
+  const [openExport, setOpenExport] = React.useState(false);
+
   const detailPeriodLabel = React.useMemo(
     () =>
       formatDate(
@@ -126,9 +130,7 @@ export const AttendanceTrackerList = ({
             <span className="font-semibold text-foreground text-sm">
               {row.original.name}
             </span>
-            <span className="text-text-secondary">
-              {row.original.id_number}
-            </span>
+              <span className="text-text-secondary">{row.original.employee_code}</span>
           </div>
         </div>
       ),
@@ -171,6 +173,13 @@ export const AttendanceTrackerList = ({
       size: 200,
       cell: ({ row }) =>
         row.original.latest_attendance?.metadata?.shift_name || '-',
+    },
+    {
+      accessorKey: 'latest_attendance.source',
+      header: t('source'),
+      size: 160,
+      cell: ({ row }) =>
+        row.original.latest_attendance?.source || '-',
     },
     {
       accessorKey: 'latest_attendance.notes',
@@ -407,13 +416,22 @@ export const AttendanceTrackerList = ({
         <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6">
           <div className="flex md:flex-row flex-col justify-between w-full md:items-center items-start gap-4">
             <h2 className="font-semibold text-xl">{t('attendanceTracker')}</h2>
-            <Can permission="time_attendance.attendance_records.create">
+            <div className="flex gap-2">
               <Button
-                onClick={() => router.push('/attendance/attendance-tracker/add')}
+                variant="outline"
+                onClick={() => setOpenExport(true)}
               >
-                {t('newRecord')}
+                <Download className="h-4 w-4" />
+                {t('exportExcel')}
               </Button>
-            </Can>
+              <Can permission="time_attendance.attendance_records.create">
+                <Button
+                  onClick={() => router.push('/attendance/attendance-tracker/add')}
+                >
+                  {t('newRecord')}
+                </Button>
+              </Can>
+            </div>
           </div>
 
           <DataTable
@@ -456,8 +474,9 @@ export const AttendanceTrackerList = ({
                   <Button
                     variant="outline"
                     onClick={() =>
-                      handleGoDetailEmployee(Number(selectedData?.id_number))
+                      handleGoDetailEmployee(selectedData?.employee_profile_id ?? 0)
                     }
+                    disabled={!selectedData?.employee_profile_id}
                   >
                     <Eye />
                     {t('employeeDetails')}
@@ -623,21 +642,31 @@ export const AttendanceTrackerList = ({
                           </div>
                         </div>
                         <div className="flex flex-col gap-3 py-2 border-t">
-                          <div className="flex flex-col space-y-1">
-                            <span className="text-muted-foreground text-sm">
-                              {t('location')}
-                            </span>
-                            <Badge
-                              variant="default"
-                              className="bg-blue-50 border-primary text-primary"
-                            >
-                              <div className="w-6">
-                                <MapPin size={16} />
-                              </div>
-                              <div className="whitespace-normal break-words max-w-full">
-                                {item.metadata.location_name ?? '-'}
-                              </div>
-                            </Badge>
+                          <div className="flex flex-row gap-6">
+                            <div className="flex flex-col space-y-1">
+                              <span className="text-muted-foreground text-sm">
+                                {t('location')}
+                              </span>
+                              <Badge
+                                variant="default"
+                                className="bg-blue-50 border-primary text-primary"
+                              >
+                                <div className="w-6">
+                                  <MapPin size={16} />
+                                </div>
+                                <div className="whitespace-normal break-words max-w-full">
+                                  {item.metadata.location_name ?? '-'}
+                                </div>
+                              </Badge>
+                            </div>
+                            <div className="flex flex-col space-y-1">
+                              <span className="text-muted-foreground text-sm">
+                                {t('source')}
+                              </span>
+                              <span className="text-sm font-medium">
+                                {item.source || '-'}
+                              </span>
+                            </div>
                           </div>
                           {item.notes && (
                             <div className="flex flex-col space-y-1">
@@ -681,6 +710,13 @@ export const AttendanceTrackerList = ({
             onUpdate={() => handleDelete()}
             isOpen={openDelete}
             setIsOpen={(e) => setOpenDelete(e)}
+          />
+
+          <AttendanceExportModal
+            isOpen={openExport}
+            setIsOpen={setOpenExport}
+            defaultStartDate={filters.date || undefined}
+            defaultEndDate={filters.date || undefined}
           />
         </div>
       </div>

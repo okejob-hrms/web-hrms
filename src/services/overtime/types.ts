@@ -52,6 +52,8 @@ export interface Employee {
     /** May be absent when employee was imported / has no photo. */
     avatar_url?: string | null;
     profile?: {
+        id?: number;
+        code?: string | null;
         photo_profile?: string | null;
     } | null;
 }
