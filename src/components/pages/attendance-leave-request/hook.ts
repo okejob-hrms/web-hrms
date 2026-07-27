@@ -19,7 +19,7 @@ import {
   updateStatusLeave,
   getLeavesEmployee,
 } from "@/services/employees/leave";
-import { getEmployeeDetail } from "@/services/employees";
+import { getEmployeeDetailByUserId } from "@/services/employees";
 import {
   ILeaveEmployeeResponse,
   ILeaveResponse,
@@ -184,8 +184,8 @@ export function useLeaveRequest(isEmployee?: boolean) {
     async (user_id: number) => {
       try {
         const data = await queryClient.fetchQuery({
-          queryKey: ["employee-detail", user_id],
-          queryFn: () => getEmployeeDetail(user_id),
+          queryKey: ["employee-detail-by-user", user_id],
+          queryFn: () => getEmployeeDetailByUserId(user_id),
         });
         return data.data;
       } catch (error) {

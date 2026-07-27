@@ -30,12 +30,19 @@ export const PerformanceSelfAssessmentForm = React.memo(
       totalSelectedParticipants,
       currentFormIndex,
       handleUpdateSelectedParticipants,
-      totalEmployees,
       handleCancel,
       handleSubmit,
       isPendingAddAssessment,
       isEditMode,
       isLoadingDetails,
+      employeeList,
+      isLoadingEmployees,
+      pagination,
+      handlePaginationChange,
+      handleSearchChange,
+      filters,
+      totalEmployees,
+      lockedParticipantIds,
     } = usePerformanceSelfAssessmentForm();
 
     return (
@@ -188,6 +195,14 @@ export const PerformanceSelfAssessmentForm = React.memo(
           currentFormIndex={currentFormIndex}
           assessmentForms={assessmentForms}
           onUpdateSelectedParticipants={handleUpdateSelectedParticipants}
+          employeeList={employeeList}
+          isLoadingEmployees={isLoadingEmployees}
+          pagination={pagination}
+          handlePaginationChange={handlePaginationChange}
+          handleSearchChange={handleSearchChange}
+          filters={filters}
+          totalEmployees={totalEmployees}
+          lockedParticipantIds={lockedParticipantIds}
         />
       </div>
     );
