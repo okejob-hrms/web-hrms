@@ -124,11 +124,36 @@ export function formatChartMonthLabel(
 }
 
 export function formatDayCount(count: number, locale: AppLocale): string {
+  // Keep integers clean; trim float noise (e.g. 0.5 stays "0.5", avoid 0.30000000004).
+  const display = Number.isInteger(count)
+    ? String(count)
+    : String(parseFloat(count.toFixed(2)));
+
   if (resolveLocale(locale) === 'id') {
-    return `${count} hari`;
+    return `${display} hari`;
   }
 
-  return count === 1 ? `${count} day` : `${count} days`;
+  return count === 1 ? `${display} day` : `${display} days`;
+}
+
+/**
+ * Parse API date strings as calendar dates in local time.
+ * Avoids `new Date('YYYY-MM-DD')` UTC midnight shifting the day label.
+ */
+function parseCalendarDate(value: string): Date {
+  const dateOnly = value.trim().slice(0, 10);
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateOnly);
+  if (match) {
+    const year = Number(match[1]);
+    const month = Number(match[2]);
+    const day = Number(match[3]);
+    return new Date(year, month - 1, day);
+  }
+
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime())
+    ? new Date(NaN)
+    : new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
 }
 
 export function formatDateRange(
@@ -137,19 +162,26 @@ export function formatDateRange(
   locale: AppLocale,
 ): string {
   const intlLocale = toIntlLocale(locale);
-  const start = new Date(startDate);
-  const end = new Date(endDate);
+  const start = parseCalendarDate(startDate);
+  const end = parseCalendarDate(endDate);
+
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+    return '-';
+  }
 
   const formatPart = (date: Date, options: Intl.DateTimeFormatOptions) =>
     date.toLocaleDateString(intlLocale, options);
 
-  if (
+  const sameDay =
+    start.getFullYear() === end.getFullYear() &&
     start.getMonth() === end.getMonth() &&
-    start.getFullYear() === end.getFullYear()
-  ) {
-    return `${formatPart(start, { month: 'short', day: 'numeric' })} - ${formatPart(end, { day: 'numeric', year: 'numeric' })}`;
+    start.getDate() === end.getDate();
+
+  if (sameDay) {
+    return formatPart(start, { month: 'short', day: 'numeric', year: 'numeric' });
   }
 
+  // Always show month on both sides so "Sep 9 - 10, 2026" is not misread.
   if (start.getFullYear() === end.getFullYear()) {
     return `${formatPart(start, { month: 'short', day: 'numeric' })} - ${formatPart(end, { month: 'short', day: 'numeric', year: 'numeric' })}`;
   }
