@@ -1,6 +1,6 @@
 'use client';
 
-import { Form } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import * as React from 'react';
 import { useTranslations } from 'next-intl';
 import { useLeaveRequestForm } from './hook';
@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import AppSkeleton from '@/components/partials/app-skeleton';
 import { Plus, X } from 'lucide-react';
 import Image from 'next/image';
+import { Switch } from '@/components/ui/switch';
 
 interface AttendanceLeaveRequestFormProps {
   isEmployee?: boolean;
@@ -40,6 +41,7 @@ export const AttendanceLeaveRequestForm = React.memo(
       isLoadingDetail,
       handleLogoChange,
       isUploadingLogo,
+      isSingleDate,
     } = useLeaveRequestForm(isEmployee);
 
     const fileInputRef = React.useRef<HTMLInputElement | null>(null);
@@ -112,6 +114,29 @@ export const AttendanceLeaveRequestForm = React.memo(
                 <DatePicker name="start_date" label={t('startDate')} />
                 <DatePicker name="end_date" label={t('endDate')} />
               </div>
+              {isSingleDate && (
+                <FormField
+                  control={form.control}
+                  name="is_half_day"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-md border p-3">
+                      <div className="space-y-0.5">
+                        <FormLabel>{t('halfDayLeave')}</FormLabel>
+                        <p className="text-xs text-muted-foreground">
+                          {t('halfDayLeaveHint')}
+                        </p>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={Boolean(field.value)}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
             </div>
 
             <TextAreaForm
