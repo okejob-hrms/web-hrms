@@ -20,7 +20,7 @@ import {
 } from '@/services/employees/leave/types';
 import {
   formatDateRange,
-  formatDayDifference,
+  formatLeaveDuration,
   getStatusOvertime,
 } from '@/lib/helpers';
 import { StatusBadge } from '@/components/shared/status-badge';
@@ -218,7 +218,12 @@ export default function LeaveDetailModal({
                     {formatDateRange(data?.start_date, data?.end_date, locale)}
                   </span>{' '}
                   <span className="text-base text-text-disabled">
-                    ({formatDayDifference(data?.start_date, data?.end_date, locale)})
+                    ({formatLeaveDuration(
+                      data?.start_date,
+                      data?.end_date,
+                      locale,
+                      data?.day,
+                    )})
                   </span>
                 </div>
               </div>

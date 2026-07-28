@@ -30,7 +30,7 @@ import {
 import { StatusBadge } from '@/components/shared/status-badge';
 import {
   formatDateRange,
-  formatDayDifference,
+  formatLeaveDuration,
   getStatusOvertime,
 } from '@/lib/helpers';
 import dayjs from 'dayjs';
@@ -116,7 +116,12 @@ export default function LeaveTable({
           return (
             <div className="flex flex-col w-max-2xl">
               <span>
-                {formatDayDifference(leave.start_date, leave.end_date, locale)}
+                {formatLeaveDuration(
+                  leave.start_date,
+                  leave.end_date,
+                  locale,
+                  leave.day,
+                )}
               </span>
               <span className="text-primary">
                 {formatDateRange(leave.start_date, leave.end_date, locale)}

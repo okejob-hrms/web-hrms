@@ -45,6 +45,7 @@ export const useLeaveRequestForm = (isEmployee?: boolean) => {
           ]),
           reason: z.string().min(1, t('reasonRequired')),
           attachments: z.string().optional(),
+          is_half_day: z.boolean().optional(),
           approvers: isEmployee
             ? z
                 .array(
@@ -71,6 +72,16 @@ export const useLeaveRequestForm = (isEmployee?: boolean) => {
               });
             }
           }
+
+          const start = dayjs(data.start_date).format('YYYY-MM-DD');
+          const end = dayjs(data.end_date).format('YYYY-MM-DD');
+          if (data.is_half_day && start !== end) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: t('halfDaySingleDateOnly'),
+              path: ['is_half_day'],
+            });
+          }
         }),
     [isEmployee, t],
   );
@@ -86,6 +97,7 @@ export const useLeaveRequestForm = (isEmployee?: boolean) => {
       end_date: dayjs(new Date()).format("YYYY-MM-DD").toString(),
       attachments: "",
       reason: "",
+      is_half_day: false,
       approvers: [],
     },
   });
@@ -96,6 +108,22 @@ export const useLeaveRequestForm = (isEmployee?: boolean) => {
   const debouncedApprover = useDebounce(searchApprover, 300);
   const queryClient = useQueryClient();
   const selectedUserId = form.watch("user_id");
+  const watchedStartDate = form.watch("start_date");
+  const watchedEndDate = form.watch("end_date");
+
+  const isSingleDate = React.useMemo(() => {
+    if (!watchedStartDate || !watchedEndDate) return false;
+    return (
+      dayjs(watchedStartDate).format("YYYY-MM-DD") ===
+      dayjs(watchedEndDate).format("YYYY-MM-DD")
+    );
+  }, [watchedStartDate, watchedEndDate]);
+
+  React.useEffect(() => {
+    if (!isSingleDate && form.getValues("is_half_day")) {
+      form.setValue("is_half_day", false, { shouldValidate: true });
+    }
+  }, [isSingleDate, form]);
 
   const leaveId = React.useMemo(() => {
     const segments = pathname.split("/");
@@ -173,6 +201,7 @@ export const useLeaveRequestForm = (isEmployee?: boolean) => {
           end_date: leaveData.end_date,
           reason: leaveData.reason,
           attachments: leaveData.attachment ?? '',
+          is_half_day: Boolean(leaveData.is_half_day),
           approvers: leaveData.approvers.map((approver) => ({
             id: approver.approver_id,
             user_id: approver.user_id,
@@ -318,6 +347,9 @@ export const useLeaveRequestForm = (isEmployee?: boolean) => {
       end_date: dayjs(data.end_date).format("YYYY-MM-DD"),
       reason: data.reason,
       attachment: data.attachments || '',
+      is_half_day: Boolean(data.is_half_day) &&
+        dayjs(data.start_date).format("YYYY-MM-DD") ===
+          dayjs(data.end_date).format("YYYY-MM-DD"),
 
       ...(!isEmployee && {
         user_id: Number(data.user_id),
@@ -384,6 +416,7 @@ export const useLeaveRequestForm = (isEmployee?: boolean) => {
     leaveId,
     uploadLogo,
     isUploadingLogo,
-    handleLogoChange
+    handleLogoChange,
+    isSingleDate,
   };
 };

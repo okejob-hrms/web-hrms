@@ -1,5 +1,4 @@
 import { z } from "zod";
-import duration from "dayjs/plugin/duration";
 import dayjs from "dayjs";
 import {
   formatCurrencyIdr,
@@ -16,8 +15,6 @@ import {
   resolveStatusKey,
   type StatusKey,
 } from "@/lib/i18n/status";
-
-dayjs.extend(duration);
 
 export const rupiahFormatter = (number: number) => formatCurrencyIdr(number);
 
@@ -405,12 +402,37 @@ export function formatDayDifference(
   endDate: string,
   locale?: AppLocale,
 ): string {
-  const start = dayjs(startDate);
-  const end = dayjs(endDate);
-  const diffInMs = end.diff(start);
-  const days = Math.floor(dayjs.duration(diffInMs).asDays());
+  const start = dayjs(startDate).startOf('day');
+  const end = dayjs(endDate).startOf('day');
+  // Inclusive calendar days (same-day = 1), matching backend/mobile.
+  const days = Math.max(0, end.diff(start, 'day') + 1);
 
   return formatDayCount(days, resolveLocale(locale ?? DEFAULT_LOCALE));
+}
+
+/**
+ * Prefer API chargeable `day` (supports 0.5) when present; otherwise inclusive calendar fallback.
+ */
+export function formatLeaveDuration(
+  startDate?: string | null,
+  endDate?: string | null,
+  locale?: AppLocale,
+  apiDay?: number | string | null,
+): string {
+  const resolvedLocale = resolveLocale(locale ?? DEFAULT_LOCALE);
+
+  if (apiDay !== null && apiDay !== undefined && apiDay !== '') {
+    const parsed = typeof apiDay === 'number' ? apiDay : Number(apiDay);
+    if (!Number.isNaN(parsed)) {
+      return formatDayCount(parsed, resolvedLocale);
+    }
+  }
+
+  if (!startDate || !endDate) {
+    return '-';
+  }
+
+  return formatDayDifference(startDate, endDate, resolvedLocale);
 }
 
 export function formatDateRange(

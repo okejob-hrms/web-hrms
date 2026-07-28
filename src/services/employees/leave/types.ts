@@ -46,6 +46,8 @@ export interface ILeaveResponse {
   leave_type_id: number;
   start_date: string;
   end_date: string;
+  is_half_day?: boolean;
+  day?: number;
   reason: string;
   status: number;
   attachment: string | null;
@@ -83,6 +85,7 @@ export interface IMutateLeaveRequest {
   leave_type_id: number;
   start_date: string;
   end_date: string;
+  is_half_day?: boolean;
   reason: string;
   attachment: string;
   approvers?: {
@@ -131,6 +134,8 @@ export interface ILeaveDetails {
   leave_type_id: number;
   start_date: string;
   end_date: string;
+  is_half_day?: boolean;
+  day?: number;
   reason: string;
   status: number;
   attachment: string;
