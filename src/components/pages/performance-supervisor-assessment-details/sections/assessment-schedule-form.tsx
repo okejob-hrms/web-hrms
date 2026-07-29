@@ -17,7 +17,7 @@ import { MultiSelectForm } from "@/components/ui/multi-select";
 import { useDebounce } from "@/hooks/use-debounce";
 import { ApiErrorResponse } from "@/lib/types";
 import { getEmployees } from "@/services/employees";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import dayjs from "dayjs";
 import { Calendar, Clock } from "lucide-react";
 import * as React from "react";
@@ -164,9 +164,15 @@ export const ModalForm = React.memo(function ModalForm({
   const [searchApprover, setSearchApprover] = React.useState("");
   const debouncedApprover = useDebounce(searchApprover, 300);
   const { data: employees, isLoading: isLoadingEmployees } = useQuery({
-    queryKey: ["offboarding-employees", debouncedApprover],
+    queryKey: ["supervisor-assessment-schedule-employees", debouncedApprover],
     queryFn: () =>
-      getEmployees(debouncedApprover ? { search: debouncedApprover } : {}),
+      getEmployees(
+        debouncedApprover
+          ? { search: debouncedApprover, per_page: 10000 }
+          : { per_page: 10000 },
+      ),
+    enabled: open,
+    placeholderData: keepPreviousData,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
@@ -217,7 +223,9 @@ export const ModalForm = React.memo(function ModalForm({
   const employeesOptions = React.useMemo(() => {
     if (employees?.data?.data) {
       return employees.data.data.map((item) => ({
-        label: item.name,
+        label: item.job_position
+          ? `${item.name} (${item.job_position})`
+          : item.name,
         value: item.id.toString(),
       }));
     }

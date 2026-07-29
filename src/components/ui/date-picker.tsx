@@ -81,7 +81,11 @@ export const DatePicker: React.FC<
                       variant="outline"
                       type="button"
                       data-empty={!hasValue}
-                      className="data-[empty=true]:text-muted-foreground justify-between text-left font-normal border-input h-10 rounded-sm text-foreground w-full pr-16"
+                      className={cn(
+                        "data-[empty=true]:text-muted-foreground justify-between text-left font-normal border-input h-10 rounded-sm text-foreground w-full pr-16",
+                        hasError &&
+                          "border-destructive focus-visible:ring-destructive",
+                      )}
                     >
                       {hasValue ? (
                         dayjs(props.value || field.value).format("ll")
