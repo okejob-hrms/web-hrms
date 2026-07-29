@@ -16,7 +16,12 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PieChart, Pie, Cell, Tooltip } from 'recharts';
 import WorkingHourSummary from './section/working-hour-summary';
 // import { Skeleton } from '@/components/ui/skeleton';
-import { Payslip } from '@/services/payroll/types';
+import {
+  DeductionList,
+  getAttendancePenalties,
+  Payslip,
+  sumAttendancePenalties,
+} from '@/services/payroll/types';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import PayrunApproveModal from './section/confirm-modal';
@@ -28,6 +33,7 @@ import PenaltyModal from './section/penalty-modal';
 import { PayrunsHistorySheet } from './section/audit-trail';
 import { getStatusPayroll } from '@/lib/helpers';
 import PayrunGenerateModal from './section/confirm-generate';
+import { AttendancePenaltyEvidenceDialog } from '@/components/shared/attendance-penalty-evidence';
 
 type PayrollFormFormProps = {
   id?: string;
@@ -124,20 +130,37 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
   const pathname = usePathname();
   const isDetail = !pathname.includes('/edit');
   const [openHistory, setOpenHistory] = React.useState(false);
+  const [penaltyEvidenceOpen, setPenaltyEvidenceOpen] = React.useState(false);
+  const [penaltyEvidenceItems, setPenaltyEvidenceItems] = React.useState<
+    DeductionList[]
+  >([]);
+
+  const openPenaltyEvidence = (deductions: DeductionList[] | undefined) => {
+    setPenaltyEvidenceItems(getAttendancePenalties(deductions));
+    setPenaltyEvidenceOpen(true);
+  };
+
+  const penaltyTotalFor = (row: Payslip) => {
+    if (row.total_penalties != null) {
+      return Number(row.total_penalties);
+    }
+
+    return sumAttendancePenalties(row.deduction);
+  };
 
   const dataPayroll = React.useMemo(
     () => [
-      { name: t('salary'), value: detailDataSpend?.data.net_pay.total },
-      { name: t('allowance'), value: detailDataSpend?.data.allowance.total },
-      { name: tAtt('overtime'), value: detailDataSpend?.data.overtime.total },
+      { name: t('salary'), value: detailDataSpend?.data?.net_pay?.total },
+      { name: t('allowance'), value: detailDataSpend?.data?.allowance?.total },
+      { name: tAtt('overtime'), value: detailDataSpend?.data?.overtime?.total },
       {
         name: t('additionalEarnings'),
-        value: detailDataSpend?.data.additional_earning.total,
+        value: detailDataSpend?.data?.additional_earning?.total,
       },
-      { name: t('deductions'), value: detailDataSpend?.data.deduction.total },
-      { name: t('penalties'), value: detailDataSpend?.data.penalties.total },
-      { name: t('spend'), value: detailDataSpend?.data.spend.total },
-      ...(detailDataSpend?.data.deductions_by_name?.map((item) => ({
+      { name: t('deductions'), value: detailDataSpend?.data?.deduction?.total },
+      { name: t('penalties'), value: detailDataSpend?.data?.penalties?.total },
+      { name: t('spend'), value: detailDataSpend?.data?.spend?.total },
+      ...(detailDataSpend?.data?.deductions_by_name?.map((item) => ({
         name: item.label,
         value: item.total,
       })) || []),
@@ -145,22 +168,22 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
     [detailDataSpend, t, tAtt],
   );
 
-  const total = detailDataSpend?.data.gross_pay.total;
+  const total = detailDataSpend?.data?.gross_pay?.total;
 
   const baseColumns: ColumnDef<Payslip>[] = [
     {
       accessorKey: 'name',
       header: tCommon('name'),
       cell: ({ row }) => (
-        <div className="flex gap-4 items-center min-w-[250px]">
-          <Avatar className="h-10 w-10">
+        <div className="flex gap-3 items-center min-w-0 w-full max-w-full">
+          <Avatar className="h-10 w-10 shrink-0">
             <AvatarImage src={`${row.original.employee.name}`} />
             <AvatarFallback className="text-primary-hover bg-primary-background text-base font-medium">
               {stringAvatar(row.original.employee.name ?? '')}
             </AvatarFallback>
           </Avatar>
-          <div className="flex flex-col">
-            <span className="font-semibold text-foreground text-sm">
+          <div className="flex flex-col min-w-0">
+            <span className="font-semibold text-foreground text-sm break-words whitespace-normal">
               {row.original.employee.name}
             </span>
             <span className="text-text-secondary">
@@ -169,9 +192,6 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
           </div>
         </div>
       ),
-      meta: {
-        className: 'sticky left-0 bg-white z-20 shadow-sm',
-      },
     },
     {
       accessorKey: 'working_hour',
@@ -225,7 +245,7 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
               variant="default"
               className="bg-primary/10 border-primary text-primary"
             >
-              {t('benefitCount', { count: row.original.allowance.length })}
+              {t('benefitCount', { count: row.original.allowance?.length ?? 0 })}
             </Badge>
           </div>
           {currentStep === 1 && !isDetail && (
@@ -234,7 +254,7 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
               variant="link"
               className="text-primary"
               onClick={() => {
-                const list = row.original.allowance.map((item) => ({
+                const list = (row.original.allowance ?? []).map((item) => ({
                   allowance_name: String(item.allowance_name),
                   allowance_value: String(item.allowance_value),
                   allowance_type_id: String(item.allowance_type_id),
@@ -309,7 +329,7 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
                 className="bg-primary/10 border-primary text-primary"
               >
                 {t('earningsCount', {
-                  count: row.original.additional_earning.length,
+                  count: row.original.additional_earning?.length ?? 0,
                 })}
               </Badge>
             </div>
@@ -319,7 +339,7 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
                 variant="link"
                 className="text-primary"
                 onClick={() => {
-                  const list = row.original.additional_earning.map((item) => ({
+                  const list = (row.original.additional_earning ?? []).map((item) => ({
                     name: item.name,
                     amount: item.amount,
                   }));
@@ -338,39 +358,56 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
     {
       accessorKey: 'penalty',
       header: t('penaltyDeduction'),
-      cell: ({ row }) => (
-        <div className="flex gap-2 items-center justify-between min-w-[150px]">
-          <div className="text-gray-400">
-            - Rp{' '}
-            <span className="text-gray-800">
-              {formatCurrency(Number(row.original.total_deductions))}
-            </span>
+      cell: ({ row }) => {
+        const total = penaltyTotalFor(row.original);
+        const penalties = getAttendancePenalties(row.original.deduction);
+
+        return (
+          <div className="flex gap-2 items-center justify-between min-w-[180px]">
+            <div className="text-gray-400">
+              - Rp{' '}
+              <span className="text-gray-800">{formatCurrency(total)}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              {penalties.length > 0 && (
+                <Button
+                  type="button"
+                  variant="link"
+                  className="text-primary"
+                  title={t('viewPenaltyEvidence')}
+                  onClick={() => openPenaltyEvidence(row.original.deduction)}
+                >
+                  <Eye />
+                </Button>
+              )}
+              {currentStep === 1 && !isDetail && (
+                <Button
+                  type="button"
+                  variant="link"
+                  className="text-primary"
+                  onClick={() => {
+                    setIdRow(String(row.original.id));
+                    setPenaltys({
+                      penalties_amount: total,
+                    });
+                    setOpenPenalty(true);
+                  }}
+                >
+                  <Edit3 />
+                </Button>
+              )}
+            </div>
           </div>
-          {currentStep === 1 && !isDetail && (
-            <Button
-              type="button"
-              variant="link"
-              className="text-primary"
-              onClick={() => {
-                setIdRow(String(row.original.id));
-                setPenaltys({
-                  penalties_amount: row.original.total_deductions,
-                });
-                setOpenPenalty(true);
-              }}
-            >
-              <Edit3 />
-            </Button>
-          )}
-        </div>
-      ),
+        );
+      },
     },
   ];
 
   const uniqueDeductions = Array.from(
     new Map(
       (employeeList?.data.payslips ?? [])
-        .flatMap((p) => p.deduction)
+        .flatMap((p) => p.deduction ?? [])
+        .filter((d) => d?.salary_deduction_id != null)
         .map((d) => [d.salary_deduction_id, d]),
     ).values(),
   );
@@ -379,13 +416,13 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
     id: `deduction-${ded.salary_deduction_id}`,
     header: ded.name,
     accessorFn: (row) => {
-      const item = row.deduction.find(
+      const item = (row.deduction ?? []).find(
         (d) => d.salary_deduction_id === ded.salary_deduction_id,
       );
       return item?.amount ?? 0;
     },
     cell: ({ row }) => {
-      const item = row.original.deduction.find(
+      const item = (row.original.deduction ?? []).find(
         (d) => d.salary_deduction_id === ded.salary_deduction_id,
       );
       return (
@@ -800,6 +837,12 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
               onSave={handleSavePenalty}
             />
 
+            <AttendancePenaltyEvidenceDialog
+              open={penaltyEvidenceOpen}
+              onOpenChange={setPenaltyEvidenceOpen}
+              items={penaltyEvidenceItems}
+            />
+
             <PayrunsHistorySheet
               open={openHistory}
               onOpenChange={setOpenHistory}
@@ -819,6 +862,8 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
               onUpdate={() => handleRegenerateCalculate()}
               isOpen={openConfirmRecalculate}
               setIsOpen={(e) => setOpenConfirmRecalculate(e)}
+              titleKey="confirmRecalculatePayslip"
+              descriptionKey="confirmRecalculatePayslipDesc"
             />
           </div>
         </div>

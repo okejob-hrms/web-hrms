@@ -11,6 +11,11 @@ import { Eye } from "lucide-react";
 import { PayrollDetailModal } from "./payroll-detail-modal";
 import * as React from "react";
 import { useTranslations } from "next-intl";
+import { usePermissionStore } from "@/hooks/use-permission-store";
+import {
+  COMPENSATION_VIEW_PERMISSION,
+  formatCurrencyOrCensored,
+} from "@/lib/compensation";
 
 interface Props {
   userId: number;
@@ -21,6 +26,9 @@ export const PayrollDetail = React.memo(function PayrollDetail({
 }: Props) {
   const t = useTranslations("employee");
   const tCommon = useTranslations("common");
+  const canViewCompensation = usePermissionStore((state) =>
+    state.can(COMPENSATION_VIEW_PERMISSION),
+  );
   const [selectedPayrollId, setSelectedPayrollId] = React.useState<
     number | null
   >(null);
@@ -52,7 +60,10 @@ export const PayrollDetail = React.memo(function PayrollDetail({
           <span className="text-gray-400">
             Rp{" "}
             <span className="text-gray-800">
-              {formatCurrency(Number(row.original.total_gross_pay))}
+              {formatCurrencyOrCensored(
+                row.original.total_gross_pay,
+                canViewCompensation,
+              )}
             </span>
           </span>
         ),
@@ -116,7 +127,7 @@ export const PayrollDetail = React.memo(function PayrollDetail({
         ),
       },
     ],
-    [t, tCommon],
+    [t, tCommon, canViewCompensation],
   );
 
   const { data: payrollData } = useQuery({

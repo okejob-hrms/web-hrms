@@ -48,6 +48,21 @@ export interface IEmployeeShort {
   npwp: string;
 }
 
+export interface IPayslipDeduction {
+  salary_deduction_id: number | null;
+  name: string;
+  type: string;
+  amount: number;
+  calculation_basis?: string;
+  contribution_type?: string;
+  user_penalty_id?: number | null;
+  attendance_rule_id?: number | null;
+  period?: string | null;
+  description?: string | null;
+  condition_type?: string | null;
+  meta?: Record<string, unknown> | null;
+}
+
 export interface IEmployeePayrollDetail {
   id: number;
   employee: IEmployeeShort;
@@ -58,7 +73,7 @@ export interface IEmployeePayrollDetail {
   allowance: IAllowance[];
   overtime: any[]; // Define if known
   additional_earning: any[]; // Define if known
-  deduction: any[]; // Define if known
+  deduction: IPayslipDeduction[];
   currency: string;
   status: number;
   status_label: string;
@@ -75,7 +90,7 @@ export interface IEmployeePayrollDetail {
   can_be_voided: boolean;
   total_allowances: number;
   total_overtime: string;
-  total_penalties: string;
+  total_penalties: number | string;
   total_additional_earnings: number;
   total_deductions: number;
   created_by?: {

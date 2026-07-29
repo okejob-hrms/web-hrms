@@ -4,6 +4,7 @@ import * as React from "react";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { PaginationState } from "@tanstack/react-table";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { AdditionalItem, AdditionalRequest, AllowanceItem, AllowanceRequest, OvertimePayrun, OvertimeRequest, Payrun, Payslip, PenaltyPayrun, PenaltyRequest, RequestPayrollGroup, WorkHourPayrun, WorkingHourRequest } from "@/services/payroll/types";
 import { Filters } from "./types";
@@ -14,6 +15,7 @@ import { getAllowanceType } from "@/services/salary";
 import { formatCurrency } from "@/lib/utils";
 
 export function usePayrollDetail() {
+  const t = useTranslations("payroll");
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: 0,
     pageSize: 10,
@@ -385,9 +387,16 @@ export function usePayrollDetail() {
               <td style="padding:12px;vertical-align:top;">
                 ${payslip.deduction
                   .map((item, i) => {
-                    return `<div key="${i}" style="display:flex;justify-content:space-between;margin-bottom: 20px;">
-                              <span>${item.name}</span>
-                              <span style="padding-left: 20px;">Rp${formatCurrency(Number(item.amount))}</span>
+                    const description =
+                      item.type === 'ATTENDANCE_PENALTY' && item.description
+                        ? `<div style="font-size:10px;color:#6B7280;margin-top:4px;max-width:220px;">${item.description}</div>`
+                        : '';
+                    return `<div key="${i}" style="margin-bottom: 20px;">
+                              <div style="display:flex;justify-content:space-between;">
+                                <span>${item.name}</span>
+                                <span style="padding-left: 20px;">Rp${formatCurrency(Number(item.amount))}</span>
+                              </div>
+                              ${description}
                             </div>`;
                   })
                   .join("")}
@@ -471,14 +480,14 @@ export function usePayrollDetail() {
     mutationFn: ({ id, payload }: { id: string; payload: {payslip_id: number} }) => postRecalculate(id, payload),
     onMutate: () => setLoading(true),
     onSuccess: () => {
-      toast.success("Payrun successfully recalculate");
+      toast.success(t("recalculatePayslipSuccess"));
       queryClient.invalidateQueries({ queryKey: ["payslip"] });
       detailDataRefetch();
       auditTrailRefetch();
       employeeListRefetch();
     },
     onError: (err) => {
-      toast.error(`Failed to save: ${err.message}`);
+      toast.error(`${t("recalculatePayslipFailed")}: ${err.message}`);
     },
     onSettled: () => setLoading(false),
   });

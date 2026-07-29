@@ -39,6 +39,11 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { TextAreaForm } from "@/components/ui/textarea";
 import { rupiahFormatter } from "@/lib/helpers";
 import {
+  COMPENSATION_CENSORED_PLACEHOLDER,
+  COMPENSATION_VIEW_PERMISSION,
+} from "@/lib/compensation";
+import { usePermissionStore } from "@/hooks/use-permission-store";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -425,6 +430,9 @@ export const WorkExperienceSection = React.memo<Props>(
   }) {
     const t = useTranslations("employee");
     const tCommon = useTranslations("common");
+    const canViewCompensation = usePermissionStore((state) =>
+      state.can(COMPENSATION_VIEW_PERMISSION),
+    );
     const queryClient = useQueryClient();
     const [editingWorkExperience, setEditingWorkExperience] =
       React.useState<IResponseWorkExperience | null>(null);
@@ -533,6 +541,9 @@ export const WorkExperienceSection = React.memo<Props>(
           accessorKey: "last_salary",
           header: t("lastSalary"),
           cell: ({ getValue }) => {
+            if (!canViewCompensation) {
+              return COMPENSATION_CENSORED_PLACEHOLDER;
+            }
             const salary = getValue<number>();
             return rupiahFormatter(salary);
           },
@@ -553,7 +564,7 @@ export const WorkExperienceSection = React.memo<Props>(
           ),
         },
       ],
-      [t],
+      [t, canViewCompensation],
     );
 
     return (

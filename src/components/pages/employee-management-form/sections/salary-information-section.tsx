@@ -20,11 +20,19 @@ import {
 } from "@/components/ui/dialog";
 import { getBaseSalary } from "@/services/salary";
 import { useTranslations } from "next-intl";
+import { usePermissionStore } from "@/hooks/use-permission-store";
+import {
+  COMPENSATION_CENSORED_PLACEHOLDER,
+  COMPENSATION_VIEW_PERMISSION,
+} from "@/lib/compensation";
 
 export const SalaryInformationSection = React.memo(
   function SalaryInformation() {
     const t = useTranslations("employee");
     const tCommon = useTranslations("common");
+    const canViewCompensation = usePermissionStore((state) =>
+      state.can(COMPENSATION_VIEW_PERMISSION),
+    );
     const { control, watch, getValues, setValue } = useFormContext();
     const [isModalOpen, setIsModalOpen] = React.useState(false);
     const [tempAllowances, setTempAllowances] = React.useState<any[]>([]);
@@ -56,16 +64,26 @@ export const SalaryInformationSection = React.memo(
           job_level_id: watchedJobLevel,
           job_position_id: watchedJobPosition,
         }),
-      enabled: !!watchedJobPosition && !!watchedJobLevel,
+      enabled:
+        canViewCompensation && !!watchedJobPosition && !!watchedJobLevel,
     });
 
     React.useEffect(() => {
+      if (!canViewCompensation) {
+        return;
+      }
       if (baseSalary?.data?.[0]?.amount) {
         setValue("base_salary", baseSalary.data[0].amount);
-      } else {
+      } else if (watchedJobPosition && watchedJobLevel) {
         setValue("base_salary", 0);
       }
-    }, [baseSalary?.data, setValue]);
+    }, [
+      baseSalary?.data,
+      canViewCompensation,
+      setValue,
+      watchedJobLevel,
+      watchedJobPosition,
+    ]);
 
     const allowanceTypesOptions = React.useMemo(() => {
       if (allowanceTypes?.data) {
@@ -135,6 +153,35 @@ export const SalaryInformationSection = React.memo(
     };
 
     const hasAllowances = watchedAllowances.length > 0;
+
+    if (!canViewCompensation) {
+      return (
+        <React.Fragment>
+          <h2 className="font-semibold text-lg leading-5 mb-3">
+            {t("salaryInformation")}
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-start">
+            <div className="flex flex-col gap-1">
+              <FormLabel className="text-base font-normal">
+                {t("baseSalary")}
+              </FormLabel>
+              <p className="text-sm text-text-disabled">
+                {COMPENSATION_CENSORED_PLACEHOLDER}
+              </p>
+            </div>
+            <div className="flex flex-col gap-1">
+              <FormLabel className="text-base font-normal">
+                {t("salaryNett")}
+              </FormLabel>
+              <p className="text-sm text-text-disabled">
+                {COMPENSATION_CENSORED_PLACEHOLDER}
+              </p>
+            </div>
+          </div>
+          <Separator className="my-6" />
+        </React.Fragment>
+      );
+    }
 
     return (
       <React.Fragment>
