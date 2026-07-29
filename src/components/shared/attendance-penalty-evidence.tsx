@@ -20,7 +20,10 @@ type AttendancePenaltyEvidenceListProps = {
   emptyLabel?: string;
 };
 
-function metaSummary(meta: AttendancePenaltyMeta | null | undefined, t: (key: string, values?: Record<string, unknown>) => string): string[] {
+function metaSummary(
+  meta: AttendancePenaltyMeta | null | undefined,
+  t: (key: string, values?: Record<string, string | number | Date>) => string,
+): string[] {
   if (!meta) return [];
 
   const parts: string[] = [];

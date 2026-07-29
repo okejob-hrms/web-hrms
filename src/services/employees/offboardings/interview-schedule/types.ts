@@ -15,7 +15,7 @@ export const InterviewScheduleRequestSchema = z.object({
       }),
     )
     .min(1, "At least one participant is required"),
-  notes: z.string().optional().default(""),
+  notes: z.string(),
 });
 
 export type IInterviewScheduleRequest = z.infer<

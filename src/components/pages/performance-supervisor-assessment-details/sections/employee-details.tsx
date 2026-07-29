@@ -34,7 +34,7 @@ const formatDate = (date: string | null | undefined): string => {
   }
 };
 
-const safeGet = (value: string | number): string => {
+const safeGet = (value: string | number | null | undefined): string => {
   if (value === null || value === undefined || value === "") return "-";
   return String(value).trim() || "-";
 };

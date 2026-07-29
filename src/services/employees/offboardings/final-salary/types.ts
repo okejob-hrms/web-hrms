@@ -33,26 +33,19 @@ export interface IFinalSalaryResponse {
 
 import { z } from "zod";
 
-const nullableNumber = z.preprocess((value) => {
-  if (value === "" || value === undefined || value === null) return null;
-  const parsed = Number(value);
-  return Number.isNaN(parsed) ? value : parsed;
-}, z.number().nullable().optional());
-
 export const MutateFinalSalaryRequestSchema = z.object({
-  overtime_amount: nullableNumber,
-  bonus_amount: nullableNumber,
-  reimbursement_amount: nullableNumber,
-  deduction_amount: nullableNumber,
+  overtime_amount: z.number().nullable(),
+  bonus_amount: z.number().nullable(),
+  reimbursement_amount: z.number().nullable(),
+  deduction_amount: z.number().nullable(),
   notes: z.string().nullable(),
   allowances: z
     .array(
       z.object({
-        allowance_type_id: nullableNumber,
-        amount: nullableNumber,
+        allowance_type_id: z.number().nullable(),
+        amount: z.number().nullable(),
       }),
     )
-    .optional()
     .nullable(),
 });
 
