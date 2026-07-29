@@ -76,7 +76,7 @@ export function useSupervisorAssessment() {
           : { per_page: 10000 },
       ),
     enabled: openFormModal,
-    // placeholderData: keepPreviousData,
+    placeholderData: keepPreviousData,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
@@ -111,8 +111,8 @@ export function useSupervisorAssessment() {
     isLoading: isLoadingForms,
     error: formsError,
   } = useQuery({
-    queryKey: ["forms"],
-    queryFn: () => getAllForm(),
+    queryKey: ["forms", { type: 2 }],
+    queryFn: () => getAllForm({ type: 2 }),
     enabled: openFormModal,
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
@@ -125,6 +125,11 @@ export function useSupervisorAssessment() {
         value: item.user_id.toString(),
         subtitle: item.job_position,
         image: item.photo_profile,
+        profileId: item.id,
+        department: item.department || "",
+        jobPosition: item.job_position || "",
+        jobLevel: item.job_level || "",
+        jobLevelId: item.job_level_id,
       }));
     }
     return [];
@@ -133,14 +138,34 @@ export function useSupervisorAssessment() {
   const assessorsOptions = React.useMemo(() => {
     if (assessors?.data?.data) {
       return assessors.data.data.map((item) => ({
-        label: item.name,
+        label: item.job_position
+          ? `${item.name} (${item.job_position})`
+          : item.name,
         value: item.user_id.toString(),
         subtitle: item.job_position,
         image: item.photo_profile,
+        profileId: item.id,
       }));
     }
     return [];
   }, [assessors?.data]);
+
+  const employeesByProfileId = React.useMemo(() => {
+    const map = new Map<number, { userId: number; name: string }>();
+    const list = employees?.data?.data ?? assessors?.data?.data ?? [];
+    list.forEach((item) => {
+      map.set(item.id, { userId: item.user_id, name: item.name });
+    });
+    // Prefer assessors list merge so manager lookup has better coverage
+    assessors?.data?.data?.forEach((item) => {
+      map.set(item.id, { userId: item.user_id, name: item.name });
+    });
+    employees?.data?.data?.forEach((item) => {
+      map.set(item.id, { userId: item.user_id, name: item.name });
+    });
+    return map;
+  }, [employees?.data?.data, assessors?.data?.data]);
+
   const positionOptions = React.useMemo(() => {
     if (positions?.data) {
       return positions.data.map((item) => ({
@@ -151,15 +176,20 @@ export function useSupervisorAssessment() {
     return [];
   }, [positions?.data]);
 
-  const jobLevelOptions = React.useMemo(() => {
-    if (jobLevels?.data) {
-      return jobLevels.data.map((item: any) => ({
-        label: item.name,
-        value: item.id.toString(),
-      }));
-    }
+  const jobLevelsList = React.useMemo(() => {
+    const raw = jobLevels?.data;
+    if (Array.isArray(raw)) return raw;
+    if (raw && Array.isArray((raw as any).data)) return (raw as any).data;
     return [];
   }, [jobLevels]);
+
+  const jobLevelOptions = React.useMemo(() => {
+    return jobLevelsList.map((item: any) => ({
+      label: item.name,
+      value: item.id.toString(),
+      level: Number(item.level) || 0,
+    }));
+  }, [jobLevelsList]);
 
   const formOptions = React.useMemo(() => {
     if (forms?.data) {
@@ -179,9 +209,23 @@ export function useSupervisorAssessment() {
       toast.success("Supervisor assessment created successfully");
       setOpenFormModal(false);
     },
-    onError: (error: any) => {
+    onError: async (error: any) => {
       console.error("Mutation error:", error);
-      toast.error("Failed to create supervisor assessment");
+      let message = "Failed to create supervisor assessment";
+      try {
+        const errorData = await error?.response?.json?.();
+        if (errorData?.message) {
+          message = errorData.message;
+        } else if (errorData?.errors) {
+          const firstError = Object.values(errorData.errors).flat()[0];
+          if (typeof firstError === "string") {
+            message = firstError;
+          }
+        }
+      } catch {
+        // keep default message
+      }
+      toast.error(message);
     },
   });
 
@@ -247,5 +291,6 @@ export function useSupervisorAssessment() {
     setSearchEmployee,
     assessorsOptions,
     isLoadingAssessors,
+    employeesByProfileId,
   };
 }

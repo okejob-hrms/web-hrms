@@ -32,6 +32,7 @@ export const SectionAssessmentLanding: React.FC<
   const { data: selfAssessments, isLoading } = useQuery({
     queryKey: ["employee-self-assessment"],
     queryFn: () => getEmployeeSelfAssessments(),
+    staleTime: 0,
   });
 
   const periodRow = React.useMemo(() => {
@@ -43,10 +44,8 @@ export const SectionAssessmentLanding: React.FC<
       return rows.find((row) => row.self_assessment_id === periodId);
     }
 
-    return rows.find(
-      (row) =>
-        row.id === numericId || row.self_assessment_id === numericId,
-    );
+    // ESA rows only — do not match period id (avoids wrong period when ids collide)
+    return rows.find((row) => row.id === numericId);
   }, [selfAssessments?.data, assessmentId]);
 
   const formatDate = React.useCallback(

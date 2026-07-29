@@ -46,6 +46,7 @@ import {
 
 interface TableProps {
   offboarding_id: number;
+  readOnly?: boolean;
 }
 
 interface FormModalProps {
@@ -105,10 +106,14 @@ export const FormModal = React.memo(function FormModal({
   });
 
   const handleSubmit = (values: IEquipmentFacilityHandoverRequest) => {
+    const payload = {
+      ...values,
+      status: Number(values.status),
+    };
     if (isEditMode) {
-      updateMutation.mutate(values);
+      updateMutation.mutate(payload);
     } else {
-      createMutation.mutate(values);
+      createMutation.mutate(payload);
     }
   };
 
@@ -198,6 +203,7 @@ export const FormModal = React.memo(function FormModal({
 
 export const EquipmentReturnTable = React.memo(function EquipmentReturnTable({
   offboarding_id,
+  readOnly = false,
 }: TableProps) {
   const t = useTranslations("offboarding");
   const tCommon = useTranslations("common");
@@ -400,19 +406,27 @@ export const EquipmentReturnTable = React.memo(function EquipmentReturnTable({
     [openDropdownId, t, tCommon, tStatus],
   );
 
+  const visibleColumns = React.useMemo(
+    () =>
+      readOnly ? columns.filter((column) => column.id !== "actions") : columns,
+    [columns, readOnly],
+  );
+
   return (
     <div className="flex flex-col gap-4 w-full">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
         <h4 className="font-semibold text-lg sm:text-xl">
           {t("equipmentReturnTitle")}
         </h4>
-        <Button
-          className="w-full sm:w-fit flex items-center justify-center gap-2"
-          onClick={handleAddNew}
-        >
-          <Plus className="w-4 h-4" />
-          {t("addNew")}
-        </Button>
+        {!readOnly && (
+          <Button
+            className="w-full sm:w-fit flex items-center justify-center gap-2"
+            onClick={handleAddNew}
+          >
+            <Plus className="w-4 h-4" />
+            {t("addNew")}
+          </Button>
+        )}
       </div>
 
       {isLoading ? (
@@ -426,7 +440,7 @@ export const EquipmentReturnTable = React.memo(function EquipmentReturnTable({
       ) : (
         <div className="overflow-x-auto w-full">
           <DataTable
-            columns={columns}
+            columns={visibleColumns}
             data={(data?.data as unknown as IWorkAndHandoverResponse[]) || []}
             tableClassName="min-w-full"
             customSize
@@ -434,19 +448,23 @@ export const EquipmentReturnTable = React.memo(function EquipmentReturnTable({
         </div>
       )}
 
-      <FormModal
-        offboarding_id={offboarding_id}
-        open={isFormModalOpen}
-        onOpenChange={handleCloseFormModal}
-        editData={editItem}
-      />
+      {!readOnly && (
+        <>
+          <FormModal
+            offboarding_id={offboarding_id}
+            open={isFormModalOpen}
+            onOpenChange={handleCloseFormModal}
+            editData={editItem}
+          />
 
-      <DeleteDialog
-        open={isDeleteDialogOpen}
-        onOpenChange={handleCloseDeleteDialog}
-        onDelete={handleDeleteConfirm}
-        isLoading={deleteMutation.isPending}
-      />
+          <DeleteDialog
+            open={isDeleteDialogOpen}
+            onOpenChange={handleCloseDeleteDialog}
+            onDelete={handleDeleteConfirm}
+            isLoading={deleteMutation.isPending}
+          />
+        </>
+      )}
     </div>
   );
 });

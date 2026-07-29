@@ -58,6 +58,8 @@ export interface IOffboardingDetailResponse {
     comments: string | null;
     created_at: string;
     updated_at: string;
+    name?: string | null;
+    email?: string | null;
   }[];
 }
 export interface Meta {

@@ -51,6 +51,7 @@ export const SectionAssessmentValidate: React.FC<
   const { data: listData } = useQuery({
     queryKey: ["employee-self-assessment"],
     queryFn: () => getEmployeeSelfAssessments(),
+    staleTime: 0,
   });
 
   const member = React.useMemo((): ITeamMember | undefined => {
@@ -70,12 +71,14 @@ export const SectionAssessmentValidate: React.FC<
     queryKey: ["form-detail", resolvedFormId],
     queryFn: () => getFields({ form_id: resolvedFormId! }),
     enabled: !!resolvedFormId,
+    staleTime: 0,
   });
 
   const { data: assessmentDetail, isLoading: isLoadingAssessment } = useQuery({
     queryKey: ["assessment-detail", Number(memberEsaId)],
     queryFn: () => getEmployeeSelfAssessmentDetail(Number(memberEsaId)),
     enabled: !!memberEsaId,
+    staleTime: 0,
   });
 
   const isValidated =
@@ -87,12 +90,16 @@ export const SectionAssessmentValidate: React.FC<
   const { mutate: submitValidation, isPending: isSubmitting } = useMutation({
     mutationFn: (data: IMutateEmployeeSelfAssessmentRequest) =>
       validateEmployeeSelfAssessment(Number(memberEsaId), data),
-    onSuccess: () => {
+    onSuccess: async () => {
       toast.success(t("validateAssessmentSuccess"));
-      queryClient.invalidateQueries({ queryKey: ["employee-self-assessment"] });
-      queryClient.invalidateQueries({
-        queryKey: ["assessment-detail", Number(memberEsaId)],
-      });
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["employee-self-assessment"],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["assessment-detail", Number(memberEsaId)],
+        }),
+      ]);
       router.push("/ess/assessment");
     },
     onError: (error: any) => {

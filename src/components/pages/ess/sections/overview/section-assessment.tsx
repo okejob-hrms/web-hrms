@@ -108,6 +108,7 @@ export const SectionAssessment = () => {
   const { data: selfAssessments, isLoading } = useQuery({
     queryKey: ["employee-self-assessment"],
     queryFn: () => getEmployeeSelfAssessments(),
+    staleTime: 0,
   });
 
   return (

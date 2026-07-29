@@ -8,10 +8,12 @@ import { InterviewSchedule } from "./interview-schedule";
 
 interface Props {
   offboarding_id: number;
+  readOnly?: boolean;
 }
 
 export const OffboardingTab = React.memo(function OffboardingTab({
   offboarding_id,
+  readOnly = false,
 }: Props) {
   const t = useTranslations("offboarding");
 
@@ -20,25 +22,45 @@ export const OffboardingTab = React.memo(function OffboardingTab({
       {
         name: t("tabInterviewSchedule"),
         value: "interview-schedule",
-        children: <InterviewSchedule offboarding_id={offboarding_id} />,
+        children: (
+          <InterviewSchedule
+            offboarding_id={offboarding_id}
+            readOnly={readOnly}
+          />
+        ),
       },
       {
         name: t("tabExitInterviewForm"),
         value: "exit-interview-form",
-        children: <ExitInterviewForm offboarding_id={offboarding_id} />,
+        children: (
+          <ExitInterviewForm
+            offboarding_id={offboarding_id}
+            readOnly={readOnly}
+          />
+        ),
       },
       {
         name: t("tabWorkHandoverAssetReturn"),
         value: "work-and-assets",
-        children: <WorkingAndAssets />,
+        children: (
+          <WorkingAndAssets
+            offboarding_id={offboarding_id}
+            readOnly={readOnly}
+          />
+        ),
       },
       {
         name: t("tabFinalSalaryBenefits"),
         value: "completion",
-        children: <FinalSalaryBenefits offboarding_id={offboarding_id} />,
+        children: (
+          <FinalSalaryBenefits
+            offboarding_id={offboarding_id}
+            readOnly={readOnly}
+          />
+        ),
       },
     ],
-    [offboarding_id, t],
+    [offboarding_id, readOnly, t],
   );
 
   return (
