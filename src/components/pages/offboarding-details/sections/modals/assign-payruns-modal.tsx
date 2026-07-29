@@ -20,7 +20,10 @@ import { ApiErrorResponse } from "@/lib/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Image from "next/image";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+import dayjs from "dayjs";
+import "dayjs/locale/id";
+import "dayjs/locale/en";
 
 interface Props {
   offboarding_id: number;
@@ -33,11 +36,34 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
+function buildPayrunMonthOptions(locale: string) {
+  const dayjsLocale = locale?.startsWith("id") ? "id" : "en";
+  const base = dayjs().locale(dayjsLocale).startOf("month");
+  const options: { label: string; value: string }[] = [];
+
+  // Past 11 months through next 3 months (covers current payroll cycles).
+  for (let offset = -11; offset <= 3; offset++) {
+    const month = base.add(offset, "month");
+    options.push({
+      label: month.format("MMMM YYYY"),
+      value: month.format("YYYY-MM-01"),
+    });
+  }
+
+  return options;
+}
+
 export const AssignPayrunsModal = React.memo(
   function AssignPayrunsModal({ offboarding_id, isEdit }: Props) {
     const t = useTranslations("offboarding");
     const tCommon = useTranslations("common");
+    const locale = useLocale();
     const [open, setOpen] = React.useState(false);
+
+    const payrunOptions = React.useMemo(
+      () => buildPayrunMonthOptions(locale),
+      [locale],
+    );
 
     const form = useForm<FormValues>({
       resolver: zodResolver(formSchema),
@@ -121,18 +147,7 @@ export const AssignPayrunsModal = React.memo(
                 name="assign_payruns"
                 label={t("assignPayruns")}
                 required
-                options={[
-                  { label: "Juni 2025", value: "2025-06-01" },
-                  { label: "Juli 2025", value: "2025-07-01" },
-                  { label: "Agustus 2025", value: "2025-08-01" },
-                  { label: "September 2025", value: "2025-09-01" },
-                  { label: "Oktober 2025", value: "2025-10-01" },
-                  { label: "November 2025", value: "2025-11-01" },
-                  { label: "Desember 2025", value: "2025-12-01" },
-                  { label: "Januari 2026", value: "2025-01-01" },
-                  { label: "Februari 2026", value: "2025-02-01" },
-                  { label: "Maret 2026", value: "2025-03-01" },
-                ]}
+                options={payrunOptions}
               />
 
               <DialogFooter>

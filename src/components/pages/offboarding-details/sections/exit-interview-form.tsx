@@ -28,6 +28,7 @@ import { useTranslations } from "next-intl";
 
 interface ExitInterviewFormProps {
   offboarding_id: number;
+  readOnly?: boolean;
 }
 
 interface FormField {
@@ -191,6 +192,7 @@ export const FormFieldRenderer = React.memo(function FormFieldRenderer({
 
 export const ExitInterviewForm = React.memo(function ExitInterviewForm({
   offboarding_id,
+  readOnly = false,
 }: ExitInterviewFormProps) {
   const form = useForm({
     defaultValues: {
@@ -251,7 +253,7 @@ export const ExitInterviewForm = React.memo(function ExitInterviewForm({
 
   return (
     <div className="w-full flex flex-col gap-4">
-      {shouldShowAlert && (
+      {shouldShowAlert && !readOnly && (
         <AlertProcess name={details.data.user.name} offboardingId={offboarding_id} />
       )}
 
@@ -273,10 +275,12 @@ export const ExitInterviewForm = React.memo(function ExitInterviewForm({
             </div>
           )}
 
-          <div className="flex gap-4">
-            <CompleteOffboardingModal offboardingId={offboarding_id} />
-            <CancelOffboardingModal offboardingId={offboarding_id} />
-          </div>
+          {!readOnly && (
+            <div className="flex gap-4">
+              <CompleteOffboardingModal offboardingId={offboarding_id} />
+              <CancelOffboardingModal offboardingId={offboarding_id} />
+            </div>
+          )}
         </form>
       </Form>
     </div>

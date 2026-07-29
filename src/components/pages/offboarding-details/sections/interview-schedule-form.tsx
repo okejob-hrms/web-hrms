@@ -24,16 +24,35 @@ import {
 import {
   IInterviewScheduleRequest,
   IInterviewScheduleResponse,
+  InterviewScheduleRequestSchema,
 } from "@/services/employees/offboardings/interview-schedule/types";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import dayjs from "dayjs";
 import { Calendar, Clock } from "lucide-react";
 import * as React from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, type FieldPath } from "react-hook-form";
 import { toast } from "sonner";
 import dynamic from "next/dynamic";
 import "react-quill-new/dist/quill.snow.css";
 import { useTranslations } from "next-intl";
+
+/** Maps Laravel nested keys (e.g. participants.0.user_id) to top-level form fields. */
+function mapServerFieldToFormField(
+  fieldName: string,
+): FieldPath<IInterviewScheduleRequest> {
+  const root = fieldName.split(".")[0];
+  if (
+    root === "date" ||
+    root === "start_time" ||
+    root === "end_time" ||
+    root === "participants" ||
+    root === "notes"
+  ) {
+    return root;
+  }
+  return fieldName as FieldPath<IInterviewScheduleRequest>;
+}
 
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
@@ -157,6 +176,7 @@ export const ModalForm = React.memo(function ModalForm({
   };
 
   const form = useForm<IInterviewScheduleRequest>({
+    resolver: zodResolver(InterviewScheduleRequestSchema),
     defaultValues: getDefaultValues(),
   });
 
@@ -193,15 +213,29 @@ export const ModalForm = React.memo(function ModalForm({
       if (onCancelEdit) {
         onCancelEdit();
       }
-      queryClient.invalidateQueries({ queryKey: ["interview-schedule"] });
+      queryClient.invalidateQueries({
+        queryKey: ["interview-schedule", offboarding_id],
+      });
     },
     onError: (error: any) => {
-      const action = isEditMode ? t("scheduleUpdateFailed") : t("scheduleCreateFailed");
+      const action = isEditMode
+        ? t("scheduleUpdateFailed")
+        : t("scheduleCreateFailed");
       if (error?.response) {
         try {
           error.response
             .json()
             .then((errorData: ApiErrorResponse) => {
+              if (errorData.errors) {
+                Object.entries(errorData.errors).forEach(
+                  ([fieldName, messages]) => {
+                    form.setError(mapServerFieldToFormField(fieldName), {
+                      type: "server",
+                      message: messages[0],
+                    });
+                  },
+                );
+              }
               toast.error(errorData.message || action);
             })
             .catch(() => {
@@ -212,39 +246,43 @@ export const ModalForm = React.memo(function ModalForm({
               );
             });
         } catch (parseError) {
-          toast.error(
-            `${action}: ${t("serverError")} : ${parseError}`,
-          );
+          toast.error(`${action}: ${t("serverError")} : ${parseError}`);
         }
       } else {
-        toast.error(
-          `${action}: ${error.message || t("unknownError")}`,
-        );
+        toast.error(`${action}: ${error.message || t("unknownError")}`);
       }
     },
   });
 
   const employeesOptions = React.useMemo(() => {
-    if (employees?.data?.data) {
-      return employees.data.data.map((item) => ({
-        label: item.name,
-        value: item.id.toString(),
-      }));
-    }
-    return [];
-  }, [employees?.data]);
+    const optionsMap = new Map<string, { label: string; value: string }>();
 
-  const handleSubmit = (values: any) => {
-    const submitData = {
+    existingData?.participants?.forEach((participant) => {
+      if (participant.user_id == null || !participant.name) return;
+      optionsMap.set(participant.user_id.toString(), {
+        label: participant.name,
+        value: participant.user_id.toString(),
+      });
+    });
+
+    employees?.data?.data?.forEach((item) => {
+      if (item.user_id == null) return;
+      optionsMap.set(item.user_id.toString(), {
+        label: item.name,
+        value: item.user_id.toString(),
+      });
+    });
+
+    return Array.from(optionsMap.values());
+  }, [employees?.data, existingData?.participants]);
+
+  const handleSubmit = (values: IInterviewScheduleRequest) => {
+    const submitData: IInterviewScheduleRequest = {
       ...values,
-      participants: Array.isArray(values.participants)
-        ? values.participants.map((p: any) => {
-            if (typeof p === "object" && p !== null) {
-              return { user_id: p.user_id };
-            }
-            return { user_id: Number(p) };
-          })
-        : [],
+      date: dayjs(values.date).format("YYYY-MM-DD"),
+      participants: values.participants.map((p) => ({
+        user_id: Number(p.user_id),
+      })),
     };
 
     mutation.mutate(submitData);
@@ -299,18 +337,15 @@ export const ModalForm = React.memo(function ModalForm({
                   required
                 />
               </div>
-              <div className="flex flex-col gap-2 md:col-span-2">
-                <label className="text-sm text-text-secondary">
-                  {t("participant")}<span className="text-error">*</span>
-                </label>
+              <div className="md:col-span-2">
                 <MultiSelectForm
                   options={employeesOptions}
                   name="participants"
+                  label={`${t("participant")} *`}
                   maxCount={3}
                   searchPlaceholder={tEmployee("searchEmployee")}
                   hideSelectAll
                   disabled={isLoadingEmployees}
-                  valueTransformer={(value) => Number(value)}
                   searchValue={searchApprover}
                   onSearchChange={setSearchApprover}
                 />

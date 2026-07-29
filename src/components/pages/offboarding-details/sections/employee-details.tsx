@@ -3,6 +3,7 @@ import { Separator } from "@/components/ui/separator";
 import dayjs from "dayjs";
 import localizedFormat from "dayjs/plugin/localizedFormat";
 import { useLocale, useTranslations } from "next-intl";
+import { getEmployeeDetail } from "@/services/employees";
 import { IEmployeeDetailsResponse } from "@/services/employees/types";
 import { IOffboardingDetailResponse } from "@/services/employees/offboardings/types";
 import { resolveLocale } from "@/lib/i18n/locale";
@@ -31,6 +32,14 @@ export const EmployeeDetailsSection = React.memo(
     const tOffboarding = useTranslations("offboarding");
     const locale = resolveLocale(useLocale());
 
+    const [primaryDirectReports, setPrimaryDirectReports] = React.useState<
+      DirectReportEmployee[]
+    >([]);
+    const [additionalDirectReports, setAdditionalDirectReports] =
+      React.useState<DirectReportEmployee[]>([]);
+    const [isLoadingReports, setIsLoadingReports] = React.useState(false);
+    const [reportsError, setReportsError] = React.useState<string | null>(null);
+
     const formatDate = React.useCallback(
       (date: string | null | undefined): string => {
         if (!date) return "-";
@@ -44,17 +53,87 @@ export const EmployeeDetailsSection = React.memo(
       [locale],
     );
 
-    const safeGet = (value: string | number): string => {
+    const safeGet = (value: string | number | null | undefined): string => {
       if (value === null || value === undefined || value === "") return "-";
       return String(value).trim() || "-";
     };
 
-    const [primaryDirectReports] = React.useState<DirectReportEmployee[]>([]);
-    const [additionalDirectReports] = React.useState<DirectReportEmployee[]>(
-      [],
-    );
-    const [isLoading] = React.useState(false);
-    const [error] = React.useState<string | null>(null);
+    React.useEffect(() => {
+      const fetchDirectReports = async () => {
+        try {
+          setIsLoadingReports(true);
+          setReportsError(null);
+
+          const relationships = employeeDetails?.reporting_relationships ?? [];
+          if (relationships.length === 0) {
+            setPrimaryDirectReports([]);
+            setAdditionalDirectReports([]);
+            return;
+          }
+
+          const primaryRelationships = relationships.filter(
+            (item) => item?.relationship_type === "primary",
+          );
+          const secondaryRelationships = relationships.filter(
+            (item) => item?.relationship_type === "secondary",
+          );
+
+          const mapRelationship = async (relationship: {
+            direct_report_id: number;
+          }): Promise<DirectReportEmployee | null> => {
+            try {
+              if (!relationship?.direct_report_id) return null;
+
+              const employeeResponse = await getEmployeeDetail(
+                relationship.direct_report_id,
+              );
+              const employee = employeeResponse?.data;
+              if (!employee) return null;
+
+              return {
+                id: employee.id || 0,
+                name: employee.user?.name || t("unknown"),
+                position:
+                  employee.employment?.job_position?.name ||
+                  t("unknownPosition"),
+                department:
+                  employee.employment?.department?.name ||
+                  t("unknownDepartment"),
+              };
+            } catch (error) {
+              console.error(
+                `Failed to fetch employee ${relationship.direct_report_id}:`,
+                error,
+              );
+              return null;
+            }
+          };
+
+          const [primaryResults, additionalResults] = await Promise.all([
+            Promise.all(primaryRelationships.map(mapRelationship)),
+            Promise.all(secondaryRelationships.map(mapRelationship)),
+          ]);
+
+          setPrimaryDirectReports(
+            primaryResults.filter(
+              (item): item is DirectReportEmployee => item !== null,
+            ),
+          );
+          setAdditionalDirectReports(
+            additionalResults.filter(
+              (item): item is DirectReportEmployee => item !== null,
+            ),
+          );
+        } catch (error) {
+          console.error("Error fetching direct reports:", error);
+          setReportsError(t("failedToLoad"));
+        } finally {
+          setIsLoadingReports(false);
+        }
+      };
+
+      void fetchDirectReports();
+    }, [employeeDetails?.reporting_relationships, t]);
 
     if (!employeeDetails || !offboardingDetails) {
       return (
@@ -66,6 +145,34 @@ export const EmployeeDetailsSection = React.memo(
       );
     }
 
+    const renderDirectReports = (reports: DirectReportEmployee[]) => {
+      if (isLoadingReports) {
+        return <p className="text-sm text-gray-500">{tCommon("loading")}</p>;
+      }
+      if (reportsError) {
+        return <p className="text-sm text-red-500">{reportsError}</p>;
+      }
+      if (reports.length === 0) {
+        return <p className="text-sm text-gray-500">-</p>;
+      }
+
+      return (
+        <div className="space-y-1">
+          {reports.map((employee) => (
+            <div key={employee.id} className="text-sm">
+              <span className="font-normal text-base text-foreground">
+                {employee.name}
+              </span>
+              <span className="text-text-disabled text-base">
+                {" "}
+                ({employee.position})
+              </span>
+            </div>
+          ))}
+        </div>
+      );
+    };
+
     return (
       <div className="flex flex-col w-full gap-4 p-2">
         <div className="grid md:grid-cols-3 grid-cols-1 gap-4">
@@ -73,7 +180,9 @@ export const EmployeeDetailsSection = React.memo(
             {t("employeeDetails")}
           </h2>
           <div className="flex flex-col">
-            <p className="text-sm text-text-disabled">{tOffboarding("employeeName")}</p>
+            <p className="text-sm text-text-disabled">
+              {tOffboarding("employeeName")}
+            </p>
             <p>{safeGet(offboardingDetails.user.name)}</p>
           </div>
           <div className="flex flex-col">
@@ -109,89 +218,49 @@ export const EmployeeDetailsSection = React.memo(
             <p>{safeGet(employeeDetails.employment?.job_level?.name)}</p>
           </div>
           <div className="flex flex-col md:col-span-2">
-            <p className="text-sm text-text-disabled">{t("primaryDirectReport")}</p>
-            <div>
-              {isLoading ? (
-                <p className="text-sm text-gray-500">{tCommon("loading")}</p>
-              ) : error ? (
-                <p className="text-sm text-red-500">{t("failedToLoad")}</p>
-              ) : primaryDirectReports.length > 0 ? (
-                <div className="space-y-1">
-                  {primaryDirectReports.map((employee) => (
-                    <div key={employee.id} className="text-sm">
-                      <span className="font-normal text-base text-foreground">
-                        {employee.name}
-                      </span>
-                      <span className="text-text-disabled text-base">
-                        {" "}
-                        ({employee.position})
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-gray-500">-</p>
-              )}
-            </div>
+            <p className="text-sm text-text-disabled">
+              {t("primaryDirectReport")}
+            </p>
+            <div>{renderDirectReports(primaryDirectReports)}</div>
           </div>
           <div className="flex flex-col">
             <p className="text-sm text-text-disabled">
               {t("additionalDirectReport")}
             </p>
-            <div>
-              {isLoading ? (
-                <p className="text-sm text-gray-500">{tCommon("loading")}</p>
-              ) : error ? (
-                <p className="text-sm text-red-500">{t("failedToLoad")}</p>
-              ) : additionalDirectReports.length > 0 ? (
-                <div className="space-y-1">
-                  {additionalDirectReports.map((employee) => (
-                    <div key={employee.id} className="text-sm">
-                      <span className="font-normal text-base text-foreground">
-                        {employee.name}
-                      </span>
-                      <span className="text-text-disabled text-base">
-                        {" "}
-                        ({employee.position})
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-gray-500">-</p>
-              )}
-            </div>
+            <div>{renderDirectReports(additionalDirectReports)}</div>
           </div>
           <div className="flex flex-col">
             <p className="text-sm text-text-disabled">{t("employeeStartDate")}</p>
             <p>{formatDate(employeeDetails.employment?.start_date)}</p>
           </div>
           <div className="flex flex-col">
-            <p className="text-sm text-text-disabled">{tOffboarding("effectiveResignDate")}</p>
-            <p>{formatDate(employeeDetails.employment?.end_date)}</p>
+            <p className="text-sm text-text-disabled">
+              {tOffboarding("effectiveResignDate")}
+            </p>
+            <p>{formatDate(offboardingDetails.effective_resignation_date)}</p>
           </div>
           <div className="flex flex-col">
             <p className="text-sm text-text-disabled">{t("lastWorkingDate")}</p>
-            <p>{formatDate(employeeDetails.employment?.end_date)}</p>
+            <p>{formatDate(offboardingDetails.last_working_date)}</p>
           </div>
           <div className="flex flex-col md:col-span-3">
-            <p className="text-sm text-text-disabled">{tOffboarding("assignedApprover")}</p>
+            <p className="text-sm text-text-disabled">
+              {tOffboarding("assignedApprover")}
+            </p>
             <div>
-              {isLoading ? (
-                <p className="text-sm text-gray-500">{tCommon("loading")}</p>
-              ) : error ? (
-                <p className="text-sm text-red-500">{t("failedToLoad")}</p>
-              ) : primaryDirectReports.length > 0 ? (
+              {offboardingDetails.approvers?.length > 0 ? (
                 <div className="space-y-1">
-                  {primaryDirectReports.map((employee) => (
-                    <div key={employee.id} className="text-sm">
+                  {offboardingDetails.approvers.map((approver) => (
+                    <div key={approver.id} className="text-sm">
                       <span className="font-normal text-base text-foreground">
-                        {employee.name}
+                        {safeGet(approver.name)}
                       </span>
-                      <span className="text-text-disabled text-base">
-                        {" "}
-                        ({employee.position})
-                      </span>
+                      {approver.email ? (
+                        <span className="text-text-disabled text-base">
+                          {" "}
+                          ({approver.email})
+                        </span>
+                      ) : null}
                     </div>
                   ))}
                 </div>
