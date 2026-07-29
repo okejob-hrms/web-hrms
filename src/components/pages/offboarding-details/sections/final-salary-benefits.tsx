@@ -18,49 +18,56 @@ import dayjs from "dayjs";
 import "dayjs/locale/id";
 import { AssignPayrunsModal } from "./modals/assign-payruns-modal";
 import { CancelPayrunsModal } from "./modals/cancel-payruns-modal";
-import { Button } from "@/components/ui/button";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { SalaryAdjustmentModal } from "./modals/salary-adjustment-modal";
 import { useLocale, useTranslations } from "next-intl";
 import { resolveLocale } from "@/lib/i18n/locale";
+import { usePermissionStore } from "@/hooks/use-permission-store";
+import {
+  COMPENSATION_CENSORED_PLACEHOLDER,
+  COMPENSATION_VIEW_PERMISSION,
+} from "@/lib/compensation";
 
 interface Props {
   offboarding_id: number;
+  readOnly?: boolean;
 }
 
 export const FinalSalaryBenefits = React.memo(function FinalSalaryBenefits({
   offboarding_id,
+  readOnly = false,
 }: Props) {
   const t = useTranslations("offboarding");
   const tEmployee = useTranslations("employee");
-  const tCommon = useTranslations("common");
   const locale = resolveLocale(useLocale());
-  const router = useRouter();
+  const canViewCompensation = usePermissionStore((state) =>
+    state.can(COMPENSATION_VIEW_PERMISSION),
+  );
   const { data: salary } = useQuery({
     queryKey: ["salary", offboarding_id],
     queryFn: () => getShowFinalSalary(offboarding_id),
     enabled: !!offboarding_id,
   });
 
+  const formatAmount = (value: string | number | null | undefined) => {
+    if (!canViewCompensation) {
+      return COMPENSATION_CENSORED_PLACEHOLDER;
+    }
+    if (value === null || value === undefined || value === "") {
+      return "-";
+    }
+    return rupiahFormatter(Number(value));
+  };
 
   return (
     <div className="space-y-4 w-full">
       <div className="border rounded-xl border-grayscale-20 shadow-sm shadow-[#1018281A] w-full">
-        <div className="flex justify-between items-center p-4">
+        <div className="flex justify-between items-center p-4 gap-3 flex-wrap">
           <h4 className="font-semibold text-xl text-gray-900">
             {t("finalSalaryBenefits")}
           </h4>
-          <Button
-            className="font-semibold text-white text-sm hover:text-white"
-            onClick={() =>
-              router.push(
-                `/employee/off-boarding/${offboarding_id}/salary-adjustment`,
-              )
-            }
-          >
-            <Image src="/icons/edit.svg" width={24} height={24} alt={tCommon("edit")} />{" "}
-            {t("salaryAdjustment")}
-          </Button>
+          {!readOnly && canViewCompensation && (
+            <SalaryAdjustmentModal offboarding_id={offboarding_id} />
+          )}
         </div>
         <Table>
           <TableHeader>
@@ -77,49 +84,58 @@ export const FinalSalaryBenefits = React.memo(function FinalSalaryBenefits({
             <TableRow>
               <TableCell className="py-4 px-6">{t("baseNettSalary")}</TableCell>
               <TableCell className="py-4 px-6">
-                {salary?.data?.salary_nett
-                  ? `${rupiahFormatter(Number(salary?.data?.salary_nett))}`
-                  : "-"}
+                {formatAmount(salary?.data?.salary_nett)}
               </TableCell>
             </TableRow>
+            {salary?.data?.salary_nett_prorated != null &&
+              salary?.data?.proration &&
+              Number(salary.data.proration.factor) < 1 && (
+                <TableRow>
+                  <TableCell className="py-4 px-6">
+                    <div className="flex flex-col gap-1">
+                      <span>{t("baseNettSalaryProrated")}</span>
+                      <span className="text-xs text-text-secondary font-normal">
+                        {t("prorationHint", {
+                          daysPayable: salary.data.proration.days_payable,
+                          daysInMonth: salary.data.proration.days_in_month,
+                          divisor: salary.data.proration.divisor,
+                        })}
+                      </span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="py-4 px-6">
+                    {formatAmount(salary.data.salary_nett_prorated)}
+                  </TableCell>
+                </TableRow>
+              )}
             <TableRow>
               <TableCell className="py-4 px-6">{t("overtime")}</TableCell>
               <TableCell className="py-4 px-6">
-                {salary?.data?.overtime_amount
-                  ? `${rupiahFormatter(Number(salary?.data?.overtime_amount))}`
-                  : "-"}
+                {formatAmount(salary?.data?.overtime_amount)}
               </TableCell>
             </TableRow>
             <TableRow>
               <TableCell className="py-4 px-6">{tEmployee("allowance")}</TableCell>
               <TableCell className="py-4 px-6">
-                {salary?.data?.allowance_amount
-                  ? `${rupiahFormatter(Number(salary?.data?.allowance_amount))}`
-                  : "-"}
+                {formatAmount(salary?.data?.allowance_amount)}
               </TableCell>
             </TableRow>
             <TableRow>
               <TableCell className="py-4 px-6">{t("bonus")}</TableCell>
               <TableCell className="py-4 px-6">
-                {salary?.data?.bonus_amount
-                  ? `${rupiahFormatter(Number(salary?.data?.bonus_amount))}`
-                  : "-"}
+                {formatAmount(salary?.data?.bonus_amount)}
               </TableCell>
             </TableRow>
             <TableRow>
               <TableCell className="py-4 px-6">{t("reimbursement")}</TableCell>
               <TableCell className="py-4 px-6">
-                {salary?.data?.reimbursement_amount
-                  ? `${rupiahFormatter(Number(salary?.data?.reimbursement_amount))}`
-                  : "-"}
+                {formatAmount(salary?.data?.reimbursement_amount)}
               </TableCell>
             </TableRow>
             <TableRow>
               <TableCell className="py-4 px-6">{t("deduction")}</TableCell>
               <TableCell className="py-4 px-6">
-                {salary?.data?.deduction_amount
-                  ? `${rupiahFormatter(Number(salary?.data?.deduction_amount))}`
-                  : "-"}
+                {formatAmount(salary?.data?.deduction_amount)}
               </TableCell>
             </TableRow>
           </TableBody>
@@ -127,9 +143,7 @@ export const FinalSalaryBenefits = React.memo(function FinalSalaryBenefits({
             <TableRow>
               <TableCell className="py-4 px-6">{t("totalGrossPay")}</TableCell>
               <TableCell className="py-4 px-6">
-                {salary?.data?.total_amount
-                  ? `${rupiahFormatter(Number(salary?.data?.total_amount))}`
-                  : "-"}
+                {formatAmount(salary?.data?.total_amount)}
               </TableCell>
             </TableRow>
           </TableFooter>
@@ -153,8 +167,12 @@ export const FinalSalaryBenefits = React.memo(function FinalSalaryBenefits({
               </AlertDescription>
             </div>
             <div className="self-start flex">
-              <AssignPayrunsModal isEdit offboarding_id={offboarding_id} />
-              <CancelPayrunsModal offboardingId={offboarding_id} />
+              {!readOnly && (
+                <>
+                  <AssignPayrunsModal isEdit offboarding_id={offboarding_id} />
+                  <CancelPayrunsModal offboardingId={offboarding_id} />
+                </>
+              )}
             </div>
           </Alert>
         ) : (
@@ -167,14 +185,18 @@ export const FinalSalaryBenefits = React.memo(function FinalSalaryBenefits({
                 {t("finalSalaryPayoutSetup")}
               </AlertDescription>
             </div>
-            <AssignPayrunsModal offboarding_id={offboarding_id} />
+            {!readOnly && (
+              <AssignPayrunsModal offboarding_id={offboarding_id} />
+            )}
           </Alert>
         )}
       </div>
-      <div className="flex gap-4">
-        <CompleteOffboardingModal offboardingId={offboarding_id} />
-        <CancelOffboardingModal offboardingId={offboarding_id} />
-      </div>
+      {!readOnly && (
+        <div className="flex gap-4">
+          <CompleteOffboardingModal offboardingId={offboarding_id} />
+          <CancelOffboardingModal offboardingId={offboarding_id} />
+        </div>
+      )}
     </div>
   );
 });

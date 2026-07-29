@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { getFields } from "@/services/form";
 import {
@@ -23,6 +23,7 @@ export const SectionAssessmentDetail: React.FC<
   SectionAssessmentDetailProps
 > = ({ assessmentId, formId }) => {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const t = useTranslations("performance");
   const tCommon = useTranslations("common");
 
@@ -30,17 +31,20 @@ export const SectionAssessmentDetail: React.FC<
     queryKey: ["form-detail", formId],
     queryFn: () => getFields({ form_id: formId! }),
     enabled: !!formId,
+    staleTime: 0,
   });
 
   const { data: assessmentDetail, isLoading: isLoadingAssessment } = useQuery({
     queryKey: ["assessment-detail", Number(assessmentId)],
     queryFn: () => getEmployeeSelfAssessmentDetail(Number(assessmentId)),
     enabled: !!assessmentId,
+    staleTime: 0,
   });
 
   const { data: listData } = useQuery({
     queryKey: ["employee-self-assessment"],
     queryFn: () => getEmployeeSelfAssessments(),
+    staleTime: 0,
   });
 
   const ownStatus = React.useMemo(() => {
@@ -62,8 +66,16 @@ export const SectionAssessmentDetail: React.FC<
   const { mutate: submitAssessment, isPending: isSubmitting } = useMutation({
     mutationFn: (data: IMutateEmployeeSelfAssessmentRequest) =>
       submitEmployeeSelfAssessment(Number(assessmentId), data),
-    onSuccess: () => {
+    onSuccess: async () => {
       toast.success(t("submitAssessmentSuccess"));
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["employee-self-assessment"],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["assessment-detail", Number(assessmentId)],
+        }),
+      ]);
       router.push("/ess/assessment");
     },
     onError: (error: any) => {

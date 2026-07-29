@@ -28,11 +28,19 @@ import PayrunsAddModal from './section/add-modal';
 import { formatCurrency } from '@/lib/utils';
 import { ResponsePayrollItem } from '@/services/payroll/types';
 import { Can } from '@/components/auth/can';
+import { usePermissionStore } from '@/hooks/use-permission-store';
+import {
+  COMPENSATION_VIEW_PERMISSION,
+  formatCurrencyOrCensored,
+} from '@/lib/compensation';
 
 export const PayrollList = () => {
   const router = useRouter();
   const t = useTranslations('payroll');
   const tCommon = useTranslations('common');
+  const canViewCompensation = usePermissionStore((state) =>
+    state.can(COMPENSATION_VIEW_PERMISSION),
+  );
 
   const {
     payrollData,
@@ -75,7 +83,10 @@ export const PayrollList = () => {
         <span className="text-gray-400">
           Rp{' '}
           <span className="text-gray-800">
-            {formatCurrency(Number(row.original.total_gross_pay))}
+            {formatCurrencyOrCensored(
+              row.original.total_gross_pay,
+              canViewCompensation,
+            )}
           </span>
         </span>
       ),

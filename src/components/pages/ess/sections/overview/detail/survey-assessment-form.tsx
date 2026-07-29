@@ -15,7 +15,6 @@ import {
   IMutateEmployeeSelfAssessmentRequest,
   IAssessmentSubmission,
 } from "@/services/employees/self-assessment/types";
-import { useQueryClient } from "@tanstack/react-query";
 
 export type SurveyAssessmentFormMode = "submit" | "validate" | "readonly";
 
@@ -182,7 +181,6 @@ export const SurveyAssessmentForm: React.FC<SurveyAssessmentFormProps> = ({
   initialData,
   mode = "submit",
 }) => {
-  const queryClient = useQueryClient();
   const t = useTranslations("performance");
   const tCommon = useTranslations("common");
   const isReadOnly = mode === "readonly";
@@ -254,7 +252,6 @@ export const SurveyAssessmentForm: React.FC<SurveyAssessmentFormProps> = ({
         status === 1 ? tCommon("draftSaved") : tCommon("assessmentSubmitted"),
       );
     }
-    queryClient.invalidateQueries({ queryKey: ["employee-self-assessment"] });
   };
 
   const sortedFields = React.useMemo(() => {

@@ -77,8 +77,31 @@ export default function AuthLogin() {
         const message = res.message || tToast('loginFailed');
         toast.error(translateApiMessage(message, tApi));
       }
-    } catch (err) {
+    } catch (err: unknown) {
       console.log(err);
+      const httpError = err as {
+        name?: string;
+        response?: { status?: number; json?: () => Promise<{ message?: string }> };
+      };
+
+      if (httpError?.name === 'HTTPError' && httpError.response) {
+        const status = httpError.response.status;
+        if (status === 401 || status === 422) {
+          try {
+            const body = await httpError.response.json?.();
+            const message = body?.message || tToast('loginFailed');
+            toast.error(
+              message === 'Unauthorized'
+                ? tToast('loginFailed')
+                : translateApiMessage(message, tApi),
+            );
+          } catch {
+            toast.error(tToast('loginFailed'));
+          }
+          return;
+        }
+      }
+
       toast.error(tToast('serverError'));
     }
   };

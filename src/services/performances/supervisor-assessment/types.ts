@@ -49,14 +49,19 @@ export interface ISchedule {
 
 export interface IAssessor {
   id: number;
-  supervisor_assessment_id: number;
+  supervisor_assessment_id?: number;
   user_id: number;
   score: number | null;
   notes: string | null;
-  created_at: string;
-  updated_at: string;
+  created_at?: string;
+  updated_at?: string;
   status: number;
   status_label: string;
+  user?: {
+    id: number;
+    name: string;
+    job_position?: string | null;
+  };
 }
 
 export interface IForm {
@@ -136,7 +141,7 @@ export interface ISupervisorAssessmentResponse {
   employee_start_date: string;
   current_position: IPosition;
   current_level: ILevel;
-  current_department: IDepartment;
+  current_department: IDepartment | null;
   target_position: IPosition;
   target_level: ILevel;
   status: number;

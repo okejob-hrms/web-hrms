@@ -135,17 +135,59 @@ export interface Payslip {
   can_be_voided: boolean;
   total_allowances: number;
   total_overtime: number;
+  total_penalties: number;
   total_additional_earnings: number;
   total_deductions: number;
 }
 
+export interface AttendancePenaltyMeta {
+  rule_name?: string;
+  trigger_type?: string;
+  impact_type?: string;
+  target_allowance_type_id?: number | null;
+  impact_target?: string;
+  value_type?: string;
+  configured_amount?: number;
+  min_threshold?: number | null;
+  max_threshold?: number | null;
+  monthly_free_count?: number;
+  minutes?: number;
+  occurrence_index?: number;
+  count?: number;
+  label?: string;
+  [key: string]: unknown;
+}
+
 export interface DeductionList {
-  salary_deduction_id: number;
+  salary_deduction_id: number | null;
   name: string;
   type: string;
   amount: number;
-  calculation_basis: string;
-  contribution_type: string;
+  calculation_basis?: string;
+  contribution_type?: string;
+  user_penalty_id?: number | null;
+  attendance_rule_id?: number | null;
+  period?: string | null;
+  description?: string | null;
+  condition_type?: string | null;
+  meta?: AttendancePenaltyMeta | null;
+}
+
+export const ATTENDANCE_PENALTY_TYPE = 'ATTENDANCE_PENALTY';
+
+export function isAttendancePenalty(item: DeductionList): boolean {
+  return item.type === ATTENDANCE_PENALTY_TYPE;
+}
+
+export function getAttendancePenalties(deductions: DeductionList[] | undefined | null): DeductionList[] {
+  return (deductions ?? []).filter(isAttendancePenalty);
+}
+
+export function sumAttendancePenalties(deductions: DeductionList[] | undefined | null): number {
+  return getAttendancePenalties(deductions).reduce(
+    (sum, item) => sum + Number(item.amount ?? 0),
+    0,
+  );
 }
 
 export interface PayslipAdditionalItem {

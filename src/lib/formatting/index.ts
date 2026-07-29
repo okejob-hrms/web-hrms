@@ -138,11 +138,13 @@ export function formatDayCount(count: number, locale: AppLocale): string {
 
 /**
  * Parse API date strings as calendar dates in local time.
- * Avoids `new Date('YYYY-MM-DD')` UTC midnight shifting the day label.
+ * Avoids UTC midnight / ISO datetime shifting the day label.
+ * Only treat pure `YYYY-MM-DD` as a calendar date — never the first
+ * 10 characters of an ISO datetime (those are UTC date parts).
  */
 function parseCalendarDate(value: string): Date {
-  const dateOnly = value.trim().slice(0, 10);
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateOnly);
+  const trimmed = value.trim();
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(trimmed);
   if (match) {
     const year = Number(match[1]);
     const month = Number(match[2]);
@@ -150,7 +152,7 @@ function parseCalendarDate(value: string): Date {
     return new Date(year, month - 1, day);
   }
 
-  const parsed = new Date(value);
+  const parsed = new Date(trimmed);
   return Number.isNaN(parsed.getTime())
     ? new Date(NaN)
     : new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());

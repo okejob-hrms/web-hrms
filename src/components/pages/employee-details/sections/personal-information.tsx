@@ -2,7 +2,6 @@ import * as React from "react";
 import { Separator } from "@/components/ui/separator";
 import dayjs from "dayjs";
 import localizedFormat from "dayjs/plugin/localizedFormat";
-import { rupiahFormatter } from "@/lib/helpers";
 import { FamilyInformationSection } from "../../employee-management-form/sections/family-information-section";
 import { FormalEducationSection } from "../../employee-management-form/sections/formal-education-section";
 import { NonFormalEducationSection } from "../../employee-management-form/sections/non-formal-education-section";
@@ -18,6 +17,11 @@ import { getFace, postFace, removeFace } from "@/services/face-recognitions";
 import { FaceRequest, FaceResponse } from "@/services/face-recognitions/types";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
+import { usePermissionStore } from "@/hooks/use-permission-store";
+import {
+  COMPENSATION_VIEW_PERMISSION,
+  formatCurrencyOrCensored,
+} from "@/lib/compensation";
 
 dayjs.extend(localizedFormat);
 
@@ -37,15 +41,6 @@ const formatDate = (date: string | null | undefined): string => {
   try {
     const formatted = dayjs(date).format("LL");
     return formatted === "Invalid date" ? "-" : formatted;
-  } catch {
-    return "-";
-  }
-};
-
-const formatCurrency = (amount: string | number | null | undefined): string => {
-  if (!amount || amount === 0) return "-";
-  try {
-    return rupiahFormatter(Number(amount));
   } catch {
     return "-";
   }
@@ -141,6 +136,9 @@ export const PersonalInformationDetail = React.memo(
   function PersonalInformationDetail({ data }: Props) {
     const t = useTranslations("employee");
     const tCommon = useTranslations("common");
+    const canViewCompensation = usePermissionStore((state) =>
+      state.can(COMPENSATION_VIEW_PERMISSION),
+    );
     const [primaryDirectReports, setPrimaryDirectReports] = React.useState<
       DirectReportEmployee[]
     >([]);
@@ -595,11 +593,21 @@ export const PersonalInformationDetail = React.memo(
           </h2>
           <div className="flex flex-col">
             <p className="text-sm text-text-disabled">{t("baseSalary")}</p>
-            <p>{formatCurrency(data.employment?.base_salary)}</p>
+            <p>
+              {formatCurrencyOrCensored(
+                data.employment?.base_salary,
+                canViewCompensation,
+              )}
+            </p>
           </div>
           <div className="flex flex-col">
             <p className="text-sm text-text-disabled">{t("salaryNett")}</p>
-            <p>{formatCurrency(data.employment?.salary_nett)}</p>
+            <p>
+              {formatCurrencyOrCensored(
+                data.employment?.salary_nett,
+                canViewCompensation,
+              )}
+            </p>
           </div>
           <Separator className="md:col-span-3" />
         </div>

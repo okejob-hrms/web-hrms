@@ -401,8 +401,14 @@ export const getHideSidebar = (path: string) => {
 export const getBreadcrumbs = (pathname: string) => {
   const segments = pathname.split('/').filter(Boolean);
 
+  // Parent segments that have no index route — link to the primary child page.
+  const linkOverrides: Record<string, string> = {
+    '/payroll': '/payroll/list',
+  };
+
   return segments.map((segment, index) => {
-    const link = '/' + segments.slice(0, index + 1).join('/');
+    const rawLink = '/' + segments.slice(0, index + 1).join('/');
+    const link = linkOverrides[rawLink] ?? rawLink;
     const key = getBreadcrumbKey(segment);
 
     return {

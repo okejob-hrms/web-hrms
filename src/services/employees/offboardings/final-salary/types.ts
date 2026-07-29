@@ -1,11 +1,26 @@
+export interface IFinalSalaryAllowance {
+  allowance_type_id: number;
+  amount: number;
+}
+
 export interface IFinalSalaryResponse {
   id: number | null;
   offboarding_id: number | null;
   base_salary: string;
   salary_nett: string;
+  salary_nett_prorated?: string | null;
+  proration?: {
+    divisor: number;
+    days_in_month: number;
+    days_payable: number;
+    payable_hours: number;
+    factor: number;
+    last_working_date: string | null;
+  } | null;
   overtime_amount: string;
   allowance_amount: string;
   allowances_count: number;
+  allowances?: IFinalSalaryAllowance[];
   bonus_amount: string;
   reimbursement_amount: string;
   deduction_amount: string;
@@ -27,11 +42,10 @@ export const MutateFinalSalaryRequestSchema = z.object({
   allowances: z
     .array(
       z.object({
-        allowance_type_id: z.number().optional().nullable(),
-        amount: z.number().optional().nullable(),
+        allowance_type_id: z.number().nullable(),
+        amount: z.number().nullable(),
       }),
     )
-    .optional()
     .nullable(),
 });
 
@@ -45,5 +59,5 @@ export const defaultFinalSalaryAdjustmentForm: IMutateFinalSalaryRequest = {
   reimbursement_amount: null,
   deduction_amount: null,
   notes: null,
-  allowances: null,
+  allowances: [],
 };

@@ -34,7 +34,7 @@ const formatDate = (date: string | null | undefined): string => {
   }
 };
 
-const safeGet = (value: string | number): string => {
+const safeGet = (value: string | number | null | undefined): string => {
   if (value === null || value === undefined || value === "") return "-";
   return String(value).trim() || "-";
 };
@@ -177,6 +177,25 @@ export const EmployeeDetailsSection = React.memo(
           setAssessorError(null);
 
           if (!data?.assessors || data.assessors.length === 0) {
+            setAssessors([]);
+            setIsLoadingAssessors(false);
+            return;
+          }
+
+          // Prefer assessor.user from the detail API when available.
+          const fromPayload = data.assessors
+            .map((assessor) => {
+              if (!assessor?.user?.name) return null;
+              return {
+                id: assessor.id,
+                name: assessor.user.name,
+                position: assessor.user.job_position || "Unknown Position",
+              };
+            })
+            .filter((item): item is AssessorEmployee => item !== null);
+
+          if (fromPayload.length === data.assessors.length) {
+            setAssessors(fromPayload);
             setIsLoadingAssessors(false);
             return;
           }
@@ -221,6 +240,8 @@ export const EmployeeDetailsSection = React.memo(
 
       if (data?.assessors && data.assessors.length > 0) {
         fetchAssessors();
+      } else {
+        setAssessors([]);
       }
     }, [data?.assessors]);
 
@@ -258,11 +279,11 @@ export const EmployeeDetailsSection = React.memo(
           </div>
           <div className="flex flex-col">
             <p className="text-sm text-text-disabled">Department</p>
-            <p>{safeGet(data.current_department.name)}</p>
+            <p>{safeGet(data.current_department?.name)}</p>
           </div>
           <div className="flex flex-col">
             <p className="text-sm text-text-disabled">Current Job Level</p>
-            <p>{safeGet(data.current_level.name)}</p>
+            <p>{safeGet(data.current_level?.name)}</p>
           </div>
           <div className="flex flex-col md:col-span-2">
             <p className="text-sm text-text-disabled">Primary Direct Report</p>

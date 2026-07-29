@@ -402,12 +402,26 @@ export function formatDayDifference(
   endDate: string,
   locale?: AppLocale,
 ): string {
-  const start = dayjs(startDate).startOf('day');
-  const end = dayjs(endDate).startOf('day');
+  // Prefer calendar-date parsing so ISO UTC datetimes (or Y-m-d) don't shift.
+  const start = dayjs(parseCalendarDateForDiff(startDate));
+  const end = dayjs(parseCalendarDateForDiff(endDate));
   // Inclusive calendar days (same-day = 1), matching backend/mobile.
   const days = Math.max(0, end.diff(start, 'day') + 1);
 
   return formatDayCount(days, resolveLocale(locale ?? DEFAULT_LOCALE));
+}
+
+function parseCalendarDateForDiff(value: string): Date {
+  const trimmed = value.trim();
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(trimmed);
+  if (match) {
+    return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+  }
+  const parsed = new Date(trimmed);
+  if (Number.isNaN(parsed.getTime())) {
+    return new Date(NaN);
+  }
+  return new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
 }
 
 /**

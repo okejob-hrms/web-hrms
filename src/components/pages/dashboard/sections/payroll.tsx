@@ -18,6 +18,8 @@ import { Input } from '@/components/ui/input';
 import { useLocale, useTranslations } from 'next-intl';
 import { formatChartMonthLabel } from '@/lib/formatting';
 import { resolveLocale } from '@/lib/i18n/locale';
+import { usePermissionStore } from '@/hooks/use-permission-store';
+import { COMPENSATION_VIEW_PERMISSION } from '@/lib/compensation';
 
 export const Payroll = () => {
   const t = useTranslations('dashboard');
@@ -26,6 +28,9 @@ export const Payroll = () => {
   const tSettings = useTranslations('settings');
   const tSidebar = useTranslations('sidebar');
   const locale = resolveLocale(useLocale());
+  const canViewCompensation = usePermissionStore((state) =>
+    state.can(COMPENSATION_VIEW_PERMISSION),
+  );
   const chartMonth = React.useCallback(
     (period: string) => formatChartMonthLabel(period, locale, 'short'),
     [locale],
@@ -37,6 +42,16 @@ export const Payroll = () => {
     setFilters,
     payrollTrend,
   } = useDashboardPayroll();
+
+  if (!canViewCompensation) {
+    return (
+      <div className="font-sans min-h-screen flex flex-col space-y-6 py-6">
+        <p className="text-sm text-text-disabled">
+          You do not have permission to view payroll compensation data.
+        </p>
+      </div>
+    );
+  }
 
   const pannel = [
     {

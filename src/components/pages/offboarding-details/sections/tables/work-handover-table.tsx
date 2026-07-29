@@ -58,6 +58,7 @@ import {
 
 interface TableProps {
   offboarding_id: number;
+  readOnly?: boolean;
 }
 
 interface FormModalProps {
@@ -102,7 +103,8 @@ const EmployeeProfile = React.memo(function EmployeeProfile({
           {data.data.user.name}
         </span>
         <span className="text-text-disabled text-xs sm:text-sm truncate">
-          ({data.data.code}) {data.data.employment.job_position.name}
+          ({data.data.code}){" "}
+          {data.data.employment?.job_position?.name ?? ""}
         </span>
       </div>
     </div>
@@ -223,10 +225,12 @@ export const FormModal = React.memo(function FormModal({
 
   const employeesOptions = React.useMemo(() => {
     if (employees?.data?.data) {
-      return employees.data.data.map((item) => ({
-        label: item.name,
-        value: item.user_id.toString(),
-      }));
+      return employees.data.data
+        .filter((item) => item.user_id != null)
+        .map((item) => ({
+          label: item.name,
+          value: item.user_id.toString(),
+        }));
     }
     return [];
   }, [employees?.data]);
@@ -468,6 +472,7 @@ export const FormModal = React.memo(function FormModal({
 
 export const WorkHandoverTable = React.memo(function WorkHandoverTable({
   offboarding_id,
+  readOnly = false,
 }: TableProps) {
   const t = useTranslations("offboarding");
   const tCommon = useTranslations("common");
@@ -672,19 +677,27 @@ export const WorkHandoverTable = React.memo(function WorkHandoverTable({
     [openDropdownId, t, tCommon, tStatus],
   );
 
+  const visibleColumns = React.useMemo(
+    () =>
+      readOnly ? columns.filter((column) => column.id !== "actions") : columns,
+    [columns, readOnly],
+  );
+
   return (
     <div className="flex flex-col gap-4 w-full">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
         <h4 className="font-semibold text-lg sm:text-xl">
           {t("workHandoverTitle")}
         </h4>
-        <Button
-          className="w-full sm:w-fit flex items-center justify-center gap-2"
-          onClick={handleAddNew}
-        >
-          <Plus className="w-4 h-4" />
-          {t("addNew")}
-        </Button>
+        {!readOnly && (
+          <Button
+            className="w-full sm:w-fit flex items-center justify-center gap-2"
+            onClick={handleAddNew}
+          >
+            <Plus className="w-4 h-4" />
+            {t("addNew")}
+          </Button>
+        )}
       </div>
 
       {isLoading ? (
@@ -697,7 +710,7 @@ export const WorkHandoverTable = React.memo(function WorkHandoverTable({
         </div>
       ) : (
         <DataTable
-          columns={columns}
+          columns={visibleColumns}
           data={(data?.data as unknown as IWorkAndHandoverResponse[]) || []}
           tableClassName="min-w-full"
           wrapperTableClassName="overflow-x-hidden"
@@ -705,19 +718,23 @@ export const WorkHandoverTable = React.memo(function WorkHandoverTable({
         />
       )}
 
-      <FormModal
-        offboarding_id={offboarding_id}
-        open={isFormModalOpen}
-        onOpenChange={handleCloseFormModal}
-        editData={editItem}
-      />
+      {!readOnly && (
+        <>
+          <FormModal
+            offboarding_id={offboarding_id}
+            open={isFormModalOpen}
+            onOpenChange={handleCloseFormModal}
+            editData={editItem}
+          />
 
-      <DeleteDialog
-        open={isDeleteDialogOpen}
-        onOpenChange={handleCloseDeleteDialog}
-        onDelete={handleDeleteConfirm}
-        isLoading={deleteMutation.isPending}
-      />
+          <DeleteDialog
+            open={isDeleteDialogOpen}
+            onOpenChange={handleCloseDeleteDialog}
+            onDelete={handleDeleteConfirm}
+            isLoading={deleteMutation.isPending}
+          />
+        </>
+      )}
     </div>
   );
 });

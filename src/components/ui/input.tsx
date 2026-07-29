@@ -66,7 +66,7 @@ const InputForm: React.FC<InputFormProps> = ({
     <FormField
       control={control}
       name={name}
-      render={({ field }) => (
+      render={({ field, fieldState }) => (
         <FormItem className={cn('', props.className)}>
           {label && (
             <FormLabel
@@ -83,7 +83,11 @@ const InputForm: React.FC<InputFormProps> = ({
             <Input
               {...field}
               placeholder={placeholder}
-              className={cn('', inputClassName)}
+              className={cn(
+                fieldState.error &&
+                  '[&_input]:border-destructive [&_input]:focus-visible:ring-destructive',
+                inputClassName,
+              )}
               type={props.type || 'text'}
               disabled={props.disabled}
               autoComplete={props.autoComplete}

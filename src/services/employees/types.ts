@@ -255,14 +255,15 @@ export interface IEmployeeDetailsResponse {
   };
   reporting_relationships: {
     id: number;
-    employee_profile_id: number;
+    employee_profile_id?: number;
     direct_report_id: number;
+    name?: string | null;
     relationship_type: string;
-    start_date: string;
-    end_date: string | null;
-    deleted_at: string | null;
-    created_at: string;
-    updated_at: string;
+    start_date?: string;
+    end_date?: string | null;
+    deleted_at?: string | null;
+    created_at?: string;
+    updated_at?: string;
   }[];
   work_experiences: IResponseWorkExperience[];
   educations: IEducationResponse[];

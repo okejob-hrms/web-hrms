@@ -18,12 +18,18 @@ interface Props {
   onUpdate: (e?: React.FormEvent) => void;
   isOpen: boolean;
   setIsOpen: (x: boolean) => void;
+  titleKey?: 'confirmRegeneratePayrun' | 'confirmRecalculatePayslip';
+  descriptionKey?:
+    | 'confirmRegeneratePayrunDesc'
+    | 'confirmRecalculatePayslipDesc';
 }
 
 export default function PayrunGenerateModal({
   onUpdate,
   isOpen,
   setIsOpen,
+  titleKey = 'confirmRegeneratePayrun',
+  descriptionKey = 'confirmRegeneratePayrunDesc',
 }: Props) {
   const t = useTranslations('payroll');
   const tCommon = useTranslations('common');
@@ -52,10 +58,10 @@ export default function PayrunGenerateModal({
               alt="confirmation"
             />
             <AlertDialogTitle className="text-lg text-center font-semibold text-black mb-2">
-              {t('confirmRegeneratePayrun')}
+              {t(titleKey)}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-sm text-center text-text-secondary">
-              {t('confirmRegeneratePayrunDesc')}
+              {t(descriptionKey)}
             </AlertDialogDescription>
           </AlertDialogHeader>
 
