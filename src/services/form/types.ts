@@ -23,6 +23,7 @@ export interface IFormGroup {
   fields: {
     id: number;
     form_id: number;
+    field_group_id?: number;
     label: string;
     type: string;
     options: any[];

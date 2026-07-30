@@ -2,7 +2,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
-import { getFields } from "@/services/form";
+import { getFormById } from "@/services/form";
 import {
   getEmployeeSelfAssessmentDetail,
   getEmployeeSelfAssessments,
@@ -13,6 +13,7 @@ import { SurveyAssessmentForm } from "./survey-assessment-form";
 import { toast } from "sonner";
 import { IMutateEmployeeSelfAssessmentRequest } from "@/services/employees/self-assessment/types";
 import { ApiErrorResponse } from "@/lib/types";
+import { IFieldResponse } from "@/services/form/types";
 
 interface SectionAssessmentDetailProps {
   assessmentId: string | number;
@@ -29,10 +30,24 @@ export const SectionAssessmentDetail: React.FC<
 
   const { data: formDetail, isLoading: isLoadingForm } = useQuery({
     queryKey: ["form-detail", formId],
-    queryFn: () => getFields({ form_id: formId! }),
+    queryFn: () => getFormById(formId!),
     enabled: !!formId,
     staleTime: 0,
   });
+
+  const formFields = React.useMemo((): IFieldResponse[] => {
+    const groups = formDetail?.data?.groups;
+    if (!groups?.length) return [];
+
+    return groups.flatMap((group) =>
+      (group.fields ?? []).map((field) => ({
+        ...field,
+        field_group_id: Number(
+          (field as { field_group_id?: number }).field_group_id ?? group.id,
+        ),
+      })),
+    ) as IFieldResponse[];
+  }, [formDetail?.data?.groups]);
 
   const { data: assessmentDetail, isLoading: isLoadingAssessment } = useQuery({
     queryKey: ["assessment-detail", Number(assessmentId)],
@@ -120,9 +135,9 @@ export const SectionAssessmentDetail: React.FC<
       </div>
 
       <div className="bg-white rounded-lg shadow-sm border p-6 w-full">
-        {formDetail?.data ? (
+        {formFields.length > 0 ? (
           <SurveyAssessmentForm
-            fields={formDetail.data}
+            fields={formFields}
             onSubmit={isReadOnly ? undefined : submitAssessment}
             isSubmitting={isSubmitting}
             initialData={employeeSubmission}
