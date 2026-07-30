@@ -80,6 +80,17 @@ export const FormKpi = ({
     const selectedKpi = kpiOptions.find(
       (option) => option.value === formData.name?.toString(),
     );
+    const toNumberOrDefault = (
+      value: unknown,
+      fallback: number,
+    ): number => {
+      if (value === null || value === undefined || value === "") {
+        return fallback;
+      }
+      const n = Number(value);
+      return Number.isFinite(n) ? n : fallback;
+    };
+
     const data: IOKRKeyResultRequest = {
       objective_id: formData.objective_id,
       title: selectedKpi ? selectedKpi.label : formData.name,
@@ -88,8 +99,8 @@ export const FormKpi = ({
       format: Number(formData.format),
       job_position_id: formData.job_position_id,
       job_level_id: formData.job_level_id,
-      target_value: Number(formData.target),
-      direction: Number(formData.direction),
+      target_value: toNumberOrDefault(formData.target, 0),
+      direction: toNumberOrDefault(formData.direction, 0),
       aggregation: Number(formData.aggregation),
     };
     onSave(data);

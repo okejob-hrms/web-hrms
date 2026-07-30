@@ -137,8 +137,14 @@ export default function FormModal({
       format: Number(formData.format),
       job_position_ids: formData.job_position_ids,
       job_level_ids: formData.job_level_ids,
-      target: formData.target ? Number(formData.target) : 0,
-      direction: formData.direction ? Number(formData.direction) : 0,
+      target: (() => {
+        const value = Number(formData.target);
+        return Number.isFinite(value) ? value : 0;
+      })(),
+      direction: (() => {
+        const value = Number(formData.direction);
+        return Number.isFinite(value) ? value : 0;
+      })(),
       aggregation: Number(formData.aggregation),
     };
     onSave(data);

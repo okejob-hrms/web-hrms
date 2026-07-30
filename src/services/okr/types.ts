@@ -131,9 +131,9 @@ export interface IOKRKeyResultRequest {
   format: number;
   start_value?: number;
   current_value?: number;
-  target_value: number;
+  target_value?: number;
   status?: number;
-  direction: number;
+  direction?: number;
   aggregation: number;
 }
 

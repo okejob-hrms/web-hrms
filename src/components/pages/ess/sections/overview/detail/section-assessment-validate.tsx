@@ -7,7 +7,7 @@ import { useTranslations } from "next-intl";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getFields } from "@/services/form";
+import { getFormById } from "@/services/form";
 import {
   getEmployeeSelfAssessmentDetail,
   getEmployeeSelfAssessments,
@@ -20,6 +20,7 @@ import {
 } from "@/services/employees/self-assessment/types";
 import { ApiErrorResponse } from "@/lib/types";
 import { SurveyAssessmentForm } from "./survey-assessment-form";
+import { IFieldResponse } from "@/services/form/types";
 
 interface SectionAssessmentValidateProps {
   memberEsaId: string | number;
@@ -69,10 +70,24 @@ export const SectionAssessmentValidate: React.FC<
 
   const { data: formDetail, isLoading: isLoadingForm } = useQuery({
     queryKey: ["form-detail", resolvedFormId],
-    queryFn: () => getFields({ form_id: resolvedFormId! }),
+    queryFn: () => getFormById(resolvedFormId!),
     enabled: !!resolvedFormId,
     staleTime: 0,
   });
+
+  const formFields = React.useMemo((): IFieldResponse[] => {
+    const groups = formDetail?.data?.groups;
+    if (!groups?.length) return [];
+
+    return groups.flatMap((group) =>
+      (group.fields ?? []).map((field) => ({
+        ...field,
+        field_group_id: Number(
+          (field as { field_group_id?: number }).field_group_id ?? group.id,
+        ),
+      })),
+    ) as IFieldResponse[];
+  }, [formDetail?.data?.groups]);
 
   const { data: assessmentDetail, isLoading: isLoadingAssessment } = useQuery({
     queryKey: ["assessment-detail", Number(memberEsaId)],
@@ -164,7 +179,7 @@ export const SectionAssessmentValidate: React.FC<
         </div>
       </div>
 
-      {!formDetail?.data ? (
+      {!formFields.length ? (
         <div className="text-center text-gray-500 py-8">{t("noFormFields")}</div>
       ) : (
         <Tabs defaultValue="self" className="w-full">
@@ -177,7 +192,7 @@ export const SectionAssessmentValidate: React.FC<
           <TabsContent value="self" className="mt-4">
             <div className="bg-white rounded-lg shadow-sm border p-6 w-full">
               <SurveyAssessmentForm
-                fields={formDetail.data}
+                fields={formFields}
                 mode="readonly"
                 initialData={employeeSubmission}
               />
@@ -191,7 +206,7 @@ export const SectionAssessmentValidate: React.FC<
                 </p>
               )}
               <SurveyAssessmentForm
-                fields={formDetail.data}
+                fields={formFields}
                 mode={isValidated ? "readonly" : "validate"}
                 initialData={
                   validationSubmission ??

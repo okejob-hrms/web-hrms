@@ -39,7 +39,7 @@ const RadioCard = ({ disabled, min = 1, max = 5, value }: Props) => {
 
   return (
     <RadioGroupPrimitive.Root
-      className="w-full grid grid-cols-5 gap-3"
+      className="w-full flex flex-wrap gap-3"
       value={value}
     >
       {options.map((option) => (
@@ -48,7 +48,7 @@ const RadioCard = ({ disabled, min = 1, max = 5, value }: Props) => {
           value={option.value}
           disabled={disabled}
           className={cn(
-            "ring-[1px] ring-border rounded py-1 px-3 data-[state=checked]:ring-grayscale-20 data-[state=checked]:bg-grayscale-20",
+            "min-w-11 ring-[1px] ring-border rounded py-1 px-3 data-[state=checked]:ring-grayscale-20 data-[state=checked]:bg-grayscale-20",
           )}
         >
           <span className="text-text-disabled data-[state=checked]:text-white">
