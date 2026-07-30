@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react";
-import { useForm, FormProvider, useFormContext } from "react-hook-form";
+import { useForm, FormProvider, useFormContext, useWatch } from "react-hook-form";
 import { useTranslations } from "next-intl";
 import { CheckboxForm } from "@/components/ui/checkbox-form";
 import { TextAreaForm } from "@/components/ui/textarea";
@@ -15,6 +15,8 @@ import {
   IMutateEmployeeSelfAssessmentRequest,
   IAssessmentSubmission,
 } from "@/services/employees/self-assessment/types";
+import { resolveAssessmentKeterangan } from "@/lib/assessment-field-keterangan";
+import { AssessmentFieldKeterangan } from "@/components/pages/shared/assessment-field-keterangan";
 
 export type SurveyAssessmentFormMode = "submit" | "validate" | "readonly";
 
@@ -45,7 +47,7 @@ const RadioCardField = ({
   return (
     <FormItem className="space-y-3">
       <RadioGroupPrimitive.Root
-        className="w-full grid grid-cols-5 gap-3"
+        className="w-full flex flex-wrap gap-3"
         value={field.value}
         onValueChange={disabled ? undefined : field.onChange}
         disabled={disabled}
@@ -56,7 +58,7 @@ const RadioCardField = ({
             value={option.value}
             disabled={disabled}
             className={cn(
-              "ring-[1px] ring-border rounded py-1 px-3 focus:outline-none text-text-disabled",
+              "min-w-11 ring-[1px] ring-border rounded py-1 px-3 focus:outline-none text-text-disabled",
               disabled ? "cursor-default opacity-90" : "cursor-pointer",
               "data-[state=checked]:ring-primary data-[state=checked]:bg-primary data-[state=checked]:text-white",
               !disabled && "hover:bg-gray-50 transition-colors",
@@ -81,6 +83,7 @@ const SurveyFormFieldRenderer = ({
   const { control } = useFormContext();
   const t = useTranslations("performance");
   const fieldName = field.id.toString();
+  const watchedValue = useWatch({ control, name: fieldName });
 
   const commonProps = {
     name: fieldName,
@@ -100,9 +103,7 @@ const SurveyFormFieldRenderer = ({
                 <span className="text-destructive">*</span>
               )}
             </div>
-            {field.description && (
-              <p className="text-sm text-gray-500">{field.description}</p>
-            )}
+            <AssessmentFieldKeterangan description={field.description} />
             <div className="flex flex-col gap-2">
               {field.options.map((option: string) => (
                 <CheckboxForm
@@ -124,31 +125,45 @@ const SurveyFormFieldRenderer = ({
           {...commonProps}
           placeholder={t("typeAnswerHere")}
           labelClassName="font-medium"
+          description={field.description || undefined}
         />
       );
 
     case "range": {
       const min = field.options?.min || 1;
       const max = field.options?.max || 5;
+      const keterangan = resolveAssessmentKeterangan(
+        field.description,
+        field.competency_levels,
+        watchedValue,
+      );
 
       return (
         <FormField
           control={control}
           name={fieldName}
           rules={{
-            required: field.is_required && !readOnly ? t("fieldRequired") : false,
+            required:
+              field.is_required && !readOnly ? t("fieldRequired") : false,
           }}
           render={({ field: formField }) => (
             <div className="space-y-2">
               <div className="font-medium text-sm">
                 {field.label}
+                {field.metadata?.score_weight != null && (
+                  <span className="text-text-secondary font-normal">
+                    {" "}
+                    ({field.metadata.score_weight}%)
+                  </span>
+                )}
                 {field.is_required && !readOnly && (
                   <span className="text-destructive">*</span>
                 )}
               </div>
-              {field.description && (
-                <p className="text-sm text-gray-500">{field.description}</p>
-              )}
+              <AssessmentFieldKeterangan
+                description={keterangan.description}
+                levelName={keterangan.levelName}
+              />
               <RadioCardField
                 field={formField}
                 min={min}
@@ -169,6 +184,7 @@ const SurveyFormFieldRenderer = ({
           placeholder={t("typeHere")}
           labelClassName="font-medium"
           disabled={readOnly}
+          description={field.description || undefined}
         />
       );
   }

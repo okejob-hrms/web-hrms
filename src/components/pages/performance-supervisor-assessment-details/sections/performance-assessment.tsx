@@ -17,6 +17,8 @@ import { FormFieldRenderer } from "./form-field-renderer";
 import { Form } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { IFinalSubmission } from "@/services/performances/supervisor-assessment/types";
+import { resolveAssessmentKeterangan } from "@/lib/assessment-field-keterangan";
+import { AssessmentFieldKeterangan } from "@/components/pages/shared/assessment-field-keterangan";
 
 const CategoryDetails: React.FC<{
   group: IFormGroup;
@@ -40,35 +42,44 @@ const CategoryDetails: React.FC<{
       <CollapsibleContent className="space-y-4">
         {group.fields.map((item) => {
           if (item.type === "range") {
+            const submissionField = finalSubmission?.data?.fields?.find(
+              (f: any) => f.field_id === item.id,
+            );
+            const keterangan = resolveAssessmentKeterangan(
+              item.description,
+              item.competency_levels,
+              submissionField?.value != null
+                ? String(submissionField.value)
+                : null,
+            );
+
             return (
               <div
                 key={item.id}
-                className="border border-gray-200 rounded-lg p-4 flex flex-row justify-between"
+                className="border border-gray-200 rounded-lg p-4 flex flex-row justify-between gap-4"
               >
-                <div className="mb-2">
+                <div className="mb-2 flex-1 min-w-0">
                   <h4 className="font-semibold text-gray-900 text-sm">
                     {item.label} ({item.metadata?.score_weight || 0}%)
                   </h4>
-                  <p className="text-xs text-gray-600 mt-1">
-                    {item.description}
-                  </p>
+                  <AssessmentFieldKeterangan
+                    className="mt-1"
+                    description={keterangan.description}
+                    levelName={keterangan.levelName}
+                  />
                 </div>
-                <div className="flex items-center justify-end gap-6 pt-3">
+                <div className="flex items-center justify-end gap-6 pt-3 shrink-0">
                   <div className="text-right">
                     <p className="text-xs text-gray-500">Score</p>
                     <p className="text-sm font-semibold text-primary">
-                      {finalSubmission?.data?.fields?.find(
-                        (f: any) => f.field_id === item.id,
-                      )?.score_label || 0}
+                      {submissionField?.score_label || 0}
                     </p>
                   </div>
                   <Separator orientation="vertical" className="h-full" />
                   <div className="text-right">
                     <p className="text-xs text-gray-500">Sub Total</p>
                     <p className="text-sm font-semibold text-primary">
-                      {finalSubmission?.data?.fields?.find(
-                        (f: any) => f.field_id === item.id,
-                      )?.subtotal_score_label || 0}
+                      {submissionField?.subtotal_score_label || 0}
                     </p>
                   </div>
                 </div>
