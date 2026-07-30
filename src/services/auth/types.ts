@@ -21,6 +21,8 @@ export interface ILoginRequest {
 
 export interface IResetRequest { 
   email: string;
+  /** web → web reset page; mobile → ESS app via HTTPS bridge */
+  client?: 'web' | 'mobile';
 }
 
 export interface IResetResponse { 

@@ -265,6 +265,11 @@
     "createNewPasswordSubtitle": "Create a new password for this account",
     "resetLinkInvalid": "This reset link is invalid or has expired. Please request a new one.",
     "requestNewResetLink": "Request a new reset link",
+    "openEssAppTitle": "Continue in ESS App",
+    "openEssAppSubtitle": "This password reset was requested from the mobile ESS app. Open the app to set your new password.",
+    "openEssAppCta": "Open ESS App",
+    "continueResetOnWeb": "Continue on web instead",
+    "openEssAppHint": "If the app does not open, install ESS CPS and tap Open ESS App again.",
     "newPasswordConfirmation": "New Password Confirmation",
     "logout": "Logout"
   },

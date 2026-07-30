@@ -265,6 +265,11 @@
     "createNewPasswordSubtitle": "Buat kata sandi baru untuk akun ini",
     "resetLinkInvalid": "Tautan atur ulang tidak valid atau sudah kedaluwarsa. Silakan minta tautan baru.",
     "requestNewResetLink": "Minta tautan atur ulang baru",
+    "openEssAppTitle": "Lanjutkan di Aplikasi ESS",
+    "openEssAppSubtitle": "Permintaan atur ulang kata sandi ini dimulai dari aplikasi ESS. Buka aplikasi untuk mengatur kata sandi baru.",
+    "openEssAppCta": "Buka Aplikasi ESS",
+    "continueResetOnWeb": "Lanjutkan di web",
+    "openEssAppHint": "Jika aplikasi tidak terbuka, pasang ESS CPS lalu ketuk Buka Aplikasi ESS lagi.",
     "newPasswordConfirmation": "Konfirmasi Kata Sandi Baru",
     "logout": "Keluar"
   },

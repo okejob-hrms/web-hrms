@@ -20,7 +20,7 @@ export default function ResetPasswordPage() {
 
   const { mutate, isPending } = useMutation({
     mutationFn: async () => {
-      return postRequestReset({ email });
+      return postRequestReset({ email, client: 'web' });
     },
     onSuccess: () => {
       toast.success(tToast('resetMailSuccess'));
