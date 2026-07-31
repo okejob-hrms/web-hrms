@@ -15,7 +15,8 @@ import { Can } from '@/components/auth/can';
 export default function SettingsAccessControl() {
   const t = useTranslations('settings');
   const tCommon = useTranslations('common');
-  const { roles, handleEdit, handleNew } = useRoleManagement();
+  const { roles, apiPagination, pagination, setPagination, loading, handleEdit, handleNew } =
+    useRoleManagement();
 
   const columns: ColumnDef<IRole>[] = [
     {
@@ -100,7 +101,15 @@ export default function SettingsAccessControl() {
               </Button>
             </Can>
           </div>
-          <DataTable columns={columns} data={roles} customSize={!isMobile} />
+          <DataTable
+            columns={columns}
+            data={roles}
+            customSize={!isMobile}
+            apiPagination={apiPagination}
+            paginationState={pagination}
+            setPaginationState={setPagination}
+            loading={loading}
+          />
         </div>
       </div>
     </div>

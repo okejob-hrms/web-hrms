@@ -4,8 +4,8 @@ import * as React from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/tables/data-table';
-import { ColumnDef } from '@tanstack/react-table';
-import { Plus, Trash2, CalendarIcon } from 'lucide-react';
+import { ColumnDef, PaginationState } from '@tanstack/react-table';
+import { Plus, Trash2 } from 'lucide-react';
 import { RowActions } from '@/components/tables/row-actions';
 import { Can } from '@/components/auth/can';
 import dayjs from 'dayjs';
@@ -71,14 +71,26 @@ export default function SettingsBaseAllowance() {
   const [openDetail, setOpenDetail] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [editing, setEditing] = React.useState<AllowanceItem | null>(null);
+  const [pagination, setPagination] = React.useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 10,
+  });
   const queryClient = useQueryClient();
 
-  const { data: allowanceData, refetch: allowanceDataRefetch } =
-    useQuery<ResponseAllowance>({
-      queryKey: ['getAllowance'],
-      queryFn: getAllowance,
-      staleTime: 1000 * 60 * 5,
-    });
+  const {
+    data: allowanceData,
+    refetch: allowanceDataRefetch,
+    isLoading: isAllowanceLoading,
+  } = useQuery<ResponseAllowance>({
+    queryKey: ['getAllowance', pagination.pageIndex, pagination.pageSize],
+    queryFn: () =>
+      getAllowance({
+        page: pagination.pageIndex + 1,
+        per_page: pagination.pageSize,
+      }),
+    staleTime: 1000 * 60 * 5,
+    placeholderData: (previousData) => previousData,
+  });
 
   const { data: jobLevel } = useQuery<PaginatedResponse<JobLevel>>({
     queryKey: ['jobLevel'],
@@ -286,7 +298,14 @@ export default function SettingsBaseAllowance() {
         </Can>
       </div>
 
-      <DataTable columns={columns} data={allowanceData?.data} />
+      <DataTable
+        columns={columns}
+        data={allowanceData?.data}
+        apiPagination={allowanceData?.pagination}
+        paginationState={pagination}
+        setPaginationState={setPagination}
+        loading={isAllowanceLoading}
+      />
 
       {/* Modal Form */}
       <Dialog open={open} onOpenChange={setOpen}>

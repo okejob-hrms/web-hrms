@@ -18,9 +18,10 @@ import {
   WorkScheduleReq,
   WorkScheduleResponse,
 } from "@/services/settings/types";
-import { PaginatedResponse } from "@/lib/types";
+import { ApiPagination, PaginatedResponse } from "@/lib/types";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { PaginationState } from "@tanstack/react-table";
 
 // =======================
 // Types lokal untuk UI
@@ -144,16 +145,72 @@ export function useLateDeduction() {
   const [selectedData, setSelectedData] = useState<LateDeductions>();
   const [branches, setBranches] = useState<ICompanyBranches[]>([]);
   const [loading, setLoading] = useState(false);
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 10,
+  });
   const queryClient = useQueryClient();
 
   // list late deduction
-  const { data: lateDeductionData, refetch: lateDeductionRefetch } = useQuery<
-    PaginatedResponse<LateDeductions>
-  >({
-    queryKey: ["lateDeduction"],
-    queryFn: getLateDeduction,
+  const {
+    data: lateDeductionData,
+    refetch: lateDeductionRefetch,
+    isLoading: isLateDeductionLoading,
+  } = useQuery({
+    queryKey: ["lateDeduction", pagination.pageIndex, pagination.pageSize],
+    queryFn: () =>
+      getLateDeduction({
+        page: pagination.pageIndex + 1,
+        limit: pagination.pageSize,
+      }),
     staleTime: 1000 * 60 * 5,
+    placeholderData: (previousData) => previousData,
   });
+
+  // Supports Laravel paginator shape and API Resource collection ({ data, meta, links }).
+  const lateDeductionRows =
+    lateDeductionData?.data ??
+    (Array.isArray(lateDeductionData) ? lateDeductionData : []);
+  const lateMeta = (lateDeductionData as { meta?: Record<string, number> } | undefined)
+    ?.meta;
+  const lateLinks = (
+    lateDeductionData as { links?: Record<string, string | null> } | undefined
+  )?.links;
+  const apiPagination: ApiPagination | undefined = lateMeta
+    ? {
+        current_page: lateMeta.current_page,
+        per_page: lateMeta.per_page,
+        total: lateMeta.total,
+        last_page: lateMeta.last_page,
+        from: lateMeta.from ?? 0,
+        to: lateMeta.to ?? 0,
+        first: lateLinks?.first ?? "",
+        last: lateLinks?.last ?? "",
+        prev: lateLinks?.prev ?? null,
+        next: lateLinks?.next ?? null,
+      }
+    : lateDeductionData && "current_page" in lateDeductionData
+      ? {
+          current_page: lateDeductionData.current_page,
+          per_page: lateDeductionData.per_page,
+          total: lateDeductionData.total,
+          last_page:
+            lateDeductionData.last_page ??
+            Math.max(
+              1,
+              Math.ceil(
+                lateDeductionData.total /
+                  Math.max(1, lateDeductionData.per_page),
+              ),
+            ),
+          from: lateDeductionData.from ?? 0,
+          to: lateDeductionData.to ?? 0,
+          first: lateDeductionData.first_page_url,
+          last: "",
+          prev: lateDeductionData.prev_page_url,
+          next: lateDeductionData.next_page_url,
+        }
+      : undefined;
 
   const fetchBranches = useCallback(async () => {
     try {
@@ -263,6 +320,11 @@ export function useLateDeduction() {
 
   return {
     lateDeductionData,
+    lateDeductionRows,
+    apiPagination,
+    pagination,
+    setPagination,
+    isLateDeductionLoading,
     open,
     setOpen,
     openDelete,

@@ -4,7 +4,7 @@ import * as React from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/tables/data-table';
-import { ColumnDef } from '@tanstack/react-table';
+import { ColumnDef, PaginationState } from '@tanstack/react-table';
 import { Plus, Trash2 } from 'lucide-react';
 import { RowActions } from '@/components/tables/row-actions';
 import { Can } from '@/components/auth/can';
@@ -43,7 +43,7 @@ import {
 } from '@/services/salary';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { ApiResponse, PaginatedResponse } from '@/lib/types';
+import { ApiPagination, ApiResponse, PaginatedResponse } from '@/lib/types';
 import {
   AlertDialog,
   AlertDialogContent,
@@ -64,13 +64,52 @@ export default function SettingsSalaryDeduction() {
   const [editing, setEditing] = React.useState<DeductionSalaryItem | null>(
     null,
   );
+  const [pagination, setPagination] = React.useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 10,
+  });
   const queryClient = useQueryClient();
 
-  const { data: deductionData, refetch: deductionDataRefetch } = useQuery({
-    queryKey: ['getDeductionSalary'],
-    queryFn: getDeductionSalary,
+  const {
+    data: deductionData,
+    refetch: deductionDataRefetch,
+    isLoading: isDeductionLoading,
+  } = useQuery({
+    queryKey: [
+      'getDeductionSalary',
+      pagination.pageIndex,
+      pagination.pageSize,
+    ],
+    queryFn: () =>
+      getDeductionSalary({
+        page: pagination.pageIndex + 1,
+        per_page: pagination.pageSize,
+      }),
     staleTime: 1000 * 60 * 5,
+    placeholderData: (previousData) => previousData,
   });
+
+  const deductionApiPagination: ApiPagination | undefined = deductionData?.data
+    ? {
+        current_page: deductionData.data.current_page,
+        per_page: deductionData.data.per_page,
+        total: deductionData.data.total,
+        last_page:
+          deductionData.data.last_page ??
+          Math.max(
+            1,
+            Math.ceil(
+              deductionData.data.total / Math.max(1, deductionData.data.per_page),
+            ),
+          ),
+        from: deductionData.data.from ?? 0,
+        to: deductionData.data.to ?? 0,
+        first: deductionData.data.first_page_url,
+        last: '',
+        prev: deductionData.data.prev_page_url,
+        next: deductionData.data.next_page_url,
+      }
+    : undefined;
 
   const { data: deductionDataType } = useQuery({
     queryKey: ['getDeductionSalaryType'],
@@ -312,7 +351,14 @@ export default function SettingsSalaryDeduction() {
         </Can>
       </div>
 
-      <DataTable columns={columns} data={deductionData?.data.data} />
+      <DataTable
+        columns={columns}
+        data={deductionData?.data.data}
+        apiPagination={deductionApiPagination}
+        paginationState={pagination}
+        setPaginationState={setPagination}
+        loading={isDeductionLoading}
+      />
 
       {/* Modal Form */}
       <Dialog open={open} onOpenChange={setOpen}>
