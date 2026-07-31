@@ -170,7 +170,6 @@ export default function EmployeeOffboardingList({
       ...debouncedFilters,
       page: pagination.pageIndex + 1,
       per_page: pagination.pageSize,
-      search: '',
     }),
     [debouncedFilters, pagination],
   );

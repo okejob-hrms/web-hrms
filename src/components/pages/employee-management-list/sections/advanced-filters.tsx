@@ -143,6 +143,7 @@ export const AdvancedFilter = React.memo(function AdvancedFilter({
                 maxCount={1}
                 variant="inverted"
                 name="job_position_ids"
+                valueTransformer={(value) => Number(value)}
               />
             </div>
 
@@ -154,6 +155,7 @@ export const AdvancedFilter = React.memo(function AdvancedFilter({
                 placeholder={t("allDepartment")}
                 name="department_ids"
                 searchPlaceholder={t("searchDepartment")}
+                valueTransformer={(value) => Number(value)}
               />
             </div>
             <div>

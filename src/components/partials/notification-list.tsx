@@ -6,6 +6,7 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { formatDistanceToNow } from 'date-fns';
 import { LucideBell } from 'lucide-react';
+import { useLocale } from 'next-intl';
 
 import { api } from '@/lib/api';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -14,12 +15,22 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { resolveLocale } from '@/lib/i18n/locale';
+
+interface WhatsNewPayload {
+  slug?: string;
+  docs_path?: string;
+  title_en?: string;
+  title_id?: string;
+  message_en?: string;
+  message_id?: string;
+}
 
 interface NotificationData {
   title: string;
   message: string;
   code: string;
-  data?: any;
+  data?: WhatsNewPayload & Record<string, unknown>;
 }
 
 interface NotificationItem {
@@ -29,6 +40,27 @@ interface NotificationItem {
   read_at: string | null;
   created_at: string;
   updated_at: string;
+}
+
+function getWhatsNewDisplay(
+  item: NotificationItem,
+  locale: string
+): { title: string; message: string } {
+  const payload = item.data.data;
+  const isEn = resolveLocale(locale) === 'en';
+
+  if (item.data.code !== 'WHATS_NEW' || !payload) {
+    return { title: item.data.title, message: item.data.message };
+  }
+
+  const title = isEn
+    ? payload.title_en || item.data.title
+    : payload.title_id || item.data.title;
+  const message = isEn
+    ? payload.message_en || item.data.message
+    : payload.message_id || item.data.message;
+
+  return { title, message };
 }
 
 interface NotificationResponse {
@@ -42,6 +74,7 @@ interface NotificationResponse {
 
 export function NotificationList() {
   const router = useRouter();
+  const locale = useLocale();
   const [open, setOpen] = React.useState(false);
 
   const {
@@ -130,6 +163,11 @@ export function NotificationList() {
       case 'OFFBOARDING_VALIDATE_HANDOVER':
         targetRoute = '/employee/off-boarding';
         break;
+      case 'WHATS_NEW':
+        targetRoute =
+          (typeof item.data.data?.docs_path === 'string' && item.data.data.docs_path) ||
+          '/docs/changelog';
+        break;
       default:
         break;
     }
@@ -183,7 +221,10 @@ export function NotificationList() {
         ) : (
           <ScrollArea className="h-[350px] overflow-y-auto">
             <div className="flex flex-col">
-              {notifications.map((notification, index) => (
+              {notifications.map((notification, index) => {
+                const display = getWhatsNewDisplay(notification, locale);
+
+                return (
                 <div
                   key={notification.id}
                   ref={index === notifications.length - 1 ? lastNotificationRef : null}
@@ -195,7 +236,7 @@ export function NotificationList() {
                 >
                   <div className="flex justify-between items-start gap-2">
                     <span className="font-semibold text-gray-800 line-clamp-1">
-                      {notification.data.title}
+                      {display.title}
                     </span>
                     <span className="text-[10px] text-gray-400 whitespace-nowrap min-w-max mt-0.5">
                       {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
@@ -205,16 +246,17 @@ export function NotificationList() {
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <p className="text-xs text-gray-600 line-clamp-2 leading-relaxed text-left cursor-default">
-                          {notification.data.message}
+                          {display.message}
                         </p>
                       </TooltipTrigger>
                       <TooltipContent className="max-w-[250px] z-[100] break-words">
-                        <p className="text-xs">{notification.data.message}</p>
+                        <p className="text-xs whitespace-pre-wrap">{display.message}</p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
                 </div>
-              ))}
+                );
+              })}
               {isFetchingNextPage && (
                 <div className="p-4 text-center text-xs text-gray-400">
                   Loading more...

@@ -26,12 +26,17 @@ import {
 import { getAllForm } from "@/services/form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import dayjs from "dayjs";
 import { Plus } from "lucide-react";
 import * as React from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { Can } from "@/components/auth/can";
+import { HTTPError } from "ky";
+
+/** Must match Form::TYPE_EXIT_INTERVIEW on the backend. */
+const EXIT_INTERVIEW_FORM_TYPE = 1;
 
 export const InitiateOffboardingEmployee = React.memo(
   function InitiateOffboardingEmployee() {
@@ -44,7 +49,7 @@ export const InitiateOffboardingEmployee = React.memo(
     const queryClient = useQueryClient();
 
     const form = useForm<IMutateOffboardingRequests>({
-      // resolver: zodResolver(MutateOffboardingRequestsSchema),
+      resolver: zodResolver(MutateOffboardingRequestsSchema),
       defaultValues: {
         user_id: 0,
         approvers: [],
@@ -68,8 +73,8 @@ export const InitiateOffboardingEmployee = React.memo(
     });
 
     const { data: forms } = useQuery({
-      queryKey: ["forms"],
-      queryFn: () => getAllForm(),
+      queryKey: ["forms", "exit-interview"],
+      queryFn: () => getAllForm({ type: EXIT_INTERVIEW_FORM_TYPE }),
       staleTime: 5 * 60 * 1000,
       gcTime: 10 * 60 * 1000,
       refetchOnWindowFocus: false,
@@ -106,19 +111,45 @@ export const InitiateOffboardingEmployee = React.memo(
         form.reset();
         setIsOpen(false);
       },
-      onError: (error: any) => {
+      onError: async (error: unknown) => {
         console.error("Mutation error:", error);
-        toast.error(t("initiateFailed"));
+        if (error instanceof HTTPError) {
+          try {
+            const errorData = (await error.response.json()) as {
+              message?: string;
+              errors?: Record<string, string[]>;
+            };
+            const firstFieldError = errorData.errors
+              ? Object.values(errorData.errors).flat()[0]
+              : undefined;
+            toast.error(
+              firstFieldError || errorData.message || t("initiateFailed"),
+            );
+            return;
+          } catch {
+            // fall through
+          }
+        }
+        toast.error(
+          error instanceof Error && error.message
+            ? `${t("initiateFailed")}: ${error.message}`
+            : t("initiateFailed"),
+        );
       },
     });
 
     const onSubmit = React.useCallback(
       (values: IMutateOffboardingRequests) => {
-        console.log("on submit offboarding", values);
         mutation.mutate({
-          ...values,
           user_id: Number(values.user_id),
           form_id: Number(values.form_id),
+          approvers: values.approvers.map(Number),
+          effective_resignation_date: dayjs(
+            values.effective_resignation_date,
+          ).format("YYYY-MM-DD"),
+          last_working_date: dayjs(values.last_working_date).format(
+            "YYYY-MM-DD",
+          ),
         });
       },
       [mutation],
