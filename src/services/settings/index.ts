@@ -24,13 +24,16 @@ import {
   LeaveTypeRequest,
   LeaveConfigDetail,
 } from "./types";
-import { ApiResponse, PaginatedResponse } from "@/lib/types";
+import { ApiPagination, ApiResponse, PaginatedResponse } from "@/lib/types";
 
-export const getRoles = async (): Promise<IRolesResponse> => {
+export const getRoles = async (params?: {
+  page?: number | string;
+  per_page?: number | string;
+}): Promise<IRolesResponse> => {
   const response = await api.get("roles", {
     searchParams: {
-      page: "1",
-      per_page: "10000",
+      page: String(params?.page ?? 1),
+      per_page: String(params?.per_page ?? 10000),
     },
   });
   return response.json();
@@ -114,11 +117,16 @@ export const updateAttendanceTime = async (
     .json<WorkScheduleResponse>();
 };
 
-export const getLateDeduction = async (): Promise<
-  PaginatedResponse<LateDeductions>
-> => {
+export const getLateDeduction = async (params?: {
+  page?: number | string;
+  limit?: number | string;
+}): Promise<PaginatedResponse<LateDeductions>> => {
+  const searchParams: Record<string, string> = {
+    page: String(params?.page ?? 1),
+    limit: String(params?.limit ?? 10),
+  };
   return api
-    .get("setting/late-deduction")
+    .get("setting/late-deduction", { searchParams })
     .json<PaginatedResponse<LateDeductions>>();
 };
 
@@ -185,14 +193,31 @@ export const postOvertimeConfig = async (
     .json<OvertimeApiModel>();
 };
 
-export const getBranches = async (): Promise<
-  PaginatedResponse<ICompanyBranches>
+export const getBranches = async (params?: {
+  page?: number | string;
+  per_page?: number | string;
+}): Promise<
+  PaginatedResponse<ICompanyBranches> & {
+    pagination?: ApiPagination;
+    status?: string;
+    message?: string;
+  }
 > => {
   try {
-    // Align with getBranchesAll so branch SelectForms keep preselected IDs visible.
+    const searchParams: Record<string, string> = {
+      page: String(params?.page ?? 1),
+      // Keep a large default so dropdown callers (no args) still get full lists.
+      per_page: String(params?.per_page ?? 10000),
+    };
     return api
-      .get(`setting/branch?per_page=10000`)
-      .json<PaginatedResponse<ICompanyBranches>>();
+      .get(`setting/branch`, { searchParams })
+      .json<
+        PaginatedResponse<ICompanyBranches> & {
+          pagination?: ApiPagination;
+          status?: string;
+          message?: string;
+        }
+      >();
   } catch (error: any) {
     if (error.name === "HTTPError") {
       const errorResponse = await error.response.json();

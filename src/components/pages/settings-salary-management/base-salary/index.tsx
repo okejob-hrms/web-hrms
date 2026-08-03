@@ -4,8 +4,8 @@ import * as React from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/tables/data-table';
-import { ColumnDef } from '@tanstack/react-table';
-import { Plus, CalendarIcon } from 'lucide-react';
+import { ColumnDef, PaginationState } from '@tanstack/react-table';
+import { Plus } from 'lucide-react';
 import { RowActions } from '@/components/tables/row-actions';
 import { Can } from '@/components/auth/can';
 import dayjs from 'dayjs';
@@ -72,14 +72,30 @@ export default function SettingsBaseSalary() {
   const [openDetail, setOpenDetail] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [editing, setEditing] = React.useState<BaseSalaryItem | null>(null);
+  const [pagination, setPagination] = React.useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 10,
+  });
   const queryClient = useQueryClient();
 
-  const { data: baseSalaryData, refetch: baseSalaryDataRefetch } =
-    useQuery<ResponseBaseSalary>({
-      queryKey: ['getBaseSalary'],
-      queryFn: () => getBaseSalary(),
-      staleTime: 1000 * 60 * 5,
-    });
+  const {
+    data: baseSalaryData,
+    refetch: baseSalaryDataRefetch,
+    isLoading: isBaseSalaryLoading,
+  } = useQuery<ResponseBaseSalary>({
+    queryKey: [
+      'getBaseSalary',
+      pagination.pageIndex,
+      pagination.pageSize,
+    ],
+    queryFn: () =>
+      getBaseSalary({
+        page: pagination.pageIndex + 1,
+        per_page: pagination.pageSize,
+      }),
+    staleTime: 1000 * 60 * 5,
+    placeholderData: (previousData) => previousData,
+  });
 
   const { data: jobLevel } = useQuery<PaginatedResponse<JobLevel>>({
     queryKey: ['jobLevel'],
@@ -288,7 +304,14 @@ export default function SettingsBaseSalary() {
         </Can>
       </div>
 
-      <DataTable columns={columns} data={baseSalaryData?.data} />
+      <DataTable
+        columns={columns}
+        data={baseSalaryData?.data}
+        apiPagination={baseSalaryData?.pagination}
+        paginationState={pagination}
+        setPaginationState={setPagination}
+        loading={isBaseSalaryLoading}
+      />
 
       {/* Modal Form */}
       <Dialog open={open} onOpenChange={setOpen}>

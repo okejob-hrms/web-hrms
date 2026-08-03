@@ -15,13 +15,14 @@ import {
 import { ApiResponse, PaginatedResponse } from "@/lib/types";
 import qs from "qs";
 
-export const getAllowance = async (): Promise<ResponseAllowance> => {
-  const response = await api.get("allowance-types", {
-    searchParams: {
-      page: "1",
-      per_page: "10000",
-    },
-  });
+export const getAllowance = async (
+  search?: IParamSearch,
+): Promise<ResponseAllowance> => {
+  const response = await api.get(
+    search
+      ? `allowance-types?${qs.stringify(search)}`
+      : "allowance-types?page=1&per_page=10000",
+  );
   return response.json();
 };
 
@@ -103,10 +104,15 @@ export const removeBaseSalary = async (
     .json<ResponseBaseSalary>();
 };
 
-export const getDeductionSalary = async (): Promise<
-  ApiResponse<PaginatedResponse<DeductionSalaryItem>>
-> => {
-  const response = await api.get("setting/salary-deduction?per_page=20");
+export const getDeductionSalary = async (params?: {
+  page?: number | string;
+  per_page?: number | string;
+}): Promise<ApiResponse<PaginatedResponse<DeductionSalaryItem>>> => {
+  const searchParams: Record<string, string> = {
+    page: String(params?.page ?? 1),
+    per_page: String(params?.per_page ?? 10),
+  };
+  const response = await api.get("setting/salary-deduction", { searchParams });
   return response.json();
 };
 

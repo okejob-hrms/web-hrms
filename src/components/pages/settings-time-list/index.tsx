@@ -30,7 +30,11 @@ export default function SettingsAttendanceConfiguration() {
   const tCommon = useTranslations("common");
 
   const {
-    lateDeductionData,
+    lateDeductionRows,
+    apiPagination,
+    pagination,
+    setPagination,
+    isLateDeductionLoading,
     handleEdit,
     handleDeleteClick,
     handleAdd,
@@ -38,10 +42,12 @@ export default function SettingsAttendanceConfiguration() {
     setOpen,
     selectedData,
     handleCloseLateDeduction,
-    loadingSave,
+    handleSaveLateDeduction,
     openDelete,
     setOpenDelete,
     handleDeleteConfirm,
+    shiftOptions,
+    loadingSave,
     branches,
   } = useLateDeduction();
 
@@ -200,7 +206,11 @@ export default function SettingsAttendanceConfiguration() {
         </div>
         <DataTable
           columns={lateDeductionColumn}
-          data={lateDeductionData?.data || []}
+          data={lateDeductionRows}
+          apiPagination={apiPagination}
+          paginationState={pagination}
+          setPaginationState={setPagination}
+          loading={isLateDeductionLoading}
         />
       </div>
     );

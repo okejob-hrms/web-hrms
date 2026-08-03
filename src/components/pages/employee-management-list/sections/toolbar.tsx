@@ -44,6 +44,10 @@ export const Toolbar = React.memo(function Toolbar({
     control: form.control,
     name: "job_position_ids",
   });
+  const search = useWatch({
+    control: form.control,
+    name: "search",
+  });
 
   const { data: departments } = useQuery({
     queryKey: ["departments"],
@@ -119,7 +123,7 @@ export const Toolbar = React.memo(function Toolbar({
         clearTimeout(debouncedSubmit.current);
       }
     };
-  }, [departmentIds, jobPositionIds, form, onSubmit]);
+  }, [departmentIds, jobPositionIds, search, form, onSubmit]);
 
   const handleAdvancedFilters = (filters: Filters) => {
     console.log("Advanced filters applied:", filters);
@@ -170,6 +174,7 @@ export const Toolbar = React.memo(function Toolbar({
               maxCount={1}
               searchPlaceholder={t("searchPosition")}
               allSelectLabel={t("allPosition")}
+              valueTransformer={(value) => Number(value)}
             />
           </div>
 
@@ -182,6 +187,7 @@ export const Toolbar = React.memo(function Toolbar({
               maxCount={1}
               searchPlaceholder={t("searchDepartment")}
               allSelectLabel={t("allDepartment")}
+              valueTransformer={(value) => Number(value)}
             />
           </div>
           <Button

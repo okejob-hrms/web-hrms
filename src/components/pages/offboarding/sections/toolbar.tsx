@@ -26,8 +26,8 @@ export const Toolbar = React.memo(function Toolbar({
   const t = useTranslations("employee");
   const tCommon = useTranslations("common");
   const initValues = {
-    department_id: 0,
-    job_position_id: 0,
+    department_id: undefined,
+    job_position_id: undefined,
     search: "",
   };
   const [isAdvanced, setIsAdvanced] = React.useState(false);
@@ -43,6 +43,10 @@ export const Toolbar = React.memo(function Toolbar({
   const jobPositionIds = useWatch({
     control: form.control,
     name: "job_position_id",
+  });
+  const search = useWatch({
+    control: form.control,
+    name: "search",
   });
 
   const { data: departments } = useQuery({
@@ -89,16 +93,27 @@ export const Toolbar = React.memo(function Toolbar({
 
   const debouncedSubmit = React.useRef<NodeJS.Timeout | null>(null);
 
+  const toSingleId = React.useCallback((value: unknown): number => {
+    if (Array.isArray(value)) {
+      const first = value[0];
+      const parsed = Number(first);
+      return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+    }
+    const parsed = Number(value);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+  }, []);
+
   const onSubmit = React.useCallback(
     (values: Filters) => {
-      console.log("Basic filter submit:", values);
+      const departmentId = toSingleId(values.department_id);
+      const jobPositionId = toSingleId(values.job_position_id);
       onFiltersChange({
         ...values,
-        department_id: values.department_id,
-        job_position_id: values.job_position_id,
+        department_id: departmentId || undefined,
+        job_position_id: jobPositionId || undefined,
       });
     },
-    [onFiltersChange],
+    [onFiltersChange, toSingleId],
   );
 
   React.useEffect(() => {
@@ -117,7 +132,7 @@ export const Toolbar = React.memo(function Toolbar({
         clearTimeout(debouncedSubmit.current);
       }
     };
-  }, [departmentIds, jobPositionIds, form, onSubmit]);
+  }, [departmentIds, jobPositionIds, search, form, onSubmit]);
 
   const handleAdvancedFilters = (filters: Filters) => {
     console.log("Advanced filters applied:", filters);
@@ -168,6 +183,7 @@ export const Toolbar = React.memo(function Toolbar({
               maxCount={1}
               searchPlaceholder={t("searchPosition")}
               allSelectLabel={t("allPosition")}
+              valueTransformer={(value) => Number(value)}
             />
           </div>
 
@@ -180,6 +196,7 @@ export const Toolbar = React.memo(function Toolbar({
               maxCount={1}
               searchPlaceholder={t("searchDepartment")}
               allSelectLabel={t("allDepartment")}
+              valueTransformer={(value) => Number(value)}
             />
           </div>
           <Button

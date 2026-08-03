@@ -61,10 +61,10 @@ export const getOffboardings = (
   return response.json();
 };
 
-export const createInitiateOffboarding = (
+export const createInitiateOffboarding = async (
   params: IMutateOffboardingRequests,
 ): Promise<ApiResponse<ICreateEmployeeResponse>> => {
-  const response = api.post<ApiResponse<ICreateEmployeeResponse>>(
+  const response = await api.post<ApiResponse<ICreateEmployeeResponse>>(
     `employee/offboardings`,
     {
       json: params,

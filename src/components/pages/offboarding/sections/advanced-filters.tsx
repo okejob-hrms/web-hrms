@@ -25,8 +25,8 @@ export const AdvancedFilter = React.memo(function AdvancedFilter({
   const t = useTranslations("employee");
   const tCommon = useTranslations("common");
   const initValues: Filters = {
-    department_id: 0,
-    job_position_id: 0,
+    department_id: undefined,
+    job_position_id: undefined,
     search: "",
     start_date: null,
     end_date: null,
@@ -76,13 +76,24 @@ export const AdvancedFilter = React.memo(function AdvancedFilter({
     return [];
   }, [positions?.data]);
 
+  const toSingleId = (value: unknown): number => {
+    if (Array.isArray(value)) {
+      const first = value[0];
+      const parsed = Number(first);
+      return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+    }
+    const parsed = Number(value);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+  };
+
   const onSubmit = (values: Filters) => {
     try {
-      console.log("onSubmit ", values);
+      const departmentId = toSingleId(values.department_id);
+      const jobPositionId = toSingleId(values.job_position_id);
       const normalized: Filters = {
         ...values,
-        department_id: values.department_id,
-        job_position_id: values.job_position_id,
+        department_id: departmentId || undefined,
+        job_position_id: jobPositionId || undefined,
         start_date: values.start_date
           ? dayjs(values.start_date as unknown as Date).format("YYYY-MM-DD")
           : null,
@@ -141,6 +152,7 @@ export const AdvancedFilter = React.memo(function AdvancedFilter({
                 maxCount={1}
                 variant="inverted"
                 name="job_position_id"
+                valueTransformer={(value) => Number(value)}
               />
             </div>
 
@@ -152,6 +164,7 @@ export const AdvancedFilter = React.memo(function AdvancedFilter({
                 placeholder={t("allDepartment")}
                 name="department_id"
                 searchPlaceholder={t("searchDepartment")}
+                valueTransformer={(value) => Number(value)}
               />
             </div>
             <div>

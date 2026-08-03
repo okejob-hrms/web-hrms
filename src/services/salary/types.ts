@@ -2,6 +2,18 @@ export interface ResponseAllowance {
   data: AllowanceItem[];
   message: string;
   status: string;
+  pagination?: {
+    current_page: number;
+    per_page: number;
+    total: number;
+    last_page: number;
+    from: number;
+    to: number;
+    first: string;
+    last: string;
+    prev: string | null;
+    next: string | null;
+  };
 }
 
 export interface AllowanceItem {
@@ -39,6 +51,18 @@ export interface ResponseBaseSalary {
   data: BaseSalaryItem[];
   message: string;
   status: string;
+  pagination?: {
+    current_page: number;
+    per_page: number;
+    total: number;
+    last_page: number;
+    from: number;
+    to: number;
+    first: string;
+    last: string;
+    prev: string | null;
+    next: string | null;
+  };
 }
 
 export interface BaseSalaryItem {
@@ -113,6 +137,9 @@ export interface IParamSearch {
   JobPosition?: string;
   job_level_id?: string;
   job_position_id?: string;
+  page?: string | number;
+  per_page?: string | number;
+  search?: string;
 }
 
 export interface DeductionSalaryItemTypeList {

@@ -28,6 +28,10 @@ export default function SettingsCompanyBranchList() {
   const locale = resolveLocale(useLocale());
   const {
     branches,
+    apiPagination,
+    pagination,
+    setPagination,
+    loading,
     handleEdit,
     handleNew,
     handleDeleteBranch,
@@ -176,7 +180,15 @@ export default function SettingsCompanyBranchList() {
               </Button>
             </Can>
           </div>
-          <DataTable columns={columns} data={branches} customSize={!isMobile} />
+          <DataTable
+            columns={columns}
+            data={branches}
+            customSize={!isMobile}
+            apiPagination={apiPagination}
+            paginationState={pagination}
+            setPaginationState={setPagination}
+            loading={loading}
+          />
         </div>
       </div>
       <DeleteDialog
