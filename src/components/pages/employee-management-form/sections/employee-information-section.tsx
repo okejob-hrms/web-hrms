@@ -632,7 +632,7 @@ export const EmployeeinformationSection = React.memo(
       error: branchError,
     } = useQuery({
       queryKey: ["branch_id"],
-      queryFn: getBranches,
+      queryFn: () => getBranches(),
       retry: (failureCount, error: any) => {
         if (error?.response?.status >= 400) return false;
         return failureCount < 3;

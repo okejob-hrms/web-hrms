@@ -29,7 +29,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import dayjs from "dayjs";
 import { Plus } from "lucide-react";
 import * as React from "react";
-import { useForm } from "react-hook-form";
+import { Resolver, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { Can } from "@/components/auth/can";
@@ -49,7 +49,9 @@ export const InitiateOffboardingEmployee = React.memo(
     const queryClient = useQueryClient();
 
     const form = useForm<IMutateOffboardingRequests>({
-      resolver: zodResolver(MutateOffboardingRequestsSchema),
+      resolver: zodResolver(
+        MutateOffboardingRequestsSchema,
+      ) as unknown as Resolver<IMutateOffboardingRequests>,
       defaultValues: {
         user_id: 0,
         approvers: [],
