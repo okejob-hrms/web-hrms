@@ -1,13 +1,23 @@
 import { z } from "zod";
+import dayjs from "dayjs";
+
+const requiredDate = (message: string) =>
+  z
+    .union([z.string(), z.date()])
+    .refine((v) => !!v && String(v).trim() !== "" && dayjs(v).isValid(), {
+      message,
+    });
 
 export const MutateOffboardingRequestsSchema = z.object({
-  user_id: z.number(),
-  effective_resignation_date: z
-    .string()
-    .min(1, "effective_resignation_date is required"),
-  last_working_date: z.string().min(1, "last_working_date is required"),
-  form_id: z.number(),
-  approvers: z.array(z.number()).nonempty("At least one approver is required"),
+  user_id: z.coerce.number().positive("Employee is required"),
+  effective_resignation_date: requiredDate(
+    "effective_resignation_date is required",
+  ),
+  last_working_date: requiredDate("last_working_date is required"),
+  form_id: z.coerce.number().positive("Exit interview form is required"),
+  approvers: z
+    .array(z.coerce.number())
+    .nonempty("At least one approver is required"),
 });
 
 export type IMutateOffboardingRequests = z.infer<

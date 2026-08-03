@@ -19,7 +19,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { PaginatedResponse } from '@/lib/types';
 import {
   AlertDialog,
   AlertDialogContent,
@@ -53,21 +52,6 @@ export default function SettingsScore() {
     queryFn: () => getScore(pagination),
     staleTime: 1000 * 60 * 5,
   });
-
-  const dataPagination: PaginatedResponse<ScoreList> = {
-    current_page: score?.pagination.current_page ?? 1,
-    current_page_url: `${score?.pagination.first ?? ''}`,
-    first_page_url: score?.pagination.first ?? '',
-    from: score?.pagination.from ?? 0,
-    last_page: score?.pagination.last_page ?? 1,
-    next_page_url: score?.pagination.next ?? null,
-    path: 'api/v1/setting/score-thresholds',
-    per_page: score?.pagination.per_page ?? 10,
-    prev_page_url: score?.pagination.prev ?? null,
-    to: score?.pagination.to ?? 0,
-    total: score?.pagination.total ?? 0,
-    data: score?.data ?? [],
-  };
 
   const columns: ColumnDef<ScoreList>[] = [
     {
@@ -212,7 +196,7 @@ export default function SettingsScore() {
       <DataTable
         columns={columns}
         data={score?.data}
-        pagination={dataPagination}
+        apiPagination={score?.pagination}
         paginationState={pagination}
         setPaginationState={setPagination}
       />

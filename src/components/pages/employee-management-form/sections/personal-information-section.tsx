@@ -29,7 +29,7 @@ export const PersonalInformationSection = React.memo(
     const tCommon = useTranslations("common");
     const { data: roles } = useQuery({
       queryKey: ["roles"],
-      queryFn: getRoles,
+      queryFn: () => getRoles(),
     });
 
     const { watch, setValue, getValues, formState } = useFormContext();

@@ -4,25 +4,34 @@ import { useRouter } from "next/navigation";
 import { deleteBranch, getBranches } from "@/services/settings";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { PaginationState } from "@tanstack/react-table";
+import { ApiPagination } from "@/lib/types";
 
 export function useCompanyBranchList() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [isDeleteModal, setIsDeleteModal] = React.useState(false);
   const [idBranch, setIdBranch] = React.useState("");
+  const [pagination, setPagination] = React.useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 10,
+  });
+
   const {
-    data: branchesData,
+    data: branchesResponse,
     isLoading: loading,
     error,
     refetch: fetchBranches,
     isError,
     isSuccess,
   } = useQuery({
-    queryKey: ["company-branches"],
-    queryFn: async () => {
-      const response = await getBranches();
-      return response.data ?? [];
-    },
+    queryKey: ["company-branches", pagination.pageIndex, pagination.pageSize],
+    queryFn: () =>
+      getBranches({
+        page: pagination.pageIndex + 1,
+        per_page: pagination.pageSize,
+      }),
+    placeholderData: (previousData) => previousData,
   });
 
   const mutateDeleteBranch = useMutation({
@@ -38,7 +47,9 @@ export function useCompanyBranchList() {
     },
   });
 
-  const branches = branchesData ?? [];
+  const branches = branchesResponse?.data ?? [];
+  const apiPagination: ApiPagination | undefined =
+    branchesResponse?.pagination;
 
   const handleNew = () => {
     router.push("/settings/company/company-branch/add");
@@ -59,6 +70,9 @@ export function useCompanyBranchList() {
 
   return {
     branches,
+    apiPagination,
+    pagination,
+    setPagination,
     loading,
     error: error
       ? error instanceof Error
