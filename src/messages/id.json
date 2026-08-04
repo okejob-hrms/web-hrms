@@ -266,9 +266,8 @@
     "resetLinkInvalid": "Tautan atur ulang tidak valid atau sudah kedaluwarsa. Silakan minta tautan baru.",
     "requestNewResetLink": "Minta tautan atur ulang baru",
     "openEssAppTitle": "Lanjutkan di Aplikasi ESS",
-    "openEssAppSubtitle": "Permintaan atur ulang kata sandi ini dimulai dari aplikasi ESS. Buka aplikasi untuk mengatur kata sandi baru.",
+    "openEssAppSubtitle": "Buka aplikasi ESS di ponsel Anda untuk mengatur kata sandi. Pengaturan kata sandi dari tautan ini hanya tersedia di ESS.",
     "openEssAppCta": "Buka Aplikasi ESS",
-    "continueResetOnWeb": "Lanjutkan di web",
     "openEssAppHint": "Jika aplikasi tidak terbuka, pasang ESS CPS lalu ketuk Buka Aplikasi ESS lagi.",
     "newPasswordConfirmation": "Konfirmasi Kata Sandi Baru",
     "logout": "Keluar"
@@ -452,6 +451,7 @@
     "resendInvite": "Kirim Ulang Undangan",
     "resendInviteSuccess": "Undangan atur kata sandi berhasil dikirim ulang",
     "resendInviteFailed": "Gagal mengirim ulang undangan",
+    "resendInviteDisabledHint": "Undangan hanya tersedia sebelum login pertama. Minta karyawan menggunakan Lupa Kata Sandi.",
     "personalInformation": "Informasi Pribadi",
     "document": "Dokumen",
     "attendance": "Kehadiran",
