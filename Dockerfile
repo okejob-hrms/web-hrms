@@ -68,9 +68,9 @@ RUN npm run build
 
 # =============================================================================
 # Stage 3: Runner
-# Production runtime with minimal dependencies
+# Production runtime — Node (Next standalone + Nextra are unreliable under Bun)
 # =============================================================================
-FROM oven/bun:1-alpine AS runner
+FROM node:20-alpine AS runner
 WORKDIR /app
 
 # Set production environment variables
@@ -103,15 +103,13 @@ ENV HOSTNAME="0.0.0.0"
 
 # Add labels for better image management
 LABEL org.opencontainers.image.title="Web HRMS Next.js Application" \
-      org.opencontainers.image.description="Next.js 16 application with Bun runtime" \
+      org.opencontainers.image.description="Next.js 16 application with Node runtime" \
       org.opencontainers.image.vendor="Web HRMS" \
       org.opencontainers.image.version="1.0.0"
 
 # Health check to ensure container is running properly
-# Checks if the server responds to HTTP requests
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD bun -e "const http = require('http'); http.get('http://localhost:3000', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)}).on('error', () => process.exit(1))"
+  CMD node -e "require('http').get('http://127.0.0.1:3000', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)}).on('error', () => process.exit(1))"
 
-# Use exec form for better signal handling
-# Run Next.js server using Bun (memory-efficient runtime)
-CMD ["bun", "server.js"]
+# Next.js standalone server (Node — required for Nextra getPageMap / RSC)
+CMD ["node", "server.js"]

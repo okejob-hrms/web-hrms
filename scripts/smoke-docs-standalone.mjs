@@ -89,15 +89,18 @@ try {
   for (const route of ROUTES) {
     const { status, body } = await fetchText(route);
     const hasAppError = body.includes('Application error');
-    const ok = status === 200 && !hasAppError;
+    const digest =
+      body.match(/"digest":"(\d+)"/)?.[1] ??
+      body.match(/Digest:\s*(\d+)/)?.[1];
+    const ok = status === 200 && !hasAppError && !digest;
 
     if (ok) {
       console.log(`OK  ${route} (${status})`);
     } else {
       failed = true;
-      console.error(`FAIL ${route} (status=${status}, applicationError=${hasAppError})`);
-      const digest = body.match(/Digest:\s*(\d+)/)?.[1];
-      if (digest) console.error(`  digest: ${digest}`);
+      console.error(
+        `FAIL ${route} (status=${status}, applicationError=${hasAppError}, digest=${digest ?? 'none'})`,
+      );
     }
   }
 } catch (err) {
