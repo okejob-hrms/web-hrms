@@ -1,6 +1,7 @@
 /**
  * Fail the build if standalone output is missing Nextra docs SSR pieces.
- * Catches the Turbopack regression where /docs layouts + nextra are omitted.
+ * Catches the Turbopack regression where /docs layouts + nextra are omitted,
+ * and Docker-only Layout failures when theme deps are not traced.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -10,6 +11,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, '..');
 const STANDALONE = path.join(ROOT, '.next', 'standalone');
 const SERVER = path.join(STANDALONE, '.next', 'server');
+const NM = path.join(STANDALONE, 'node_modules');
 
 const errors = [];
 
@@ -32,18 +34,30 @@ if (!exists(STANDALONE)) {
   process.exit(1);
 }
 
-const nextraPkg = path.join(STANDALONE, 'node_modules', 'nextra');
-const nextraThemePkg = path.join(STANDALONE, 'node_modules', 'nextra-theme-docs');
-if (!exists(nextraPkg)) {
-  errors.push('standalone/node_modules/nextra is missing');
-}
-if (!exists(nextraThemePkg)) {
-  errors.push('standalone/node_modules/nextra-theme-docs is missing');
+const requiredPackages = [
+  'nextra',
+  'nextra-theme-docs',
+  // nextra-theme-docs Layout imports these; Docker has no parent node_modules
+  'next-themes',
+  'zod',
+  'clsx',
+  'zustand',
+  'react-compiler-runtime',
+  '@headlessui/react',
+];
+
+for (const pkg of requiredPackages) {
+  const pkgPath = path.join(NM, ...pkg.split('/'));
+  if (!exists(pkgPath)) {
+    errors.push(`standalone/node_modules/${pkg} is missing`);
+  }
 }
 
 const layoutHits = walkFiles(
   SERVER,
-  (f) => /docs[/\\](en|id)[/\\]layout\.js$/i.test(f) || /docs.*layout/i.test(path.basename(f)),
+  (f) =>
+    /docs[/\\](en|id)[/\\]layout\.js$/i.test(f) ||
+    /docs.*layout/i.test(path.basename(f)),
 );
 
 const chunkDir = path.join(SERVER, 'chunks');
@@ -73,13 +87,15 @@ if (errors.length) {
   console.error('verify-docs-standalone: FAILED');
   for (const e of errors) console.error(`  - ${e}`);
   console.error(
-    'Fix: ensure package.json build uses `next build --webpack` (Nextra docs require webpack for production).',
+    'Fix: ensure package.json build uses `next build --webpack` and next.config outputFileTracingIncludes covers nextra-theme-docs + its runtime deps.',
   );
   process.exit(1);
 }
 
 console.log('verify-docs-standalone: OK');
-if (exists(nextraPkg)) console.log('  - nextra present in standalone');
-if (exists(nextraThemePkg)) console.log('  - nextra-theme-docs present in standalone');
+for (const pkg of requiredPackages) {
+  console.log(`  - ${pkg} present in standalone`);
+}
 if (layoutHits.length) console.log(`  - docs layout files: ${layoutHits.length}`);
-if (chunkHits.length) console.log(`  - SSR chunks with nextra/getPageMap: ${chunkHits.length}`);
+if (chunkHits.length)
+  console.log(`  - SSR chunks with nextra/getPageMap: ${chunkHits.length}`);

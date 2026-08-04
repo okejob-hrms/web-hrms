@@ -1,10 +1,14 @@
 /**
- * Smoke-test /docs routes against the standalone server (same runtime as Docker).
+ * Smoke-test /docs routes against the standalone server in Docker-like isolation.
+ * Copies standalone + public + static into a temp dir so parent repo node_modules
+ * cannot mask missing traced packages (the classic local-pass / Docker-fail trap).
+ *
  * Run after build: npm run build && npm run smoke:docs
  */
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import http from 'node:http';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -25,6 +29,16 @@ function findServerJs(dir) {
     if (found) return found;
   }
   return null;
+}
+
+function copyDir(src, dest) {
+  fs.mkdirSync(dest, { recursive: true });
+  for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
+    const from = path.join(src, entry.name);
+    const to = path.join(dest, entry.name);
+    if (entry.isDirectory()) copyDir(from, to);
+    else fs.copyFileSync(from, to);
+  }
 }
 
 function waitForServer(url, timeoutMs = 30_000) {
@@ -69,12 +83,35 @@ if (!serverJs) {
   process.exit(1);
 }
 
-const serverCwd = path.dirname(serverJs);
-console.log(`Starting standalone server: ${serverJs}`);
+const isolateRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'docs-smoke-'));
+const isolateStandalone = path.join(isolateRoot, 'app');
+console.log(`Isolating standalone to: ${isolateStandalone}`);
 
-const child = spawn(process.execPath, [serverJs], {
+copyDir(STANDALONE_DIR, isolateStandalone);
+
+const publicSrc = path.join(ROOT, 'public');
+const staticSrc = path.join(ROOT, '.next', 'static');
+if (fs.existsSync(publicSrc)) {
+  copyDir(publicSrc, path.join(isolateStandalone, 'public'));
+}
+if (fs.existsSync(staticSrc)) {
+  copyDir(staticSrc, path.join(isolateStandalone, '.next', 'static'));
+}
+
+const isolatedServerJs = findServerJs(isolateStandalone);
+const serverCwd = path.dirname(isolatedServerJs);
+console.log(`Starting isolated standalone server: ${isolatedServerJs}`);
+
+const child = spawn(process.execPath, [isolatedServerJs], {
   cwd: serverCwd,
-  env: { ...process.env, PORT: String(PORT), HOSTNAME: '127.0.0.1' },
+  env: {
+    ...process.env,
+    PORT: String(PORT),
+    HOSTNAME: '127.0.0.1',
+    NODE_ENV: 'production',
+    // Prevent accidental resolution into the repo via NODE_PATH
+    NODE_PATH: '',
+  },
   stdio: ['ignore', 'pipe', 'pipe'],
 });
 
@@ -108,6 +145,11 @@ try {
   console.error('Smoke test error:', err);
 } finally {
   child.kill();
+  try {
+    fs.rmSync(isolateRoot, { recursive: true, force: true });
+  } catch {
+    // best-effort cleanup
+  }
 }
 
 process.exit(failed ? 1 : 0);

@@ -91,6 +91,17 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
+# Belt-and-suspenders: Nextra Layout may load theme packages from node_modules
+# at runtime. Docker has no parent repo node_modules to fall back on.
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/next-themes ./node_modules/next-themes
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/zod ./node_modules/zod
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/clsx ./node_modules/clsx
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/zustand ./node_modules/zustand
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/react-compiler-runtime ./node_modules/react-compiler-runtime
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@headlessui ./node_modules/@headlessui
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/scroll-into-view-if-needed ./node_modules/scroll-into-view-if-needed
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/compute-scroll-into-view ./node_modules/compute-scroll-into-view
+
 # Switch to non-root user for security
 USER nextjs
 
