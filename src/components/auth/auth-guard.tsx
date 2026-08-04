@@ -7,7 +7,16 @@ import { usePermissionStore } from '@/hooks/use-permission-store';
 import { getRequiredViewPermission, isEmployeeOnlyAccess } from '@/lib/permissions';
 
 function isPublicPath(pathname: string) {
-  return pathname.startsWith('/auth') || pathname.startsWith('/docs');
+  // Email reset links land on /reset-password (web) and /app/reset-password (ESS bridge),
+  // outside /auth — must stay reachable without a session.
+  return (
+    pathname.startsWith('/auth') ||
+    pathname.startsWith('/docs') ||
+    pathname === '/reset-password' ||
+    pathname.startsWith('/reset-password/') ||
+    pathname === '/app/reset-password' ||
+    pathname.startsWith('/app/reset-password/')
+  );
 }
 
 function getFallbackPath(
@@ -96,8 +105,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
 
     if (
       isEmployeeOnly &&
-      !pathname.startsWith('/auth') &&
-      !pathname.startsWith('/docs') &&
+      !publicRoute &&
       !pathname.startsWith('/ess')
     ) {
       router.replace('/ess');

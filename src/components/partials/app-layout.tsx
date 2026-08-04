@@ -25,6 +25,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const removePadding = noPaddingPages.includes(pathname);
   const isAuthPage = pathname.startsWith('/auth');
   const isDocsPage = pathname.startsWith('/docs');
+  const isPublicResetPage =
+    pathname === '/reset-password' ||
+    pathname.startsWith('/reset-password/') ||
+    pathname === '/app/reset-password' ||
+    pathname.startsWith('/app/reset-password/');
   const breadcrumbs = getBreadcrumbs(pathname);
   const moduleSegment = pathname.split('/')[1] ?? '';
   const sidebarTitleKey = moduleSegment in menus ? moduleSegment : 'module';
@@ -91,7 +96,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {isAuthPage || isDocsPage ? (
+      {isAuthPage || isDocsPage || isPublicResetPage ? (
         <main className="w-full">
           {children}
           <Toaster closeButton richColors position="top-center" />
