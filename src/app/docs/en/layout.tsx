@@ -5,8 +5,10 @@ import 'nextra-theme-docs/style.css';
 import themeConfig from '../../../../theme.config';
 import { LanguageSwitch } from '@/components/shared/language-switch';
 
+/** Set to true to bypass Nextra chrome (isolates digest to Layout vs page body). */
+const DOCS_LAYOUT_DIAGNOSTIC = true;
+
 async function loadDocsPageMap(locale: 'en' | 'id'): Promise<PageMapItem[]> {
-  // Nextra page-map root shape can differ by bundler/OS; try known roots.
   const candidates = [`/docs/${locale}`, `/${locale}`, '/docs', '/'];
   let lastError: unknown;
 
@@ -33,8 +35,22 @@ export default async function DocsLayout({
 }: {
   children: React.ReactNode;
 }) {
+  console.info('[docs/en] layout start');
   const pageMap = await loadDocsPageMap('en');
 
+  if (DOCS_LAYOUT_DIAGNOSTIC) {
+    console.info('[docs/en] diagnostic shell (no nextra Layout)');
+    return (
+      <div style={{ padding: 24, fontFamily: 'system-ui, sans-serif' }}>
+        <p style={{ marginBottom: 16, color: '#666' }}>
+          Docs diagnostic shell (Nextra Layout bypassed)
+        </p>
+        {children}
+      </div>
+    );
+  }
+
+  console.info('[docs/en] rendering nextra Layout');
   const navbar = (
     <Navbar logo={themeConfig.logo} projectLink={undefined}>
       <LanguageSwitch />
