@@ -6,11 +6,17 @@ import { app } from '@/lib/firebase';
 import { api } from '@/lib/api';
 import { toast } from 'sonner';
 
-export const useFCM = () => {
+export const useFCM = (options?: { enabled?: boolean }) => {
+  const enabled = options?.enabled ?? true;
   const [fcmToken, setFcmToken] = useState<string | null>(null);
 
   useEffect(() => {
-    if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {
+    if (
+      !enabled ||
+      typeof window === 'undefined' ||
+      !('serviceWorker' in navigator) ||
+      !app
+    ) {
       return;
     }
 
@@ -85,8 +91,7 @@ export const useFCM = () => {
     };
 
     permissionRequest();
-
-  }, []);
+  }, [enabled]);
 
   return { fcmToken };
 };

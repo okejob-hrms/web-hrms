@@ -6,6 +6,10 @@ import { toast } from 'sonner';
 import { usePermissionStore } from '@/hooks/use-permission-store';
 import { getRequiredViewPermission, isEmployeeOnlyAccess } from '@/lib/permissions';
 
+function isPublicPath(pathname: string) {
+  return pathname.startsWith('/auth') || pathname.startsWith('/docs');
+}
+
 function getFallbackPath(
   can: (permission: string) => boolean,
   isEmployeeOnly: boolean,
@@ -62,6 +66,8 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
   );
   const load = usePermissionStore((state) => state.load);
 
+  const publicRoute = isPublicPath(pathname);
+
   useEffect(() => {
     hydrateFromStorage();
     const token = localStorage.getItem('token');
@@ -82,9 +88,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     const token = localStorage.getItem('token');
 
     if (!token) {
-      const isPublicRoute =
-        pathname.startsWith('/auth') || pathname.startsWith('/docs');
-      if (!isPublicRoute) {
+      if (!publicRoute) {
         router.replace('/auth/login');
       }
       return;
@@ -100,11 +104,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    if (
-      !loaded ||
-      pathname.startsWith('/auth') ||
-      pathname.startsWith('/docs')
-    ) {
+    if (!loaded || publicRoute) {
       return;
     }
 
@@ -117,9 +117,20 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
         router.replace(fallback);
       }
     }
-  }, [isReady, isEmployeeOnly, pathname, searchParams, router, loaded, can]);
+  }, [
+    isReady,
+    isEmployeeOnly,
+    pathname,
+    publicRoute,
+    searchParams,
+    router,
+    loaded,
+    can,
+  ]);
 
-  if (!isReady) {
+  // Public docs/auth must render immediately — returning null blocks SSR
+  // content and triggers client-side crashes on /docs.
+  if (!isReady && !publicRoute) {
     return null;
   }
 
