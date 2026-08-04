@@ -5,10 +5,7 @@ import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { usePermissionStore } from '@/hooks/use-permission-store';
 import { getRequiredViewPermission, isEmployeeOnlyAccess } from '@/lib/permissions';
-
-function isPublicPath(pathname: string) {
-  return pathname.startsWith('/auth') || pathname.startsWith('/docs');
-}
+import { isPublicPath } from '@/lib/public-routes';
 
 function getFallbackPath(
   can: (permission: string) => boolean,
@@ -96,8 +93,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
 
     if (
       isEmployeeOnly &&
-      !pathname.startsWith('/auth') &&
-      !pathname.startsWith('/docs') &&
+      !publicRoute &&
       !pathname.startsWith('/ess')
     ) {
       router.replace('/ess');

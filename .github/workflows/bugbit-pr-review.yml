@@ -1,0 +1,58 @@
+name: PR Review (bugbit)
+
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review, synchronize]
+    branches:
+      - dev
+      - staging
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: PR number to review
+        required: true
+        type: number
+
+concurrency:
+  group: bugbit-review-${{ github.event.pull_request.number || inputs.pr_number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  bugbit_review:
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.sender.type != 'Bot' && github.event.pull_request.draft == false) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Resolve PR number
+        id: pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "number=${{ github.event.pull_request.number }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "number=${{ inputs.pr_number }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout PR head
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: refs/pull/${{ steps.pr.outputs.number }}/head
+
+      - name: Run bugbit review
+        # Pin to v1.1.1 commit (not mutable @v1) — receives CURSOR_API_KEY + PR write token
+        uses: Vilancer/bugbit@6ccf486a42256fe738d03b786bcdec9e1ff9015e
+        with:
+          cursor-api-key: ${{ secrets.CURSOR_API_KEY }}
+          github-token: ${{ github.token }}
+          # Cursor SDK Auto (server-selected). Avoids pinning Claude/GPT/etc.
+          # See: https://cursor.com/docs/sdk/typescript#model-ids-auto-smart-auto-and-default
+          model: auto
+          review-modes: code-review
+          pr-number: ${{ steps.pr.outputs.number }}

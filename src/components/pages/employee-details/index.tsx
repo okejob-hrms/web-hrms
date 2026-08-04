@@ -188,12 +188,19 @@ export const EmployeeDetail = React.memo(function EmployeeDetail({
             </Badge>
           </div>
           <div className="flex flex-col items-end gap-2 justify-self-end">
-            {data.user.is_first_login ? (
-              <Can permission="employee_organization.employee_profile.edit">
+            <Can permission="employee_organization.employee_profile.edit">
+              <div className="flex flex-col items-end gap-1">
                 <Button
                   variant="outline"
                   className="text-primary font-semibold text-base w-fit border-primary"
-                  disabled={resendInviteMutation.isPending}
+                  disabled={
+                    !data.user.is_first_login || resendInviteMutation.isPending
+                  }
+                  title={
+                    !data.user.is_first_login
+                      ? t("resendInviteDisabledHint")
+                      : undefined
+                  }
                   onClick={() => resendInviteMutation.mutate()}
                 >
                   <Mail className="h-4 w-4" />
@@ -201,8 +208,13 @@ export const EmployeeDetail = React.memo(function EmployeeDetail({
                     ? tCommon("processing")
                     : t("resendInvite")}
                 </Button>
-              </Can>
-            ) : null}
+                {!data.user.is_first_login ? (
+                  <p className="text-xs text-muted-foreground max-w-[240px] text-right">
+                    {t("resendInviteDisabledHint")}
+                  </p>
+                ) : null}
+              </div>
+            </Can>
             <Can permission="employee_organization.employee_profile.edit">
               <Button
                 variant="ghost"

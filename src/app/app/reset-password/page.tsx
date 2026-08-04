@@ -29,11 +29,6 @@ export default function MobileResetPasswordBridgePage() {
     return buildMobileDeepLink(token, email);
   }, [token, email]);
 
-  const webHref =
-    token && email
-      ? `/reset-password?token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}`
-      : '/auth/reset-password';
-
   useEffect(() => {
     if (!deepLink) {
       return;
@@ -62,9 +57,6 @@ export default function MobileResetPasswordBridgePage() {
       <div className="flex flex-col gap-3">
         <Button asChild className="w-full">
           <a href={deepLink ?? '#'}>{t('openEssAppCta')}</a>
-        </Button>
-        <Button asChild variant="outline" className="w-full">
-          <Link href={webHref}>{t('continueResetOnWeb')}</Link>
         </Button>
       </div>
 
