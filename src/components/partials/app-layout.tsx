@@ -15,6 +15,7 @@ import AppSkeleton from './app-skeleton';
 import { useState, useEffect } from 'react';
 import { Toaster } from '../ui/sonner';
 import { getBreadcrumbs, getHideSidebar, menus } from '@/lib/menu';
+import { isPublicPath } from '@/lib/public-routes';
 import { toast } from 'sonner';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -23,13 +24,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const hideSidebar = getHideSidebar(pathname) || false;
   const noPaddingPages = ['/employee/organization/structure/edit']; // add more if needed
   const removePadding = noPaddingPages.includes(pathname);
-  const isAuthPage = pathname.startsWith('/auth');
-  const isDocsPage = pathname.startsWith('/docs');
-  const isPublicResetPage =
-    pathname === '/reset-password' ||
-    pathname.startsWith('/reset-password/') ||
-    pathname === '/app/reset-password' ||
-    pathname.startsWith('/app/reset-password/');
+  const publicRoute = isPublicPath(pathname);
   const breadcrumbs = getBreadcrumbs(pathname);
   const moduleSegment = pathname.split('/')[1] ?? '';
   const sidebarTitleKey = moduleSegment in menus ? moduleSegment : 'module';
@@ -96,7 +91,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {isAuthPage || isDocsPage || isPublicResetPage ? (
+      {publicRoute ? (
         <main className="w-full">
           {children}
           <Toaster closeButton richColors position="top-center" />

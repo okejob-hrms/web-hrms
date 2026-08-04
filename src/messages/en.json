@@ -268,7 +268,6 @@
     "openEssAppTitle": "Continue in ESS App",
     "openEssAppSubtitle": "Open the ESS app on your phone to set your password. Password setup for this link is only available in ESS.",
     "openEssAppCta": "Open ESS App",
-    "continueResetOnWeb": "Continue on web instead",
     "openEssAppHint": "If the app does not open, install ESS CPS and tap Open ESS App again.",
     "newPasswordConfirmation": "New Password Confirmation",
     "logout": "Logout"

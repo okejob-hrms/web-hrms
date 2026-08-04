@@ -5,19 +5,7 @@ import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { usePermissionStore } from '@/hooks/use-permission-store';
 import { getRequiredViewPermission, isEmployeeOnlyAccess } from '@/lib/permissions';
-
-function isPublicPath(pathname: string) {
-  // Email reset links land on /reset-password (web) and /app/reset-password (ESS bridge),
-  // outside /auth — must stay reachable without a session.
-  return (
-    pathname.startsWith('/auth') ||
-    pathname.startsWith('/docs') ||
-    pathname === '/reset-password' ||
-    pathname.startsWith('/reset-password/') ||
-    pathname === '/app/reset-password' ||
-    pathname.startsWith('/app/reset-password/')
-  );
-}
+import { isPublicPath } from '@/lib/public-routes';
 
 function getFallbackPath(
   can: (permission: string) => boolean,
