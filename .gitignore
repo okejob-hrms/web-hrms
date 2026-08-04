@@ -49,6 +49,8 @@ next-env.d.ts
 /agent-instructions
 /scripts/*
 !/scripts/build-pagefind-index.mjs
+!/scripts/verify-docs-standalone.mjs
+!/scripts/smoke-docs-standalone.mjs
 
 .claude
 .agents

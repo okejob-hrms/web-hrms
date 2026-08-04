@@ -4,12 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build --webpack",
     "start": "next start",
     "lint": "next lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "postbuild": "node scripts/build-pagefind-index.mjs",
-    "docs:search": "node scripts/build-pagefind-index.mjs"
+    "postbuild": "node scripts/build-pagefind-index.mjs && node scripts/verify-docs-standalone.mjs",
+    "docs:search": "node scripts/build-pagefind-index.mjs",
+    "smoke:docs": "node scripts/smoke-docs-standalone.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",
