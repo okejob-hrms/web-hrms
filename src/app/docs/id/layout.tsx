@@ -1,15 +1,39 @@
 import { Layout, Navbar, Footer } from 'nextra-theme-docs';
 import { getPageMap } from 'nextra/page-map';
+import type { PageMapItem } from 'nextra';
 import 'nextra-theme-docs/style.css';
 import themeConfig from '../../../../theme.config';
 import { LanguageSwitch } from '@/components/shared/language-switch';
+
+async function loadDocsPageMap(locale: 'en' | 'id'): Promise<PageMapItem[]> {
+  // Nextra page-map root shape can differ by bundler/OS; try known roots.
+  const candidates = [`/docs/${locale}`, `/${locale}`, '/docs', '/'];
+  let lastError: unknown;
+
+  for (const route of candidates) {
+    try {
+      const pageMap = await getPageMap(route);
+      console.info(
+        `[docs/${locale}] getPageMap(${route}) ok items=${pageMap?.length ?? 0}`,
+      );
+      return pageMap;
+    } catch (error) {
+      lastError = error;
+      console.error(`[docs/${locale}] getPageMap(${route}) failed`, error);
+    }
+  }
+
+  throw lastError instanceof Error
+    ? lastError
+    : new Error(`[docs/${locale}] getPageMap failed for all candidates`);
+}
 
 export default async function DocsLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const pageMap = await getPageMap('/docs/id');
+  const pageMap = await loadDocsPageMap('id');
 
   const navbar = (
     <Navbar logo={themeConfig.logo} projectLink={undefined}>
