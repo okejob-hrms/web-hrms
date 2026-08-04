@@ -20,6 +20,8 @@ export const useFCM = (options?: { enabled?: boolean }) => {
       return;
     }
 
+    const firebaseApp = app;
+
     const permissionRequest = async () => {
       try {
         const supported = await isSupported();
@@ -28,7 +30,7 @@ export const useFCM = (options?: { enabled?: boolean }) => {
           return;
         }
 
-        const messaging = getMessaging(app);
+        const messaging = getMessaging(firebaseApp);
 
         const permission = await Notification.requestPermission();
         if (permission === 'granted') {
