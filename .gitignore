@@ -51,6 +51,7 @@ next-env.d.ts
 !/scripts/build-pagefind-index.mjs
 !/scripts/verify-docs-standalone.mjs
 !/scripts/smoke-docs-standalone.mjs
+!/scripts/copy-nextra-standalone-deps.mjs
 
 .claude
 .agents

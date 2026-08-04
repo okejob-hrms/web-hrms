@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "postbuild": "node scripts/build-pagefind-index.mjs && node scripts/verify-docs-standalone.mjs",
+    "postbuild": "node scripts/build-pagefind-index.mjs && node scripts/copy-nextra-standalone-deps.mjs && node scripts/verify-docs-standalone.mjs",
     "docs:search": "node scripts/build-pagefind-index.mjs",
     "smoke:docs": "node scripts/smoke-docs-standalone.mjs"
   },

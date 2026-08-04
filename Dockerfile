@@ -91,16 +91,25 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Belt-and-suspenders: Nextra Layout may load theme packages from node_modules
-# at runtime. Docker has no parent repo node_modules to fall back on.
+# Extra Nextra theme transitive deps (postbuild also copies these into standalone).
+# @headlessui/react needs @floating-ui / @react-aria / @tanstack — missing any of
+# these causes Layout SSR digest errors in Docker only.
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/next-themes ./node_modules/next-themes
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/zod ./node_modules/zod
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/clsx ./node_modules/clsx
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/zustand ./node_modules/zustand
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/react-compiler-runtime ./node_modules/react-compiler-runtime
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@headlessui ./node_modules/@headlessui
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@floating-ui ./node_modules/@floating-ui
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@react-aria ./node_modules/@react-aria
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@react-stately ./node_modules/@react-stately
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@react-types ./node_modules/@react-types
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@tanstack/react-virtual ./node_modules/@tanstack/react-virtual
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@tanstack/virtual-core ./node_modules/@tanstack/virtual-core
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/scroll-into-view-if-needed ./node_modules/scroll-into-view-if-needed
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/compute-scroll-into-view ./node_modules/compute-scroll-into-view
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/use-sync-external-store ./node_modules/use-sync-external-store
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/tabbable ./node_modules/tabbable
 
 # Switch to non-root user for security
 USER nextjs

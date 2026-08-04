@@ -37,13 +37,17 @@ if (!exists(STANDALONE)) {
 const requiredPackages = [
   'nextra',
   'nextra-theme-docs',
-  // nextra-theme-docs Layout imports these; Docker has no parent node_modules
+  // nextra-theme-docs Layout + @headlessui transitive runtime graph
   'next-themes',
   'zod',
   'clsx',
   'zustand',
   'react-compiler-runtime',
   '@headlessui/react',
+  '@floating-ui/react',
+  '@react-aria/focus',
+  '@tanstack/react-virtual',
+  'use-sync-external-store',
 ];
 
 for (const pkg of requiredPackages) {
