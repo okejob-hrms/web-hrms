@@ -3,6 +3,9 @@ name: PR Review (bugbit)
 on:
   pull_request:
     types: [opened, reopened, ready_for_review, synchronize]
+    branches:
+      - dev
+      - staging
   workflow_dispatch:
     inputs:
       pr_number:
