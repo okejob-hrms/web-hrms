@@ -5,7 +5,7 @@ import { useTranslations, useLocale } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/tables/data-table';
 import { ColumnDef, PaginationState } from '@tanstack/react-table';
-import { Plus } from 'lucide-react';
+import { Plus, Search } from 'lucide-react';
 import { RowActions } from '@/components/tables/row-actions';
 import { Can } from '@/components/auth/can';
 import dayjs from 'dayjs';
@@ -27,14 +27,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Calendar } from '@/components/ui/calendar';
-import {
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-} from '@/components/ui/popover';
-import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { HTTPError } from 'ky';
 import {
   BaseSalaryItem,
   RequestBaseSalary,
@@ -47,7 +41,7 @@ import {
   putBaseSalary,
   removeBaseSalary,
 } from '@/services/salary';
-import { PaginatedResponse } from '@/lib/types';
+import { ApiErrorResponse, PaginatedResponse } from '@/lib/types';
 import { JobLevel } from '@/services/job-levels/types';
 import { getJobLevels } from '@/services/job-levels';
 import {
@@ -58,6 +52,32 @@ import {
 } from '@/components/ui/alert-dialog';
 import Image from 'next/image';
 import { getJobPositionPagination } from '@/services/job-position';
+import { useDebounce } from '@/hooks/use-debounce';
+
+async function getErrorMessage(error: unknown): Promise<string> {
+  if (error instanceof HTTPError) {
+    try {
+      const errorData = (await error.response.json()) as ApiErrorResponse;
+      if (errorData.message) {
+        return errorData.message;
+      }
+      if (errorData.errors) {
+        const firstFieldErrors = Object.values(errorData.errors)[0];
+        if (firstFieldErrors?.[0]) {
+          return firstFieldErrors[0];
+        }
+      }
+    } catch {
+      // fall through to generic message
+    }
+  }
+
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
+  return 'Unknown error';
+}
 
 // =======================
 // Component
@@ -76,7 +96,16 @@ export default function SettingsBaseSalary() {
     pageIndex: 0,
     pageSize: 10,
   });
+  const [searchInput, setSearchInput] = React.useState('');
+  const [jobLevelFilter, setJobLevelFilter] = React.useState('all');
+  const debouncedSearch = useDebounce(searchInput, 400);
   const queryClient = useQueryClient();
+
+  React.useEffect(() => {
+    setPagination((prev) =>
+      prev.pageIndex === 0 ? prev : { ...prev, pageIndex: 0 },
+    );
+  }, [debouncedSearch, jobLevelFilter]);
 
   const {
     data: baseSalaryData,
@@ -87,11 +116,19 @@ export default function SettingsBaseSalary() {
       'getBaseSalary',
       pagination.pageIndex,
       pagination.pageSize,
+      debouncedSearch,
+      jobLevelFilter,
     ],
     queryFn: () =>
       getBaseSalary({
         page: pagination.pageIndex + 1,
         per_page: pagination.pageSize,
+        ...(debouncedSearch.trim()
+          ? { search: debouncedSearch.trim() }
+          : {}),
+        ...(jobLevelFilter !== 'all'
+          ? { job_level_id: jobLevelFilter }
+          : {}),
       }),
     staleTime: 1000 * 60 * 5,
     placeholderData: (previousData) => previousData,
@@ -220,8 +257,9 @@ export default function SettingsBaseSalary() {
       setOpen(false);
       setEditing(null);
     },
-    onError: (err) => {
-      toast.error(tCommon('saveFailed', { message: err.message }));
+    onError: async (err) => {
+      const message = await getErrorMessage(err);
+      toast.error(tCommon('saveFailed', { message }));
     },
     onSettled: () => setLoading(false),
   });
@@ -237,8 +275,9 @@ export default function SettingsBaseSalary() {
       setOpenDelete(false);
       setEditing(null);
     },
-    onError: (err) => {
-      toast.error(tCommon('deleteFailed', { message: err.message }));
+    onError: async (err) => {
+      const message = await getErrorMessage(err);
+      toast.error(tCommon('deleteFailed', { message }));
     },
     onSettled: () => setLoading(false),
   });
@@ -302,6 +341,34 @@ export default function SettingsBaseSalary() {
             {t('addBaseSalary')}
           </Button>
         </Can>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
+          <Input
+            placeholder={t('searchBaseSalary')}
+            className="pl-9"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+          />
+        </div>
+        <Select
+          value={jobLevelFilter}
+          onValueChange={(value) => setJobLevelFilter(value)}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder={tEmployee('jobLevel')} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t('allJobLevels')}</SelectItem>
+            {jobLevel?.data.map((item) => (
+              <SelectItem key={item.id} value={String(item.id)}>
+                {item.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <DataTable
