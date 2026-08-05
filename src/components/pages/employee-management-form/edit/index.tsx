@@ -29,6 +29,8 @@ import EmployeeUpdateModal from "../sections/edit-modal";
 import ArchieveEmployeeModal from "../sections/archieve-employee-modal";
 import AppSkeleton from "@/components/partials/app-skeleton";
 import { ApiErrorResponse } from "@/lib/types";
+import { COMPENSATION_VIEW_PERMISSION } from "@/lib/compensation";
+import { usePermissionStore } from "@/hooks/use-permission-store";
 
 interface Props {
   employee_profile_id: number;
@@ -40,6 +42,9 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
   const router = useRouter();
   const [isDataLoaded, setIsDataLoaded] = React.useState(false);
   const queryClient = useQueryClient();
+  const canViewCompensation = usePermissionStore((state) =>
+    state.can(COMPENSATION_VIEW_PERMISSION),
+  );
 
   const { data, isLoading } = useQuery({
     queryKey: ["employee-detail", employee_profile_id],
@@ -250,6 +255,8 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
           families,
           social_media_accounts,
           allowances,
+          base_salary,
+          salary_nett,
           team_member,
           id,
           user_id,
@@ -279,8 +286,19 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
           allowance_name: item.allowance_name || "",
         }));
 
+        // When salary is masked (no compensation.view), omit salary fields so BE
+        // can preserve existing values instead of rejecting missing base_salary.
+        const salaryParams = canViewCompensation
+          ? {
+              base_salary: Number(base_salary) || 0,
+              salary_nett: Number(salary_nett) || 0,
+              allowances: validAllowances,
+            }
+          : {};
+
         const baseParams: IMutateEmployeeRequests = {
           ...restValues,
+          ...salaryParams,
           role_id: Number(values.role_id) || 0,
           department_id: Number(values.department_id) || 0,
           job_level_id: Number(values.job_level_id) || 0,
@@ -289,7 +307,6 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
           bank_id: Number(values.bank_id) || 0,
           date_of_birth: dayjs(values.date_of_birth).format("YYYY-MM-DD"),
           start_date: dayjs(values.start_date).format("YYYY-MM-DD"),
-          allowances: validAllowances,
           attachments: attachments || [],
           branch_id: Number(values.branch_id),
           country_code: values.country_code || "",
@@ -380,7 +397,12 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
         toast.error("Failed to prepare form data for submission");
       }
     },
-    [editEmployee, filterValidData, hasValidSocialMediaAccounts],
+    [
+      canViewCompensation,
+      editEmployee,
+      filterValidData,
+      hasValidSocialMediaAccounts,
+    ],
   );
 
   React.useEffect(() => {

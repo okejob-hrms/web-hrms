@@ -95,8 +95,9 @@ export interface IMutateEmployeeRequests {
   start_date: string;
   end_date?: string;
   status: string;
-  base_salary: number | null;
-  salary_nett: number;
+  /** Omitted when the editor lacks compensation.view (BE preserves existing). */
+  base_salary?: number | null;
+  salary_nett?: number;
   allowances?: {
     allowance_type_id: number;
     allowance_value: number;
