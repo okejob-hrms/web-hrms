@@ -35,6 +35,7 @@ import {
 } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { HTTPError } from 'ky';
 import {
   BaseSalaryItem,
   RequestBaseSalary,
@@ -47,7 +48,7 @@ import {
   putBaseSalary,
   removeBaseSalary,
 } from '@/services/salary';
-import { PaginatedResponse } from '@/lib/types';
+import { ApiErrorResponse, PaginatedResponse } from '@/lib/types';
 import { JobLevel } from '@/services/job-levels/types';
 import { getJobLevels } from '@/services/job-levels';
 import {
@@ -58,6 +59,31 @@ import {
 } from '@/components/ui/alert-dialog';
 import Image from 'next/image';
 import { getJobPositionPagination } from '@/services/job-position';
+
+async function getErrorMessage(error: unknown): Promise<string> {
+  if (error instanceof HTTPError) {
+    try {
+      const errorData = (await error.response.json()) as ApiErrorResponse;
+      if (errorData.message) {
+        return errorData.message;
+      }
+      if (errorData.errors) {
+        const firstFieldErrors = Object.values(errorData.errors)[0];
+        if (firstFieldErrors?.[0]) {
+          return firstFieldErrors[0];
+        }
+      }
+    } catch {
+      // fall through to generic message
+    }
+  }
+
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
+  return 'Unknown error';
+}
 
 // =======================
 // Component
@@ -220,8 +246,9 @@ export default function SettingsBaseSalary() {
       setOpen(false);
       setEditing(null);
     },
-    onError: (err) => {
-      toast.error(tCommon('saveFailed', { message: err.message }));
+    onError: async (err) => {
+      const message = await getErrorMessage(err);
+      toast.error(tCommon('saveFailed', { message }));
     },
     onSettled: () => setLoading(false),
   });
@@ -237,8 +264,9 @@ export default function SettingsBaseSalary() {
       setOpenDelete(false);
       setEditing(null);
     },
-    onError: (err) => {
-      toast.error(tCommon('deleteFailed', { message: err.message }));
+    onError: async (err) => {
+      const message = await getErrorMessage(err);
+      toast.error(tCommon('deleteFailed', { message }));
     },
     onSettled: () => setLoading(false),
   });
