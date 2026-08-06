@@ -153,11 +153,13 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
         })),
         phone_number: Number(convertPhoneToNumber(String(values.phone_number))),
         bank_id: Number(values.bank_id),
-        npwp: values.npwp ?? null,
-        bpjs: values.bpjs ?? null,
-        hobby: values.hobby ?? null,
-        achievement: values.achievement ?? null,
-        personal_description: values.personal_description ?? null,
+        npwp: values.npwp?.trim() ? values.npwp : null,
+        bpjs: values.bpjs?.trim() ? values.bpjs : null,
+        hobby: values.hobby?.trim() ? values.hobby : null,
+        achievement: values.achievement?.trim() ? values.achievement : null,
+        personal_description: values.personal_description?.trim()
+          ? values.personal_description
+          : null,
         work_experiences: values.work_experiences?.filter((item) => item.id),
         contact_refferences: values.contact_refferences?.filter(
           (item) => item.id,
@@ -190,7 +192,7 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
 
       mutate(params);
     },
-    [mutate],
+    [form, mutate, tValidation],
   );
 
   const handleAddEmployee = React.useCallback(async () => {

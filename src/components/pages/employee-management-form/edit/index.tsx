@@ -326,11 +326,13 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
           attachments: attachments || [],
           branch_id: Number(values.branch_id),
           country_code: String(values.country_code || "62").replace(/^\+/, ""),
-          npwp: values.npwp ?? null,
-          bpjs: values.bpjs ?? null,
-          hobby: values.hobby ?? null,
-          achievement: values.achievement ?? null,
-          personal_description: values.personal_description ?? null,
+          npwp: values.npwp?.trim() ? values.npwp : null,
+          bpjs: values.bpjs?.trim() ? values.bpjs : null,
+          hobby: values.hobby?.trim() ? values.hobby : null,
+          achievement: values.achievement?.trim() ? values.achievement : null,
+          personal_description: values.personal_description?.trim()
+            ? values.personal_description
+            : null,
         };
 
         const conditionalParams: Partial<IMutateEmployeeRequests> = {
