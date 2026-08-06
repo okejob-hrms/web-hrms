@@ -4,7 +4,6 @@
 import { Form } from "@/components/ui/form";
 import * as React from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { EmployeeinformationSection } from "../sections/employee-information-section";
 import { PersonalInformationSection } from "../sections/personal-information-section";
 import { SalaryInformationSection } from "../sections/salary-information-section";
@@ -15,7 +14,6 @@ import {
   employeeManagementFormDefaultValues,
   toEmploymentStatusPayload,
   toEmploymentStatusValue,
-  createEmployeeManagementFormScheme,
   type EmployeeManagementFormValues,
 } from "../types";
 import { IMutateEmployeeRequests } from "@/services/employees/types";
@@ -45,15 +43,9 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
   const router = useRouter();
   const [isDataLoaded, setIsDataLoaded] = React.useState(false);
   const queryClient = useQueryClient();
-  const t = useTranslations("employee");
   const tValidation = useTranslations("validation");
   const canViewCompensation = usePermissionStore((state) =>
     state.can(COMPENSATION_VIEW_PERMISSION),
-  );
-
-  const employeeSchema = React.useMemo(
-    () => createEmployeeManagementFormScheme(tValidation, t),
-    [tValidation, t],
   );
 
   const { data, isLoading } = useQuery({
@@ -121,8 +113,9 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
       },
     });
 
+  // Keep resolver off on edit: when compensation.view is hidden, base_salary is
+  // intentionally unset/masked and would fail the shared create schema.
   const form = useForm<EmployeeManagementFormValues>({
-    resolver: zodResolver(employeeSchema),
     defaultValues: employeeManagementFormDefaultValues,
     mode: "onChange",
   });
@@ -312,7 +305,7 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
         if (employmentStatus === undefined) {
           form.setError("status", {
             type: "manual",
-            message: "Select a valid status (Active or Inactive)",
+            message: tValidation("employmentStatusInvalid"),
           });
           return;
         }
@@ -431,6 +424,7 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
       filterValidData,
       form,
       hasValidSocialMediaAccounts,
+      tValidation,
     ],
   );
 
