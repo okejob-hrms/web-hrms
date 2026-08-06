@@ -128,6 +128,7 @@ export interface OptionFormProps extends InputFormProps {
   type?: "string" | "number";
   searchValue?: string;
   onSearchChange?: (value: string) => void;
+  allowClear?: boolean;
 }
 
 export type BasicDatePickerProps = DayPickerProps & {
