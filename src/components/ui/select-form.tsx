@@ -42,6 +42,7 @@ const SelectForm: React.FC<OptionFormProps> = ({
   disabled,
   searchValue,
   onSearchChange,
+  allowClear,
 }) => {
   const tCommon = useTranslations("common");
 
@@ -61,6 +62,7 @@ const SelectForm: React.FC<OptionFormProps> = ({
       disabled={disabled}
       searchValue={searchValue}
       onSearchChange={onSearchChange}
+      allowClear={allowClear}
     />
   );
 };
