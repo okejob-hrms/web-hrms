@@ -4,6 +4,19 @@ import z from "zod";
 
 type TranslationFn = ReturnType<typeof useTranslations>;
 
+/** Employment status: Active=1, Inactive=2. Legacy inactive `0` maps to `2`. */
+export function toEmploymentStatusValue(
+  status: string | number | null | undefined,
+): "1" | "2" | "" {
+  if (status === null || status === undefined || status === "") {
+    return "";
+  }
+  const normalized = String(status);
+  if (normalized === "1") return "1";
+  if (normalized === "2" || normalized === "0") return "2";
+  return "";
+}
+
 const attachmentLabelKeys: Record<string, string> = {
   cv: "attachmentCv",
   graduation_certificate: "attachmentGraduationCertificate",
@@ -96,7 +109,12 @@ export function createEmployeeManagementFormScheme(
         { message: t("startDateRequired") },
       ),
     end_date: z.date().or(z.string()).optional().nullable(),
-    status: z.string(),
+    status: z
+      .string()
+      .min(1, t("employmentStatusRequired"))
+      .refine((value) => ["1", "2"].includes(value), {
+        message: t("employmentStatusInvalid"),
+      }),
     base_salary: z
       .number({ message: t("baseSalaryRequired") })
       .min(0, t("baseSalaryRequired")),
