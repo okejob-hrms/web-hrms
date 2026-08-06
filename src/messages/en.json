@@ -297,6 +297,8 @@
     "dateOfBirthRequired": "Date of birth is required",
     "maritalStatusRequired": "Marital status is required",
     "maritalStatusInvalid": "Select a valid marital status",
+    "employmentStatusRequired": "Status is required",
+    "employmentStatusInvalid": "Select a valid status (Active or Inactive)",
     "bloodTypeRequired": "Blood type is required",
     "heightRequired": "Height is required",
     "heightMin": "Height must be at least 1 cm",

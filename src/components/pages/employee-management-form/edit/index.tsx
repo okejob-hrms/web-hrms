@@ -13,6 +13,7 @@ import { AttachmentsSection } from "../sections/attachments-section";
 import { Button } from "../../../ui/button";
 import {
   employeeManagementFormDefaultValues,
+  toEmploymentStatusValue,
   type EmployeeManagementFormValues,
 } from "../types";
 import { IMutateEmployeeRequests } from "@/services/employees/types";
@@ -198,7 +199,7 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
           employeeDetails.employment?.department_id?.toString() || "",
         job_level_id:
           employeeDetails.employment?.job_level_id?.toString() || "",
-        status: employeeDetails.employment?.status?.toString() || "",
+        status: toEmploymentStatusValue(employeeDetails.employment?.status),
         team_member: employeeDetails.team_member?.team_id?.toString() || "",
         // base_salary: Number(employeeDetails.employment?.base_salary) || 0,
         salary_nett: Number(employeeDetails.employment?.salary_nett) || 0,
@@ -305,8 +306,8 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
           job_position_id: Number(values.job_position_id) || 0,
           phone_number: Number(values.phone_number) || 0,
           bank_id: Number(values.bank_id) || 0,
-          status: String(Number(values.status) || 1),
-          marital_status: String(Number(values.marital_status) || 1),
+          status: toEmploymentStatusValue(values.status),
+          marital_status: String(values.marital_status),
           date_of_birth: dayjs(values.date_of_birth).format("YYYY-MM-DD"),
           start_date: dayjs(values.start_date).format("YYYY-MM-DD"),
           attachments: attachments || [],
