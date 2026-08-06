@@ -297,6 +297,8 @@
     "dateOfBirthRequired": "Tanggal lahir wajib diisi",
     "maritalStatusRequired": "Status pernikahan wajib dipilih",
     "maritalStatusInvalid": "Pilih status pernikahan yang valid",
+    "employmentStatusRequired": "Status wajib dipilih",
+    "employmentStatusInvalid": "Pilih status yang valid (Aktif atau Tidak Aktif)",
     "bloodTypeRequired": "Golongan darah wajib dipilih",
     "heightRequired": "Tinggi badan wajib diisi",
     "heightMin": "Tinggi badan minimal 1 cm",
