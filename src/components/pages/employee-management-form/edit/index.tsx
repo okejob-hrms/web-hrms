@@ -305,6 +305,8 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
           job_position_id: Number(values.job_position_id) || 0,
           phone_number: Number(values.phone_number) || 0,
           bank_id: Number(values.bank_id) || 0,
+          status: String(Number(values.status) || 1),
+          marital_status: String(Number(values.marital_status) || 1),
           date_of_birth: dayjs(values.date_of_birth).format("YYYY-MM-DD"),
           start_date: dayjs(values.start_date).format("YYYY-MM-DD"),
           attachments: attachments || [],

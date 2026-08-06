@@ -882,8 +882,9 @@ export const EmployeeinformationSection = React.memo(
             name="status"
             label={tCommon("status")}
             options={[
+              // Employment::STATUS_ACTIVE=1, STATUS_INACTIVE=2
               { label: tCommon("active"), value: "1" },
-              { label: tCommon("inactive"), value: "0" },
+              { label: tCommon("inactive"), value: "2" },
             ]}
             required
           />

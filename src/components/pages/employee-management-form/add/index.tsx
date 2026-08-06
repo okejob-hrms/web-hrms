@@ -124,6 +124,8 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
         department_id: Number(values.department_id),
         job_level_id: Number(values.job_level_id),
         job_position_id: Number(values.job_position_id),
+        status: String(Number(values.status) || 1),
+        marital_status: String(Number(values.marital_status) || 1),
         ...(filteredSocialMedia && {
           social_media_accounts: filteredSocialMedia,
         }),
