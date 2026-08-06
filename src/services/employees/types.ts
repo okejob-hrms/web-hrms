@@ -94,7 +94,7 @@ export interface IMutateEmployeeRequests {
   team_id?: number;
   start_date: string;
   end_date?: string;
-  status: string;
+  status: string | number;
   /** Omitted when the editor lacks compensation.view (BE preserves existing). */
   base_salary?: number | null;
   salary_nett?: number;
@@ -131,6 +131,7 @@ export interface IMutateEmployeeRequests {
 export interface IEmployeeDetailsResponse {
   id: number;
   user_id: number;
+  country_code?: string | number | null;
   phone_number: string;
   gender: string;
   date_of_birth: string;

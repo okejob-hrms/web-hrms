@@ -4,7 +4,6 @@
 import { Form } from "@/components/ui/form";
 import * as React from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { EmployeeinformationSection } from "../sections/employee-information-section";
 import { PersonalInformationSection } from "../sections/personal-information-section";
 import { SalaryInformationSection } from "../sections/salary-information-section";
@@ -13,6 +12,7 @@ import { AttachmentsSection } from "../sections/attachments-section";
 import { Button } from "../../../ui/button";
 import {
   employeeManagementFormDefaultValues,
+  toEmploymentStatusPayload,
   toEmploymentStatusValue,
   type EmployeeManagementFormValues,
 } from "../types";
@@ -32,7 +32,7 @@ import AppSkeleton from "@/components/partials/app-skeleton";
 import { ApiErrorResponse } from "@/lib/types";
 import { COMPENSATION_VIEW_PERMISSION } from "@/lib/compensation";
 import { usePermissionStore } from "@/hooks/use-permission-store";
-
+import { useTranslations } from "next-intl";
 interface Props {
   employee_profile_id: number;
 }
@@ -43,6 +43,7 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
   const router = useRouter();
   const [isDataLoaded, setIsDataLoaded] = React.useState(false);
   const queryClient = useQueryClient();
+  const tValidation = useTranslations("validation");
   const canViewCompensation = usePermissionStore((state) =>
     state.can(COMPENSATION_VIEW_PERMISSION),
   );
@@ -112,8 +113,9 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
       },
     });
 
+  // Keep resolver off on edit: when compensation.view is hidden, base_salary is
+  // intentionally unset/masked and would fail the shared create schema.
   const form = useForm<EmployeeManagementFormValues>({
-    // resolver: zodResolver(createEmployeeManagementFormScheme(tValidation, t)),
     defaultValues: employeeManagementFormDefaultValues,
     mode: "onChange",
   });
@@ -167,6 +169,8 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
         name: employeeDetails.user?.name || "",
         email: employeeDetails.user?.email || "",
         phone_number: employeeDetails.phone_number?.toString() || "",
+        country_code:
+          employeeDetails.country_code?.toString().replace(/^\+/, "") || "62",
         date_of_birth: employeeDetails.date_of_birth
           ? new Date(employeeDetails.date_of_birth)
           : new Date(),
@@ -297,6 +301,15 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
             }
           : {};
 
+        const employmentStatus = toEmploymentStatusPayload(values.status);
+        if (employmentStatus === undefined) {
+          form.setError("status", {
+            type: "manual",
+            message: tValidation("employmentStatusInvalid"),
+          });
+          return;
+        }
+
         const baseParams: IMutateEmployeeRequests = {
           ...restValues,
           ...salaryParams,
@@ -306,13 +319,20 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
           job_position_id: Number(values.job_position_id) || 0,
           phone_number: Number(values.phone_number) || 0,
           bank_id: Number(values.bank_id) || 0,
-          status: toEmploymentStatusValue(values.status),
+          status: employmentStatus,
           marital_status: String(values.marital_status),
           date_of_birth: dayjs(values.date_of_birth).format("YYYY-MM-DD"),
           start_date: dayjs(values.start_date).format("YYYY-MM-DD"),
           attachments: attachments || [],
           branch_id: Number(values.branch_id),
-          country_code: values.country_code || "",
+          country_code: String(values.country_code || "62").replace(/^\+/, ""),
+          npwp: values.npwp?.trim() ? values.npwp : null,
+          bpjs: values.bpjs?.trim() ? values.bpjs : null,
+          hobby: values.hobby?.trim() ? values.hobby : null,
+          achievement: values.achievement?.trim() ? values.achievement : null,
+          personal_description: values.personal_description?.trim()
+            ? values.personal_description
+            : null,
         };
 
         const conditionalParams: Partial<IMutateEmployeeRequests> = {
@@ -404,7 +424,9 @@ export const EditEmployeeForm = React.memo(function EditEmployee({
       canViewCompensation,
       editEmployee,
       filterValidData,
+      form,
       hasValidSocialMediaAccounts,
+      tValidation,
     ],
   );
 

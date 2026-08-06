@@ -11,10 +11,29 @@ export function toEmploymentStatusValue(
   if (status === null || status === undefined || status === "") {
     return "";
   }
-  const normalized = String(status);
-  if (normalized === "1") return "1";
-  if (normalized === "2" || normalized === "0") return "2";
+  const normalized = String(status).trim().toLowerCase();
+  if (normalized === "1" || normalized === "active" || normalized === "aktif") {
+    return "1";
+  }
+  if (
+    normalized === "2" ||
+    normalized === "0" ||
+    normalized === "inactive" ||
+    normalized === "tidak aktif"
+  ) {
+    return "2";
+  }
   return "";
+}
+
+/** API expects numeric employment status (1|2). */
+export function toEmploymentStatusPayload(
+  status: string | number | null | undefined,
+): 1 | 2 | undefined {
+  const value = toEmploymentStatusValue(status);
+  if (value === "1") return 1;
+  if (value === "2") return 2;
+  return undefined;
 }
 
 const attachmentLabelKeys: Record<string, string> = {

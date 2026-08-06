@@ -13,7 +13,7 @@ import { AttachmentsSection } from "../sections/attachments-section";
 import {
   createEmployeeManagementFormScheme,
   employeeManagementFormDefaultValues,
-  toEmploymentStatusValue,
+  toEmploymentStatusPayload,
   type EmployeeManagementFormValues,
 } from "../types";
 import { IMutateEmployeeRequests } from "@/services/employees/types";
@@ -119,18 +119,27 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
 
       const { end_date, countryCode, team_member, ...restValues } = values;
 
+      const employmentStatus = toEmploymentStatusPayload(values.status);
+      if (employmentStatus === undefined) {
+        form.setError("status", {
+          type: "manual",
+          message: tValidation("employmentStatusInvalid"),
+        });
+        return;
+      }
+
       const params: IMutateEmployeeRequests = {
         ...restValues,
         role_id: Number(values.role_id),
         department_id: Number(values.department_id),
         job_level_id: Number(values.job_level_id),
         job_position_id: Number(values.job_position_id),
-        status: toEmploymentStatusValue(values.status),
+        status: employmentStatus,
         marital_status: String(values.marital_status),
         ...(filteredSocialMedia && {
           social_media_accounts: filteredSocialMedia,
         }),
-        country_code: String(values.country_code),
+        country_code: String(values.country_code || "62").replace(/^\+/, ""),
         branch_id: Number(values.branch_id),
         team_id: Number(team_member),
         date_of_birth: dayjs(values.date_of_birth).format("YYYY-MM-DD"),
@@ -144,6 +153,13 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
         })),
         phone_number: Number(convertPhoneToNumber(String(values.phone_number))),
         bank_id: Number(values.bank_id),
+        npwp: values.npwp?.trim() ? values.npwp : null,
+        bpjs: values.bpjs?.trim() ? values.bpjs : null,
+        hobby: values.hobby?.trim() ? values.hobby : null,
+        achievement: values.achievement?.trim() ? values.achievement : null,
+        personal_description: values.personal_description?.trim()
+          ? values.personal_description
+          : null,
         work_experiences: values.work_experiences?.filter((item) => item.id),
         contact_refferences: values.contact_refferences?.filter(
           (item) => item.id,
@@ -176,7 +192,7 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
 
       mutate(params);
     },
-    [mutate],
+    [form, mutate, tValidation],
   );
 
   const handleAddEmployee = React.useCallback(async () => {

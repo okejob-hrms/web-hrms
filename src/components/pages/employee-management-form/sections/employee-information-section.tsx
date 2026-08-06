@@ -887,6 +887,7 @@ export const EmployeeinformationSection = React.memo(
               { label: tCommon("inactive"), value: "2" },
             ]}
             required
+            allowClear={false}
           />
           <Separator className="md:col-span-2 my-4" />
         </div>
