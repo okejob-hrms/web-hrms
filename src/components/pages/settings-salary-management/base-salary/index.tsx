@@ -216,7 +216,9 @@ export default function SettingsBaseSalary() {
             onEdit={() => {
               setEditing(item);
               setForm({
-                ...item,
+                job_position_id: Number(item.job_position_id),
+                job_level_id: Number(item.job_level_id),
+                amount: Number(item.amount),
                 effective_date: dayjs(item.effective_date).format('YYYY-MM-DD'),
                 end_date: dayjs(item.end_date).format('YYYY-MM-DD'),
               });
@@ -244,7 +246,7 @@ export default function SettingsBaseSalary() {
     { id?: number; data: RequestBaseSalary }
   >({
     mutationFn: ({ id, data }) => {
-      if (id) {
+      if (id != null) {
         return putBaseSalary(id, data);
       }
       return postBaseSalary(data);
@@ -311,7 +313,25 @@ export default function SettingsBaseSalary() {
     )
       return toast.error(tCommon('fillAllData'));
 
-    saveMutation.mutate({ id: editing?.id, data: form });
+    const payload: RequestBaseSalary = {
+      job_position_id: Number(form.job_position_id),
+      job_level_id: Number(form.job_level_id),
+      amount: Number(form.amount),
+      effective_date: form.effective_date,
+      end_date: form.end_date,
+    };
+
+    // Edit mode must always PUT; posting would collide with this same row.
+    if (editing) {
+      const editingId = Number(editing.id);
+      if (!Number.isFinite(editingId) || editingId <= 0) {
+        return toast.error(tCommon('saveFailed', { message: 'Missing base salary id' }));
+      }
+      saveMutation.mutate({ id: editingId, data: payload });
+      return;
+    }
+
+    saveMutation.mutate({ data: payload });
   };
 
   const resetForm = () => {
