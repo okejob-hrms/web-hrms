@@ -344,6 +344,7 @@ export interface ICompanyBranches {
   payroll_bank_account_name: string;
   payroll_currency: string;
   settings: IBranchSettings;
+  timezone?: string;
   created_at: string;
   updated_at: string;
   is_primary: boolean;
@@ -367,6 +368,9 @@ export interface IMutateCompanyBranchRequest {
   latitude: string;
   longitude: string;
   max_radius?: number;
+  settings?: {
+    timezone: string;
+  };
 }
 
 export interface LeaveConfig {

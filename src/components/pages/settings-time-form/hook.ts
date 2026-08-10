@@ -5,11 +5,15 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getShift, updateAttendanceTime } from "@/services/settings";
+import { getBranchDetails, getShift, updateAttendanceTime } from "@/services/settings";
 import { AttendanceRequest, ShiftResponse } from "@/services/settings/types";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { AttendanceConfigData } from "../settings-time-list/hook";
+import {
+  DEFAULT_INDONESIA_TIMEZONE,
+  normalizeIndonesiaTimezone,
+} from "@/lib/indonesia-timezone";
 
 // -------------------------
 // SCHEMA & TYPES
@@ -184,6 +188,18 @@ export function useCompanyForm() {
       staleTime: 1000 * 60 * 5,
     });
 
+  const { data: branchDetail } = useQuery({
+    queryKey: ["branch-details", branch],
+    queryFn: () => getBranchDetails(Number(branch)),
+    enabled: !!branch && !Number.isNaN(Number(branch)),
+  });
+
+  const branchTimezone = normalizeIndonesiaTimezone(
+    branchDetail?.data?.timezone ||
+      branchDetail?.data?.settings?.timezone ||
+      DEFAULT_INDONESIA_TIMEZONE,
+  );
+
   const form = useForm<CompanyFormValues>({
     resolver: zodResolver(companySchema),
     defaultValues: data && shiftData ? mapFromApiResponse(data) : {},
@@ -232,5 +248,6 @@ export function useCompanyForm() {
     handleBack,
     daysOfWeek,
     shiftData,
+    branchTimezone,
   };
 }

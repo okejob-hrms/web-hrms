@@ -15,6 +15,11 @@ import {
 import { ApiErrorResponse } from "@/lib/types";
 import { countryCodes, getDefaultCountryCode } from "@/lib/country-codes";
 import { parsePhoneNumber } from "@/lib/phone-utils";
+import {
+  DEFAULT_INDONESIA_TIMEZONE,
+  INDONESIA_TIMEZONES,
+  normalizeIndonesiaTimezone,
+} from "@/lib/indonesia-timezone";
 
 export const formSchema = z.object({
   is_primary: z.boolean(),
@@ -40,6 +45,7 @@ export const formSchema = z.object({
   latitude: z.string().min(1, "Attendance location is required"),
   longitude: z.string().min(1, "Attendance location is required"),
   max_radius: z.number().optional(),
+  timezone: z.enum(INDONESIA_TIMEZONES),
 });
 
 export type CompanyBranchFormSchema = z.infer<typeof formSchema>;
@@ -62,6 +68,7 @@ export const defaultValues: CompanyBranchFormSchema = {
   latitude: "",
   longitude: "",
   max_radius: 0,
+  timezone: DEFAULT_INDONESIA_TIMEZONE,
 };
 
 export function useCompanyBranchForm() {
@@ -136,6 +143,9 @@ export function useCompanyBranchForm() {
         latitude: branchData.latitude || "",
         longitude: branchData.longitude || "",
         max_radius: branchData.max_radius || 0,
+        timezone: normalizeIndonesiaTimezone(
+          branchData.timezone || branchData.settings?.timezone,
+        ),
       };
 
       form.reset(formData);
@@ -229,11 +239,14 @@ export function useCompanyBranchForm() {
   const handleSubmit = React.useCallback(
     (values: CompanyBranchFormSchema) => {
       try {
-        const { max_radius, ...restValues } = values;
+        const { max_radius, timezone, ...restValues } = values;
         const submitData = {
           ...restValues,
           latitude: map.lat.toString(),
           longitude: map.lng.toString(),
+          settings: {
+            timezone: normalizeIndonesiaTimezone(timezone),
+          },
           ...(max_radius && { max_radius }),
         };
 

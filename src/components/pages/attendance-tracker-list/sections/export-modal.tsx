@@ -17,6 +17,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Download } from 'lucide-react';
 import { exportAttendanceExcel } from '@/services/attendance';
+import { getBranchesAll } from '@/services/settings';
+import {
+  DEFAULT_INDONESIA_TIMEZONE,
+  todayInIndonesiaTimezone,
+} from '@/lib/indonesia-timezone';
 
 interface Props {
   isOpen: boolean;
@@ -33,18 +38,48 @@ export default function AttendanceExportModal({
 }: Props) {
   const t = useTranslations('attendance');
   const tCommon = useTranslations('common');
-  const today = dayjs().format('YYYY-MM-DD');
+  const [anchorToday, setAnchorToday] = React.useState(() =>
+    todayInIndonesiaTimezone(DEFAULT_INDONESIA_TIMEZONE),
+  );
 
-  const [startDate, setStartDate] = React.useState(defaultStartDate || today);
-  const [endDate, setEndDate] = React.useState(defaultEndDate || today);
+  const [startDate, setStartDate] = React.useState(
+    defaultStartDate || anchorToday,
+  );
+  const [endDate, setEndDate] = React.useState(defaultEndDate || anchorToday);
   const [isExporting, setIsExporting] = React.useState(false);
 
   React.useEffect(() => {
-    if (isOpen) {
-      setStartDate(defaultStartDate || today);
-      setEndDate(defaultEndDate || today);
-    }
-  }, [isOpen, defaultStartDate, defaultEndDate, today]);
+    if (!isOpen) return;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await getBranchesAll();
+        const primary = res.data?.find((b) => b.is_primary);
+        const tz =
+          primary?.timezone ||
+          primary?.settings?.timezone ||
+          DEFAULT_INDONESIA_TIMEZONE;
+        const today = todayInIndonesiaTimezone(tz);
+        if (!cancelled) {
+          setAnchorToday(today);
+          setStartDate(defaultStartDate || today);
+          setEndDate(defaultEndDate || today);
+        }
+      } catch {
+        const today = todayInIndonesiaTimezone(DEFAULT_INDONESIA_TIMEZONE);
+        if (!cancelled) {
+          setAnchorToday(today);
+          setStartDate(defaultStartDate || today);
+          setEndDate(defaultEndDate || today);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, defaultStartDate, defaultEndDate]);
 
   const handleExport = async () => {
     if (!startDate || !endDate) {
@@ -115,6 +150,7 @@ export default function AttendanceExportModal({
               type="date"
               value={endDate}
               min={startDate}
+              max={anchorToday}
               onChange={(e) => setEndDate(e.target.value)}
             />
           </div>
@@ -129,11 +165,7 @@ export default function AttendanceExportModal({
           >
             {tCommon('cancel')}
           </Button>
-          <Button
-            type="button"
-            onClick={handleExport}
-            disabled={isExporting}
-          >
+          <Button type="button" onClick={handleExport} disabled={isExporting}>
             <Download className="h-4 w-4" />
             {isExporting ? tCommon('processing') : t('exportExcel')}
           </Button>

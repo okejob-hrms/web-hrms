@@ -23,8 +23,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Plus, Trash2 } from 'lucide-react';
 import TitleContent from '@/components/ui/title';
 import { AttendanceConfigData } from '../settings-time-list/hook';
+import { useTranslations } from 'next-intl';
+import { indonesiaTimezoneAbbr } from '@/lib/indonesia-timezone';
 
 export default function SettingsAttendanceConfigurationForm() {
+  const t = useTranslations('settings');
   const {
     form,
     onSubmit,
@@ -32,6 +35,7 @@ export default function SettingsAttendanceConfigurationForm() {
     handleBack,
     daysOfWeek,
     shiftData,
+    branchTimezone,
   } = useCompanyForm();
 
   const [workSchedules, setWorkSchedules] = useState<
@@ -97,6 +101,13 @@ export default function SettingsAttendanceConfigurationForm() {
           className="space-y-8"
         >
           <h2 className="text-xl font-semibold pt-6">Working Hours</h2>
+          {branchTimezone && (
+            <p className="text-sm text-muted-foreground -mt-4">
+              {t('attendanceTimezoneHint', {
+                abbr: indonesiaTimezoneAbbr(branchTimezone),
+              })}
+            </p>
+          )}
 
           {/* PART WORKING HOUR  */}
           {daysOfWeek.map((item, key) => (
