@@ -61,8 +61,20 @@ export function SearchableSelect({
   const tCommon = useTranslations("common");
   const [open, setOpen] = useState(false);
   const [internalSearchTerm, setInternalSearchTerm] = useState("");
-  const searchTerm = externalSearchValue ?? internalSearchTerm;
-  const setSearchTerm = externalOnSearchChange ?? setInternalSearchTerm;
+  // Fully controlled only when searchValue is provided. If callers pass
+  // onSearchChange alone (server-side search), keep local input state so typing
+  // still updates the CommandInput while notifying the parent.
+  const isSearchControlled = externalSearchValue !== undefined;
+  const searchTerm = isSearchControlled
+    ? externalSearchValue
+    : internalSearchTerm;
+
+  const setSearchTerm = (next: string) => {
+    if (!isSearchControlled) {
+      setInternalSearchTerm(next);
+    }
+    externalOnSearchChange?.(next);
+  };
 
   const hasValue = value !== undefined && value !== null && value !== "";
 
@@ -213,6 +225,8 @@ export function ComboboxForm({
   emptyMessage,
   searchPlaceholder,
   popoverClassName,
+  isLoading,
+  loadingMessage,
 }: ComboboxProps) {
   const { control } = useFormContext();
   const tCommon = useTranslations("common");
@@ -251,6 +265,8 @@ export function ComboboxForm({
               emptyMessage={emptyMessage}
               searchPlaceholder={searchPlaceholder}
               popoverClassName={popoverClassName}
+              isLoading={isLoading}
+              loadingMessage={loadingMessage}
             />
           </FormControl>
           <FormMessage />

@@ -286,6 +286,8 @@ export interface ComboboxProps extends InputFormProps {
   modalChildren?: React.ReactNode;
   onSearchChange?: (value: string) => void;
   searchValue?: string;
+  isLoading?: boolean;
+  loadingMessage?: string;
   renderOption?: (
     option: ComboboxOption,
     fieldValue: any,

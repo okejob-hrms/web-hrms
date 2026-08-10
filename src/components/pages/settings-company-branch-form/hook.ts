@@ -240,11 +240,13 @@ export function useCompanyBranchForm() {
     (values: CompanyBranchFormSchema) => {
       try {
         const { max_radius, timezone, ...restValues } = values;
+        const existingSettings = branchDetailData?.data?.settings ?? {};
         const submitData = {
           ...restValues,
           latitude: map.lat.toString(),
           longitude: map.lng.toString(),
           settings: {
+            ...existingSettings,
             timezone: normalizeIndonesiaTimezone(timezone),
           },
           ...(max_radius && { max_radius }),
@@ -260,7 +262,15 @@ export function useCompanyBranchForm() {
         toast.error("Failed to submit form");
       }
     },
-    [addBranch, editBranch, map.lat, map.lng, isEditMode, id],
+    [
+      addBranch,
+      editBranch,
+      map.lat,
+      map.lng,
+      isEditMode,
+      id,
+      branchDetailData?.data?.settings,
+    ],
   );
 
   const handlePhoto = () => {

@@ -38,18 +38,30 @@ export default function AttendanceExportModal({
 }: Props) {
   const t = useTranslations('attendance');
   const tCommon = useTranslations('common');
-  const [anchorToday, setAnchorToday] = React.useState(() =>
-    todayInIndonesiaTimezone(DEFAULT_INDONESIA_TIMEZONE),
-  );
-
+  const fallbackToday = todayInIndonesiaTimezone(DEFAULT_INDONESIA_TIMEZONE);
+  const [anchorToday, setAnchorToday] = React.useState(fallbackToday);
   const [startDate, setStartDate] = React.useState(
-    defaultStartDate || anchorToday,
+    defaultStartDate || fallbackToday,
   );
-  const [endDate, setEndDate] = React.useState(defaultEndDate || anchorToday);
+  const [endDate, setEndDate] = React.useState(defaultEndDate || fallbackToday);
   const [isExporting, setIsExporting] = React.useState(false);
+  const openedDefaultsRef = React.useRef<{ start: string; end: string } | null>(
+    null,
+  );
 
   React.useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) {
+      openedDefaultsRef.current = null;
+      return;
+    }
+
+    const initialToday = todayInIndonesiaTimezone(DEFAULT_INDONESIA_TIMEZONE);
+    const initialStart = defaultStartDate || initialToday;
+    const initialEnd = defaultEndDate || initialToday;
+    openedDefaultsRef.current = { start: initialStart, end: initialEnd };
+    setAnchorToday(initialToday);
+    setStartDate(initialStart);
+    setEndDate(initialEnd);
 
     let cancelled = false;
     (async () => {
@@ -61,18 +73,23 @@ export default function AttendanceExportModal({
           primary?.settings?.timezone ||
           DEFAULT_INDONESIA_TIMEZONE;
         const today = todayInIndonesiaTimezone(tz);
-        if (!cancelled) {
-          setAnchorToday(today);
-          setStartDate(defaultStartDate || today);
-          setEndDate(defaultEndDate || today);
-        }
+        if (cancelled) return;
+
+        setAnchorToday(today);
+        const defaults = openedDefaultsRef.current;
+        // Only replace dates if the user has not edited them since open.
+        setStartDate((current) =>
+          defaults && current === defaults.start
+            ? defaultStartDate || today
+            : current,
+        );
+        setEndDate((current) =>
+          defaults && current === defaults.end
+            ? defaultEndDate || today
+            : current,
+        );
       } catch {
-        const today = todayInIndonesiaTimezone(DEFAULT_INDONESIA_TIMEZONE);
-        if (!cancelled) {
-          setAnchorToday(today);
-          setStartDate(defaultStartDate || today);
-          setEndDate(defaultEndDate || today);
-        }
+        // Keep sync defaults already applied on open.
       }
     })();
 
@@ -87,7 +104,17 @@ export default function AttendanceExportModal({
       return;
     }
 
+    if (dayjs(startDate).isAfter(dayjs(anchorToday), 'day')) {
+      toast.error(t('exportDateInvalid'));
+      return;
+    }
+
     if (dayjs(endDate).isBefore(dayjs(startDate), 'day')) {
+      toast.error(t('exportDateInvalid'));
+      return;
+    }
+
+    if (dayjs(endDate).isAfter(dayjs(anchorToday), 'day')) {
       toast.error(t('exportDateInvalid'));
       return;
     }
@@ -140,6 +167,7 @@ export default function AttendanceExportModal({
               id="export-start-date"
               type="date"
               value={startDate}
+              max={anchorToday}
               onChange={(e) => setStartDate(e.target.value)}
             />
           </div>
