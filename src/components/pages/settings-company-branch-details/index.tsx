@@ -7,6 +7,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useRouter } from "next/navigation";
 import { useCompanyBranchDetails } from "./hook";
 import AppSkeleton from "@/components/partials/app-skeleton";
+import { useTranslations } from "next-intl";
+import {
+  INDONESIA_TIMEZONE_MESSAGE_KEYS,
+  indonesiaTimezoneAbbr,
+  normalizeIndonesiaTimezone,
+} from "@/lib/indonesia-timezone";
 
 function InfoItem({ label, value }: { label: string; value: string }) {
   return (
@@ -19,6 +25,7 @@ function InfoItem({ label, value }: { label: string; value: string }) {
 
 export default function SettingsCompanyBranchDetails() {
   const router = useRouter();
+  const t = useTranslations("settings");
   const { data, isLoading, isError } = useCompanyBranchDetails();
 
   if (isLoading)
@@ -28,6 +35,17 @@ export default function SettingsCompanyBranchDetails() {
       </div>
     );
   if (isError || !data) return <p>Failed to load company profile</p>;
+
+  const timezone = normalizeIndonesiaTimezone(
+    data.timezone || data.settings?.timezone,
+  );
+  const timezoneLabel = t(
+    INDONESIA_TIMEZONE_MESSAGE_KEYS[timezone] as
+      | "timezoneWibJakarta"
+      | "timezoneWibPontianak"
+      | "timezoneWitaMakassar"
+      | "timezoneWitJayapura",
+  );
 
   return (
     <div className="font-sans md:px-[125px] px-4 space-y-4">
@@ -56,6 +74,10 @@ export default function SettingsCompanyBranchDetails() {
               value={data.business_registration_number}
             />
             <InfoItem label="Website (Optional)" value={data.website ?? "-"} />
+            <InfoItem
+              label={t("timezone")}
+              value={`${indonesiaTimezoneAbbr(timezone)} · ${timezoneLabel}`}
+            />
             <div className="md:col-span-3">
               <InfoItem label="Company Address" value={data.address} />
             </div>

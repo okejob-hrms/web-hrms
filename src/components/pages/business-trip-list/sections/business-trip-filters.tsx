@@ -166,6 +166,7 @@ export default function BusinessTripFiltersSection({
             placeholder="Select employee"
             valueType="number"
             options={employeeOptions}
+            searchValue={employeeSearch}
             onSearchChange={setEmployeeSearch}
           />
         </form>
