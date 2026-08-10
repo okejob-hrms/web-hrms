@@ -154,6 +154,7 @@ export const AttendanceTrackerList = ({
           <div className="flex flex-col">
             <span>
               {att.clock.in_at || '-'} — {att.clock.out_at || '-'}
+              {att.timezone_abbr ? ` (${att.timezone_abbr})` : ''}
             </span>
             <span className="text-muted-foreground text-xs">
               {tCommon('duration')} {att.duration || '-'}
@@ -577,7 +578,12 @@ export const AttendanceTrackerList = ({
                               <span className="text-muted-foreground text-xs">
                                 {t('clockIn')}
                               </span>
-                              <span>{item.clock.in_at || '-'}</span>
+                              <span>
+                                {item.clock.in_at || '-'}
+                                {item.timezone_abbr
+                                  ? ` ${item.timezone_abbr}`
+                                  : ''}
+                              </span>
                             </div>
                             <Minus
                               className="text-muted-foreground"
@@ -598,6 +604,9 @@ export const AttendanceTrackerList = ({
                               </span>
                               <span className="text-warning text-end">
                                 {item.clock.out_at || '-'}
+                                {item.timezone_abbr
+                                  ? ` ${item.timezone_abbr}`
+                                  : ''}
                               </span>
                             </div>
                           </div>

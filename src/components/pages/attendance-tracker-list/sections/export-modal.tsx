@@ -17,6 +17,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Download } from 'lucide-react';
 import { exportAttendanceExcel } from '@/services/attendance';
+import { getBranchesAll } from '@/services/settings';
+import {
+  DEFAULT_INDONESIA_TIMEZONE,
+  todayInIndonesiaTimezone,
+} from '@/lib/indonesia-timezone';
 
 interface Props {
   isOpen: boolean;
@@ -33,18 +38,65 @@ export default function AttendanceExportModal({
 }: Props) {
   const t = useTranslations('attendance');
   const tCommon = useTranslations('common');
-  const today = dayjs().format('YYYY-MM-DD');
-
-  const [startDate, setStartDate] = React.useState(defaultStartDate || today);
-  const [endDate, setEndDate] = React.useState(defaultEndDate || today);
+  const fallbackToday = todayInIndonesiaTimezone(DEFAULT_INDONESIA_TIMEZONE);
+  const [anchorToday, setAnchorToday] = React.useState(fallbackToday);
+  const [startDate, setStartDate] = React.useState(
+    defaultStartDate || fallbackToday,
+  );
+  const [endDate, setEndDate] = React.useState(defaultEndDate || fallbackToday);
   const [isExporting, setIsExporting] = React.useState(false);
+  const openedDefaultsRef = React.useRef<{ start: string; end: string } | null>(
+    null,
+  );
 
   React.useEffect(() => {
-    if (isOpen) {
-      setStartDate(defaultStartDate || today);
-      setEndDate(defaultEndDate || today);
+    if (!isOpen) {
+      openedDefaultsRef.current = null;
+      return;
     }
-  }, [isOpen, defaultStartDate, defaultEndDate, today]);
+
+    const initialToday = todayInIndonesiaTimezone(DEFAULT_INDONESIA_TIMEZONE);
+    const initialStart = defaultStartDate || initialToday;
+    const initialEnd = defaultEndDate || initialToday;
+    openedDefaultsRef.current = { start: initialStart, end: initialEnd };
+    setAnchorToday(initialToday);
+    setStartDate(initialStart);
+    setEndDate(initialEnd);
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await getBranchesAll();
+        const primary = res.data?.find((b) => b.is_primary);
+        const tz =
+          primary?.timezone ||
+          primary?.settings?.timezone ||
+          DEFAULT_INDONESIA_TIMEZONE;
+        const today = todayInIndonesiaTimezone(tz);
+        if (cancelled) return;
+
+        setAnchorToday(today);
+        const defaults = openedDefaultsRef.current;
+        // Only replace dates if the user has not edited them since open.
+        setStartDate((current) =>
+          defaults && current === defaults.start
+            ? defaultStartDate || today
+            : current,
+        );
+        setEndDate((current) =>
+          defaults && current === defaults.end
+            ? defaultEndDate || today
+            : current,
+        );
+      } catch {
+        // Keep sync defaults already applied on open.
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, defaultStartDate, defaultEndDate]);
 
   const handleExport = async () => {
     if (!startDate || !endDate) {
@@ -52,7 +104,17 @@ export default function AttendanceExportModal({
       return;
     }
 
+    if (dayjs(startDate).isAfter(dayjs(anchorToday), 'day')) {
+      toast.error(t('exportDateInvalid'));
+      return;
+    }
+
     if (dayjs(endDate).isBefore(dayjs(startDate), 'day')) {
+      toast.error(t('exportDateInvalid'));
+      return;
+    }
+
+    if (dayjs(endDate).isAfter(dayjs(anchorToday), 'day')) {
       toast.error(t('exportDateInvalid'));
       return;
     }
@@ -105,6 +167,7 @@ export default function AttendanceExportModal({
               id="export-start-date"
               type="date"
               value={startDate}
+              max={anchorToday}
               onChange={(e) => setStartDate(e.target.value)}
             />
           </div>
@@ -115,6 +178,7 @@ export default function AttendanceExportModal({
               type="date"
               value={endDate}
               min={startDate}
+              max={anchorToday}
               onChange={(e) => setEndDate(e.target.value)}
             />
           </div>
@@ -129,11 +193,7 @@ export default function AttendanceExportModal({
           >
             {tCommon('cancel')}
           </Button>
-          <Button
-            type="button"
-            onClick={handleExport}
-            disabled={isExporting}
-          >
+          <Button type="button" onClick={handleExport} disabled={isExporting}>
             <Download className="h-4 w-4" />
             {isExporting ? tCommon('processing') : t('exportExcel')}
           </Button>

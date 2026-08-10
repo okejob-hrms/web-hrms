@@ -14,6 +14,8 @@ export interface Attendance {
 export interface LatestAttendance {
   id: number;
   attendance_date: string;
+  timezone?: string;
+  timezone_abbr?: string;
   clock: {
     in_at: string | null;
     out_at: string | null;
@@ -157,6 +159,8 @@ export interface AttendanceSummaryDetail {
 export interface AttendanceDetail {
   id: number;
   attendance_date: string;
+  timezone?: string;
+  timezone_abbr?: string;
   clock: {
     in_at: string | null;
     out_at: string | null;

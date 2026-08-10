@@ -2,7 +2,7 @@
 // sections/employee-profile-modal.tsx
 "use client";
 
-import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
+import React, { Dispatch, SetStateAction, useState } from "react";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -169,7 +169,8 @@ const EditView = ({
   // employeesOptions,
   primaryOptions,
   secondaryOptions,
-  isLoadingEmployees,
+  isLoadingPrimary,
+  isLoadingSecondary,
   isDepartmentsLoading,
   isJobLevelsLoading,
   isPositionsLoading,
@@ -178,6 +179,8 @@ const EditView = ({
   jobLevelsError,
   positionsError,
   teamsError,
+  primarySearch,
+  secondarySearch,
   setPrimarySearch,
   setSecondarySearch,
 }: {
@@ -190,7 +193,8 @@ const EditView = ({
   // employeesOptions: { label: string; value: string }[];
   primaryOptions: { label: string; value: string }[];
   secondaryOptions: { label: string; value: string }[];
-  isLoadingEmployees?: boolean;
+  isLoadingPrimary?: boolean;
+  isLoadingSecondary?: boolean;
   isDepartmentsLoading?: boolean;
   isJobLevelsLoading?: boolean;
   isPositionsLoading?: boolean;
@@ -199,6 +203,8 @@ const EditView = ({
   jobLevelsError?: any;
   positionsError?: any;
   teamsError?: any;
+  primarySearch?: string;
+  secondarySearch?: string;
   setPrimarySearch?: Dispatch<SetStateAction<string>>;
   setSecondarySearch?: Dispatch<SetStateAction<string>>;
 }) => {
@@ -251,37 +257,25 @@ const EditView = ({
         required
       />
 
-      <FormField
-        control={form.control}
+      <ComboboxForm
         name="primary_direct_report"
-        render={({ field }) => (
-          <ComboboxForm
-            label="Primary Direct Report"
-            defaultValue={field.value}
-            options={primaryOptions}
-            disabled={isLoadingEmployees}
-            onSearchChange={setPrimarySearch}
-            valueType="string"
-            {...field}
-          />
-        )}
+        label="Primary Direct Report"
+        options={primaryOptions}
+        searchValue={primarySearch}
+        onSearchChange={setPrimarySearch}
+        isLoading={isLoadingPrimary}
+        valueType="string"
       />
 
-      <FormField
-        control={form.control}
+      <ComboboxForm
         name="additional_direct_report"
-        render={({ field }) => (
-          <ComboboxForm
-            label="Additional Direct Report"
-            defaultValue={field.value}
-            options={secondaryOptions}
-            disabled={isLoadingEmployees}
-            onSearchChange={setSecondarySearch}
-            valueType="string"
-            isOptional
-            {...field}
-          />
-        )}
+        label="Additional Direct Report"
+        options={secondaryOptions}
+        searchValue={secondarySearch}
+        onSearchChange={setSecondarySearch}
+        isLoading={isLoadingSecondary}
+        valueType="string"
+        isOptional
       />
 
       <FormField
@@ -335,22 +329,26 @@ export default function EmployeeProfileModal({
   const debouncedPrimarySearch = useDebounce(primarySearch, 300);
   const debouncedSecondarySearch = useDebounce(secondarySearch, 300);
 
-  const { data: primaryEmployees, isLoading: isLoadingPrimary } = useQuery({
+  const { data: primaryEmployees, isFetching: isLoadingPrimary } = useQuery({
     queryKey: ["employees", "primary", debouncedPrimarySearch],
     queryFn: () =>
       getEmployees(
-        debouncedPrimarySearch ? { search: debouncedPrimarySearch, per_page: 100000 } : {per_page: 100000}
+        debouncedPrimarySearch
+          ? { search: debouncedPrimarySearch, per_page: 100 }
+          : { per_page: 100 },
       ),
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
   
-  const { data: secondaryEmployees, isLoading: isLoadingSecondary } = useQuery({
+  const { data: secondaryEmployees, isFetching: isLoadingSecondary } = useQuery({
     queryKey: ["employees", "secondary", debouncedSecondarySearch],
     queryFn: () =>
       getEmployees(
-        debouncedSecondarySearch ? { search: debouncedSecondarySearch, per_page: 100000 } : {per_page: 100000}
+        debouncedSecondarySearch
+          ? { search: debouncedSecondarySearch, per_page: 100 }
+          : { per_page: 100 },
       ),
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
@@ -418,24 +416,48 @@ export default function EmployeeProfileModal({
   });
 
   const primaryOptions = React.useMemo(() => {
-    if (primaryEmployees?.data?.data) {
-      return primaryEmployees.data.data.map((item) => ({
+    const options =
+      primaryEmployees?.data?.data?.map((item) => ({
         label: item.name,
         value: item.id.toString(),
-      }));
+      })) ?? [];
+
+    // Keep the current primary report selectable even if outside the fetched page.
+    const current = employeeData?.primary_direct_report?.[0];
+    if (current?.id != null && current.name) {
+      const currentId = String(current.id);
+      if (!options.some((option) => option.value === currentId)) {
+        options.unshift({
+          label: current.name,
+          value: currentId,
+        });
+      }
     }
-    return [];
-  }, [primaryEmployees?.data]);
+
+    return options;
+  }, [primaryEmployees?.data, employeeData?.primary_direct_report]);
 
   const secondaryOptions = React.useMemo(() => {
-    if (secondaryEmployees?.data?.data) {
-      return secondaryEmployees.data.data.map((item) => ({
+    const options =
+      secondaryEmployees?.data?.data?.map((item) => ({
         label: item.name,
         value: item.id.toString(),
-      }));
+      })) ?? [];
+
+    // Keep the current additional report selectable even if outside the fetched page.
+    const current = employeeData?.secondary_direct_report?.[0];
+    if (current?.id != null && current.name) {
+      const currentId = String(current.id);
+      if (!options.some((option) => option.value === currentId)) {
+        options.unshift({
+          label: current.name,
+          value: currentId,
+        });
+      }
     }
-    return [];
-  }, [secondaryEmployees?.data]);
+
+    return options;
+  }, [secondaryEmployees?.data, employeeData?.secondary_direct_report]);
 
   const departmentOptions = React.useMemo(() => {
     const options =
@@ -529,7 +551,8 @@ export default function EmployeeProfileModal({
                   jobLevelOptions={jobLevelOptions}
                   positionOptions={positionOptions}
                   teamOptions={teamOptions}
-                  isLoadingEmployees={isLoadingPrimary || isLoadingSecondary}
+                  isLoadingPrimary={isLoadingPrimary}
+                  isLoadingSecondary={isLoadingSecondary}
                   isDepartmentsLoading={isDepartmentsLoading}
                   isJobLevelsLoading={isJobLevelsLoading}
                   isPositionsLoading={isPositionsLoading}
@@ -538,6 +561,8 @@ export default function EmployeeProfileModal({
                   isTeamsLoading={isTeamsLoading}
                   positionsError={positionsError}
                   teamsError={teamsError}
+                  primarySearch={primarySearch}
+                  secondarySearch={secondarySearch}
                   setPrimarySearch={setPrimarySearch}
                   setSecondarySearch={setSecondarySearch}
                 />

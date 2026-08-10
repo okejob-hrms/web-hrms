@@ -22,9 +22,15 @@ import { Separator } from "@/components/ui/separator";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { LocationBadge } from "@/components/ui/location-badge";
 import { Switch } from "@/components/ui/switch";
+import { useTranslations } from "next-intl";
+import {
+  INDONESIA_TIMEZONE_MESSAGE_KEYS,
+  INDONESIA_TIMEZONES,
+} from "@/lib/indonesia-timezone";
 
 export const SettingsCompanyBranchForm = React.memo(
   function SettingsCompanyBranchForm() {
+    const t = useTranslations("settings");
     const {
       fileInputRef,
       previewPhotoProfile,
@@ -190,6 +196,25 @@ export const SettingsCompanyBranchForm = React.memo(
                 type="number"
                 isOptional
               />
+              <SelectForm
+                name="timezone"
+                label={t("timezone")}
+                required
+                allowClear={false}
+                options={INDONESIA_TIMEZONES.map((value) => ({
+                  value,
+                  label: t(
+                    INDONESIA_TIMEZONE_MESSAGE_KEYS[value] as
+                      | "timezoneWibJakarta"
+                      | "timezoneWibPontianak"
+                      | "timezoneWitaMakassar"
+                      | "timezoneWitJayapura",
+                  ),
+                }))}
+              />
+              <p className="text-xs text-text-disabled md:col-span-2">
+                {t("timezoneHint")}
+              </p>
             </div>
             <FormField
               control={form.control}
