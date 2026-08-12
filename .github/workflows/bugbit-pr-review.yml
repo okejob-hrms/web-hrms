@@ -4,7 +4,6 @@ on:
   pull_request:
     types: [opened, reopened, ready_for_review, synchronize]
     branches:
-      - dev
       - staging
   workflow_dispatch:
     inputs:
@@ -51,8 +50,8 @@ jobs:
           persist-credentials: false
 
       - name: Run bugbit review
-        # JuicyBurger/bugbit main — LGTM on empty findings + paginated listFiles
-        uses: JuicyBurger/bugbit@bbe622e4f5bcd651706840a229cee6f2342c8c3f
+        # JuicyBurger/bugbit v1.3.0 — PR title/body context + progressive slim diffs
+        uses: JuicyBurger/bugbit@775295fedf6af3e3706ad3c0c94edbff0a000874
         with:
           cursor-api-key: ${{ secrets.CURSOR_API_KEY }}
           github-token: ${{ github.token }}
