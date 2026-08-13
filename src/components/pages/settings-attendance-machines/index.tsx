@@ -16,6 +16,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Can } from '@/components/auth/can';
 import { useDebounce } from '@/hooks/use-debounce';
+import { usePermissionStore } from '@/hooks/use-permission-store';
 import {
   useIclockActions,
   useIclockDevices,
@@ -23,7 +24,7 @@ import {
   useIclockLogs,
   useIclockUnmatched,
 } from './hook';
-import type { IclockReconcileReport } from '@/services/iclock/types';
+import type { IclockBackfillResult, IclockReconcileReport } from '@/services/iclock/types';
 
 function formatDt(value?: string | null) {
   if (!value) return '—';
@@ -42,9 +43,11 @@ const STATUS_LABEL: Record<number, string> = {
 };
 
 export default function SettingsAttendanceMachines() {
-  const healthQuery = useIclockHealth();
-  const devicesQuery = useIclockDevices();
-  const unmatchedQuery = useIclockUnmatched();
+  const canEdit = usePermissionStore((s) => s.can('time_attendance.attendance_configuration.edit'));
+  const [activeTab, setActiveTab] = React.useState('overview');
+  const healthQuery = useIclockHealth(true);
+  const devicesQuery = useIclockDevices(activeTab === 'machines');
+  const unmatchedQuery = useIclockUnmatched(activeTab === 'unmatched');
   const actions = useIclockActions();
 
   const [logPin, setLogPin] = React.useState('');
@@ -59,19 +62,23 @@ export default function SettingsAttendanceMachines() {
     setLogPage(1);
   }, [debouncedLogPin, debouncedLogDevice, logFrom, logTo]);
 
-  const logsQuery = useIclockLogs({
-    pin: debouncedLogPin || undefined,
-    device: debouncedLogDevice || undefined,
-    from: logFrom || undefined,
-    to: logTo || undefined,
-    page: logPage,
-  });
+  const logsQuery = useIclockLogs(
+    {
+      pin: debouncedLogPin || undefined,
+      device: debouncedLogDevice || undefined,
+      from: logFrom || undefined,
+      to: logTo || undefined,
+      page: logPage,
+    },
+    activeTab === 'logs',
+  );
 
   const [repairFrom, setRepairFrom] = React.useState('');
   const [repairTo, setRepairTo] = React.useState('');
   const [repairDevice, setRepairDevice] = React.useState('');
   const [repairPin, setRepairPin] = React.useState('');
   const [reconcileReport, setReconcileReport] = React.useState<IclockReconcileReport | null>(null);
+  const [backfillResult, setBackfillResult] = React.useState<IclockBackfillResult | null>(null);
 
   const [reprocessDate, setReprocessDate] = React.useState('');
   const [reprocessPin, setReprocessPin] = React.useState('');
@@ -79,6 +86,8 @@ export default function SettingsAttendanceMachines() {
   const health = healthQuery.data;
   const logsLastPage = logsQuery.data?.last_page ?? 1;
   const logsTotal = logsQuery.data?.total ?? 0;
+  const repairRangeValid =
+    Boolean(repairFrom && repairTo) && repairFrom <= repairTo;
 
   return (
     <div className="space-y-6 p-6">
@@ -99,13 +108,13 @@ export default function SettingsAttendanceMachines() {
         </Can>
       </div>
 
-      <Tabs defaultValue="overview">
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="machines">Machines</TabsTrigger>
           <TabsTrigger value="logs">Punch logs</TabsTrigger>
           <TabsTrigger value="unmatched">Unmatched PINs</TabsTrigger>
-          <TabsTrigger value="repair">Repair</TabsTrigger>
+          {canEdit ? <TabsTrigger value="repair">Repair</TabsTrigger> : null}
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
@@ -331,10 +340,13 @@ export default function SettingsAttendanceMachines() {
                   <Input value={repairPin} onChange={(e) => setRepairPin(e.target.value)} />
                 </div>
               </div>
+              {!repairRangeValid && repairFrom && repairTo ? (
+                <p className="text-destructive text-sm">From date must be on or before To date.</p>
+              ) : null}
               <div className="flex flex-wrap gap-2">
                 <Button
                   variant="outline"
-                  disabled={!repairFrom || !repairTo || actions.reconcile.isPending}
+                  disabled={!repairRangeValid || actions.reconcile.isPending}
                   onClick={() => {
                     actions.reconcile.mutate(
                       {
@@ -355,31 +367,41 @@ export default function SettingsAttendanceMachines() {
                 </Button>
                 <Button
                   variant="secondary"
-                  disabled={!repairFrom || !repairTo || actions.backfill.isPending}
+                  disabled={!repairRangeValid || actions.backfill.isPending}
                   onClick={() =>
-                    actions.backfill.mutate({
-                      from: repairFrom,
-                      to: repairTo,
-                      device: repairDevice || undefined,
-                      pin: repairPin || undefined,
-                      dry_run: true,
-                    })
+                    actions.backfill.mutate(
+                      {
+                        from: repairFrom,
+                        to: repairTo,
+                        device: repairDevice || undefined,
+                        pin: repairPin || undefined,
+                        dry_run: true,
+                      },
+                      {
+                        onSuccess: (res) => setBackfillResult(res.data),
+                      },
+                    )
                   }
                 >
                   Backfill dry-run
                 </Button>
                 <Button
-                  disabled={!repairFrom || !repairTo || actions.backfill.isPending}
+                  disabled={!repairRangeValid || actions.backfill.isPending}
                   onClick={() => {
                     if (!window.confirm('Run backfill and write to database?')) return;
-                    actions.backfill.mutate({
-                      from: repairFrom,
-                      to: repairTo,
-                      device: repairDevice || undefined,
-                      pin: repairPin || undefined,
-                      dry_run: false,
-                      confirm: true,
-                    });
+                    actions.backfill.mutate(
+                      {
+                        from: repairFrom,
+                        to: repairTo,
+                        device: repairDevice || undefined,
+                        pin: repairPin || undefined,
+                        dry_run: false,
+                        confirm: true,
+                      },
+                      {
+                        onSuccess: (res) => setBackfillResult(res.data),
+                      },
+                    );
                   }}
                 >
                   Run backfill
@@ -399,6 +421,17 @@ export default function SettingsAttendanceMachines() {
                   ))}
                 </div>
               ) : null}
+
+              {backfillResult ? (
+                <div className="rounded-md border bg-muted/30 p-3 text-sm">
+                  <div className="font-medium">
+                    {backfillResult.dry_run ? 'Dry-run result' : 'Backfill result'}
+                  </div>
+                  <pre className="text-muted-foreground mt-2 overflow-auto text-xs">
+                    {JSON.stringify(backfillResult, null, 2)}
+                  </pre>
+                </div>
+              ) : null}
             </div>
 
             <div className="space-y-4 rounded-md border p-4">
@@ -415,12 +448,19 @@ export default function SettingsAttendanceMachines() {
               </div>
               <Button
                 disabled={!reprocessDate || !reprocessPin || actions.reprocess.isPending}
-                onClick={() =>
+                onClick={() => {
+                  if (
+                    !window.confirm(
+                      `Reprocess attendance for PIN ${reprocessPin} on ${reprocessDate}? This rewrites waiting/absent attendance for that day.`,
+                    )
+                  ) {
+                    return;
+                  }
                   actions.reprocess.mutate({
                     date: reprocessDate,
                     pin: reprocessPin,
-                  })
-                }
+                  });
+                }}
               >
                 Reprocess day
               </Button>

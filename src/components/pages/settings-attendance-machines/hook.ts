@@ -14,38 +14,45 @@ import {
   triggerIclockSync,
 } from '@/services/iclock';
 
-export function useIclockHealth() {
+export function useIclockHealth(enabled = true) {
   return useQuery({
     queryKey: ['iclock', 'health'],
     queryFn: async () => (await getIclockHealth()).data,
     refetchInterval: 60_000,
+    enabled,
   });
 }
 
-export function useIclockDevices() {
+export function useIclockDevices(enabled = true) {
   return useQuery({
     queryKey: ['iclock', 'devices'],
     queryFn: async () => (await getIclockDevices()).data ?? [],
+    enabled,
   });
 }
 
-export function useIclockLogs(params: {
-  pin?: string;
-  device?: string;
-  from?: string;
-  to?: string;
-  page?: number;
-}) {
+export function useIclockLogs(
+  params: {
+    pin?: string;
+    device?: string;
+    from?: string;
+    to?: string;
+    page?: number;
+  },
+  enabled = true,
+) {
   return useQuery({
     queryKey: ['iclock', 'logs', params],
     queryFn: async () => (await getIclockLogs(params)).data,
+    enabled,
   });
 }
 
-export function useIclockUnmatched() {
+export function useIclockUnmatched(enabled = true) {
   return useQuery({
     queryKey: ['iclock', 'unmatched'],
     queryFn: async () => (await getIclockUnmatched()).data ?? [],
+    enabled,
   });
 }
 
@@ -81,7 +88,16 @@ export function useIclockActions() {
   const backfill = useMutation({
     mutationFn: backfillIclock,
     onSuccess: (res) => {
-      toast.success(res.message || 'Backfill completed');
+      const dryRun = Boolean(res.data?.dry_run);
+      if (dryRun) {
+        toast.success(
+          `Backfill dry-run: ${res.data?.missing_before ?? 0} missing punch(es), would store ${res.data?.stored ?? 0}`,
+        );
+        return;
+      }
+      toast.success(
+        `Backfill completed: stored ${res.data?.stored ?? 0}, days ${res.data?.processed_days ?? 0}`,
+      );
       invalidate();
     },
     onError: (e: Error) => toast.error(e.message || 'Backfill failed'),
