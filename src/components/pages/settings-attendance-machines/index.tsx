@@ -52,6 +52,38 @@ function formatDt(value?: string | null) {
   }
 }
 
+const LAST_RUN_STAT_KEYS = [
+  'fetched',
+  'stored',
+  'created',
+  'updated',
+  'unmatched',
+  'failed',
+  'skipped',
+  'duplicates',
+] as const;
+
+type LastRunStatKey = (typeof LAST_RUN_STAT_KEYS)[number];
+
+const LAST_RUN_STAT_LABEL_KEY: Record<LastRunStatKey, string> = {
+  fetched: 'statFetched',
+  stored: 'statStored',
+  created: 'statCreated',
+  updated: 'statUpdated',
+  unmatched: 'statUnmatched',
+  failed: 'statFailed',
+  skipped: 'statSkipped',
+  duplicates: 'statDuplicates',
+};
+
+function formatStatValue(value: unknown): string {
+  if (value === null || value === undefined) return '—';
+  if (typeof value === 'number' || typeof value === 'boolean' || typeof value === 'string') {
+    return String(value);
+  }
+  return '—';
+}
+
 /** Soft cap for write backfill to avoid ADMS timeouts / huge rewrites. */
 const MAX_BACKFILL_DAYS = 31;
 
@@ -267,7 +299,7 @@ export default function SettingsAttendanceMachines() {
               })}
             </div>
           ) : null}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 md:grid-cols-3">
             <StatCard
               label={t('syncStatus')}
               value={health?.last_run_status ?? '—'}
@@ -281,7 +313,6 @@ export default function SettingsAttendanceMachines() {
             />
             <StatCard label={t('lastSynced')} value={formatDt(health?.last_synced_at)} />
             <StatCard label={t('cursorTid')} value={String(health?.last_tid ?? '—')} />
-            <StatCard label={t('api')} value={health?.api_url || '—'} />
           </div>
 
           {health?.last_error ? (
@@ -291,11 +322,17 @@ export default function SettingsAttendanceMachines() {
           ) : null}
 
           {health?.metadata ? (
-            <div className="rounded-md border p-4">
-              <h3 className="mb-2 text-sm font-medium">{t('lastRunStats')}</h3>
-              <pre className="text-muted-foreground overflow-auto text-xs">
-                {JSON.stringify(health.metadata, null, 2)}
-              </pre>
+            <div className="space-y-3 rounded-md border p-4">
+              <h3 className="text-sm font-medium">{t('lastRunStats')}</h3>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                {LAST_RUN_STAT_KEYS.map((key) => (
+                  <StatCard
+                    key={key}
+                    label={t(LAST_RUN_STAT_LABEL_KEY[key])}
+                    value={formatStatValue(health.metadata?.[key])}
+                  />
+                ))}
+              </div>
             </div>
           ) : null}
         </TabsContent>
