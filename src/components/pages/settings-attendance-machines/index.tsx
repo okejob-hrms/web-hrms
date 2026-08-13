@@ -4,9 +4,19 @@ import * as React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
+import dayjs from 'dayjs';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { SearchableSelect } from '@/components/ui/combobox';
+import { BasicDatePicker } from '@/components/ui/date-picker';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -31,6 +41,8 @@ import {
 } from './hook';
 import type { IclockBackfillResult, IclockReconcileReport } from '@/services/iclock/types';
 
+type BackfillResultState = IclockBackfillResult & { rangeFrom: string; rangeTo: string };
+
 function formatDt(value?: string | null) {
   if (!value) return '—';
   try {
@@ -51,12 +63,21 @@ function inclusiveDaySpan(from: string, to: string): number {
   return Math.floor((end - start) / 86_400_000) + 1;
 }
 
+function dateToStr(d: Date | undefined): string {
+  return d ? dayjs(d).format('YYYY-MM-DD') : '';
+}
+
+function strToDate(s: string): Date | undefined {
+  return s ? dayjs(s).toDate() : undefined;
+}
+
 export default function SettingsAttendanceMachines() {
   const t = useTranslations('settings.attendanceMachines');
+  const tCommon = useTranslations('common');
   const canEdit = usePermissionStore((s) => s.can('time_attendance.attendance_configuration.edit'));
   const [activeTab, setActiveTab] = React.useState('overview');
   const healthQuery = useIclockHealth(true);
-  const devicesQuery = useIclockDevices(activeTab === 'machines');
+  const devicesQuery = useIclockDevices(activeTab === 'machines' || activeTab === 'repair');
   const unmatchedQuery = useIclockUnmatched(activeTab === 'unmatched');
   const actions = useIclockActions();
 
@@ -97,9 +118,21 @@ export default function SettingsAttendanceMachines() {
   const [repairFrom, setRepairFrom] = React.useState('');
   const [repairTo, setRepairTo] = React.useState('');
   const [repairDevice, setRepairDevice] = React.useState('');
+  const [repairDeviceSearch, setRepairDeviceSearch] = React.useState('');
   const [repairPin, setRepairPin] = React.useState('');
   const [reconcileReport, setReconcileReport] = React.useState<IclockReconcileReport | null>(null);
-  const [backfillResult, setBackfillResult] = React.useState<IclockBackfillResult | null>(null);
+  const [backfillResult, setBackfillResult] = React.useState<BackfillResultState | null>(null);
+  const [backfillConfirmOpen, setBackfillConfirmOpen] = React.useState(false);
+  const [reprocessConfirmOpen, setReprocessConfirmOpen] = React.useState(false);
+
+  const deviceOptions = React.useMemo(
+    () =>
+      (devicesQuery.data ?? []).map((d) => ({
+        label: d.alias ? `${d.serial} (${d.alias})` : d.serial,
+        value: d.serial,
+      })),
+    [devicesQuery.data],
+  );
   const repairFiltersRef = React.useRef({
     from: repairFrom,
     to: repairTo,
@@ -334,7 +367,7 @@ export default function SettingsAttendanceMachines() {
 
         <TabsContent value="logs" className="space-y-4">
           <div className="grid gap-3 md:grid-cols-4">
-            <div>
+            <div className="space-y-2">
               <Label>{t('pin')}</Label>
               <Input
                 value={logPin}
@@ -345,7 +378,7 @@ export default function SettingsAttendanceMachines() {
                 placeholder={t('pinPlaceholder')}
               />
             </div>
-            <div>
+            <div className="space-y-2">
               <Label>{t('deviceSn')}</Label>
               <Input
                 value={logDevice}
@@ -355,28 +388,22 @@ export default function SettingsAttendanceMachines() {
                 }}
               />
             </div>
-            <div>
-              <Label>{t('from')}</Label>
-              <Input
-                type="date"
-                value={logFrom}
-                onChange={(e) => {
-                  setLogFrom(e.target.value);
-                  setLogPage(1);
-                }}
-              />
-            </div>
-            <div>
-              <Label>{t('to')}</Label>
-              <Input
-                type="date"
-                value={logTo}
-                onChange={(e) => {
-                  setLogTo(e.target.value);
-                  setLogPage(1);
-                }}
-              />
-            </div>
+            <BasicDatePicker
+              label={t('from')}
+              value={strToDate(logFrom)}
+              onSelect={(d) => {
+                setLogFrom(dateToStr(d));
+                setLogPage(1);
+              }}
+            />
+            <BasicDatePicker
+              label={t('to')}
+              value={strToDate(logTo)}
+              onSelect={(d) => {
+                setLogTo(dateToStr(d));
+                setLogPage(1);
+              }}
+            />
           </div>
           <div className="rounded-md border">
             <Table>
@@ -504,22 +531,37 @@ export default function SettingsAttendanceMachines() {
         <TabsContent value="repair" className="space-y-6">
           <Can permission="time_attendance.attendance_configuration.edit">
             <div className="space-y-4 rounded-md border p-4">
-              <h3 className="font-medium">{t('reconcileBackfillTitle')}</h3>
-              <p className="text-muted-foreground text-sm">{t('reconcileBackfillDesc')}</p>
+              <div className="space-y-1">
+                <h3 className="text-sm font-semibold">{t('reconcileBackfillTitle')}</h3>
+                <p className="text-muted-foreground text-sm">{t('reconcileBackfillDesc')}</p>
+              </div>
               <div className="grid gap-3 md:grid-cols-4">
-                <div>
-                  <Label>{t('from')}</Label>
-                  <Input type="date" value={repairFrom} onChange={(e) => setRepairFrom(e.target.value)} />
-                </div>
-                <div>
-                  <Label>{t('to')}</Label>
-                  <Input type="date" value={repairTo} onChange={(e) => setRepairTo(e.target.value)} />
-                </div>
-                <div>
+                <BasicDatePicker
+                  label={t('from')}
+                  value={strToDate(repairFrom)}
+                  onSelect={(d) => setRepairFrom(dateToStr(d))}
+                />
+                <BasicDatePicker
+                  label={t('to')}
+                  value={strToDate(repairTo)}
+                  onSelect={(d) => setRepairTo(dateToStr(d))}
+                />
+                <div className="space-y-2">
                   <Label>{t('deviceOptional')}</Label>
-                  <Input value={repairDevice} onChange={(e) => setRepairDevice(e.target.value)} />
+                  <SearchableSelect
+                    value={repairDevice || null}
+                    onValueChange={(v) => setRepairDevice(v == null ? '' : String(v))}
+                    options={deviceOptions}
+                    placeholder={t('selectDevice')}
+                    searchPlaceholder={t('deviceSn')}
+                    emptyMessage={t('noDevices')}
+                    searchValue={repairDeviceSearch}
+                    onSearchChange={setRepairDeviceSearch}
+                    isLoading={devicesQuery.isFetching}
+                    allowClear
+                  />
                 </div>
-                <div>
+                <div className="space-y-2">
                   <Label>{t('pinOptional')}</Label>
                   <Input value={repairPin} onChange={(e) => setRepairPin(e.target.value)} />
                 </div>
@@ -539,6 +581,7 @@ export default function SettingsAttendanceMachines() {
                 <Button
                   variant="outline"
                   disabled={!backfillWriteAllowed || admsBusy}
+                  isLoading={actions.reconcile.isPending}
                   onClick={() => {
                     const payload = {
                       from: repairFrom,
@@ -561,11 +604,12 @@ export default function SettingsAttendanceMachines() {
                     });
                   }}
                 >
-                  {actions.reconcile.isPending ? t('reconciling') : t('reconcilePreview')}
+                  {t('reconcilePreview')}
                 </Button>
                 <Button
                   variant="secondary"
                   disabled={!backfillWriteAllowed || admsBusy}
+                  isLoading={actions.backfill.isPending && !!actions.backfill.variables?.dry_run}
                   onClick={() => {
                     const payload = {
                       from: repairFrom,
@@ -584,66 +628,27 @@ export default function SettingsAttendanceMachines() {
                           }),
                         );
                         if (!matchesRepairFilters(variables)) return;
-                        setBackfillResult(res.data);
+                        setBackfillResult(
+                          res.data
+                            ? { ...res.data, rangeFrom: variables.from, rangeTo: variables.to }
+                            : null,
+                        );
                       },
                     });
                   }}
                 >
-                  {actions.backfill.isPending && actions.backfill.variables?.dry_run
-                    ? t('running')
-                    : t('backfillDryRun')}
+                  {t('backfillDryRun')}
                 </Button>
                 <Button
                   disabled={!backfillWriteAllowed || admsBusy}
-                  onClick={() => {
-                    if (
-                      !window.confirm(
-                        t('confirmBackfill', {
-                          from: repairFrom,
-                          to: repairTo,
-                          devicePart: repairDevice
-                            ? t('confirmBackfillDevice', { device: repairDevice })
-                            : '',
-                          pinPart: repairPin
-                            ? t('confirmBackfillPin', { pin: repairPin })
-                            : '',
-                        }),
-                      )
-                    ) {
-                      return;
-                    }
-                    const payload = {
-                      from: repairFrom,
-                      to: repairTo,
-                      device: repairDevice || undefined,
-                      pin: repairPin || undefined,
-                      dry_run: false as const,
-                      confirm: true as const,
-                    };
-                    actions.backfill.mutate(payload, {
-                      onSuccess: (res, variables) => {
-                        toast.success(
-                          t('backfillCompletedSuccess', {
-                            scope: formatRepairScope(variables),
-                            stored: res.data?.stored ?? 0,
-                            days: res.data?.processed_days ?? 0,
-                          }),
-                        );
-                        actions.invalidate();
-                        if (!matchesRepairFilters(variables)) return;
-                        setBackfillResult(res.data);
-                      },
-                    });
-                  }}
+                  onClick={() => setBackfillConfirmOpen(true)}
                 >
-                  {actions.backfill.isPending && actions.backfill.variables?.dry_run === false
-                    ? t('writing')
-                    : t('runBackfill')}
+                  {t('runBackfill')}
                 </Button>
               </div>
 
               {reconcileReport ? (
-                <div className="space-y-2 rounded-md border bg-muted/30 p-3 text-sm">
+                <div className="space-y-2 rounded-md bg-muted/40 p-4 text-sm">
                   <div>
                     {t('reconcileSummary', {
                       adms: reconcileReport.adms_count,
@@ -660,24 +665,44 @@ export default function SettingsAttendanceMachines() {
               ) : null}
 
               {backfillResult ? (
-                <div className="rounded-md border bg-muted/30 p-3 text-sm">
-                  <div className="font-medium">
-                    {backfillResult.dry_run ? t('dryRunResult') : t('backfillResult')}
+                <div className="space-y-3 rounded-md bg-muted/40 p-4">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium">
+                      {backfillResult.dry_run ? t('dryRunResult') : t('backfillResult')}
+                    </span>
+                    {backfillResult.dry_run && (
+                      <Badge variant="outline">{t('dryRun')}</Badge>
+                    )}
                   </div>
-                  <pre className="text-muted-foreground mt-2 overflow-auto text-xs">
-                    {JSON.stringify(backfillResult, null, 2)}
-                  </pre>
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                    <StatCard
+                      compact
+                      label={t('backfillPeriod')}
+                      value={`${backfillResult.rangeFrom} → ${backfillResult.rangeTo}`}
+                    />
+                    <StatCard compact label={t('missingBefore')} value={String(backfillResult.missing_before)} />
+                    <StatCard compact label={t('statStored')} value={String(backfillResult.stored)} />
+                    <StatCard compact label={t('processedDays')} value={String(backfillResult.processed_days)} />
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
+                    <StatCard compact label={t('statCreated')} value={String(backfillResult.created)} />
+                    <StatCard compact label={t('statUpdated')} value={String(backfillResult.updated)} />
+                    <StatCard compact label={t('statUnmatched')} value={String(backfillResult.unmatched)} />
+                    <StatCard compact label={t('statSkipped')} value={String(backfillResult.skipped)} />
+                    <StatCard compact label={t('statFailed')} value={String(backfillResult.failed)} />
+                  </div>
                 </div>
               ) : null}
             </div>
 
             <div className="space-y-4 rounded-md border p-4">
-              <h3 className="font-medium">{t('reprocessTitle')}</h3>
+              <h3 className="text-sm font-semibold">{t('reprocessTitle')}</h3>
               <div className="grid gap-3 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label>{t('date')}</Label>
-                  <Input type="date" value={reprocessDate} onChange={(e) => setReprocessDate(e.target.value)} />
-                </div>
+                <BasicDatePicker
+                  label={t('date')}
+                  value={strToDate(reprocessDate)}
+                  onSelect={(d) => setReprocessDate(dateToStr(d))}
+                />
                 <div className="space-y-2">
                   <Label>{t('employeePin')}</Label>
                   <SearchableSelect
@@ -711,33 +736,103 @@ export default function SettingsAttendanceMachines() {
                 </div>
               </div>
               <Button
-                disabled={!reprocessDate || !reprocessPin || actions.reprocess.isPending || admsBusy}
-                onClick={() => {
-                  if (
-                    !window.confirm(
-                      t('confirmReprocess', {
-                        pin: reprocessPin,
-                        date: reprocessDate,
-                      }),
-                    )
-                  ) {
-                    return;
-                  }
-                  actions.reprocess.mutate({
-                    date: reprocessDate,
-                    pin: reprocessPin,
-                    ...(reprocessUserId != null
-                      ? { employee_id: reprocessUserId }
-                      : {}),
-                  });
-                }}
+                disabled={!reprocessDate || !reprocessPin || admsBusy}
+                onClick={() => setReprocessConfirmOpen(true)}
               >
-                {actions.reprocess.isPending ? t('reprocessing') : t('reprocessDay')}
+                {t('reprocessDay')}
               </Button>
             </div>
           </Can>
         </TabsContent>
       </Tabs>
+
+      {/* Backfill confirm dialog */}
+      <AlertDialog open={backfillConfirmOpen} onOpenChange={setBackfillConfirmOpen}>
+        <AlertDialogContent className="max-w-md bg-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('confirmBackfillTitle')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('confirmBackfill', {
+                from: repairFrom,
+                to: repairTo,
+                devicePart: repairDevice ? t('confirmBackfillDevice', { device: repairDevice }) : '',
+                pinPart: repairPin ? t('confirmBackfillPin', { pin: repairPin }) : '',
+              })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <Button variant="outline" onClick={() => setBackfillConfirmOpen(false)}>
+              {tCommon('cancel')}
+            </Button>
+            <Button
+              isLoading={actions.backfill.isPending && actions.backfill.variables?.dry_run === false}
+              onClick={() => {
+                const payload = {
+                  from: repairFrom,
+                  to: repairTo,
+                  device: repairDevice || undefined,
+                  pin: repairPin || undefined,
+                  dry_run: false as const,
+                  confirm: true as const,
+                };
+                actions.backfill.mutate(payload, {
+                  onSuccess: (res, variables) => {
+                    setBackfillConfirmOpen(false);
+                    toast.success(
+                      t('backfillCompletedSuccess', {
+                        scope: formatRepairScope(variables),
+                        stored: res.data?.stored ?? 0,
+                        days: res.data?.processed_days ?? 0,
+                      }),
+                    );
+                    actions.invalidate();
+                    if (!matchesRepairFilters(variables)) return;
+                    setBackfillResult(
+                      res.data
+                        ? { ...res.data, rangeFrom: variables.from, rangeTo: variables.to }
+                        : null,
+                    );
+                  },
+                });
+              }}
+            >
+              {t('runBackfill')}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Reprocess confirm dialog */}
+      <AlertDialog open={reprocessConfirmOpen} onOpenChange={setReprocessConfirmOpen}>
+        <AlertDialogContent className="max-w-md bg-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('confirmReprocessTitle')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('confirmReprocess', { pin: reprocessPin, date: reprocessDate })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <Button variant="outline" onClick={() => setReprocessConfirmOpen(false)}>
+              {tCommon('cancel')}
+            </Button>
+            <Button
+              isLoading={actions.reprocess.isPending}
+              onClick={() => {
+                actions.reprocess.mutate(
+                  {
+                    date: reprocessDate,
+                    pin: reprocessPin,
+                    ...(reprocessUserId != null ? { employee_id: reprocessUserId } : {}),
+                  },
+                  { onSuccess: () => setReprocessConfirmOpen(false) },
+                );
+              }}
+            >
+              {t('reprocessDay')}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
@@ -746,13 +841,15 @@ function StatCard({
   label,
   value,
   badge,
+  compact,
 }: {
   label: string;
   value: string;
   badge?: React.ReactNode;
+  compact?: boolean;
 }) {
   return (
-    <div className="min-w-0 rounded-md border p-4">
+    <div className={`min-w-0 rounded-md border ${compact ? 'p-3' : 'p-4'}`}>
       <div className="text-muted-foreground mb-1 flex items-center justify-between gap-2 text-xs uppercase tracking-wide">
         <span className="min-w-0 truncate">{label}</span>
         {badge ? <span className="shrink-0">{badge}</span> : null}
