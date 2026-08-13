@@ -9,6 +9,10 @@ import { FormField } from "./type";
 import { useFormTemplateDetails } from "./hook";
 import FormDeleteModal from "../settings-form-template-list/sections/delete-modal";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  sortFormFieldsByTemplateOrder,
+  sortFormGroupsByTemplateOrder,
+} from "@/lib/form-field-order";
 
 interface SettingsFormTemplateDetailsProps {
   editFormId?: number;
@@ -117,22 +121,26 @@ export const SettingsFormTemplateDetails = React.memo(
               </div>
             ) : (
               <div className="col-span-2 flex flex-col gap-4 items-center w-full">
-                {formData?.groups.map((group) => (
+                {sortFormGroupsByTemplateOrder(formData?.groups ?? []).map(
+                  (group) => (
                   <div
                     className="w-full flex flex-col gap-2"
                     key={`${group.id}-${group.name}`}
                   >
                     <p className="text-black font-semibold">{group.name}</p>
                     <div className="flex flex-col gap-2">
-                      {group.fields.map((field) => (
+                      {sortFormFieldsByTemplateOrder(group.fields ?? []).map(
+                        (field) => (
                         <FormFieldRenderer
                           key={`${field.id}-${field.label}`}
                           field={field}
                         />
-                      ))}
+                      ),
+                      )}
                     </div>
                   </div>
-                ))}
+                ),
+                )}
               </div>
             )}
 

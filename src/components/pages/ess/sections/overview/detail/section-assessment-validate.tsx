@@ -20,7 +20,7 @@ import {
 } from "@/services/employees/self-assessment/types";
 import { ApiErrorResponse } from "@/lib/types";
 import { SurveyAssessmentForm } from "./survey-assessment-form";
-import { IFieldResponse } from "@/services/form/types";
+import { flattenFormGroupsInTemplateOrder } from "@/lib/form-field-order";
 
 interface SectionAssessmentValidateProps {
   memberEsaId: string | number;
@@ -75,19 +75,10 @@ export const SectionAssessmentValidate: React.FC<
     staleTime: 0,
   });
 
-  const formFields = React.useMemo((): IFieldResponse[] => {
-    const groups = formDetail?.data?.groups;
-    if (!groups?.length) return [];
-
-    return groups.flatMap((group) =>
-      (group.fields ?? []).map((field) => ({
-        ...field,
-        field_group_id: Number(
-          (field as { field_group_id?: number }).field_group_id ?? group.id,
-        ),
-      })),
-    ) as IFieldResponse[];
-  }, [formDetail?.data?.groups]);
+  const formFields = React.useMemo(
+    () => flattenFormGroupsInTemplateOrder(formDetail?.data?.groups),
+    [formDetail?.data?.groups],
+  );
 
   const { data: assessmentDetail, isLoading: isLoadingAssessment } = useQuery({
     queryKey: ["assessment-detail", Number(memberEsaId)],

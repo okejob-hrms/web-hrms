@@ -270,14 +270,13 @@ export const SurveyAssessmentForm: React.FC<SurveyAssessmentFormProps> = ({
     }
   };
 
-  const sortedFields = React.useMemo(() => {
-    return [...fields].sort((a, b) => a.order - b.order);
-  }, [fields]);
+  // Parents pass flattenFormGroupsInTemplateOrder(...); keep that sequence.
+  // Do not re-sort by field.order across groups.
 
   return (
     <FormProvider {...form}>
       <form className="space-y-6">
-        {sortedFields.map((field) => (
+        {fields.map((field) => (
           <div key={field.id} className="p-4 border rounded-lg bg-white">
             <SurveyFormFieldRenderer field={field} readOnly={isReadOnly} />
           </div>
