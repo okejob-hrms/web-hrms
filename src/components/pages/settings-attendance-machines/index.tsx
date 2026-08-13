@@ -1,10 +1,12 @@
 'use client';
 
 import * as React from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { SearchableSelect } from '@/components/ui/combobox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -19,6 +21,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Can } from '@/components/auth/can';
 import { useDebounce } from '@/hooks/use-debounce';
 import { usePermissionStore } from '@/hooks/use-permission-store';
+import { getEmployees } from '@/services/employees';
 import {
   useIclockActions,
   useIclockDevices,
@@ -112,6 +115,46 @@ export default function SettingsAttendanceMachines() {
 
   const [reprocessDate, setReprocessDate] = React.useState('');
   const [reprocessPin, setReprocessPin] = React.useState('');
+  const [reprocessUserId, setReprocessUserId] = React.useState<number | null>(null);
+  const [reprocessEmployeeLabel, setReprocessEmployeeLabel] = React.useState('');
+  const [employeeSearch, setEmployeeSearch] = React.useState('');
+  const debouncedEmployeeSearch = useDebounce(employeeSearch, 400);
+
+  const employeesQuery = useQuery({
+    queryKey: ['iclock', 'reprocess-employees', debouncedEmployeeSearch],
+    queryFn: () =>
+      getEmployees(
+        debouncedEmployeeSearch
+          ? { search: debouncedEmployeeSearch, per_page: 50, status: '1' }
+          : { per_page: 50, status: '1' },
+      ),
+    enabled: activeTab === 'repair' && canEdit,
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
+  const employeeOptions = React.useMemo(() => {
+    const options =
+      employeesQuery.data?.data?.data
+        ?.filter((item) => Boolean(item.code?.trim()))
+        .map((item) => ({
+          label: `${item.name} · ${item.code}`,
+          value: item.code,
+        })) ?? [];
+
+    if (
+      reprocessPin &&
+      reprocessEmployeeLabel &&
+      !options.some((option) => option.value === reprocessPin)
+    ) {
+      options.unshift({
+        label: reprocessEmployeeLabel,
+        value: reprocessPin,
+      });
+    }
+
+    return options;
+  }, [employeesQuery.data?.data?.data, reprocessEmployeeLabel, reprocessPin]);
 
   React.useEffect(() => {
     setReconcileReport(null);
@@ -631,13 +674,40 @@ export default function SettingsAttendanceMachines() {
             <div className="space-y-4 rounded-md border p-4">
               <h3 className="font-medium">{t('reprocessTitle')}</h3>
               <div className="grid gap-3 md:grid-cols-2">
-                <div>
+                <div className="space-y-2">
                   <Label>{t('date')}</Label>
                   <Input type="date" value={reprocessDate} onChange={(e) => setReprocessDate(e.target.value)} />
                 </div>
-                <div>
-                  <Label>{t('pin')}</Label>
-                  <Input value={reprocessPin} onChange={(e) => setReprocessPin(e.target.value)} />
+                <div className="space-y-2">
+                  <Label>{t('employeePin')}</Label>
+                  <SearchableSelect
+                    value={reprocessPin || null}
+                    onValueChange={(value) => {
+                      const code = value == null || value === '' ? '' : String(value);
+                      setReprocessPin(code);
+                      if (!code) {
+                        setReprocessUserId(null);
+                        setReprocessEmployeeLabel('');
+                        return;
+                      }
+                      const match = employeesQuery.data?.data?.data?.find(
+                        (item) => item.code === code,
+                      );
+                      setReprocessUserId(match?.user_id ?? null);
+                      setReprocessEmployeeLabel(
+                        match ? `${match.name} · ${match.code}` : code,
+                      );
+                    }}
+                    options={employeeOptions}
+                    placeholder={t('selectEmployeePin')}
+                    searchPlaceholder={t('searchEmployeePin')}
+                    emptyMessage={t('noEmployeeFound')}
+                    searchValue={employeeSearch}
+                    onSearchChange={setEmployeeSearch}
+                    isLoading={employeesQuery.isFetching}
+                    allowClear
+                  />
+                  <p className="text-muted-foreground text-xs">{t('employeePinHint')}</p>
                 </div>
               </div>
               <Button
@@ -656,6 +726,9 @@ export default function SettingsAttendanceMachines() {
                   actions.reprocess.mutate({
                     date: reprocessDate,
                     pin: reprocessPin,
+                    ...(reprocessUserId != null
+                      ? { employee_id: reprocessUserId }
+                      : {}),
                   });
                 }}
               >
