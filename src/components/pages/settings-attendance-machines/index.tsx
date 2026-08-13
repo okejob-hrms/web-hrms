@@ -70,10 +70,6 @@ export default function SettingsAttendanceMachines() {
   const debouncedLogPin = useDebounce(logPin, 400);
   const debouncedLogDevice = useDebounce(logDevice, 400);
 
-  React.useEffect(() => {
-    setLogPage(1);
-  }, [debouncedLogPin, debouncedLogDevice, logFrom, logTo]);
-
   const logsQuery = useIclockLogs(
     {
       pin: debouncedLogPin || undefined,
@@ -273,19 +269,46 @@ export default function SettingsAttendanceMachines() {
           <div className="grid gap-3 md:grid-cols-4">
             <div>
               <Label>PIN</Label>
-              <Input value={logPin} onChange={(e) => setLogPin(e.target.value)} placeholder="e.g. 20250102" />
+              <Input
+                value={logPin}
+                onChange={(e) => {
+                  setLogPin(e.target.value);
+                  setLogPage(1);
+                }}
+                placeholder="e.g. 20250102"
+              />
             </div>
             <div>
               <Label>Device SN</Label>
-              <Input value={logDevice} onChange={(e) => setLogDevice(e.target.value)} />
+              <Input
+                value={logDevice}
+                onChange={(e) => {
+                  setLogDevice(e.target.value);
+                  setLogPage(1);
+                }}
+              />
             </div>
             <div>
               <Label>From</Label>
-              <Input type="date" value={logFrom} onChange={(e) => setLogFrom(e.target.value)} />
+              <Input
+                type="date"
+                value={logFrom}
+                onChange={(e) => {
+                  setLogFrom(e.target.value);
+                  setLogPage(1);
+                }}
+              />
             </div>
             <div>
               <Label>To</Label>
-              <Input type="date" value={logTo} onChange={(e) => setLogTo(e.target.value)} />
+              <Input
+                type="date"
+                value={logTo}
+                onChange={(e) => {
+                  setLogTo(e.target.value);
+                  setLogPage(1);
+                }}
+              />
             </div>
           </div>
           <div className="rounded-md border">
@@ -299,12 +322,13 @@ export default function SettingsAttendanceMachines() {
                   <TableHead>State</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Attendance</TableHead>
+                  <TableHead>Error</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {logsQuery.isError ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-destructive text-center">
+                    <TableCell colSpan={8} className="text-destructive text-center">
                       Failed to load punch logs. {logsQuery.error?.message || 'Try again.'}
                     </TableCell>
                   </TableRow>
@@ -318,6 +342,12 @@ export default function SettingsAttendanceMachines() {
                       <TableCell>{log.punch_state ?? '—'}</TableCell>
                       <TableCell>{STATUS_LABEL[log.status] ?? log.status}</TableCell>
                       <TableCell>{log.attendance_id ?? '—'}</TableCell>
+                      <TableCell
+                        className="text-muted-foreground max-w-[220px] truncate text-xs"
+                        title={log.error_message ?? undefined}
+                      >
+                        {log.error_message || '—'}
+                      </TableCell>
                     </TableRow>
                   ))
                 )}
@@ -325,7 +355,7 @@ export default function SettingsAttendanceMachines() {
                 !logsQuery.isError &&
                 (logsQuery.data?.data?.length ?? 0) === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-muted-foreground text-center">
+                    <TableCell colSpan={8} className="text-muted-foreground text-center">
                       No punch logs found.
                     </TableCell>
                   </TableRow>
@@ -457,7 +487,7 @@ export default function SettingsAttendanceMachines() {
                     });
                   }}
                 >
-                  Reconcile (preview)
+                  {actions.reconcile.isPending ? 'Reconciling…' : 'Reconcile (preview)'}
                 </Button>
                 <Button
                   variant="secondary"
@@ -481,12 +511,22 @@ export default function SettingsAttendanceMachines() {
                     });
                   }}
                 >
-                  Backfill dry-run
+                  {actions.backfill.isPending && actions.backfill.variables?.dry_run
+                    ? 'Running…'
+                    : 'Backfill dry-run'}
                 </Button>
                 <Button
                   disabled={!backfillWriteAllowed || admsBusy}
                   onClick={() => {
-                    if (!window.confirm('Run backfill and write to database?')) return;
+                    if (
+                      !window.confirm(
+                        `Run backfill for ${repairFrom} → ${repairTo}${
+                          repairDevice ? ` (device ${repairDevice})` : ''
+                        }${repairPin ? ` (PIN ${repairPin})` : ''} and write to the database?`,
+                      )
+                    ) {
+                      return;
+                    }
                     const payload = {
                       from: repairFrom,
                       to: repairTo,
@@ -507,7 +547,9 @@ export default function SettingsAttendanceMachines() {
                     });
                   }}
                 >
-                  Run backfill
+                  {actions.backfill.isPending && actions.backfill.variables?.dry_run === false
+                    ? 'Writing…'
+                    : 'Run backfill'}
                 </Button>
               </div>
 
@@ -565,7 +607,7 @@ export default function SettingsAttendanceMachines() {
                   });
                 }}
               >
-                Reprocess day
+                {actions.reprocess.isPending ? 'Reprocessing…' : 'Reprocess day'}
               </Button>
             </div>
           </Can>
