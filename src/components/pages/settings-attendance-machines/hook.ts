@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { HTTPError } from 'ky';
+import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import type { ApiErrorResponse } from '@/lib/types';
 import {
@@ -84,6 +85,7 @@ export function useIclockUnmatched(enabled = true) {
 }
 
 export function useIclockActions() {
+  const t = useTranslations('settings.attendanceMachines');
   const qc = useQueryClient();
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ['iclock'] });
@@ -92,47 +94,47 @@ export function useIclockActions() {
   const syncNow = useMutation({
     mutationFn: () => triggerIclockSync({ sync: true }),
     onSuccess: () => {
-      toast.success('Live iClock sync completed');
+      toast.success(t('liveSyncCompleted'));
       invalidate();
     },
     onError: async (e: unknown) => {
-      toast.error(await getErrorMessage(e, 'Sync failed'));
+      toast.error(await getErrorMessage(e, t('syncFailed')));
     },
   });
 
   const syncDevices = useMutation({
     mutationFn: () => syncIclockDevices(),
     onSuccess: (res) => {
-      toast.success(`Synced ${res.data?.synced ?? 0} device(s)`);
+      toast.success(t('syncedDevices', { count: res.data?.synced ?? 0 }));
       invalidate();
     },
     onError: async (e: unknown) => {
-      toast.error(await getErrorMessage(e, 'Device sync failed'));
+      toast.error(await getErrorMessage(e, t('deviceSyncFailed')));
     },
   });
 
   const reconcile = useMutation({
     mutationFn: reconcileIclock,
     onError: async (e: unknown) => {
-      toast.error(await getErrorMessage(e, 'Reconcile failed'));
+      toast.error(await getErrorMessage(e, t('reconcileFailed')));
     },
   });
 
   const backfill = useMutation({
     mutationFn: backfillIclock,
     onError: async (e: unknown) => {
-      toast.error(await getErrorMessage(e, 'Backfill failed'));
+      toast.error(await getErrorMessage(e, t('backfillFailed')));
     },
   });
 
   const reprocess = useMutation({
     mutationFn: reprocessIclock,
     onSuccess: (res) => {
-      toast.success(res.message || 'Reprocess completed');
+      toast.success(res.message || t('reprocessCompleted'));
       invalidate();
     },
     onError: async (e: unknown) => {
-      toast.error(await getErrorMessage(e, 'Reprocess failed'));
+      toast.error(await getErrorMessage(e, t('reprocessFailed')));
     },
   });
 
