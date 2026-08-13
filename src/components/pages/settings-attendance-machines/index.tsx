@@ -156,14 +156,6 @@ export default function SettingsAttendanceMachines() {
   const [backfillConfirmOpen, setBackfillConfirmOpen] = React.useState(false);
   const [reprocessConfirmOpen, setReprocessConfirmOpen] = React.useState(false);
 
-  const deviceOptions = React.useMemo(
-    () =>
-      (devicesQuery.data ?? []).map((d) => ({
-        label: d.alias ? `${d.serial} (${d.alias})` : d.serial,
-        value: d.serial,
-      })),
-    [devicesQuery.data],
-  );
   const repairFiltersRef = React.useRef({
     from: repairFrom,
     to: repairTo,
@@ -584,16 +576,19 @@ export default function SettingsAttendanceMachines() {
                 />
                 <div className="space-y-2">
                   <Label>{t('deviceOptional')}</Label>
-                  <SearchableSelect
-                    value={repairDevice || null}
-                    onValueChange={(v) => setRepairDevice(v == null ? '' : String(v))}
-                    options={deviceOptions}
-                    placeholder={t('selectDevice')}
-                    searchPlaceholder={t('deviceSn')}
-                    emptyMessage={t('noDevices')}
-                    isLoading={devicesQuery.isFetching}
-                    allowClear
+                  <Input
+                    list="iclock-repair-device-serials"
+                    value={repairDevice}
+                    onChange={(e) => setRepairDevice(e.target.value)}
+                    placeholder={t('deviceSn')}
                   />
+                  <datalist id="iclock-repair-device-serials">
+                    {(devicesQuery.data ?? []).map((d) => (
+                      <option key={d.serial} value={d.serial}>
+                        {d.alias ? `${d.serial} (${d.alias})` : d.serial}
+                      </option>
+                    ))}
+                  </datalist>
                 </div>
                 <div className="space-y-2">
                   <Label>{t('pinOptional')}</Label>
@@ -823,6 +818,7 @@ export default function SettingsAttendanceMachines() {
             <Button
               isLoading={actions.backfill.isPending && actions.backfill.variables?.dry_run === false}
               onClick={() => {
+                if (actions.backfill.isPending) return;
                 const payload = {
                   from: repairFrom,
                   to: repairTo,
@@ -884,6 +880,7 @@ export default function SettingsAttendanceMachines() {
             <Button
               isLoading={actions.reprocess.isPending}
               onClick={() => {
+                if (actions.reprocess.isPending) return;
                 actions.reprocess.mutate(
                   {
                     date: reprocessDate,

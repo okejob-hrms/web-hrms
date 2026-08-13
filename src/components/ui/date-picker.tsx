@@ -70,7 +70,7 @@ export const DatePicker: React.FC<
               >
                 {label}
                 {isOptional && (
-                  <span className="text-text-disabled"> (optional)</span>
+                  <span className="text-text-disabled"> {tCommon("optional")}</span>
                 )}
               </FormLabel>
             )}
@@ -147,7 +147,7 @@ export const BasicDatePicker: React.FC<BasicDatePickerProps> = (props) => {
         <Label className={cn("text-sm font-normal", props.labelClassName)}>
           {props.label}
           {props.isOptional && (
-            <span className="text-text-disabled"> (optional)</span>
+            <span className="text-text-disabled"> {tCommon("optional")}</span>
           )}
         </Label>
       )}
