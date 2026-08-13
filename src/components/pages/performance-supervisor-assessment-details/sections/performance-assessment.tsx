@@ -19,6 +19,10 @@ import { useForm } from "react-hook-form";
 import { IFinalSubmission } from "@/services/performances/supervisor-assessment/types";
 import { resolveAssessmentKeterangan } from "@/lib/assessment-field-keterangan";
 import { AssessmentFieldKeterangan } from "@/components/pages/shared/assessment-field-keterangan";
+import {
+  sortFormFieldsByTemplateOrder,
+  sortFormGroupsByTemplateOrder,
+} from "@/lib/form-field-order";
 
 const CategoryDetails: React.FC<{
   group: IFormGroup;
@@ -27,6 +31,10 @@ const CategoryDetails: React.FC<{
   finalSubmission: IFinalSubmission;
 }> = ({ group, finalSubmission, employeeDetails }) => {
   const [isOpen, setIsOpen] = React.useState(true);
+  const orderedFields = React.useMemo(
+    () => sortFormFieldsByTemplateOrder(group.fields ?? []),
+    [group.fields],
+  );
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen} className="space-y-4">
       <CollapsibleTrigger asChild className="border-b border-primary-border">
@@ -40,7 +48,7 @@ const CategoryDetails: React.FC<{
         </button>
       </CollapsibleTrigger>
       <CollapsibleContent className="space-y-4">
-        {group.fields.map((item) => {
+        {orderedFields.map((item) => {
           if (item.type === "range") {
             const submissionField = finalSubmission?.data?.fields?.find(
               (f: any) => f.field_id === item.id,
@@ -111,6 +119,10 @@ export const SupervisorAssessmentResult: React.FC<
   const { employeeDetails, groups, finalScore, finalSubmission } =
     useSupervisorAssessmentDetails(id);
   const formId = employeeDetails?.data.form.id;
+  const orderedGroups = React.useMemo(
+    () => (groups ? sortFormGroupsByTemplateOrder(groups) : undefined),
+    [groups],
+  );
 
   const form = useForm({
     defaultValues: {},
@@ -159,10 +171,10 @@ export const SupervisorAssessmentResult: React.FC<
         </h3>
       </div>
 
-      {groups && formId && finalSubmission && groups.length > 0 ? (
+      {orderedGroups && formId && finalSubmission && orderedGroups.length > 0 ? (
         <Form {...form}>
           <form>
-            {groups.map((group) => (
+            {orderedGroups.map((group) => (
               <CategoryDetails
                 key={group.id}
                 group={group}
