@@ -158,6 +158,10 @@ export const ROUTE_VIEW_PERMISSIONS: Array<{
     permission: 'time_attendance.attendance_configuration.view',
   },
   {
+    match: '/settings/time-attendance/attendance-machines',
+    permission: 'time_attendance.attendance_configuration.view',
+  },
+  {
     match: '/settings/leave-management',
     permission: 'time_attendance.leave_configuration.view',
   },

@@ -172,6 +172,11 @@ export const menus: Record<string, MenuItem[]> = {
           value: 'settings/time-attendance/attendance-rule',
           permission: 'time_attendance.attendance_configuration.view',
         },
+        {
+          key: 'attendanceMachines',
+          value: 'settings/time-attendance/attendance-machines',
+          permission: 'time_attendance.attendance_configuration.view',
+        },
       ],
     },
     {
@@ -280,6 +285,7 @@ const BREADCRUMB_SEGMENT_KEYS: Record<string, string> = {
   'overtime-configuration': 'overtimeConfiguration',
   holiday: 'holiday',
   'attendance-rule': 'attendanceRule',
+  'attendance-machines': 'attendanceMachines',
   'leave-management': 'leaveManagement',
   'form-template': 'formTemplate',
   'salary-management': 'salaryManagement',

@@ -1,0 +1,100 @@
+'use client';
+
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import {
+  backfillIclock,
+  getIclockDevices,
+  getIclockHealth,
+  getIclockLogs,
+  getIclockUnmatched,
+  reconcileIclock,
+  reprocessIclock,
+  syncIclockDevices,
+  triggerIclockSync,
+} from '@/services/iclock';
+
+export function useIclockHealth() {
+  return useQuery({
+    queryKey: ['iclock', 'health'],
+    queryFn: async () => (await getIclockHealth()).data,
+    refetchInterval: 60_000,
+  });
+}
+
+export function useIclockDevices() {
+  return useQuery({
+    queryKey: ['iclock', 'devices'],
+    queryFn: async () => (await getIclockDevices()).data ?? [],
+  });
+}
+
+export function useIclockLogs(params: {
+  pin?: string;
+  device?: string;
+  from?: string;
+  to?: string;
+  page?: number;
+}) {
+  return useQuery({
+    queryKey: ['iclock', 'logs', params],
+    queryFn: async () => (await getIclockLogs(params)).data,
+  });
+}
+
+export function useIclockUnmatched() {
+  return useQuery({
+    queryKey: ['iclock', 'unmatched'],
+    queryFn: async () => (await getIclockUnmatched()).data ?? [],
+  });
+}
+
+export function useIclockActions() {
+  const qc = useQueryClient();
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: ['iclock'] });
+  };
+
+  const syncNow = useMutation({
+    mutationFn: () => triggerIclockSync({ sync: true }),
+    onSuccess: () => {
+      toast.success('Live iClock sync completed');
+      invalidate();
+    },
+    onError: (e: Error) => toast.error(e.message || 'Sync failed'),
+  });
+
+  const syncDevices = useMutation({
+    mutationFn: () => syncIclockDevices(),
+    onSuccess: (res) => {
+      toast.success(`Synced ${res.data?.synced ?? 0} device(s)`);
+      invalidate();
+    },
+    onError: (e: Error) => toast.error(e.message || 'Device sync failed'),
+  });
+
+  const reconcile = useMutation({
+    mutationFn: reconcileIclock,
+    onError: (e: Error) => toast.error(e.message || 'Reconcile failed'),
+  });
+
+  const backfill = useMutation({
+    mutationFn: backfillIclock,
+    onSuccess: (res) => {
+      toast.success(res.message || 'Backfill completed');
+      invalidate();
+    },
+    onError: (e: Error) => toast.error(e.message || 'Backfill failed'),
+  });
+
+  const reprocess = useMutation({
+    mutationFn: reprocessIclock,
+    onSuccess: (res) => {
+      toast.success(res.message || 'Reprocess completed');
+      invalidate();
+    },
+    onError: (e: Error) => toast.error(e.message || 'Reprocess failed'),
+  });
+
+  return { syncNow, syncDevices, reconcile, backfill, reprocess };
+}
