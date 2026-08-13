@@ -6,12 +6,13 @@ import type {
   IclockHealth,
   IclockLog,
   IclockReconcileReport,
+  IclockReprocessRangeResult,
   IclockUnmatchedPin,
 } from './types';
 
 /** ADMS round-trips (login + scrape) often exceed the default 10s ky timeout. */
 const ADMS_TIMEOUT_MS = 90_000;
-/** PIN day-chunk reconcile/backfill can run many ADMS pages across days. */
+/** Day-chunk scrape / bulk rebuild can run for several minutes. */
 const ADMS_REPAIR_TIMEOUT_MS = 300_000;
 
 type LogsParams = {
@@ -80,19 +81,30 @@ export const backfillIclock = async (payload: {
   pin?: string;
   dry_run?: boolean;
   confirm?: boolean;
+  rebuild_all?: boolean;
 }) => {
   return api
     .post('setting/iclock/backfill', { json: payload, timeout: ADMS_REPAIR_TIMEOUT_MS })
     .json<ApiResponse<IclockBackfillResult>>();
 };
 
-export const reprocessIclock = async (payload: {
-  date: string;
-  pin?: string;
-  employee_id?: number;
-  dry_run?: boolean;
-}) => {
+export const reprocessIclock = async (
+  payload:
+    | {
+        date: string;
+        pin?: string;
+        employee_id?: number;
+        dry_run?: boolean;
+      }
+    | {
+        from: string;
+        to: string;
+        pin?: string;
+        dry_run?: boolean;
+        confirm?: boolean;
+      },
+) => {
   return api
-    .post('setting/iclock/reprocess', { json: payload, timeout: ADMS_TIMEOUT_MS })
-    .json<ApiResponse<Record<string, unknown>>>();
+    .post('setting/iclock/reprocess', { json: payload, timeout: ADMS_REPAIR_TIMEOUT_MS })
+    .json<ApiResponse<Record<string, unknown> | IclockReprocessRangeResult>>();
 };

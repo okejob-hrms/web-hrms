@@ -129,8 +129,22 @@ export function useIclockActions() {
 
   const reprocess = useMutation({
     mutationFn: reprocessIclock,
-    onSuccess: (res) => {
-      toast.success(res.message || t('reprocessCompleted'));
+    onSuccess: (res, variables) => {
+      if (variables && 'from' in variables) {
+        const data = res.data as {
+          processed_days?: number;
+          updated?: number;
+        } | null;
+        toast.success(
+          t('rebuildCompletedSuccess', {
+            scope: `${variables.from} → ${variables.to}${variables.pin ? `, PIN ${variables.pin}` : ''}`,
+            days: data?.processed_days ?? 0,
+            updated: data?.updated ?? 0,
+          }),
+        );
+      } else {
+        toast.success(res.message || t('reprocessCompleted'));
+      }
       invalidate();
     },
     onError: async (e: unknown) => {
