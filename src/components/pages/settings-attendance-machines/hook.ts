@@ -120,19 +120,6 @@ export function useIclockActions() {
 
   const backfill = useMutation({
     mutationFn: backfillIclock,
-    onSuccess: (res) => {
-      const dryRun = Boolean(res.data?.dry_run);
-      if (dryRun) {
-        toast.success(
-          `Backfill dry-run: ${res.data?.missing_before ?? 0} missing punch(es), would store ${res.data?.stored ?? 0}`,
-        );
-        return;
-      }
-      toast.success(
-        `Backfill completed: stored ${res.data?.stored ?? 0}, days ${res.data?.processed_days ?? 0}`,
-      );
-      invalidate();
-    },
     onError: async (e: unknown) => {
       toast.error(await getErrorMessage(e, 'Backfill failed'));
     },
@@ -149,5 +136,5 @@ export function useIclockActions() {
     },
   });
 
-  return { syncNow, syncDevices, reconcile, backfill, reprocess };
+  return { syncNow, syncDevices, reconcile, backfill, reprocess, invalidate };
 }

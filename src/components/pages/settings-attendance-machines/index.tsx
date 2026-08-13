@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -46,9 +47,11 @@ const STATUS_LABEL: Record<number, string> = {
 const MAX_BACKFILL_DAYS = 31;
 
 function inclusiveDaySpan(from: string, to: string): number {
-  const start = new Date(`${from}T00:00:00`);
-  const end = new Date(`${to}T00:00:00`);
-  return Math.floor((end.getTime() - start.getTime()) / 86_400_000) + 1;
+  const [fy, fm, fd] = from.split('-').map(Number);
+  const [ty, tm, td] = to.split('-').map(Number);
+  const start = Date.UTC(fy, fm - 1, fd);
+  const end = Date.UTC(ty, tm - 1, td);
+  return Math.floor((end - start) / 86_400_000) + 1;
 }
 
 export default function SettingsAttendanceMachines() {
@@ -129,6 +132,11 @@ export default function SettingsAttendanceMachines() {
     Boolean(repairFrom && repairTo) && repairFrom <= repairTo;
   const repairSpanDays = repairRangeValid ? inclusiveDaySpan(repairFrom, repairTo) : 0;
   const backfillWriteAllowed = repairRangeValid && repairSpanDays <= MAX_BACKFILL_DAYS;
+  const admsBusy =
+    actions.syncNow.isPending ||
+    actions.syncDevices.isPending ||
+    actions.reconcile.isPending ||
+    actions.backfill.isPending;
 
   return (
     <div className="space-y-6 p-6">
@@ -142,7 +150,7 @@ export default function SettingsAttendanceMachines() {
         <Can permission="time_attendance.attendance_configuration.edit">
           <Button
             onClick={() => actions.syncNow.mutate()}
-            disabled={actions.syncNow.isPending}
+            disabled={admsBusy}
           >
             {actions.syncNow.isPending ? 'Syncing…' : 'Sync now'}
           </Button>
@@ -203,7 +211,7 @@ export default function SettingsAttendanceMachines() {
               <Button
                 variant="outline"
                 onClick={() => actions.syncDevices.mutate()}
-                disabled={actions.syncDevices.isPending}
+                disabled={admsBusy}
               >
                 {actions.syncDevices.isPending ? 'Refreshing…' : 'Refresh from ADMS'}
               </Button>
@@ -429,7 +437,7 @@ export default function SettingsAttendanceMachines() {
               <div className="flex flex-wrap gap-2">
                 <Button
                   variant="outline"
-                  disabled={!repairRangeValid || actions.reconcile.isPending}
+                  disabled={!repairRangeValid || admsBusy}
                   onClick={() => {
                     const payload = {
                       from: repairFrom,
@@ -441,6 +449,9 @@ export default function SettingsAttendanceMachines() {
                       onSuccess: (res, variables) => {
                         if (!matchesRepairFilters(variables)) return;
                         setReconcileReport(res.data);
+                        toast.success(
+                          `Reconcile: ${res.data?.missing_count ?? 0} missing of ${res.data?.adms_count ?? 0} ADMS punches`,
+                        );
                       },
                     });
                   }}
@@ -449,7 +460,7 @@ export default function SettingsAttendanceMachines() {
                 </Button>
                 <Button
                   variant="secondary"
-                  disabled={!repairRangeValid || actions.backfill.isPending}
+                  disabled={!repairRangeValid || admsBusy}
                   onClick={() => {
                     const payload = {
                       from: repairFrom,
@@ -462,6 +473,9 @@ export default function SettingsAttendanceMachines() {
                       onSuccess: (res, variables) => {
                         if (!matchesRepairFilters(variables)) return;
                         setBackfillResult(res.data);
+                        toast.success(
+                          `Backfill dry-run: ${res.data?.missing_before ?? 0} missing punch(es), would store ${res.data?.stored ?? 0}`,
+                        );
                       },
                     });
                   }}
@@ -469,7 +483,7 @@ export default function SettingsAttendanceMachines() {
                   Backfill dry-run
                 </Button>
                 <Button
-                  disabled={!backfillWriteAllowed || actions.backfill.isPending}
+                  disabled={!backfillWriteAllowed || admsBusy}
                   onClick={() => {
                     if (!window.confirm('Run backfill and write to database?')) return;
                     const payload = {
@@ -484,6 +498,10 @@ export default function SettingsAttendanceMachines() {
                       onSuccess: (res, variables) => {
                         if (!matchesRepairFilters(variables)) return;
                         setBackfillResult(res.data);
+                        toast.success(
+                          `Backfill completed: stored ${res.data?.stored ?? 0}, days ${res.data?.processed_days ?? 0}`,
+                        );
+                        actions.invalidate();
                       },
                     });
                   }}
@@ -531,7 +549,7 @@ export default function SettingsAttendanceMachines() {
                 </div>
               </div>
               <Button
-                disabled={!reprocessDate || !reprocessPin || actions.reprocess.isPending}
+                disabled={!reprocessDate || !reprocessPin || actions.reprocess.isPending || admsBusy}
                 onClick={() => {
                   if (
                     !window.confirm(
