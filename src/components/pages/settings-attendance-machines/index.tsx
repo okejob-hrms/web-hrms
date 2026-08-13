@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -36,13 +37,6 @@ function formatDt(value?: string | null) {
   }
 }
 
-const STATUS_LABEL: Record<number, string> = {
-  0: 'Pending',
-  1: 'Processed',
-  2: 'Unmatched',
-  3: 'Failed',
-};
-
 /** Soft cap for write backfill to avoid ADMS timeouts / huge rewrites. */
 const MAX_BACKFILL_DAYS = 31;
 
@@ -55,12 +49,28 @@ function inclusiveDaySpan(from: string, to: string): number {
 }
 
 export default function SettingsAttendanceMachines() {
+  const t = useTranslations('settings.attendanceMachines');
   const canEdit = usePermissionStore((s) => s.can('time_attendance.attendance_configuration.edit'));
   const [activeTab, setActiveTab] = React.useState('overview');
   const healthQuery = useIclockHealth(true);
   const devicesQuery = useIclockDevices(activeTab === 'machines');
   const unmatchedQuery = useIclockUnmatched(activeTab === 'unmatched');
   const actions = useIclockActions();
+
+  const statusLabel = (status: number): string => {
+    switch (status) {
+      case 0:
+        return t('statusPending');
+      case 1:
+        return t('statusProcessed');
+      case 2:
+        return t('statusUnmatched');
+      case 3:
+        return t('statusFailed');
+      default:
+        return String(status);
+    }
+  };
 
   const [logPin, setLogPin] = React.useState('');
   const [logDevice, setLogDevice] = React.useState('');
@@ -128,8 +138,8 @@ export default function SettingsAttendanceMachines() {
     pin?: string;
   }) => {
     const parts = [`${variables.from} → ${variables.to}`];
-    if (variables.device) parts.push(`device ${variables.device}`);
-    if (variables.pin) parts.push(`PIN ${variables.pin}`);
+    if (variables.device) parts.push(t('repairScopeDevice', { device: variables.device }));
+    if (variables.pin) parts.push(t('repairScopePin', { pin: variables.pin }));
     return parts.join(', ');
   };
 
@@ -148,54 +158,54 @@ export default function SettingsAttendanceMachines() {
     actions.reprocess.isPending;
 
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
+    <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Attendance Machines</h1>
-          <p className="text-muted-foreground mt-1 text-sm">
-            Monitor iClock / ADMS sync health, machines, punch logs, and repair gaps.
-          </p>
+          <h2 className="font-semibold text-xl">{t('title')}</h2>
+          <p className="text-sm text-text-secondary">{t('subtitle')}</p>
         </div>
         <Can permission="time_attendance.attendance_configuration.edit">
           <Button
             onClick={() => actions.syncNow.mutate()}
             disabled={admsBusy}
           >
-            {actions.syncNow.isPending ? 'Syncing…' : 'Sync now'}
+            {actions.syncNow.isPending ? t('syncing') : t('syncNow')}
           </Button>
         </Can>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="gap-4">
         <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="machines">Machines</TabsTrigger>
-          <TabsTrigger value="logs">Punch logs</TabsTrigger>
-          <TabsTrigger value="unmatched">Unmatched PINs</TabsTrigger>
-          {canEdit ? <TabsTrigger value="repair">Repair</TabsTrigger> : null}
+          <TabsTrigger value="overview">{t('tabOverview')}</TabsTrigger>
+          <TabsTrigger value="machines">{t('tabMachines')}</TabsTrigger>
+          <TabsTrigger value="logs">{t('tabLogs')}</TabsTrigger>
+          <TabsTrigger value="unmatched">{t('tabUnmatched')}</TabsTrigger>
+          {canEdit ? <TabsTrigger value="repair">{t('tabRepair')}</TabsTrigger> : null}
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
           {healthQuery.isError ? (
             <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">
-              Failed to load sync health. {healthQuery.error?.message || 'Try refreshing the page.'}
+              {t('failedLoadHealth', {
+                message: healthQuery.error?.message || t('tryRefreshing'),
+              })}
             </div>
           ) : null}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <StatCard
-              label="Sync status"
+              label={t('syncStatus')}
               value={health?.last_run_status ?? '—'}
               badge={
                 health == null ? null : health.stale ? (
-                  <Badge variant="destructive">Stale</Badge>
+                  <Badge variant="destructive">{t('stale')}</Badge>
                 ) : (
-                  <Badge variant="secondary">Fresh</Badge>
+                  <Badge variant="secondary">{t('fresh')}</Badge>
                 )
               }
             />
-            <StatCard label="Last synced" value={formatDt(health?.last_synced_at)} />
-            <StatCard label="Cursor TID" value={String(health?.last_tid ?? '—')} />
-            <StatCard label="API" value={health?.api_url || '—'} />
+            <StatCard label={t('lastSynced')} value={formatDt(health?.last_synced_at)} />
+            <StatCard label={t('cursorTid')} value={String(health?.last_tid ?? '—')} />
+            <StatCard label={t('api')} value={health?.api_url || '—'} />
           </div>
 
           {health?.last_error ? (
@@ -206,7 +216,7 @@ export default function SettingsAttendanceMachines() {
 
           {health?.metadata ? (
             <div className="rounded-md border p-4">
-              <h3 className="mb-2 text-sm font-medium">Last run stats</h3>
+              <h3 className="mb-2 text-sm font-medium">{t('lastRunStats')}</h3>
               <pre className="text-muted-foreground overflow-auto text-xs">
                 {JSON.stringify(health.metadata, null, 2)}
               </pre>
@@ -222,7 +232,7 @@ export default function SettingsAttendanceMachines() {
                 onClick={() => actions.syncDevices.mutate()}
                 disabled={admsBusy}
               >
-                {actions.syncDevices.isPending ? 'Refreshing…' : 'Refresh from ADMS'}
+                {actions.syncDevices.isPending ? t('refreshing') : t('refreshFromAdms')}
               </Button>
             </Can>
           </div>
@@ -230,19 +240,21 @@ export default function SettingsAttendanceMachines() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Serial</TableHead>
-                  <TableHead>IP</TableHead>
-                  <TableHead>Alias</TableHead>
-                  <TableHead>Last punch</TableHead>
-                  <TableHead>24h punches</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>{t('serial')}</TableHead>
+                  <TableHead>{t('ip')}</TableHead>
+                  <TableHead>{t('alias')}</TableHead>
+                  <TableHead>{t('lastPunch')}</TableHead>
+                  <TableHead>{t('punches24h')}</TableHead>
+                  <TableHead>{t('status')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {devicesQuery.isError ? (
                   <TableRow>
                     <TableCell colSpan={6} className="text-destructive text-center">
-                      Failed to load devices. {devicesQuery.error?.message || 'Try again.'}
+                      {t('failedLoadDevices', {
+                        message: devicesQuery.error?.message || t('tryAgain'),
+                      })}
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -255,9 +267,9 @@ export default function SettingsAttendanceMachines() {
                       <TableCell>{device.punches_last_24h ?? 0}</TableCell>
                       <TableCell>
                         {device.quiet ? (
-                          <Badge variant="outline">Quiet</Badge>
+                          <Badge variant="outline">{t('quiet')}</Badge>
                         ) : (
-                          <Badge>Active</Badge>
+                          <Badge>{t('active')}</Badge>
                         )}
                       </TableCell>
                     </TableRow>
@@ -268,7 +280,7 @@ export default function SettingsAttendanceMachines() {
                 (devicesQuery.data?.length ?? 0) === 0 ? (
                   <TableRow>
                     <TableCell colSpan={6} className="text-muted-foreground text-center">
-                      No devices yet. Click Refresh from ADMS.
+                      {t('noDevices')}
                     </TableCell>
                   </TableRow>
                 ) : null}
@@ -280,18 +292,18 @@ export default function SettingsAttendanceMachines() {
         <TabsContent value="logs" className="space-y-4">
           <div className="grid gap-3 md:grid-cols-4">
             <div>
-              <Label>PIN</Label>
+              <Label>{t('pin')}</Label>
               <Input
                 value={logPin}
                 onChange={(e) => {
                   setLogPin(e.target.value);
                   setLogPage(1);
                 }}
-                placeholder="e.g. 20250102"
+                placeholder={t('pinPlaceholder')}
               />
             </div>
             <div>
-              <Label>Device SN</Label>
+              <Label>{t('deviceSn')}</Label>
               <Input
                 value={logDevice}
                 onChange={(e) => {
@@ -301,7 +313,7 @@ export default function SettingsAttendanceMachines() {
               />
             </div>
             <div>
-              <Label>From</Label>
+              <Label>{t('from')}</Label>
               <Input
                 type="date"
                 value={logFrom}
@@ -312,7 +324,7 @@ export default function SettingsAttendanceMachines() {
               />
             </div>
             <div>
-              <Label>To</Label>
+              <Label>{t('to')}</Label>
               <Input
                 type="date"
                 value={logTo}
@@ -327,21 +339,23 @@ export default function SettingsAttendanceMachines() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Log ID</TableHead>
-                  <TableHead>PIN</TableHead>
-                  <TableHead>Time</TableHead>
-                  <TableHead>Device</TableHead>
-                  <TableHead>State</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Attendance</TableHead>
-                  <TableHead>Error</TableHead>
+                  <TableHead>{t('logId')}</TableHead>
+                  <TableHead>{t('pin')}</TableHead>
+                  <TableHead>{t('time')}</TableHead>
+                  <TableHead>{t('device')}</TableHead>
+                  <TableHead>{t('state')}</TableHead>
+                  <TableHead>{t('status')}</TableHead>
+                  <TableHead>{t('attendance')}</TableHead>
+                  <TableHead>{t('error')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {logsQuery.isError ? (
                   <TableRow>
                     <TableCell colSpan={8} className="text-destructive text-center">
-                      Failed to load punch logs. {logsQuery.error?.message || 'Try again.'}
+                      {t('failedLoadLogs', {
+                        message: logsQuery.error?.message || t('tryAgain'),
+                      })}
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -352,7 +366,7 @@ export default function SettingsAttendanceMachines() {
                       <TableCell>{formatDt(log.punched_at)}</TableCell>
                       <TableCell>{log.device_sn ?? '—'}</TableCell>
                       <TableCell>{log.punch_state ?? '—'}</TableCell>
-                      <TableCell>{STATUS_LABEL[log.status] ?? log.status}</TableCell>
+                      <TableCell>{statusLabel(log.status)}</TableCell>
                       <TableCell>{log.attendance_id ?? '—'}</TableCell>
                       <TableCell
                         className="text-muted-foreground max-w-[220px] truncate text-xs"
@@ -368,7 +382,7 @@ export default function SettingsAttendanceMachines() {
                 (logsQuery.data?.data?.length ?? 0) === 0 ? (
                   <TableRow>
                     <TableCell colSpan={8} className="text-muted-foreground text-center">
-                      No punch logs found.
+                      {t('noPunchLogs')}
                     </TableCell>
                   </TableRow>
                 ) : null}
@@ -377,7 +391,7 @@ export default function SettingsAttendanceMachines() {
           </div>
           <div className="flex items-center justify-between gap-3">
             <p className="text-muted-foreground text-sm">
-              Page {logPage} of {logsLastPage} · {logsTotal} total
+              {t('pageOf', { page: logPage, last: logsLastPage, total: logsTotal })}
             </p>
             <div className="flex gap-2">
               <Button
@@ -386,7 +400,7 @@ export default function SettingsAttendanceMachines() {
                 disabled={logPage <= 1 || logsQuery.isFetching}
                 onClick={() => setLogPage((p) => Math.max(1, p - 1))}
               >
-                Previous
+                {t('previous')}
               </Button>
               <Button
                 variant="outline"
@@ -394,7 +408,7 @@ export default function SettingsAttendanceMachines() {
                 disabled={logPage >= logsLastPage || logsQuery.isFetching}
                 onClick={() => setLogPage((p) => p + 1)}
               >
-                Next
+                {t('next')}
               </Button>
             </div>
           </div>
@@ -405,18 +419,19 @@ export default function SettingsAttendanceMachines() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>PIN</TableHead>
-                  <TableHead>Punches</TableHead>
-                  <TableHead>First</TableHead>
-                  <TableHead>Last</TableHead>
+                  <TableHead>{t('pin')}</TableHead>
+                  <TableHead>{t('punches')}</TableHead>
+                  <TableHead>{t('first')}</TableHead>
+                  <TableHead>{t('last')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {unmatchedQuery.isError ? (
                   <TableRow>
                     <TableCell colSpan={4} className="text-destructive text-center">
-                      Failed to load unmatched PINs.{' '}
-                      {unmatchedQuery.error?.message || 'Try again.'}
+                      {t('failedLoadUnmatched', {
+                        message: unmatchedQuery.error?.message || t('tryAgain'),
+                      })}
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -434,7 +449,7 @@ export default function SettingsAttendanceMachines() {
                 (unmatchedQuery.data?.length ?? 0) === 0 ? (
                   <TableRow>
                     <TableCell colSpan={4} className="text-muted-foreground text-center">
-                      No unmatched PINs.
+                      {t('noUnmatchedPins')}
                     </TableCell>
                   </TableRow>
                 ) : null}
@@ -446,35 +461,35 @@ export default function SettingsAttendanceMachines() {
         <TabsContent value="repair" className="space-y-6">
           <Can permission="time_attendance.attendance_configuration.edit">
             <div className="space-y-4 rounded-md border p-4">
-              <h3 className="font-medium">Reconcile / Backfill date range</h3>
-              <p className="text-muted-foreground text-sm">
-                Pulls ADMS Transaction history (not the live oplog tip) and compares with HRMS.
-              </p>
+              <h3 className="font-medium">{t('reconcileBackfillTitle')}</h3>
+              <p className="text-muted-foreground text-sm">{t('reconcileBackfillDesc')}</p>
               <div className="grid gap-3 md:grid-cols-4">
                 <div>
-                  <Label>From</Label>
+                  <Label>{t('from')}</Label>
                   <Input type="date" value={repairFrom} onChange={(e) => setRepairFrom(e.target.value)} />
                 </div>
                 <div>
-                  <Label>To</Label>
+                  <Label>{t('to')}</Label>
                   <Input type="date" value={repairTo} onChange={(e) => setRepairTo(e.target.value)} />
                 </div>
                 <div>
-                  <Label>Device (optional)</Label>
+                  <Label>{t('deviceOptional')}</Label>
                   <Input value={repairDevice} onChange={(e) => setRepairDevice(e.target.value)} />
                 </div>
                 <div>
-                  <Label>PIN (optional)</Label>
+                  <Label>{t('pinOptional')}</Label>
                   <Input value={repairPin} onChange={(e) => setRepairPin(e.target.value)} />
                 </div>
               </div>
               {!repairRangeValid && repairFrom && repairTo ? (
-                <p className="text-destructive text-sm">From date must be on or before To date.</p>
+                <p className="text-destructive text-sm">{t('fromBeforeTo')}</p>
               ) : null}
               {repairRangeValid && !backfillWriteAllowed ? (
                 <p className="text-destructive text-sm">
-                  Repair actions are limited to {MAX_BACKFILL_DAYS} days ({repairSpanDays} selected).
-                  Narrow the range, or use the CLI for larger windows.
+                  {t('repairLimitedDays', {
+                    max: MAX_BACKFILL_DAYS,
+                    selected: repairSpanDays,
+                  })}
                 </p>
               ) : null}
               <div className="flex flex-wrap gap-2">
@@ -491,7 +506,11 @@ export default function SettingsAttendanceMachines() {
                     actions.reconcile.mutate(payload, {
                       onSuccess: (res, variables) => {
                         toast.success(
-                          `Reconcile (${formatRepairScope(variables)}): ${res.data?.missing_count ?? 0} missing of ${res.data?.adms_count ?? 0} ADMS punches`,
+                          t('reconcileSuccess', {
+                            scope: formatRepairScope(variables),
+                            missing: res.data?.missing_count ?? 0,
+                            adms: res.data?.adms_count ?? 0,
+                          }),
                         );
                         if (!matchesRepairFilters(variables)) return;
                         setReconcileReport(res.data);
@@ -499,7 +518,7 @@ export default function SettingsAttendanceMachines() {
                     });
                   }}
                 >
-                  {actions.reconcile.isPending ? 'Reconciling…' : 'Reconcile (preview)'}
+                  {actions.reconcile.isPending ? t('reconciling') : t('reconcilePreview')}
                 </Button>
                 <Button
                   variant="secondary"
@@ -515,7 +534,11 @@ export default function SettingsAttendanceMachines() {
                     actions.backfill.mutate(payload, {
                       onSuccess: (res, variables) => {
                         toast.success(
-                          `Backfill dry-run (${formatRepairScope(variables)}): ${res.data?.missing_before ?? 0} missing punch(es), would store ${res.data?.stored ?? 0}`,
+                          t('backfillDryRunSuccess', {
+                            scope: formatRepairScope(variables),
+                            missing: res.data?.missing_before ?? 0,
+                            stored: res.data?.stored ?? 0,
+                          }),
                         );
                         if (!matchesRepairFilters(variables)) return;
                         setBackfillResult(res.data);
@@ -524,17 +547,24 @@ export default function SettingsAttendanceMachines() {
                   }}
                 >
                   {actions.backfill.isPending && actions.backfill.variables?.dry_run
-                    ? 'Running…'
-                    : 'Backfill dry-run'}
+                    ? t('running')
+                    : t('backfillDryRun')}
                 </Button>
                 <Button
                   disabled={!backfillWriteAllowed || admsBusy}
                   onClick={() => {
                     if (
                       !window.confirm(
-                        `Run backfill for ${repairFrom} → ${repairTo}${
-                          repairDevice ? ` (device ${repairDevice})` : ''
-                        }${repairPin ? ` (PIN ${repairPin})` : ''} and write to the database?`,
+                        t('confirmBackfill', {
+                          from: repairFrom,
+                          to: repairTo,
+                          devicePart: repairDevice
+                            ? t('confirmBackfillDevice', { device: repairDevice })
+                            : '',
+                          pinPart: repairPin
+                            ? t('confirmBackfillPin', { pin: repairPin })
+                            : '',
+                        }),
                       )
                     ) {
                       return;
@@ -550,7 +580,11 @@ export default function SettingsAttendanceMachines() {
                     actions.backfill.mutate(payload, {
                       onSuccess: (res, variables) => {
                         toast.success(
-                          `Backfill completed (${formatRepairScope(variables)}): stored ${res.data?.stored ?? 0}, days ${res.data?.processed_days ?? 0}`,
+                          t('backfillCompletedSuccess', {
+                            scope: formatRepairScope(variables),
+                            stored: res.data?.stored ?? 0,
+                            days: res.data?.processed_days ?? 0,
+                          }),
                         );
                         actions.invalidate();
                         if (!matchesRepairFilters(variables)) return;
@@ -560,15 +594,18 @@ export default function SettingsAttendanceMachines() {
                   }}
                 >
                   {actions.backfill.isPending && actions.backfill.variables?.dry_run === false
-                    ? 'Writing…'
-                    : 'Run backfill'}
+                    ? t('writing')
+                    : t('runBackfill')}
                 </Button>
               </div>
 
               {reconcileReport ? (
                 <div className="space-y-2 rounded-md border bg-muted/30 p-3 text-sm">
                   <div>
-                    ADMS {reconcileReport.adms_count} · HRMS {reconcileReport.hrms_count} · Missing{' '}
+                    {t('reconcileSummary', {
+                      adms: reconcileReport.adms_count,
+                      hrms: reconcileReport.hrms_count,
+                    })}{' '}
                     <strong>{reconcileReport.missing_count}</strong>
                   </div>
                   {(reconcileReport.missing ?? []).slice(0, 10).map((row) => (
@@ -582,7 +619,7 @@ export default function SettingsAttendanceMachines() {
               {backfillResult ? (
                 <div className="rounded-md border bg-muted/30 p-3 text-sm">
                   <div className="font-medium">
-                    {backfillResult.dry_run ? 'Dry-run result' : 'Backfill result'}
+                    {backfillResult.dry_run ? t('dryRunResult') : t('backfillResult')}
                   </div>
                   <pre className="text-muted-foreground mt-2 overflow-auto text-xs">
                     {JSON.stringify(backfillResult, null, 2)}
@@ -592,14 +629,14 @@ export default function SettingsAttendanceMachines() {
             </div>
 
             <div className="space-y-4 rounded-md border p-4">
-              <h3 className="font-medium">Reprocess employee / day</h3>
+              <h3 className="font-medium">{t('reprocessTitle')}</h3>
               <div className="grid gap-3 md:grid-cols-2">
                 <div>
-                  <Label>Date</Label>
+                  <Label>{t('date')}</Label>
                   <Input type="date" value={reprocessDate} onChange={(e) => setReprocessDate(e.target.value)} />
                 </div>
                 <div>
-                  <Label>PIN</Label>
+                  <Label>{t('pin')}</Label>
                   <Input value={reprocessPin} onChange={(e) => setReprocessPin(e.target.value)} />
                 </div>
               </div>
@@ -608,7 +645,10 @@ export default function SettingsAttendanceMachines() {
                 onClick={() => {
                   if (
                     !window.confirm(
-                      `Reprocess attendance for PIN ${reprocessPin} on ${reprocessDate}? This rewrites waiting/absent attendance for that day.`,
+                      t('confirmReprocess', {
+                        pin: reprocessPin,
+                        date: reprocessDate,
+                      }),
                     )
                   ) {
                     return;
@@ -619,7 +659,7 @@ export default function SettingsAttendanceMachines() {
                   });
                 }}
               >
-                {actions.reprocess.isPending ? 'Reprocessing…' : 'Reprocess day'}
+                {actions.reprocess.isPending ? t('reprocessing') : t('reprocessDay')}
               </Button>
             </div>
           </Can>
@@ -639,12 +679,14 @@ function StatCard({
   badge?: React.ReactNode;
 }) {
   return (
-    <div className="rounded-md border p-4">
-      <div className="text-muted-foreground mb-1 flex items-center justify-between text-xs uppercase tracking-wide">
-        <span>{label}</span>
-        {badge}
+    <div className="min-w-0 rounded-md border p-4">
+      <div className="text-muted-foreground mb-1 flex items-center justify-between gap-2 text-xs uppercase tracking-wide">
+        <span className="min-w-0 truncate">{label}</span>
+        {badge ? <span className="shrink-0">{badge}</span> : null}
       </div>
-      <div className="truncate text-sm font-medium">{value}</div>
+      <div className="truncate text-sm font-medium" title={value}>
+        {value}
+      </div>
     </div>
   );
 }
