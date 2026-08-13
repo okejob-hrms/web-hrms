@@ -83,6 +83,11 @@ export default function SettingsAttendanceMachines() {
   const [reprocessDate, setReprocessDate] = React.useState('');
   const [reprocessPin, setReprocessPin] = React.useState('');
 
+  React.useEffect(() => {
+    setReconcileReport(null);
+    setBackfillResult(null);
+  }, [repairFrom, repairTo, repairDevice, repairPin]);
+
   const health = healthQuery.data;
   const logsLastPage = logsQuery.data?.last_page ?? 1;
   const logsTotal = logsQuery.data?.total ?? 0;
@@ -176,23 +181,33 @@ export default function SettingsAttendanceMachines() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {(devicesQuery.data ?? []).map((device) => (
-                  <TableRow key={device.serial}>
-                    <TableCell className="font-medium">{device.serial}</TableCell>
-                    <TableCell>{device.ip ?? '—'}</TableCell>
-                    <TableCell>{device.alias ?? '—'}</TableCell>
-                    <TableCell>{formatDt(device.last_punch_at)}</TableCell>
-                    <TableCell>{device.punches_last_24h ?? 0}</TableCell>
-                    <TableCell>
-                      {device.quiet ? (
-                        <Badge variant="outline">Quiet</Badge>
-                      ) : (
-                        <Badge>Active</Badge>
-                      )}
+                {devicesQuery.isError ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-destructive text-center">
+                      Failed to load devices. {devicesQuery.error?.message || 'Try again.'}
                     </TableCell>
                   </TableRow>
-                ))}
-                {!devicesQuery.isLoading && (devicesQuery.data?.length ?? 0) === 0 ? (
+                ) : (
+                  (devicesQuery.data ?? []).map((device) => (
+                    <TableRow key={device.id}>
+                      <TableCell className="font-medium">{device.serial}</TableCell>
+                      <TableCell>{device.ip ?? '—'}</TableCell>
+                      <TableCell>{device.alias ?? '—'}</TableCell>
+                      <TableCell>{formatDt(device.last_punch_at)}</TableCell>
+                      <TableCell>{device.punches_last_24h ?? 0}</TableCell>
+                      <TableCell>
+                        {device.quiet ? (
+                          <Badge variant="outline">Quiet</Badge>
+                        ) : (
+                          <Badge>Active</Badge>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+                {!devicesQuery.isLoading &&
+                !devicesQuery.isError &&
+                (devicesQuery.data?.length ?? 0) === 0 ? (
                   <TableRow>
                     <TableCell colSpan={6} className="text-muted-foreground text-center">
                       No devices yet. Click Refresh from ADMS.
@@ -237,18 +252,28 @@ export default function SettingsAttendanceMachines() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {(logsQuery.data?.data ?? []).map((log) => (
-                  <TableRow key={log.id}>
-                    <TableCell>{log.iclock_log_id}</TableCell>
-                    <TableCell>{log.iclock_employee_code}</TableCell>
-                    <TableCell>{formatDt(log.punched_at)}</TableCell>
-                    <TableCell>{log.device_sn ?? '—'}</TableCell>
-                    <TableCell>{log.punch_state ?? '—'}</TableCell>
-                    <TableCell>{STATUS_LABEL[log.status] ?? log.status}</TableCell>
-                    <TableCell>{log.attendance_id ?? '—'}</TableCell>
+                {logsQuery.isError ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-destructive text-center">
+                      Failed to load punch logs. {logsQuery.error?.message || 'Try again.'}
+                    </TableCell>
                   </TableRow>
-                ))}
-                {!logsQuery.isLoading && (logsQuery.data?.data?.length ?? 0) === 0 ? (
+                ) : (
+                  (logsQuery.data?.data ?? []).map((log) => (
+                    <TableRow key={log.id}>
+                      <TableCell>{log.iclock_log_id}</TableCell>
+                      <TableCell>{log.iclock_employee_code}</TableCell>
+                      <TableCell>{formatDt(log.punched_at)}</TableCell>
+                      <TableCell>{log.device_sn ?? '—'}</TableCell>
+                      <TableCell>{log.punch_state ?? '—'}</TableCell>
+                      <TableCell>{STATUS_LABEL[log.status] ?? log.status}</TableCell>
+                      <TableCell>{log.attendance_id ?? '—'}</TableCell>
+                    </TableRow>
+                  ))
+                )}
+                {!logsQuery.isLoading &&
+                !logsQuery.isError &&
+                (logsQuery.data?.data?.length ?? 0) === 0 ? (
                   <TableRow>
                     <TableCell colSpan={7} className="text-muted-foreground text-center">
                       No punch logs found.
@@ -295,15 +320,26 @@ export default function SettingsAttendanceMachines() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {(unmatchedQuery.data ?? []).map((row) => (
-                  <TableRow key={row.iclock_employee_code}>
-                    <TableCell className="font-medium">{row.iclock_employee_code}</TableCell>
-                    <TableCell>{row.punch_count}</TableCell>
-                    <TableCell>{formatDt(row.first_punched_at)}</TableCell>
-                    <TableCell>{formatDt(row.last_punched_at)}</TableCell>
+                {unmatchedQuery.isError ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-destructive text-center">
+                      Failed to load unmatched PINs.{' '}
+                      {unmatchedQuery.error?.message || 'Try again.'}
+                    </TableCell>
                   </TableRow>
-                ))}
-                {!unmatchedQuery.isLoading && (unmatchedQuery.data?.length ?? 0) === 0 ? (
+                ) : (
+                  (unmatchedQuery.data ?? []).map((row) => (
+                    <TableRow key={row.iclock_employee_code}>
+                      <TableCell className="font-medium">{row.iclock_employee_code}</TableCell>
+                      <TableCell>{row.punch_count}</TableCell>
+                      <TableCell>{formatDt(row.first_punched_at)}</TableCell>
+                      <TableCell>{formatDt(row.last_punched_at)}</TableCell>
+                    </TableRow>
+                  ))
+                )}
+                {!unmatchedQuery.isLoading &&
+                !unmatchedQuery.isError &&
+                (unmatchedQuery.data?.length ?? 0) === 0 ? (
                   <TableRow>
                     <TableCell colSpan={4} className="text-muted-foreground text-center">
                       No unmatched PINs.
