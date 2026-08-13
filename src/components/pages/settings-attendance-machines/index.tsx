@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Can } from '@/components/auth/can';
+import { useDebounce } from '@/hooks/use-debounce';
 import {
   useIclockActions,
   useIclockDevices,
@@ -50,12 +51,20 @@ export default function SettingsAttendanceMachines() {
   const [logDevice, setLogDevice] = React.useState('');
   const [logFrom, setLogFrom] = React.useState('');
   const [logTo, setLogTo] = React.useState('');
+  const [logPage, setLogPage] = React.useState(1);
+  const debouncedLogPin = useDebounce(logPin, 400);
+  const debouncedLogDevice = useDebounce(logDevice, 400);
+
+  React.useEffect(() => {
+    setLogPage(1);
+  }, [debouncedLogPin, debouncedLogDevice, logFrom, logTo]);
+
   const logsQuery = useIclockLogs({
-    pin: logPin || undefined,
-    device: logDevice || undefined,
+    pin: debouncedLogPin || undefined,
+    device: debouncedLogDevice || undefined,
     from: logFrom || undefined,
     to: logTo || undefined,
-    page: 1,
+    page: logPage,
   });
 
   const [repairFrom, setRepairFrom] = React.useState('');
@@ -68,6 +77,8 @@ export default function SettingsAttendanceMachines() {
   const [reprocessPin, setReprocessPin] = React.useState('');
 
   const health = healthQuery.data;
+  const logsLastPage = logsQuery.data?.last_page ?? 1;
+  const logsTotal = logsQuery.data?.total ?? 0;
 
   return (
     <div className="space-y-6 p-6">
@@ -103,7 +114,7 @@ export default function SettingsAttendanceMachines() {
               label="Sync status"
               value={health?.last_run_status ?? '—'}
               badge={
-                health?.stale ? (
+                health == null ? null : health.stale ? (
                   <Badge variant="destructive">Stale</Badge>
                 ) : (
                   <Badge variant="secondary">Fresh</Badge>
@@ -238,6 +249,29 @@ export default function SettingsAttendanceMachines() {
               </TableBody>
             </Table>
           </div>
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-muted-foreground text-sm">
+              Page {logPage} of {logsLastPage} · {logsTotal} total
+            </p>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={logPage <= 1 || logsQuery.isFetching}
+                onClick={() => setLogPage((p) => Math.max(1, p - 1))}
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={logPage >= logsLastPage || logsQuery.isFetching}
+                onClick={() => setLogPage((p) => p + 1)}
+              >
+                Next
+              </Button>
+            </div>
+          </div>
         </TabsContent>
 
         <TabsContent value="unmatched" className="space-y-4">
@@ -301,14 +335,20 @@ export default function SettingsAttendanceMachines() {
                 <Button
                   variant="outline"
                   disabled={!repairFrom || !repairTo || actions.reconcile.isPending}
-                  onClick={async () => {
-                    const res = await actions.reconcile.mutateAsync({
-                      from: repairFrom,
-                      to: repairTo,
-                      device: repairDevice || undefined,
-                      pin: repairPin || undefined,
-                    });
-                    setReconcileReport(res.data);
+                  onClick={() => {
+                    actions.reconcile.mutate(
+                      {
+                        from: repairFrom,
+                        to: repairTo,
+                        device: repairDevice || undefined,
+                        pin: repairPin || undefined,
+                      },
+                      {
+                        onSuccess: (res) => {
+                          setReconcileReport(res.data);
+                        },
+                      },
+                    );
                   }}
                 >
                   Reconcile (preview)
