@@ -136,7 +136,8 @@ export default function SettingsAttendanceMachines() {
     actions.syncNow.isPending ||
     actions.syncDevices.isPending ||
     actions.reconcile.isPending ||
-    actions.backfill.isPending;
+    actions.backfill.isPending ||
+    actions.reprocess.isPending;
 
   return (
     <div className="space-y-6 p-6">
@@ -430,14 +431,14 @@ export default function SettingsAttendanceMachines() {
               ) : null}
               {repairRangeValid && !backfillWriteAllowed ? (
                 <p className="text-destructive text-sm">
-                  Write backfill is limited to {MAX_BACKFILL_DAYS} days ({repairSpanDays} selected).
-                  Narrow the range, or use dry-run / CLI for larger windows.
+                  Repair actions are limited to {MAX_BACKFILL_DAYS} days ({repairSpanDays} selected).
+                  Narrow the range, or use the CLI for larger windows.
                 </p>
               ) : null}
               <div className="flex flex-wrap gap-2">
                 <Button
                   variant="outline"
-                  disabled={!repairRangeValid || admsBusy}
+                  disabled={!backfillWriteAllowed || admsBusy}
                   onClick={() => {
                     const payload = {
                       from: repairFrom,
@@ -460,7 +461,7 @@ export default function SettingsAttendanceMachines() {
                 </Button>
                 <Button
                   variant="secondary"
-                  disabled={!repairRangeValid || admsBusy}
+                  disabled={!backfillWriteAllowed || admsBusy}
                   onClick={() => {
                     const payload = {
                       from: repairFrom,
@@ -496,12 +497,12 @@ export default function SettingsAttendanceMachines() {
                     };
                     actions.backfill.mutate(payload, {
                       onSuccess: (res, variables) => {
-                        if (!matchesRepairFilters(variables)) return;
-                        setBackfillResult(res.data);
                         toast.success(
                           `Backfill completed: stored ${res.data?.stored ?? 0}, days ${res.data?.processed_days ?? 0}`,
                         );
                         actions.invalidate();
+                        if (!matchesRepairFilters(variables)) return;
+                        setBackfillResult(res.data);
                       },
                     });
                   }}
