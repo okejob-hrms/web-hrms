@@ -39,7 +39,11 @@ import {
   useIclockLogs,
   useIclockUnmatched,
 } from './hook';
-import type { IclockBackfillResult, IclockReconcileReport } from '@/services/iclock/types';
+import type {
+  IclockBackfillResult,
+  IclockReconcileReport,
+  IclockReprocessRangeResult,
+} from '@/services/iclock/types';
 
 type BackfillResultState = IclockBackfillResult & { rangeFrom: string; rangeTo: string };
 
@@ -155,6 +159,8 @@ export default function SettingsAttendanceMachines() {
   const [backfillResult, setBackfillResult] = React.useState<BackfillResultState | null>(null);
   const [backfillConfirmOpen, setBackfillConfirmOpen] = React.useState(false);
   const [reprocessConfirmOpen, setReprocessConfirmOpen] = React.useState(false);
+  const [rebuildConfirmOpen, setRebuildConfirmOpen] = React.useState(false);
+  const [rebuildResult, setRebuildResult] = React.useState<IclockReprocessRangeResult | null>(null);
 
   const repairFiltersRef = React.useRef({
     from: repairFrom,
@@ -215,6 +221,7 @@ export default function SettingsAttendanceMachines() {
   React.useEffect(() => {
     setReconcileReport(null);
     setBackfillResult(null);
+    setRebuildResult(null);
   }, [repairFrom, repairTo, repairDevice, repairPin]);
 
   const matchesRepairFilters = React.useCallback(
@@ -646,6 +653,7 @@ export default function SettingsAttendanceMachines() {
                       device: repairDevice || undefined,
                       pin: repairPin || undefined,
                       dry_run: true as const,
+                      rebuild_all: true as const,
                     };
                     actions.backfill.mutate(payload, {
                       onSuccess: (res, variables) => {
@@ -676,6 +684,17 @@ export default function SettingsAttendanceMachines() {
                   onClick={() => setBackfillConfirmOpen(true)}
                 >
                   {t('runBackfill')}
+                </Button>
+                <Button
+                  variant="outline"
+                  disabled={!backfillWriteAllowed || admsBusy}
+                  isLoading={
+                    actions.reprocess.isPending &&
+                    !!(actions.reprocess.variables && 'from' in actions.reprocess.variables)
+                  }
+                  onClick={() => setRebuildConfirmOpen(true)}
+                >
+                  {t('rebuildAttendance')}
                 </Button>
               </div>
 
@@ -715,6 +734,11 @@ export default function SettingsAttendanceMachines() {
                     <StatCard compact label={t('missingBefore')} value={String(backfillResult.missing_before)} />
                     <StatCard compact label={t('statStored')} value={String(backfillResult.stored)} />
                     <StatCard compact label={t('processedDays')} value={String(backfillResult.processed_days)} />
+                    <StatCard
+                      compact
+                      label={t('rebuildDays')}
+                      value={String(backfillResult.rebuild_days ?? backfillResult.processed_days)}
+                    />
                   </div>
                   <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
                     <StatCard compact label={t('statCreated')} value={String(backfillResult.created)} />
@@ -725,10 +749,33 @@ export default function SettingsAttendanceMachines() {
                   </div>
                 </div>
               ) : null}
+
+              {rebuildResult ? (
+                <div className="space-y-3 rounded-md bg-muted/40 p-4">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium">
+                      {rebuildResult.dry_run ? t('rebuildDryRunResult') : t('rebuildResult')}
+                    </span>
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                    <StatCard
+                      compact
+                      label={t('backfillPeriod')}
+                      value={`${rebuildResult.from} → ${rebuildResult.to}`}
+                    />
+                    <StatCard compact label={t('rebuildDays')} value={String(rebuildResult.processed_days)} />
+                    <StatCard compact label={t('statCreated')} value={String(rebuildResult.created)} />
+                    <StatCard compact label={t('statUpdated')} value={String(rebuildResult.updated)} />
+                  </div>
+                </div>
+              ) : null}
             </div>
 
             <div className="space-y-4 rounded-md border p-4">
-              <h3 className="text-sm font-semibold">{t('reprocessTitle')}</h3>
+              <div className="space-y-1">
+                <h3 className="text-sm font-semibold">{t('reprocessTitle')}</h3>
+                <p className="text-muted-foreground text-sm">{t('reprocessDesc')}</p>
+              </div>
               <div className="grid gap-3 md:grid-cols-2">
                 <BasicDatePicker
                   label={t('date')}
@@ -769,7 +816,10 @@ export default function SettingsAttendanceMachines() {
               </div>
               <Button
                 disabled={!reprocessDate || !reprocessPin || admsBusy}
-                isLoading={actions.reprocess.isPending}
+                isLoading={
+                  actions.reprocess.isPending &&
+                  !(actions.reprocess.variables && 'from' in actions.reprocess.variables)
+                }
                 onClick={() => setReprocessConfirmOpen(true)}
               >
                 {t('reprocessDay')}
@@ -826,6 +876,7 @@ export default function SettingsAttendanceMachines() {
                   pin: repairPin || undefined,
                   dry_run: false as const,
                   confirm: true as const,
+                  rebuild_all: true as const,
                 };
                 actions.backfill.mutate(payload, {
                   onSuccess: (res, variables) => {
@@ -892,6 +943,78 @@ export default function SettingsAttendanceMachines() {
               }}
             >
               {t('reprocessDay')}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Bulk rebuild confirm (from stored logs, no ADMS) */}
+      <AlertDialog
+        open={rebuildConfirmOpen}
+        onOpenChange={(open) => {
+          if (
+            !open &&
+            actions.reprocess.isPending &&
+            actions.reprocess.variables &&
+            'from' in actions.reprocess.variables
+          ) {
+            return;
+          }
+          setRebuildConfirmOpen(open);
+        }}
+      >
+        <AlertDialogContent className="max-w-md bg-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('confirmRebuildTitle')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('confirmRebuild', {
+                from: repairFrom,
+                to: repairTo,
+                pinPart: repairPin ? t('confirmBackfillPin', { pin: repairPin }) : '',
+              })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <Button
+              variant="outline"
+              disabled={
+                actions.reprocess.isPending &&
+                !!(actions.reprocess.variables && 'from' in actions.reprocess.variables)
+              }
+              onClick={() => setRebuildConfirmOpen(false)}
+            >
+              {tCommon('cancel')}
+            </Button>
+            <Button
+              isLoading={
+                actions.reprocess.isPending &&
+                !!(actions.reprocess.variables && 'from' in actions.reprocess.variables)
+              }
+              onClick={() => {
+                if (actions.reprocess.isPending) return;
+                const payload = {
+                  from: repairFrom,
+                  to: repairTo,
+                  pin: repairPin || undefined,
+                  confirm: true as const,
+                };
+                actions.reprocess.mutate(payload, {
+                  onSuccess: (res, variables) => {
+                    setRebuildConfirmOpen(false);
+                    if (!('from' in variables)) return;
+                    if (!matchesRepairFilters({
+                      from: variables.from,
+                      to: variables.to,
+                      pin: variables.pin,
+                    })) {
+                      return;
+                    }
+                    setRebuildResult((res.data as IclockReprocessRangeResult) ?? null);
+                  },
+                });
+              }}
+            >
+              {t('rebuildAttendance')}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
