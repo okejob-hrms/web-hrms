@@ -121,6 +121,18 @@ export default function SettingsAttendanceMachines() {
     [],
   );
 
+  const formatRepairScope = (variables: {
+    from: string;
+    to: string;
+    device?: string;
+    pin?: string;
+  }) => {
+    const parts = [`${variables.from} → ${variables.to}`];
+    if (variables.device) parts.push(`device ${variables.device}`);
+    if (variables.pin) parts.push(`PIN ${variables.pin}`);
+    return parts.join(', ');
+  };
+
   const health = healthQuery.data;
   const logsLastPage = logsQuery.data?.last_page ?? 1;
   const logsTotal = logsQuery.data?.total ?? 0;
@@ -478,11 +490,11 @@ export default function SettingsAttendanceMachines() {
                     };
                     actions.reconcile.mutate(payload, {
                       onSuccess: (res, variables) => {
+                        toast.success(
+                          `Reconcile (${formatRepairScope(variables)}): ${res.data?.missing_count ?? 0} missing of ${res.data?.adms_count ?? 0} ADMS punches`,
+                        );
                         if (!matchesRepairFilters(variables)) return;
                         setReconcileReport(res.data);
-                        toast.success(
-                          `Reconcile: ${res.data?.missing_count ?? 0} missing of ${res.data?.adms_count ?? 0} ADMS punches`,
-                        );
                       },
                     });
                   }}
@@ -502,11 +514,11 @@ export default function SettingsAttendanceMachines() {
                     };
                     actions.backfill.mutate(payload, {
                       onSuccess: (res, variables) => {
+                        toast.success(
+                          `Backfill dry-run (${formatRepairScope(variables)}): ${res.data?.missing_before ?? 0} missing punch(es), would store ${res.data?.stored ?? 0}`,
+                        );
                         if (!matchesRepairFilters(variables)) return;
                         setBackfillResult(res.data);
-                        toast.success(
-                          `Backfill dry-run: ${res.data?.missing_before ?? 0} missing punch(es), would store ${res.data?.stored ?? 0}`,
-                        );
                       },
                     });
                   }}
@@ -538,7 +550,7 @@ export default function SettingsAttendanceMachines() {
                     actions.backfill.mutate(payload, {
                       onSuccess: (res, variables) => {
                         toast.success(
-                          `Backfill completed: stored ${res.data?.stored ?? 0}, days ${res.data?.processed_days ?? 0}`,
+                          `Backfill completed (${formatRepairScope(variables)}): stored ${res.data?.stored ?? 0}, days ${res.data?.processed_days ?? 0}`,
                         );
                         actions.invalidate();
                         if (!matchesRepairFilters(variables)) return;
