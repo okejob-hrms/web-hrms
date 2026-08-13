@@ -150,6 +150,8 @@ export interface IFieldResponse {
   options: any;
   is_required: boolean;
   order: number;
+  /** Template group order; used when fields are flattened across groups. */
+  group_order?: number;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;

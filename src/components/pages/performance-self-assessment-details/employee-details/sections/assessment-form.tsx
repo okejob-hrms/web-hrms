@@ -11,6 +11,10 @@ import { IFormGroup } from "@/services/form/types";
 import { FormFieldRenderer } from "./form-field-renderer";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery } from "@tanstack/react-query";
+import {
+  sortFormFieldsByTemplateOrder,
+  sortFormGroupsByTemplateOrder,
+} from "@/lib/form-field-order";
 
 interface OpenSections {
   [key: string]: boolean;
@@ -48,7 +52,7 @@ export const AssessmentForm: React.FC<AssessmentFormProps> = ({
     const groups = formResponse?.data?.groups;
 
     if (groups) {
-      groups.forEach((group: IFormGroup) => {
+      sortFormGroupsByTemplateOrder(groups).forEach((group: IFormGroup) => {
         const groupId = parseInt(group.id, 10);
         sections.push({
           field_group_id: groupId,
@@ -56,7 +60,7 @@ export const AssessmentForm: React.FC<AssessmentFormProps> = ({
         });
 
         if (group.fields && Array.isArray(group.fields)) {
-          fieldsMap[groupId] = group.fields;
+          fieldsMap[groupId] = sortFormFieldsByTemplateOrder(group.fields);
         }
       });
     }
@@ -143,9 +147,7 @@ export const AssessmentForm: React.FC<AssessmentFormProps> = ({
                         No fields available for this group
                       </div>
                     ) : (
-                      fieldsForGroup
-                        .sort((a, b) => a.order - b.order)
-                        .map((field) => {
+                      fieldsForGroup.map((field) => {
                           const assessmentValue = getFieldAssessmentValue(
                             field.id,
                             group.field_group_id,
