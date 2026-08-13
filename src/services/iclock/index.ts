@@ -31,7 +31,7 @@ export const getIclockDevices = async (): Promise<ApiResponse<IclockDevice[]>> =
 };
 
 export const syncIclockDevices = async (): Promise<ApiResponse<{ synced: number; devices: IclockDevice[] }>> => {
-  return api.post('setting/iclock/devices/sync', { timeout: ADMS_TIMEOUT_MS }).json();
+  return api.post('setting/iclock/devices/sync', { json: {}, timeout: ADMS_TIMEOUT_MS }).json();
 };
 
 export const getIclockLogs = async (params: LogsParams = {}) => {

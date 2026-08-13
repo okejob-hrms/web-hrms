@@ -42,6 +42,15 @@ const STATUS_LABEL: Record<number, string> = {
   3: 'Failed',
 };
 
+/** Soft cap for write backfill to avoid ADMS timeouts / huge rewrites. */
+const MAX_BACKFILL_DAYS = 31;
+
+function inclusiveDaySpan(from: string, to: string): number {
+  const start = new Date(`${from}T00:00:00`);
+  const end = new Date(`${to}T00:00:00`);
+  return Math.floor((end.getTime() - start.getTime()) / 86_400_000) + 1;
+}
+
 export default function SettingsAttendanceMachines() {
   const canEdit = usePermissionStore((s) => s.can('time_attendance.attendance_configuration.edit'));
   const [activeTab, setActiveTab] = React.useState('overview');
@@ -79,6 +88,18 @@ export default function SettingsAttendanceMachines() {
   const [repairPin, setRepairPin] = React.useState('');
   const [reconcileReport, setReconcileReport] = React.useState<IclockReconcileReport | null>(null);
   const [backfillResult, setBackfillResult] = React.useState<IclockBackfillResult | null>(null);
+  const repairFiltersRef = React.useRef({
+    from: repairFrom,
+    to: repairTo,
+    device: repairDevice,
+    pin: repairPin,
+  });
+  repairFiltersRef.current = {
+    from: repairFrom,
+    to: repairTo,
+    device: repairDevice,
+    pin: repairPin,
+  };
 
   const [reprocessDate, setReprocessDate] = React.useState('');
   const [reprocessPin, setReprocessPin] = React.useState('');
@@ -88,11 +109,26 @@ export default function SettingsAttendanceMachines() {
     setBackfillResult(null);
   }, [repairFrom, repairTo, repairDevice, repairPin]);
 
+  const matchesRepairFilters = React.useCallback(
+    (variables: { from: string; to: string; device?: string; pin?: string }) => {
+      const current = repairFiltersRef.current;
+      return (
+        variables.from === current.from &&
+        variables.to === current.to &&
+        (variables.device ?? '') === current.device &&
+        (variables.pin ?? '') === current.pin
+      );
+    },
+    [],
+  );
+
   const health = healthQuery.data;
   const logsLastPage = logsQuery.data?.last_page ?? 1;
   const logsTotal = logsQuery.data?.total ?? 0;
   const repairRangeValid =
     Boolean(repairFrom && repairTo) && repairFrom <= repairTo;
+  const repairSpanDays = repairRangeValid ? inclusiveDaySpan(repairFrom, repairTo) : 0;
+  const backfillWriteAllowed = repairRangeValid && repairSpanDays <= MAX_BACKFILL_DAYS;
 
   return (
     <div className="space-y-6 p-6">
@@ -123,6 +159,11 @@ export default function SettingsAttendanceMachines() {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
+          {healthQuery.isError ? (
+            <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">
+              Failed to load sync health. {healthQuery.error?.message || 'Try refreshing the page.'}
+            </div>
+          ) : null}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <StatCard
               label="Sync status"
@@ -379,24 +420,29 @@ export default function SettingsAttendanceMachines() {
               {!repairRangeValid && repairFrom && repairTo ? (
                 <p className="text-destructive text-sm">From date must be on or before To date.</p>
               ) : null}
+              {repairRangeValid && !backfillWriteAllowed ? (
+                <p className="text-destructive text-sm">
+                  Write backfill is limited to {MAX_BACKFILL_DAYS} days ({repairSpanDays} selected).
+                  Narrow the range, or use dry-run / CLI for larger windows.
+                </p>
+              ) : null}
               <div className="flex flex-wrap gap-2">
                 <Button
                   variant="outline"
                   disabled={!repairRangeValid || actions.reconcile.isPending}
                   onClick={() => {
-                    actions.reconcile.mutate(
-                      {
-                        from: repairFrom,
-                        to: repairTo,
-                        device: repairDevice || undefined,
-                        pin: repairPin || undefined,
+                    const payload = {
+                      from: repairFrom,
+                      to: repairTo,
+                      device: repairDevice || undefined,
+                      pin: repairPin || undefined,
+                    };
+                    actions.reconcile.mutate(payload, {
+                      onSuccess: (res, variables) => {
+                        if (!matchesRepairFilters(variables)) return;
+                        setReconcileReport(res.data);
                       },
-                      {
-                        onSuccess: (res) => {
-                          setReconcileReport(res.data);
-                        },
-                      },
-                    );
+                    });
                   }}
                 >
                   Reconcile (preview)
@@ -404,40 +450,42 @@ export default function SettingsAttendanceMachines() {
                 <Button
                   variant="secondary"
                   disabled={!repairRangeValid || actions.backfill.isPending}
-                  onClick={() =>
-                    actions.backfill.mutate(
-                      {
-                        from: repairFrom,
-                        to: repairTo,
-                        device: repairDevice || undefined,
-                        pin: repairPin || undefined,
-                        dry_run: true,
+                  onClick={() => {
+                    const payload = {
+                      from: repairFrom,
+                      to: repairTo,
+                      device: repairDevice || undefined,
+                      pin: repairPin || undefined,
+                      dry_run: true as const,
+                    };
+                    actions.backfill.mutate(payload, {
+                      onSuccess: (res, variables) => {
+                        if (!matchesRepairFilters(variables)) return;
+                        setBackfillResult(res.data);
                       },
-                      {
-                        onSuccess: (res) => setBackfillResult(res.data),
-                      },
-                    )
-                  }
+                    });
+                  }}
                 >
                   Backfill dry-run
                 </Button>
                 <Button
-                  disabled={!repairRangeValid || actions.backfill.isPending}
+                  disabled={!backfillWriteAllowed || actions.backfill.isPending}
                   onClick={() => {
                     if (!window.confirm('Run backfill and write to database?')) return;
-                    actions.backfill.mutate(
-                      {
-                        from: repairFrom,
-                        to: repairTo,
-                        device: repairDevice || undefined,
-                        pin: repairPin || undefined,
-                        dry_run: false,
-                        confirm: true,
+                    const payload = {
+                      from: repairFrom,
+                      to: repairTo,
+                      device: repairDevice || undefined,
+                      pin: repairPin || undefined,
+                      dry_run: false as const,
+                      confirm: true as const,
+                    };
+                    actions.backfill.mutate(payload, {
+                      onSuccess: (res, variables) => {
+                        if (!matchesRepairFilters(variables)) return;
+                        setBackfillResult(res.data);
                       },
-                      {
-                        onSuccess: (res) => setBackfillResult(res.data),
-                      },
-                    );
+                    });
                   }}
                 >
                   Run backfill
