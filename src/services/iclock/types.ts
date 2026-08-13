@@ -65,5 +65,21 @@ export type IclockBackfillResult = {
   skipped: number;
   failed: number;
   missing_before: number;
+  rebuild_days?: number;
+  dry_run: boolean;
+};
+
+export type IclockReprocessRangeResult = {
+  from: string;
+  to: string;
+  pin: string | null;
+  days: number;
+  logs: number;
+  processed_days: number;
+  created: number;
+  updated: number;
+  unmatched: number;
+  skipped: number;
+  failed: number;
   dry_run: boolean;
 };
