@@ -11,6 +11,8 @@ import type {
 
 /** ADMS round-trips (login + scrape) often exceed the default 10s ky timeout. */
 const ADMS_TIMEOUT_MS = 90_000;
+/** PIN day-chunk reconcile/backfill can run many ADMS pages across days. */
+const ADMS_REPAIR_TIMEOUT_MS = 300_000;
 
 type LogsParams = {
   pin?: string;
@@ -67,7 +69,7 @@ export const reconcileIclock = async (payload: {
   pin?: string;
 }) => {
   return api
-    .post('setting/iclock/reconcile', { json: payload, timeout: ADMS_TIMEOUT_MS })
+    .post('setting/iclock/reconcile', { json: payload, timeout: ADMS_REPAIR_TIMEOUT_MS })
     .json<ApiResponse<IclockReconcileReport>>();
 };
 
@@ -80,7 +82,7 @@ export const backfillIclock = async (payload: {
   confirm?: boolean;
 }) => {
   return api
-    .post('setting/iclock/backfill', { json: payload, timeout: ADMS_TIMEOUT_MS })
+    .post('setting/iclock/backfill', { json: payload, timeout: ADMS_REPAIR_TIMEOUT_MS })
     .json<ApiResponse<IclockBackfillResult>>();
 };
 

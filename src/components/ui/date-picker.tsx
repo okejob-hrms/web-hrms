@@ -11,6 +11,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -69,7 +70,7 @@ export const DatePicker: React.FC<
               >
                 {label}
                 {isOptional && (
-                  <span className="text-text-disabled"> (optional)</span>
+                  <span className="text-text-disabled"> {tCommon("optional")}</span>
                 )}
               </FormLabel>
             )}
@@ -141,8 +142,15 @@ export const BasicDatePicker: React.FC<BasicDatePickerProps> = (props) => {
   };
 
   return (
-    <div>
-      <label></label>
+    <div className="space-y-2">
+      {props.label && (
+        <Label className={cn("text-sm font-normal", props.labelClassName)}>
+          {props.label}
+          {props.isOptional && (
+            <span className="text-text-disabled"> {tCommon("optional")}</span>
+          )}
+        </Label>
+      )}
       <div className="relative">
         <Popover open={isOpen} onOpenChange={setIsOpen}>
           <PopoverTrigger asChild>
@@ -187,3 +195,4 @@ export const BasicDatePicker: React.FC<BasicDatePickerProps> = (props) => {
     </div>
   );
 };
+
