@@ -17,7 +17,6 @@ import {
 } from "@/services/employees/self-assessment/types";
 import { resolveAssessmentKeterangan } from "@/lib/assessment-field-keterangan";
 import { AssessmentFieldKeterangan } from "@/components/pages/shared/assessment-field-keterangan";
-import { sortFormFieldsByTemplateOrder } from "@/lib/form-field-order";
 
 export type SurveyAssessmentFormMode = "submit" | "validate" | "readonly";
 
@@ -271,15 +270,13 @@ export const SurveyAssessmentForm: React.FC<SurveyAssessmentFormProps> = ({
     }
   };
 
-  // Field `order` resets per group — never sort by order alone across groups.
-  const sortedFields = React.useMemo(() => {
-    return sortFormFieldsByTemplateOrder(fields);
-  }, [fields]);
+  // Parents pass flattenFormGroupsInTemplateOrder(...); keep that sequence.
+  // Do not re-sort by field.order across groups.
 
   return (
     <FormProvider {...form}>
       <form className="space-y-6">
-        {sortedFields.map((field) => (
+        {fields.map((field) => (
           <div key={field.id} className="p-4 border rounded-lg bg-white">
             <SurveyFormFieldRenderer field={field} readOnly={isReadOnly} />
           </div>
