@@ -150,7 +150,6 @@ export default function SettingsAttendanceMachines() {
   const [repairFrom, setRepairFrom] = React.useState('');
   const [repairTo, setRepairTo] = React.useState('');
   const [repairDevice, setRepairDevice] = React.useState('');
-  const [repairDeviceSearch, setRepairDeviceSearch] = React.useState('');
   const [repairPin, setRepairPin] = React.useState('');
   const [reconcileReport, setReconcileReport] = React.useState<IclockReconcileReport | null>(null);
   const [backfillResult, setBackfillResult] = React.useState<BackfillResultState | null>(null);
@@ -592,8 +591,6 @@ export default function SettingsAttendanceMachines() {
                     placeholder={t('selectDevice')}
                     searchPlaceholder={t('deviceSn')}
                     emptyMessage={t('noDevices')}
-                    searchValue={repairDeviceSearch}
-                    onSearchChange={setRepairDeviceSearch}
                     isLoading={devicesQuery.isFetching}
                     allowClear
                   />
@@ -678,6 +675,9 @@ export default function SettingsAttendanceMachines() {
                 </Button>
                 <Button
                   disabled={!backfillWriteAllowed || admsBusy}
+                  isLoading={
+                    actions.backfill.isPending && actions.backfill.variables?.dry_run === false
+                  }
                   onClick={() => setBackfillConfirmOpen(true)}
                 >
                   {t('runBackfill')}
@@ -774,6 +774,7 @@ export default function SettingsAttendanceMachines() {
               </div>
               <Button
                 disabled={!reprocessDate || !reprocessPin || admsBusy}
+                isLoading={actions.reprocess.isPending}
                 onClick={() => setReprocessConfirmOpen(true)}
               >
                 {t('reprocessDay')}
@@ -784,7 +785,19 @@ export default function SettingsAttendanceMachines() {
       </Tabs>
 
       {/* Backfill confirm dialog */}
-      <AlertDialog open={backfillConfirmOpen} onOpenChange={setBackfillConfirmOpen}>
+      <AlertDialog
+        open={backfillConfirmOpen}
+        onOpenChange={(open) => {
+          if (
+            !open &&
+            actions.backfill.isPending &&
+            actions.backfill.variables?.dry_run === false
+          ) {
+            return;
+          }
+          setBackfillConfirmOpen(open);
+        }}
+      >
         <AlertDialogContent className="max-w-md bg-white">
           <AlertDialogHeader>
             <AlertDialogTitle>{t('confirmBackfillTitle')}</AlertDialogTitle>
@@ -798,7 +811,13 @@ export default function SettingsAttendanceMachines() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <Button variant="outline" onClick={() => setBackfillConfirmOpen(false)}>
+            <Button
+              variant="outline"
+              disabled={
+                actions.backfill.isPending && actions.backfill.variables?.dry_run === false
+              }
+              onClick={() => setBackfillConfirmOpen(false)}
+            >
               {tCommon('cancel')}
             </Button>
             <Button
@@ -840,7 +859,13 @@ export default function SettingsAttendanceMachines() {
       </AlertDialog>
 
       {/* Reprocess confirm dialog */}
-      <AlertDialog open={reprocessConfirmOpen} onOpenChange={setReprocessConfirmOpen}>
+      <AlertDialog
+        open={reprocessConfirmOpen}
+        onOpenChange={(open) => {
+          if (!open && actions.reprocess.isPending) return;
+          setReprocessConfirmOpen(open);
+        }}
+      >
         <AlertDialogContent className="max-w-md bg-white">
           <AlertDialogHeader>
             <AlertDialogTitle>{t('confirmReprocessTitle')}</AlertDialogTitle>
@@ -849,7 +874,11 @@ export default function SettingsAttendanceMachines() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <Button variant="outline" onClick={() => setReprocessConfirmOpen(false)}>
+            <Button
+              variant="outline"
+              disabled={actions.reprocess.isPending}
+              onClick={() => setReprocessConfirmOpen(false)}
+            >
               {tCommon('cancel')}
             </Button>
             <Button
