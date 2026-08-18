@@ -10,6 +10,7 @@ import {
 import { ApiErrorResponse } from "@/lib/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
+import dayjs from "dayjs";
 import * as React from "react";
 import { toast } from "sonner";
 
@@ -136,6 +137,8 @@ export const useSelfAssessmentPeriodDetails = () => {
   };
 
   const handleDelete = (assignmentId: number) => {
+    if (isDeleting) return;
+
     const detail = assessmentDetails?.data;
     if (!detail) {
       toast.error("Assessment details are not available");
@@ -148,11 +151,18 @@ export const useSelfAssessmentPeriodDetails = () => {
       return;
     }
 
+    const startDate = dayjs(detail.assessment.start_date);
+    const endDate = dayjs(detail.assessment.end_date);
+    if (!startDate.isValid() || !endDate.isValid()) {
+      toast.error("Assessment dates are invalid");
+      return;
+    }
+
     const payload: IMutateSelfAssessmentRequest = {
       assessment_period: detail.assessment.assessment_period,
       year: detail.assessment.year,
-      start_date: detail.assessment.start_date,
-      end_date: detail.assessment.end_date,
+      start_date: startDate.format("YYYY-MM-DD"),
+      end_date: endDate.format("YYYY-MM-DD"),
       forms,
     };
 
@@ -160,11 +170,13 @@ export const useSelfAssessmentPeriodDetails = () => {
   };
 
   const handleDeleteModalOpen = (employeeId: number) => {
+    if (isDeleting) return;
     setSelectedEmployeeId(employeeId);
     setIsDeleteModalOpen(true);
   };
 
   const handleDeleteModalChange = (open: boolean) => {
+    if (!open && isDeleting) return;
     setIsDeleteModalOpen(open);
     if (!open) {
       setSelectedEmployeeId(null);

@@ -28,12 +28,22 @@ export const DeleteModal: React.FC<IDeleteModalProps> = ({
     <Dialog
       open={open}
       onOpenChange={(isOpen) => {
+        if (!isOpen && isPending) return;
         if (!isOpen) {
           onOpenChange(false);
         }
       }}
     >
-      <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto p-2 bg-white">
+      <DialogContent
+        className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto p-2 bg-white"
+        showCloseButton={!isPending}
+        onPointerDownOutside={(event) => {
+          if (isPending) event.preventDefault();
+        }}
+        onEscapeKeyDown={(event) => {
+          if (isPending) event.preventDefault();
+        }}
+      >
         <DialogHeader className="px-6 pt-6 pb-4">
           <Image
             src="/icons/confirmation.svg"
@@ -61,6 +71,7 @@ export const DeleteModal: React.FC<IDeleteModalProps> = ({
             type="button"
             variant="outline"
             className="font-semibold"
+            disabled={isPending}
             onClick={() => onOpenChange(false)}
           >
             Cancel
