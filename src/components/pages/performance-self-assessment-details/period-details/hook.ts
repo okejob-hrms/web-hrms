@@ -2,12 +2,86 @@ import {
   getDetailSelfAssessment,
   updateSelfAssessment,
 } from "@/services/employees/self-assessment";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { useParams } from "next/navigation";
+import {
+  IEmployeeAssessment,
+  IFormAssignment,
+  IMutateSelfAssessmentRequest,
+} from "@/services/employees/self-assessment/types";
+import { ApiErrorResponse } from "@/lib/types";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useParams, useRouter } from "next/navigation";
 import * as React from "react";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
+
+const SUBMITTED_STATUSES = new Set(["completed", "validated"]);
+
+function buildRemainingFormAssignments(
+  employees: IEmployeeAssessment[],
+  assignmentIdToRemove: number,
+): IFormAssignment[] | { error: string } {
+  const target = employees.find(
+    (employee) => employee.id === assignmentIdToRemove,
+  );
+  if (!target) {
+    return { error: "Employee assignment not found" };
+  }
+
+  const status = (target.submission_status ?? "").toLowerCase();
+  if (SUBMITTED_STATUSES.has(status)) {
+    return { error: "Cannot delete an employee who has already submitted." };
+  }
+
+  const remaining = employees.filter(
+    (employee) => employee.id !== assignmentIdToRemove,
+  );
+  const incompleteRemaining = remaining.filter(
+    (employee) => employee.form_id == null || employee.user_id == null,
+  );
+  if (incompleteRemaining.length > 0) {
+    return {
+      error: "Cannot delete because some remaining assignments are incomplete.",
+    };
+  }
+
+  const formMap = new Map<number, number[]>();
+
+  for (const employee of remaining) {
+    const users = formMap.get(employee.form_id) ?? [];
+    users.push(employee.user_id);
+    formMap.set(employee.form_id, users);
+  }
+
+  const forms: IFormAssignment[] = Array.from(formMap.entries()).map(
+    ([form_id, users]) => ({ form_id, users }),
+  );
+
+  if (forms.length === 0) {
+    return { error: "Cannot delete the last assigned employee." };
+  }
+
+  return forms;
+}
+
+function showDeleteError(error: unknown, fallback: string) {
+  const err = error as {
+    response?: { json: () => Promise<ApiErrorResponse> };
+    message?: string;
+  };
+
+  if (err?.response) {
+    err.response
+      .json()
+      .then((errorData) => {
+        toast.error(errorData.message || fallback);
+      })
+      .catch(() => {
+        toast.error(fallback);
+      });
+    return;
+  }
+
+  toast.error(err?.message || fallback);
+}
 
 export const useSelfAssessmentPeriodDetails = () => {
   const params = useParams();
@@ -37,21 +111,19 @@ export const useSelfAssessmentPeriodDetails = () => {
     enabled: !!id,
   });
 
-  const forms = assessmentDetails?.data.employees.map(
-    (employee) => employee.form_name,
-  );
-
-  const { mutate: updateAssessment } = useMutation({
-    mutationFn: (params: any) => updateSelfAssessment(id!, params),
+  const { mutate: updateAssessment, isPending: isDeleting } = useMutation({
+    mutationFn: (payload: IMutateSelfAssessmentRequest) =>
+      updateSelfAssessment(id!, payload),
     onSuccess: () => {
       toast.success("Employee deleted successfully!");
       setIsDeleteModalOpen(false);
+      setSelectedEmployeeId(null);
       queryClient.invalidateQueries({
         queryKey: ["self-assessment-detail", id],
       });
     },
-    onError: (error: any) => {
-      toast.error(error?.message || "Failed to delete employee");
+    onError: (mutationError: unknown) => {
+      showDeleteError(mutationError, "Failed to delete employee");
     },
   });
 
@@ -63,15 +135,40 @@ export const useSelfAssessmentPeriodDetails = () => {
     router.push(`/performance/self-assessment/${id}/edit`);
   };
 
-  const handleDelete = (employeeId: number) => {
-    updateAssessment({
-      employee_id: employeeId,
-      status: "Deleted",
-    });
+  const handleDelete = (assignmentId: number) => {
+    const detail = assessmentDetails?.data;
+    if (!detail) {
+      toast.error("Assessment details are not available");
+      return;
+    }
+
+    const forms = buildRemainingFormAssignments(detail.employees, assignmentId);
+    if (!Array.isArray(forms)) {
+      toast.error(forms.error);
+      return;
+    }
+
+    const payload: IMutateSelfAssessmentRequest = {
+      assessment_period: detail.assessment.assessment_period,
+      year: detail.assessment.year,
+      start_date: detail.assessment.start_date,
+      end_date: detail.assessment.end_date,
+      forms,
+    };
+
+    updateAssessment(payload);
   };
 
   const handleDeleteModalOpen = (employeeId: number) => {
+    setSelectedEmployeeId(employeeId);
     setIsDeleteModalOpen(true);
+  };
+
+  const handleDeleteModalChange = (open: boolean) => {
+    setIsDeleteModalOpen(open);
+    if (!open) {
+      setSelectedEmployeeId(null);
+    }
   };
 
   return {
@@ -84,8 +181,9 @@ export const useSelfAssessmentPeriodDetails = () => {
     handleDelete,
     handleDeleteModalOpen,
     isDeleteModalOpen,
-    setIsDeleteModalOpen,
+    setIsDeleteModalOpen: handleDeleteModalChange,
     selectedEmployeeId,
     setSelectedEmployeeId,
+    isDeleting,
   };
 };

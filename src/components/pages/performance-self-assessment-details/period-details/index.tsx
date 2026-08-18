@@ -27,7 +27,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import FormDeleteModal from "../../settings-form-template-list/sections/delete-modal";
 import { DeleteModal } from "./sections/delete-modal";
 import dayjs from "dayjs";
 import localizedFormat from "dayjs/plugin/localizedFormat";
@@ -46,7 +45,7 @@ export const SelfAssessmentPeriodDetails = () => {
     setIsDeleteModalOpen,
     handleDeleteModalOpen,
     selectedEmployeeId,
-    setSelectedEmployeeId,
+    isDeleting,
   } = useSelfAssessmentPeriodDetails();
 
   const [searchQuery, setSearchQuery] = React.useState("");
@@ -341,6 +340,7 @@ export const SelfAssessmentPeriodDetails = () => {
           onOpenChange={setIsDeleteModalOpen}
           onSave={handleDelete}
           id={selectedEmployeeId}
+          isPending={isDeleting}
         />
       </div>
     </div>
