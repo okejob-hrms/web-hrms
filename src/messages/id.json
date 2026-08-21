@@ -425,6 +425,7 @@
     "formField": "Field Formulir",
     "noSelectableFormFields": "Formulir ini tidak memiliki field yang kompatibel untuk sumber data yang dipilih. Untuk penilaian gunakan field range; untuk offboarding gunakan checkbox, select, radio, atau range.",
     "fillRequiredWidgetFields": "Lengkapi semua field wajib, termasuk field formulir.",
+    "distinctAxesRequired": "Baris dan Kolom harus berbeda (satu Pertanyaan, satu Opsi Jawaban).",
     "rows": "Baris",
     "column": "Kolom",
     "selectRows": "Pilih baris",

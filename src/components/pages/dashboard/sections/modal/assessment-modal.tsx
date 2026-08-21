@@ -157,52 +157,63 @@ export default function AssessementModal({ hook }: AssessementModalProps) {
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             {!hooks.isOffboarding && (
               <>
-                <div className="space-y-2">
-                  <Label>{t('rows')}</Label>
+                <div className="space-y-2 md:col-span-2">
+                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label>{t('rows')}</Label>
 
-                  <Select
-                    value={hooks.form.rows}
-                    onValueChange={(val) => {
-                      hooks.setForm((prev) => ({
-                        ...prev,
-                        rows: val,
-                      }));
-                    }}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder={t('selectRows')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="question">{t('question')}</SelectItem>
-                      <SelectItem value="answer_option">
-                        {t('answerOption')}
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                      <Select
+                        value={hooks.form.rows}
+                        onValueChange={(val) => {
+                          hooks.setForm((prev) => ({
+                            ...prev,
+                            rows: val,
+                          }));
+                        }}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder={t('selectRows')} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="question">{t('question')}</SelectItem>
+                          <SelectItem value="answer_option">
+                            {t('answerOption')}
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                <div className="space-y-2">
-                  <Label>{t('column')}</Label>
+                    <div className="space-y-2">
+                      <Label>{t('column')}</Label>
 
-                  <Select
-                    value={hooks.form.columns}
-                    onValueChange={(val) => {
-                      hooks.setForm((prev) => ({
-                        ...prev,
-                        columns: val,
-                      }));
-                    }}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder={t('selectColumns')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="question">{t('question')}</SelectItem>
-                      <SelectItem value="answer_option">
-                        {t('answerOption')}
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
+                      <Select
+                        value={hooks.form.columns}
+                        onValueChange={(val) => {
+                          hooks.setForm((prev) => ({
+                            ...prev,
+                            columns: val,
+                          }));
+                        }}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder={t('selectColumns')} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="question">{t('question')}</SelectItem>
+                          <SelectItem value="answer_option">
+                            {t('answerOption')}
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  {hooks.form.rows &&
+                    hooks.form.columns &&
+                    hooks.form.rows === hooks.form.columns && (
+                      <p className="text-xs text-amber-700">
+                        {t('distinctAxesRequired')}
+                      </p>
+                    )}
                 </div>
               </>
             )}
@@ -230,7 +241,12 @@ export default function AssessementModal({ hook }: AssessementModalProps) {
                   <SelectItem value="count">{t('count')}</SelectItem>
                 </SelectContent>
               </Select>
-              {hooks.isOffboarding && (
+              {hooks.isOffboarding &&
+                ['checkbox', 'select', 'radio'].includes(
+                  hook.selectableFields.find(
+                    (f) => String(f.id) === hooks.form.fieldId,
+                  )?.type ?? '',
+                ) && (
                 <p className="text-xs text-muted-foreground">
                   {t('offboardingSummaryHint')}
                 </p>

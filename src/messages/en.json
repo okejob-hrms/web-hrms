@@ -425,6 +425,7 @@
     "formField": "Form Field",
     "noSelectableFormFields": "This form has no compatible fields for the selected data source. For assessments use range fields; for offboarding use checkbox, select, radio, or range.",
     "fillRequiredWidgetFields": "Please complete all required fields, including a form field.",
+    "distinctAxesRequired": "Rows and Columns must be different (one Question, one Answer Option).",
     "rows": "Rows",
     "column": "Column",
     "selectRows": "Select rows",

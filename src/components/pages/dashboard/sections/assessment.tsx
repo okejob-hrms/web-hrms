@@ -50,13 +50,30 @@ const slugify = (value: string) =>
  * Prefer API `rows_mode`:
  * - question → rows=labels, columns=values
  * - answer_option → rows=values, columns=labels
- * Fallback keeps legacy payloads readable without guessing from numeric content.
+ * When `rows_mode` is missing (paired deploy / legacy), infer carefully:
+ * only swap when rows look numeric and columns do not.
  */
+const isNumericValue = (value: string | number) => {
+  if (typeof value === 'number') return Number.isFinite(value);
+  if (typeof value !== 'string') return false;
+  const trimmed = value.trim();
+  if (!trimmed) return false;
+  return /^-?\d+(\.\d+)?([eE][-+]?\d+)?$/.test(trimmed);
+};
+
 const mapToChartData = (item: DashboardSummaryItem): ChartDatum[] => {
   const rowCount = item.rows.length;
   const colCount = item.columns.length;
   const len = Math.max(rowCount, colCount);
-  const valuesAreRows = item.rows_mode === 'answer_option';
+
+  let valuesAreRows = item.rows_mode === 'answer_option';
+  if (!item.rows_mode) {
+    const rowsLookNumeric =
+      rowCount > 0 && item.rows.every((v) => isNumericValue(v));
+    const colsLookNumeric =
+      colCount > 0 && item.columns.every((v) => isNumericValue(v));
+    valuesAreRows = rowsLookNumeric && !colsLookNumeric;
+  }
 
   return Array.from({ length: len }, (_, index) => {
     if (valuesAreRows) {
@@ -82,12 +99,17 @@ const downloadBlob = (blob: Blob, filename: string) => {
   URL.revokeObjectURL(url);
 };
 
+const csvEscape = (cell: string) => {
+  // Neutralize spreadsheet formula injection (=, +, -, @, tab, CR).
+  const safe = /^[=+\-@\t\r]/.test(cell) ? `'${cell}` : cell;
+  return `"${safe.replace(/"/g, '""')}"`;
+};
+
 const exportCsv = (label: string, data: ChartDatum[]) => {
-  const escape = (cell: string) => `"${cell.replace(/"/g, '""')}"`;
   const lines = [
     'Label,Value',
     ...data.map(
-      (row) => `${escape(row.label)},${formatValue(row.value)}`,
+      (row) => `${csvEscape(row.label)},${csvEscape(formatValue(row.value))}`,
     ),
   ];
   downloadBlob(
