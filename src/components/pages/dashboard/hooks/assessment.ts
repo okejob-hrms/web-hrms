@@ -4,79 +4,155 @@ import { addWidgets, getWidgets } from '@/services/dashboard';
 import { RequestWidget } from '@/services/dashboard/types';
 import { getAllForm, getFields } from '@/services/form';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { HTTPError } from 'ky';
+import { useTranslations } from 'next-intl';
+import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
+
+const INITIAL_FORM = {
+  label: '',
+  dataSource: '',
+  formSource: '',
+  rows: '',
+  columns: '',
+  dataSummary: '',
+  dataVisualization: '',
+  fieldId: '',
+};
+
+const ASSESSMENT_FIELD_TYPES = ['range'] as const;
+const OFFBOARDING_FIELD_TYPES = ['checkbox', 'select', 'radio', 'range'] as const;
 
 export function useDashboarAssessment() {
   const queryClient = useQueryClient();
-  const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({
-    label: "",
-    dataSource: "",
-    formSource: "",
-    rows: "",
-    columns: "",
-    dataSummary: "",
-    dataVisualization: "",
-    fieldId: "",
-  });
+  const t = useTranslations('dashboard');
+  const [open, setOpenState] = useState(false);
+  const [form, setForm] = useState(INITIAL_FORM);
 
-  const {
-    data: dataForm,
-    isLoading: loadingForm
-  } = useQuery({
-    queryKey: ["forms"],
+  const isOffboarding = form.dataSource === 'offboarding';
+  const isAssessment =
+    form.dataSource === 'self_assessment' ||
+    form.dataSource === 'supervisor_assessment';
+
+  const { data: dataForm, isLoading: loadingForm } = useQuery({
+    queryKey: ['forms'],
     queryFn: () => getAllForm(),
   });
 
-  const {
-    data: dataFormId,
-    isLoading: loadingFormId
-  } = useQuery({
-    queryKey: ["formsId", form.formSource],
-    queryFn: () => getFields({form_id: Number(form.formSource)}),
-    enabled: !!form.formSource
+  const { data: dataFormId, isLoading: loadingFormId } = useQuery({
+    queryKey: ['formsId', form.formSource],
+    queryFn: () => getFields({ form_id: Number(form.formSource) }),
+    enabled: !!form.formSource,
   });
 
+  const selectableFields = useMemo(() => {
+    const allowed = isOffboarding
+      ? OFFBOARDING_FIELD_TYPES
+      : ASSESSMENT_FIELD_TYPES;
 
-  const { mutate: addWidget, isPending: isPendingAddWidget } =
-    useMutation({
-      mutationFn: (params: RequestWidget) =>
-        addWidgets(params),
-      onSuccess: () => {
-        toast.success("Add assessment successfully!");
-        queryClient.invalidateQueries({ queryKey: ["widget"] });
-        setOpen(false);
-      },
-      onError: () => {
-        toast.error("Add assessment failed!");
-      },
-    });
+    return (dataFormId?.data ?? []).filter((item) =>
+      (allowed as readonly string[]).includes(item.type),
+    );
+  }, [dataFormId?.data, isOffboarding]);
+
+  const hasDistinctAxes = isOffboarding || form.rows !== form.columns;
+
+  const canSubmit = Boolean(
+    form.label.trim() &&
+      form.dataSource &&
+      form.formSource &&
+      form.fieldId &&
+      form.rows &&
+      form.columns &&
+      hasDistinctAxes &&
+      form.dataSummary &&
+      form.dataVisualization,
+  );
+
+  const resetForm = () => setForm(INITIAL_FORM);
+
+  const setOpen = (next: boolean) => {
+    setOpenState(next);
+    if (!next) {
+      resetForm();
+    }
+  };
+
+  const setDataSource = (val: string) => {
+    setForm((prev) => ({
+      ...prev,
+      dataSource: val,
+      fieldId: '',
+      // Offboarding ignores Baris/Kolom; send stable defaults for API validation.
+      // Leaving offboarding must clear axes so identical answer_option/answer_option
+      // is not submitted for assessments.
+      ...(val === 'offboarding'
+        ? { rows: 'answer_option', columns: 'answer_option' }
+        : { rows: '', columns: '' }),
+    }));
+  };
+
+  const { mutate: addWidget, isPending: isPendingAddWidget } = useMutation({
+    mutationFn: (params: RequestWidget) => addWidgets(params),
+    onSuccess: () => {
+      toast.success(t('addWidgetSuccess'));
+      queryClient.invalidateQueries({ queryKey: ['widget'] });
+      setOpen(false);
+    },
+    onError: async (error) => {
+      if (error instanceof HTTPError) {
+        try {
+          const errorData = (await error.response.json()) as {
+            message?: string;
+            errors?: Record<string, string[]>;
+          };
+          const fieldErrors = Object.values(errorData.errors ?? {}).flat();
+          const message =
+            errorData.message ||
+            fieldErrors[0] ||
+            t('addWidgetFailed');
+          toast.error(message);
+          return;
+        } catch {
+          // fall through
+        }
+      }
+      toast.error(t('addWidgetFailed'));
+    },
+  });
 
   const onSubmit = () => {
-    const payload = {
-      label: form.label,
+    if (!canSubmit) {
+      toast.error(t('fillRequiredWidgetFields'));
+      return;
+    }
+
+    const payload: RequestWidget = {
+      label: form.label.trim(),
       measurement: form.dataSource,
       form_id: Number(form.formSource),
+      field_id: Number(form.fieldId),
       rows: form.rows,
       columns: form.columns,
       data_summary: form.dataSummary,
       visualization: form.dataVisualization,
-      ...(form.fieldId
-        ? { field_id: Number(form.fieldId) }
-        : {}),
-    }
+    };
     addWidget(payload);
-  }
+  };
 
-  const { data: dataWidget, isLoading: loadingDataWidget, isError: errorDataWidget } = useQuery({
-    queryKey: ["widget"],
+  const {
+    data: dataWidget,
+    isLoading: loadingDataWidget,
+    isError: errorDataWidget,
+  } = useQuery({
+    queryKey: ['widget'],
     queryFn: getWidgets,
   });
 
   return {
     form,
     setForm,
+    setDataSource,
     open,
     setOpen,
     dataForm,
@@ -88,5 +164,9 @@ export function useDashboarAssessment() {
     isPendingAddWidget,
     dataFormId,
     loadingFormId,
+    selectableFields,
+    canSubmit,
+    isOffboarding,
+    isAssessment,
   };
 }
