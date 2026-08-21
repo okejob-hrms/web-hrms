@@ -24,6 +24,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import AssessmentAnalytics from '@/components/pages/assessment-analytics';
 
 type ChartDatum = { label: string; value: number };
 
@@ -285,29 +286,55 @@ const WidgetCard = ({ item }: { item: DashboardSummaryItem }) => {
 export const Assessment = () => {
   const hooks = useDashboarAssessment();
   const t = useTranslations('dashboard');
+  const [mode, setMode] = React.useState<'widgets' | 'analytics'>('widgets');
 
   return (
     <div className="flex min-h-screen flex-col space-y-6 py-6 font-sans">
-      <div className="mt-5 grid grid-cols-1 gap-6 md:grid-cols-2">
-        {hooks.dataWidget?.data.map((item, i) => (
-          <WidgetCard key={`${item.label}-${i}`} item={item} />
-        ))}
-
-        <div
-          className="flex h-[380px] cursor-pointer flex-col items-center justify-center space-y-2 rounded-xl border border-primary bg-primary/10"
-          onClick={() => hooks.setOpen(true)}
+      <div className="inline-flex w-fit rounded-lg bg-muted p-1">
+        <Button
+          size="sm"
+          variant={mode === 'widgets' ? 'default' : 'ghost'}
+          className="h-8"
+          onClick={() => setMode('widgets')}
         >
-          <Plus size={38} className="text-primary" />
-          <div className="font-semibold text-primary">
-            {t('addCustomChartWidgetCard')}
-          </div>
-          <div className="px-6 text-center text-sm text-gray-600">
-            {t('addCustomChartWidgetHint')}
-          </div>
-        </div>
+          {t('assessmentWidgets')}
+        </Button>
+        <Button
+          size="sm"
+          variant={mode === 'analytics' ? 'default' : 'ghost'}
+          className="h-8"
+          onClick={() => setMode('analytics')}
+        >
+          {t('assessmentAnalytics')}
+        </Button>
       </div>
 
-      <AssessementModal hook={hooks} />
+      {mode === 'widgets' ? (
+        <>
+          <div className="mt-1 grid grid-cols-1 gap-6 md:grid-cols-2">
+            {hooks.dataWidget?.data.map((item, i) => (
+              <WidgetCard key={`${item.label}-${i}`} item={item} />
+            ))}
+
+            <div
+              className="flex h-[380px] cursor-pointer flex-col items-center justify-center space-y-2 rounded-xl border border-primary bg-primary/10"
+              onClick={() => hooks.setOpen(true)}
+            >
+              <Plus size={38} className="text-primary" />
+              <div className="font-semibold text-primary">
+                {t('addCustomChartWidgetCard')}
+              </div>
+              <div className="px-6 text-center text-sm text-gray-600">
+                {t('addCustomChartWidgetHint')}
+              </div>
+            </div>
+          </div>
+
+          <AssessementModal hook={hooks} />
+        </>
+      ) : (
+        <AssessmentAnalytics />
+      )}
     </div>
   );
 };

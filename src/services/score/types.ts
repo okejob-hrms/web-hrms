@@ -25,6 +25,7 @@ export interface ScoreList {
     max_value: number;
     min_value: number;
     score: string;
+    score_source?: "supervisor_final" | "self";
     tenant_id: number;
     updated_at: string;
 }
@@ -33,4 +34,5 @@ export interface ScoreRequest {
     score: string;
     min_value: number;
     max_value: number;
+    score_source?: "supervisor_final" | "self";
 }
