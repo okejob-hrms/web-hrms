@@ -1,7 +1,8 @@
 'use client';
 
 import * as React from 'react';
-import { Plus } from 'lucide-react';
+import { Download, FileSpreadsheet, ImageIcon, Plus } from 'lucide-react';
+import { toPng } from 'html-to-image';
 import {
   BarChart as ReBarChart,
   Bar,
@@ -10,139 +11,298 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
+import { useTranslations } from 'next-intl';
+import { toast } from 'sonner';
 
 import AssessementModal from './modal/assessment-modal';
 import { useDashboarAssessment } from '../hooks/assessment';
 import { DashboardSummaryItem } from '@/services/dashboard/types';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
-/* ============================================================================
- * Helper: map API data -> chart data
- * ============================================================================
- */
-const mapToChartData = (item: { rows: string[]; columns: number[] }) => {
-  return item.rows.map((row, index) => ({
-    label: row,
-    value: item.columns[index] ?? 0,
-  }));
+type ChartDatum = { label: string; value: number };
+
+const VALUE_DECIMALS = 2;
+
+const toNumber = (value: string | number) => {
+  const n = typeof value === 'number' ? value : Number(value);
+  return Number.isFinite(n) ? n : 0;
 };
 
-/* ============================================================================
- * Inline Chart Component
- * ============================================================================
+const formatValue = (value: number) =>
+  Number.isInteger(value)
+    ? String(value)
+    : value.toFixed(VALUE_DECIMALS);
+
+const slugify = (value: string) =>
+  value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '') || 'widget';
+
+/**
+ * Prefer API `rows_mode`:
+ * - question → rows=labels, columns=values
+ * - answer_option → rows=values, columns=labels
+ * When `rows_mode` is missing (paired deploy / legacy), infer carefully:
+ * only swap when rows look numeric and columns do not.
  */
-const ChartBar = ({ data }: { data: { label: string; value: number }[] }) => {
-  return (
-    <ResponsiveContainer width="100%" height={280}>
-      <ReBarChart data={data}>
-        <XAxis
-          dataKey="label"
-          stroke="#6b7280"
-          tickLine={false}
-          tick={{ fontSize: 13, fill: '#9ca3af' }}
-        />
-        <YAxis
-          stroke="#6b7280"
-          tickLine={false}
-          allowDecimals={false}
-          tick={{ fontSize: 13, fill: '#9ca3af' }}
-        />
-        <Tooltip />
-        <Bar dataKey="value" radius={[6, 6, 0, 0]} fill="#C964A2" />
-      </ReBarChart>
-    </ResponsiveContainer>
+const isNumericValue = (value: string | number) => {
+  if (typeof value === 'number') return Number.isFinite(value);
+  if (typeof value !== 'string') return false;
+  const trimmed = value.trim();
+  if (!trimmed) return false;
+  return /^-?\d+(\.\d+)?([eE][-+]?\d+)?$/.test(trimmed);
+};
+
+const mapToChartData = (item: DashboardSummaryItem): ChartDatum[] => {
+  const rowCount = item.rows.length;
+  const colCount = item.columns.length;
+  const len = Math.max(rowCount, colCount);
+
+  let valuesAreRows = item.rows_mode === 'answer_option';
+  if (!item.rows_mode) {
+    const rowsLookNumeric =
+      rowCount > 0 && item.rows.every((v) => isNumericValue(v));
+    const colsLookNumeric =
+      colCount > 0 && item.columns.every((v) => isNumericValue(v));
+    valuesAreRows = rowsLookNumeric && !colsLookNumeric;
+  }
+
+  return Array.from({ length: len }, (_, index) => {
+    if (valuesAreRows) {
+      return {
+        label: String(item.columns[index] ?? ''),
+        value: toNumber(item.rows[index] ?? 0),
+      };
+    }
+
+    return {
+      label: String(item.rows[index] ?? ''),
+      value: toNumber(item.columns[index] ?? 0),
+    };
+  });
+};
+
+const downloadBlob = (blob: Blob, filename: string) => {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+};
+
+const csvEscape = (cell: string) => {
+  // Neutralize spreadsheet formula injection (=, +, -, @, tab, CR).
+  const safe = /^[=+\-@\t\r]/.test(cell) ? `'${cell}` : cell;
+  return `"${safe.replace(/"/g, '""')}"`;
+};
+
+const exportCsv = (label: string, data: ChartDatum[]) => {
+  const lines = [
+    'Label,Value',
+    ...data.map(
+      (row) => `${csvEscape(row.label)},${csvEscape(formatValue(row.value))}`,
+    ),
+  ];
+  downloadBlob(
+    new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' }),
+    `${slugify(label)}.csv`,
   );
 };
 
-const ChartTable = ({ data }: { data: DashboardSummaryItem }) => {
+const ChartBar = ({ data }: { data: ChartDatum[] }) => {
   return (
-    <div className="flex w-full px-4">
-      <div className="space-y-2 w-1/2 border-r border-border">
-        <div className="p-3 font-bold border-b border-border bg-gray-100/30">
-          Label
-        </div>
-        {data.rows.map((item, i) => {
-          return (
-            <div key={i} className="p-3">
-              {item}
+    <div className="h-[280px] w-full min-h-[280px]">
+      <ResponsiveContainer width="100%" height="100%">
+        <ReBarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 8 }}>
+          <XAxis
+            dataKey="label"
+            stroke="#6b7280"
+            tickLine={false}
+            interval={0}
+            angle={-25}
+            textAnchor="end"
+            height={70}
+            tick={{ fontSize: 11, fill: '#9ca3af' }}
+          />
+          <YAxis
+            stroke="#6b7280"
+            tickLine={false}
+            tick={{ fontSize: 13, fill: '#9ca3af' }}
+            tickFormatter={(v) => formatValue(Number(v))}
+          />
+          <Tooltip
+            formatter={(value) => formatValue(Number(value ?? 0))}
+          />
+          <Bar dataKey="value" radius={[6, 6, 0, 0]} fill="#C964A2" />
+        </ReBarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+};
+
+const ChartTable = ({
+  data,
+  labelHeader,
+  valueHeader,
+}: {
+  data: ChartDatum[];
+  labelHeader: string;
+  valueHeader: string;
+}) => {
+  return (
+    <div className="w-full overflow-x-auto px-2 pb-2">
+      <table className="w-full border-collapse text-sm">
+        <thead>
+          <tr className="border-b border-border bg-gray-100/40">
+            <th className="w-1/2 px-3 py-3 text-left font-bold">{labelHeader}</th>
+            <th className="w-1/2 px-3 py-3 text-left font-bold">{valueHeader}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((row, index) => (
+            <tr key={`${row.label}-${index}`} className="border-b border-border/60 last:border-b-0">
+              <td className="px-3 py-3 align-top break-words">{row.label}</td>
+              <td className="px-3 py-3 align-top tabular-nums whitespace-nowrap">
+                {formatValue(row.value)}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+const WidgetCard = ({ item }: { item: DashboardSummaryItem }) => {
+  const t = useTranslations('dashboard');
+  const cardRef = React.useRef<HTMLDivElement>(null);
+  const [exporting, setExporting] = React.useState(false);
+  const chartData = React.useMemo(() => mapToChartData(item), [item]);
+  const isTable = item.visualization === 'table';
+
+  const handleExportCsv = () => {
+    try {
+      exportCsv(item.label, chartData);
+      toast.success(t('exportCsvSuccess'));
+    } catch {
+      toast.error(t('exportFailed'));
+    }
+  };
+
+  const handleExportPng = async () => {
+    if (!cardRef.current) return;
+    setExporting(true);
+    try {
+      const dataUrl = await toPng(cardRef.current, {
+        cacheBust: true,
+        backgroundColor: '#ffffff',
+        pixelRatio: 2,
+        filter: (node) => {
+          if (!(node instanceof HTMLElement)) return true;
+          return !node.dataset.exportIgnore;
+        },
+      });
+      const a = document.createElement('a');
+      a.download = `${slugify(item.label)}.png`;
+      a.href = dataUrl;
+      a.click();
+      toast.success(t('exportPngSuccess'));
+    } catch {
+      toast.error(t('exportFailed'));
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  return (
+    <div
+      ref={cardRef}
+      className={`flex flex-col rounded-xl bg-white p-2 shadow-sm ${
+        isTable ? 'min-h-[240px] h-auto' : 'h-[380px]'
+      }`}
+    >
+      <div className="mb-2 flex items-start justify-between gap-2 p-4 pb-2">
+        <div className="min-w-0 flex-1">
+          <div className="font-semibold break-words">{item.label}</div>
+          {item.scale === '0-5' && (
+            <div className="mt-0.5 text-xs text-muted-foreground">
+              {t('scaleHint05')}
             </div>
-          );
-        })}
+          )}
+        </div>
+        <div data-export-ignore="true" className="shrink-0">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={exporting}
+                className="gap-1.5"
+              >
+                <Download className="size-4" />
+                {t('export')}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={handleExportCsv}>
+                <FileSpreadsheet className="size-4" />
+                {t('exportCsv')}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleExportPng}>
+                <ImageIcon className="size-4" />
+                {t('exportPng')}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
-      <div className="space-y-2 w-1/2">
-        <div className="p-3 font-bold border-b border-border bg-gray-100/30">
-          Value
-        </div>
-        {data.columns.map((item, i) => {
-          return (
-            <div key={i} className="p-3">
-              {item}
-            </div>
-          );
-        })}
+
+      <div className={`min-h-0 flex-1 ${isTable ? '' : 'overflow-hidden'}`}>
+        {isTable ? (
+          <ChartTable
+            data={chartData}
+            labelHeader={t('tableLabel')}
+            valueHeader={t('tableValue')}
+          />
+        ) : (
+          <ChartBar data={chartData} />
+        )}
       </div>
     </div>
-    // <ResponsiveContainer width="100%" height={280}>
-    //   <ReBarChart data={data}>
-    //     <XAxis
-    //       dataKey="label"
-    //       stroke="#6b7280"
-    //       tickLine={false}
-    //       tick={{ fontSize: 13, fill: '#9ca3af' }}
-    //     />
-    //     <YAxis
-    //       stroke="#6b7280"
-    //       tickLine={false}
-    //       allowDecimals={false}
-    //       tick={{ fontSize: 13, fill: '#9ca3af' }}
-    //     />
-    //     <Tooltip />
-    //     <Bar dataKey="value" radius={[6, 6, 0, 0]} fill="#C964A2" />
-    //   </ReBarChart>
-    // </ResponsiveContainer>
   );
 };
 
-/* ============================================================================
- * Main Component
- * ============================================================================
- */
 export const Assessment = () => {
   const hooks = useDashboarAssessment();
+  const t = useTranslations('dashboard');
 
   return (
-    <div className="font-sans min-h-screen flex flex-col space-y-6 py-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-5">
-        {hooks.dataWidget?.data.map((item, i) => {
-          const chartData = mapToChartData(item);
+    <div className="flex min-h-screen flex-col space-y-6 py-6 font-sans">
+      <div className="mt-5 grid grid-cols-1 gap-6 md:grid-cols-2">
+        {hooks.dataWidget?.data.map((item, i) => (
+          <WidgetCard key={`${item.label}-${i}`} item={item} />
+        ))}
 
-          return (
-            <div
-              key={i}
-              className="bg-white rounded-xl p-2 h-[380px] flex flex-col"
-            >
-              {/* Chart Title */}
-              <div className="font-semibold mb-2 p-4">{item.label}</div>
-
-              {item.visualization == 'table' ? (
-                <ChartTable data={item} />
-              ) : (
-                <ChartBar data={chartData} />
-              )}
-            </div>
-          );
-        })}
-
-        {/* Add Widget Card */}
         <div
-          className="h-[380px] bg-primary/10 border border-primary flex flex-col items-center justify-center space-y-2 rounded-xl cursor-pointer"
+          className="flex h-[380px] cursor-pointer flex-col items-center justify-center space-y-2 rounded-xl border border-primary bg-primary/10"
           onClick={() => hooks.setOpen(true)}
         >
           <Plus size={38} className="text-primary" />
-          <div className="text-primary font-semibold">
-            Add Custom Chart Widget
+          <div className="font-semibold text-primary">
+            {t('addCustomChartWidgetCard')}
           </div>
-          <div className="text-sm text-gray-600 text-center px-6">
-            Turn your data into insights by creating a chart widget
+          <div className="px-6 text-center text-sm text-gray-600">
+            {t('addCustomChartWidgetHint')}
           </div>
         </div>
       </div>
