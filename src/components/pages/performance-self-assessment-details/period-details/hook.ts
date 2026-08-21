@@ -94,6 +94,7 @@ export const useSelfAssessmentPeriodDetails = () => {
     number | null
   >(null);
   const [isExporting, setIsExporting] = React.useState(false);
+  const isExportingRef = React.useRef(false);
 
   const id = React.useMemo(() => {
     const periodParam = params?.period;
@@ -139,11 +140,12 @@ export const useSelfAssessmentPeriodDetails = () => {
   };
 
   const handleExport = React.useCallback(async () => {
-    if (!id || isExporting) {
+    if (!id || isExportingRef.current) {
       return;
     }
 
     const detail = assessmentDetails?.data;
+    isExportingRef.current = true;
     setIsExporting(true);
     try {
       const blob = await exportSelfAssessmentExcel(id);
@@ -163,9 +165,10 @@ export const useSelfAssessmentPeriodDetails = () => {
           : "Failed to export self assessment";
       toast.error(message);
     } finally {
+      isExportingRef.current = false;
       setIsExporting(false);
     }
-  }, [assessmentDetails?.data, id, isExporting]);
+  }, [assessmentDetails?.data, id]);
 
   const handleDelete = (assignmentId: number) => {
     if (isDeleting) return;
