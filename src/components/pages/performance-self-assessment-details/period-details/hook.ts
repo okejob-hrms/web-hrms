@@ -1,4 +1,5 @@
 import {
+  exportSelfAssessmentExcel,
   getDetailSelfAssessment,
   updateSelfAssessment,
 } from "@/services/employees/self-assessment";
@@ -92,6 +93,7 @@ export const useSelfAssessmentPeriodDetails = () => {
   const [selectedEmployeeId, setSelectedEmployeeId] = React.useState<
     number | null
   >(null);
+  const [isExporting, setIsExporting] = React.useState(false);
 
   const id = React.useMemo(() => {
     const periodParam = params?.period;
@@ -135,6 +137,35 @@ export const useSelfAssessmentPeriodDetails = () => {
   const handleEdit = () => {
     router.push(`/performance/self-assessment/${id}/edit`);
   };
+
+  const handleExport = React.useCallback(async () => {
+    if (!id || isExporting) {
+      return;
+    }
+
+    const detail = assessmentDetails?.data;
+    setIsExporting(true);
+    try {
+      const blob = await exportSelfAssessmentExcel(id);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      const period = detail?.assessment.assessment_period ?? "period";
+      const year = detail?.assessment.year ?? "year";
+      a.download = `self-assessment-${period}-${year}-${id}.xlsx`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+      toast.success("Self assessment exported successfully");
+    } catch (exportError: unknown) {
+      const message =
+        exportError instanceof Error && exportError.message
+          ? exportError.message
+          : "Failed to export self assessment";
+      toast.error(message);
+    } finally {
+      setIsExporting(false);
+    }
+  }, [assessmentDetails?.data, id, isExporting]);
 
   const handleDelete = (assignmentId: number) => {
     if (isDeleting) return;
@@ -190,6 +221,8 @@ export const useSelfAssessmentPeriodDetails = () => {
     error,
     handleViewEmployee,
     handleEdit,
+    handleExport,
+    isExporting,
     handleDelete,
     handleDeleteModalOpen,
     isDeleteModalOpen,
