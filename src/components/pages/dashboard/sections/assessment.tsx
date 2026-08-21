@@ -29,14 +29,6 @@ type ChartDatum = { label: string; value: number };
 
 const VALUE_DECIMALS = 2;
 
-const isNumericValue = (value: string | number) => {
-  if (typeof value === 'number') return Number.isFinite(value);
-  if (typeof value !== 'string') return false;
-  const trimmed = value.trim();
-  if (!trimmed) return false;
-  return /^-?\d+(\.\d+)?([eE][-+]?\d+)?$/.test(trimmed);
-};
-
 const toNumber = (value: string | number) => {
   const n = typeof value === 'number' ? value : Number(value);
   return Number.isFinite(n) ? n : 0;
@@ -55,31 +47,30 @@ const slugify = (value: string) =>
     .replace(/^-+|-+$/g, '') || 'widget';
 
 /**
- * API swaps label/value sides depending on rows mode:
+ * Prefer API `rows_mode`:
  * - question → rows=labels, columns=values
  * - answer_option → rows=values, columns=labels
+ * Fallback keeps legacy payloads readable without guessing from numeric content.
  */
 const mapToChartData = (item: DashboardSummaryItem): ChartDatum[] => {
   const rowCount = item.rows.length;
   const colCount = item.columns.length;
   const len = Math.max(rowCount, colCount);
+  const valuesAreRows = item.rows_mode === 'answer_option';
 
-  const rowsLookNumeric =
-    rowCount > 0 && item.rows.every((v) => isNumericValue(v));
-  const colsLookNumeric =
-    colCount > 0 && item.columns.every((v) => isNumericValue(v));
+  return Array.from({ length: len }, (_, index) => {
+    if (valuesAreRows) {
+      return {
+        label: String(item.columns[index] ?? ''),
+        value: toNumber(item.rows[index] ?? 0),
+      };
+    }
 
-  if (rowsLookNumeric && !colsLookNumeric) {
-    return Array.from({ length: len }, (_, index) => ({
-      label: String(item.columns[index] ?? ''),
-      value: toNumber(item.rows[index] ?? 0),
-    }));
-  }
-
-  return Array.from({ length: len }, (_, index) => ({
-    label: String(item.rows[index] ?? ''),
-    value: toNumber(item.columns[index] ?? 0),
-  }));
+    return {
+      label: String(item.rows[index] ?? ''),
+      value: toNumber(item.columns[index] ?? 0),
+    };
+  });
 };
 
 const downloadBlob = (blob: Blob, filename: string) => {

@@ -5,6 +5,7 @@ import { RequestWidget } from '@/services/dashboard/types';
 import { getAllForm, getFields } from '@/services/form';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { HTTPError } from 'ky';
+import { useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -24,6 +25,7 @@ const OFFBOARDING_FIELD_TYPES = ['checkbox', 'select', 'radio', 'range'] as cons
 
 export function useDashboarAssessment() {
   const queryClient = useQueryClient();
+  const t = useTranslations('dashboard');
   const [open, setOpenState] = useState(false);
   const [form, setForm] = useState(INITIAL_FORM);
 
@@ -53,6 +55,8 @@ export function useDashboarAssessment() {
     );
   }, [dataFormId?.data, isOffboarding]);
 
+  const hasDistinctAxes = isOffboarding || form.rows !== form.columns;
+
   const canSubmit = Boolean(
     form.label.trim() &&
       form.dataSource &&
@@ -60,6 +64,7 @@ export function useDashboarAssessment() {
       form.fieldId &&
       form.rows &&
       form.columns &&
+      hasDistinctAxes &&
       form.dataSummary &&
       form.dataVisualization,
   );
@@ -79,16 +84,18 @@ export function useDashboarAssessment() {
       dataSource: val,
       fieldId: '',
       // Offboarding ignores Baris/Kolom; send stable defaults for API validation.
+      // Leaving offboarding must clear axes so identical answer_option/answer_option
+      // is not submitted for assessments.
       ...(val === 'offboarding'
         ? { rows: 'answer_option', columns: 'answer_option' }
-        : {}),
+        : { rows: '', columns: '' }),
     }));
   };
 
   const { mutate: addWidget, isPending: isPendingAddWidget } = useMutation({
     mutationFn: (params: RequestWidget) => addWidgets(params),
     onSuccess: () => {
-      toast.success('Widget created successfully!');
+      toast.success(t('addWidgetSuccess'));
       queryClient.invalidateQueries({ queryKey: ['widget'] });
       setOpen(false);
     },
@@ -103,22 +110,20 @@ export function useDashboarAssessment() {
           const message =
             errorData.message ||
             fieldErrors[0] ||
-            'Failed to create widget.';
+            t('addWidgetFailed');
           toast.error(message);
           return;
         } catch {
           // fall through
         }
       }
-      toast.error('Failed to create widget.');
+      toast.error(t('addWidgetFailed'));
     },
   });
 
   const onSubmit = () => {
     if (!canSubmit) {
-      toast.error(
-        'Please complete all required fields, including a form field.',
-      );
+      toast.error(t('fillRequiredWidgetFields'));
       return;
     }
 

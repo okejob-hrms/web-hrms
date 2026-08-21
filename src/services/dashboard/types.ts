@@ -336,4 +336,10 @@ export interface DashboardSummaryItem {
   visualization: string;
   /** Present on assessment widgets: "0-5" */
   scale?: string;
+  /**
+   * How rows/columns are oriented:
+   * - question → rows=labels, columns=values
+   * - answer_option → rows=values, columns=labels
+   */
+  rows_mode?: 'question' | 'answer_option';
 }
