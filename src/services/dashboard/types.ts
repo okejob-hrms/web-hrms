@@ -315,11 +315,11 @@ export interface RequestWidget {
   label: string;
   measurement: string;
   form_id: number;
+  field_id: number;
   rows: string;
   columns: string;
   data_summary: string;
   visualization: string;
-  field_id?: number;
 }
 
 export interface ResponseWidget {
@@ -331,7 +331,9 @@ export interface ResponseWidget {
 export interface DashboardSummaryItem {
   label: string;
   summary_type: string;
-  rows: string[];
-  columns: number[];
+  rows: Array<string | number>;
+  columns: Array<string | number>;
   visualization: string;
+  /** Present on assessment widgets: "0-5" */
+  scale?: string;
 }

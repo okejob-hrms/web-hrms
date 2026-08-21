@@ -452,11 +452,14 @@ export const addWidgets = async (
   return api
     .post(`dashboard/custom-dashboards`, {
       json: payload,
+      timeout: 60000,
     })
     .json<ResponseWidget>();
 };
 
 export const getWidgets = async (): Promise<ResponseWidget> => {
-  const response = await api.get<ResponseWidget>("dashboard/custom-dashboards");
+  const response = await api.get<ResponseWidget>("dashboard/custom-dashboards", {
+    timeout: 60000,
+  });
   return response.json();
 };
