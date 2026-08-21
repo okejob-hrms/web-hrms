@@ -7,6 +7,7 @@ import {
   ArrowDown,
   ArrowUp,
   ChevronsUpDown,
+  Download,
   Edit,
   Ellipsis,
   Eye,
@@ -41,6 +42,8 @@ export const SelfAssessmentPeriodDetails = () => {
     handleViewEmployee,
     handleDelete,
     handleEdit,
+    handleExport,
+    isExporting,
     isDeleteModalOpen,
     setIsDeleteModalOpen,
     handleDeleteModalOpen,
@@ -269,6 +272,16 @@ export const SelfAssessmentPeriodDetails = () => {
         </h1>
         <Button type="button" variant="ghost" onClick={handleEdit}>
           <Edit className="w-4 h-4 text-primary" />
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={handleExport}
+          disabled={isExporting}
+          className="ml-auto"
+        >
+          <Download className="w-4 h-4" />
+          {isExporting ? "Exporting..." : "Export Excel"}
         </Button>
       </div>
       <h2>Assessment Details</h2>
