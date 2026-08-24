@@ -43,9 +43,13 @@ export function StackedChart({ result, grouped, onDrill }: Props) {
             return {
               key: c.key,
               label: c.label,
-              value: row?.suppressed ? null : Number(row?.values[measureKey] ?? 0),
+              value:
+                !row || row.suppressed
+                  ? null
+                  : Number(row.values[measureKey] ?? 0),
               n: row?.n ?? 0,
               suppressed: row?.suppressed ?? false,
+              missing: !row,
               color: gradeColor(c.label, i),
             };
           });
@@ -62,26 +66,67 @@ export function StackedChart({ result, grouped, onDrill }: Props) {
           return (
             <div key={r.key} className="grid grid-cols-[140px_1fr_48px] items-center gap-3">
               <div className="truncate text-sm font-semibold text-[#3f3b36]">{r.label}</div>
-              <div className={`flex h-8 overflow-hidden rounded-md ${grouped ? "gap-0.5" : ""}`}>
+              <div
+                className={`flex h-8 overflow-hidden rounded-md ${grouped ? "gap-0.5" : ""}`}
+              >
                 {segments.map((seg) => {
-                  const width = grouped
-                    ? `${seg.value != null ? (seg.value / rowMax) * 100 : 0}%`
-                    : `${total > 0 && seg.value != null ? (seg.value / total) * 100 : 0}%`;
+                  const fillPct =
+                    grouped
+                      ? seg.value != null
+                        ? (seg.value / rowMax) * 100
+                        : 0
+                      : total > 0 && seg.value != null
+                        ? (seg.value / total) * 100
+                        : 0;
+                  const hatch =
+                    "repeating-linear-gradient(135deg,#ddd 0 3px,#eee 3px 6px)";
+                  if (grouped) {
+                    return (
+                      <div
+                        key={seg.key}
+                        className="flex h-full min-w-0 flex-1 items-stretch"
+                      >
+                        <button
+                          type="button"
+                          disabled={
+                            seg.suppressed || seg.missing || seg.value == null
+                          }
+                          title={`${seg.label}: ${seg.suppressed || seg.missing ? "—" : seg.value}`}
+                          onClick={() =>
+                            onDrill?.({
+                              [rowDim.key]: r.key,
+                              [colDim.key]: seg.key,
+                            })
+                          }
+                          className="h-full min-w-0 disabled:cursor-not-allowed"
+                          style={{
+                            width: `${fillPct}%`,
+                            background:
+                              seg.suppressed || seg.missing ? hatch : seg.color,
+                          }}
+                        />
+                      </div>
+                    );
+                  }
                   return (
                     <button
                       key={seg.key}
                       type="button"
-                      disabled={seg.suppressed || !seg.value}
-                      title={`${seg.label}: ${seg.suppressed ? "—" : seg.value}`}
+                      disabled={
+                        seg.suppressed || seg.missing || seg.value == null
+                      }
+                      title={`${seg.label}: ${seg.suppressed || seg.missing ? "—" : seg.value}`}
                       onClick={() =>
-                        onDrill?.({ [rowDim.key]: r.key, [colDim.key]: seg.key })
+                        onDrill?.({
+                          [rowDim.key]: r.key,
+                          [colDim.key]: seg.key,
+                        })
                       }
                       className="h-full min-w-0 disabled:cursor-not-allowed"
                       style={{
-                        width,
-                        background: seg.suppressed
-                          ? "repeating-linear-gradient(135deg,#ddd 0 3px,#eee 3px 6px)"
-                          : seg.color,
+                        width: `${fillPct}%`,
+                        background:
+                          seg.suppressed || seg.missing ? hatch : seg.color,
                       }}
                     />
                   );

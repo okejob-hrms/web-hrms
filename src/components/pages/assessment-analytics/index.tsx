@@ -373,7 +373,7 @@ export default function AssessmentAnalytics() {
         setDrillOpen(false);
         toast.error(t("analyticsDrillFailed"));
       } finally {
-        setDrillLoading(false);
+        if (seq === drillSeqRef.current) setDrillLoading(false);
       }
     },
     [t],
@@ -383,7 +383,11 @@ export default function AssessmentAnalytics() {
     void loadDrill(dims, 1);
   };
 
+  const canExport =
+    Boolean(view.source.formId) && formCategory !== "offboarding";
+
   const onExport = async () => {
+    if (!canExport) return;
     try {
       const blob = await exportPivotXlsx(view);
       const url = URL.createObjectURL(blob);
@@ -599,7 +603,12 @@ export default function AssessmentAnalytics() {
             <Button variant="outline" size="sm" onClick={() => setShowPresets(true)}>
               {t("analyticsChangeTemplate")}
             </Button>
-            <Button variant="outline" size="sm" onClick={onExport}>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!canExport}
+              onClick={onExport}
+            >
               <Download className="mr-1.5 h-4 w-4" />
               Excel
             </Button>
@@ -1022,7 +1031,12 @@ export default function AssessmentAnalytics() {
                   count: result?.meta.totalFacts ?? 0,
                 })}
               </span>
-              <Button variant="outline" size="sm" onClick={onExport}>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={!canExport}
+                onClick={onExport}
+              >
                 <Download className="mr-1.5 h-4 w-4" />
                 Excel
               </Button>
@@ -1093,6 +1107,7 @@ export default function AssessmentAnalytics() {
             <DataTable
               columns={drillColumns}
               data={drill?.rows ?? []}
+              loading={drillLoading}
               maxBodyHeight="50vh"
               noDataPlaceholder={t("analyticsDrillEmpty")}
             />
@@ -1102,7 +1117,7 @@ export default function AssessmentAnalytics() {
               <Button
                 variant="outline"
                 size="sm"
-                disabled={drill.page <= 1}
+                disabled={drillLoading || drill.page <= 1}
                 onClick={() => void loadDrill(drill.dims, drill.page - 1)}
               >
                 {tCommon("previous")}
@@ -1116,7 +1131,9 @@ export default function AssessmentAnalytics() {
               <Button
                 variant="outline"
                 size="sm"
-                disabled={drill.page * DRILL_PAGE_SIZE >= drill.total}
+                disabled={
+                  drillLoading || drill.page * DRILL_PAGE_SIZE >= drill.total
+                }
                 onClick={() => void loadDrill(drill.dims, drill.page + 1)}
               >
                 {tCommon("next")}

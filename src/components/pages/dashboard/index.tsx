@@ -51,6 +51,9 @@ export default function DashboardLive() {
       if (value !== 'pending-actions') {
         params.delete('overview');
       }
+      if (value !== 'assessment-dashboard') {
+        params.delete('mode');
+      }
 
       const qs = params.toString();
       router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });

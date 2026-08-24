@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Download, FileSpreadsheet, ImageIcon, Plus } from 'lucide-react';
 import { toPng } from 'html-to-image';
 import {
@@ -286,7 +287,19 @@ const WidgetCard = ({ item }: { item: DashboardSummaryItem }) => {
 export const Assessment = () => {
   const hooks = useDashboarAssessment();
   const t = useTranslations('dashboard');
-  const [mode, setMode] = React.useState<'widgets' | 'analytics'>('widgets');
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const mode =
+    searchParams.get('mode') === 'analytics' ? 'analytics' : 'widgets';
+
+  const setMode = (next: 'widgets' | 'analytics') => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (next === 'analytics') params.set('mode', 'analytics');
+    else params.delete('mode');
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  };
 
   return (
     <div className="flex min-h-screen flex-col space-y-6 py-6 font-sans">
