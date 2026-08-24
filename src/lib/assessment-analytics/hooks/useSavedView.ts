@@ -27,12 +27,44 @@ function push(state: HistoryState, next: SavedView): HistoryState {
   };
 }
 
+function mergeSavedViewPatch(
+  current: SavedView,
+  patch: Partial<SavedView>,
+): SavedView {
+  return {
+    ...current,
+    ...patch,
+    version: 1,
+    source: patch.source
+      ? { ...current.source, ...patch.source }
+      : current.source,
+    options: patch.options
+      ? {
+          ...current.options,
+          ...patch.options,
+          suppression: patch.options.suppression
+            ? {
+                ...current.options.suppression,
+                ...patch.options.suppression,
+              }
+            : current.options.suppression,
+          totals: patch.options.totals
+            ? { ...current.options.totals, ...patch.options.totals }
+            : current.options.totals,
+        }
+      : current.options,
+    render: patch.render
+      ? { ...current.render, ...patch.render }
+      : current.render,
+  };
+}
+
 function reducer(state: HistoryState, action: Action): HistoryState {
   switch (action.type) {
     case "replace":
       return { present: action.view, past: [], future: [] };
     case "patch":
-      return push(state, { ...state.present, ...action.patch, version: 1 });
+      return push(state, mergeSavedViewPatch(state.present, action.patch));
     case "setRows":
       return push(state, { ...state.present, rows: action.rows });
     case "setColumns":

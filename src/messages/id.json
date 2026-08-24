@@ -514,6 +514,8 @@
     "analyticsBackfillHint": "Penilaian lama memakai divisi/level dari penempatan karyawan saat ini.",
     "analyticsDrillTitle": "Detail karyawan",
     "analyticsDrillCount": "{count} karyawan",
+    "analyticsDrillShowing": "Menampilkan {shown} dari {total} karyawan",
+    "analyticsDrillPage": "Halaman {page} dari {pages}",
     "analyticsDrillEmployee": "Karyawan",
     "analyticsDrillEmpty": "Tidak ada karyawan di kelompok ini.",
     "analyticsDrillFailed": "Tidak dapat membuka detail karyawan.",

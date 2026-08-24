@@ -514,6 +514,8 @@
     "analyticsBackfillHint": "Older assessments were attributed using the employee’s current department/level.",
     "analyticsDrillTitle": "Employee details",
     "analyticsDrillCount": "{count} employees",
+    "analyticsDrillShowing": "Showing {shown} of {total} employees",
+    "analyticsDrillPage": "Page {page} of {pages}",
     "analyticsDrillEmployee": "Employee",
     "analyticsDrillEmpty": "No employees in this group.",
     "analyticsDrillFailed": "Could not open employee details.",

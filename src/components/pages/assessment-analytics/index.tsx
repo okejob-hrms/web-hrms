@@ -34,6 +34,7 @@ import {
   fetchAnalyticsForms,
   fetchAnalyticsViews,
   type AnalyticsFormCategory,
+  type AnalyticsFormOption,
   type AnalyticsViewRecord,
 } from "@/services/assessment-analytics";
 import { useSavedView } from "@/lib/assessment-analytics/hooks/useSavedView";
@@ -79,12 +80,26 @@ const SOURCE_LABEL: Record<string, string> = {
   self: "Self assessment",
 };
 
+const DRILL_PAGE_SIZE = 50;
+const FORM_TYPE_EXIT_INTERVIEW = 1;
+
 function categoryFromView(
   scoreSource: string,
   formType?: number,
 ): AnalyticsFormCategory {
-  if (formType === 1) return "offboarding"; // Form::TYPE_EXIT_INTERVIEW
+  if (formType === FORM_TYPE_EXIT_INTERVIEW) return "offboarding";
   return scoreSource === "supervisor_final" ? "supervisor" : "self";
+}
+
+function resolveFormCategory(
+  scoreSource: string,
+  formId: string | number | undefined,
+  catalog: AnalyticsFormOption[],
+): AnalyticsFormCategory {
+  const form = catalog.find((f) => f.id === String(formId));
+  if (form?.type === FORM_TYPE_EXIT_INTERVIEW) return "offboarding";
+  if (form?.category) return form.category;
+  return categoryFromView(scoreSource, form?.type);
 }
 
 function scoreSourceForCategory(
@@ -216,7 +231,9 @@ export default function AssessmentAnalytics() {
     dims: Record<string, string>;
     rows: Awaited<ReturnType<typeof drillPivot>>["data"];
     total: number;
+    page: number;
   } | null>(null);
+  const drillSeqRef = React.useRef(0);
 
   const { data: views = [], isLoading: viewsLoading } = useQuery({
     queryKey: ["assessment-analytics-views"],
@@ -230,11 +247,27 @@ export default function AssessmentAnalytics() {
       categoryFromView(view.source.scoreSource),
     );
 
-  React.useEffect(() => {
-    setFormCategory(categoryFromView(view.source.scoreSource));
-  }, [view.id, view.source.scoreSource]);
+  const { data: formCatalog = [] } = useQuery({
+    queryKey: ["assessment-analytics-forms", "catalog"],
+    queryFn: () => fetchAnalyticsForms(),
+    staleTime: 5 * 60 * 1000,
+  });
 
-  const { data: forms = [] } = useQuery({
+  React.useEffect(() => {
+    setFormCategory(
+      resolveFormCategory(
+        view.source.scoreSource,
+        view.source.formId,
+        formCatalog,
+      ),
+    );
+  }, [view.id, view.source.scoreSource, view.source.formId, formCatalog]);
+
+  const {
+    data: forms = [],
+    isSuccess: formsReady,
+    isFetching: formsFetching,
+  } = useQuery({
     queryKey: ["assessment-analytics-forms", formCategory],
     queryFn: () => fetchAnalyticsForms(formCategory),
   });
@@ -246,7 +279,13 @@ export default function AssessmentAnalytics() {
 
   const openView = (record: AnalyticsViewRecord) => {
     replace({ ...record.config, id: record.id, name: record.name });
-    setFormCategory(categoryFromView(record.config.source.scoreSource));
+    setFormCategory(
+      resolveFormCategory(
+        record.config.source.scoreSource,
+        record.config.source.formId,
+        formCatalog,
+      ),
+    );
     setScreen("builder");
     setShowPresets(false);
   };
@@ -288,6 +327,7 @@ export default function AssessmentAnalytics() {
   // When forms for the category load, ensure a valid formId is selected
   React.useEffect(() => {
     if (formCategory === "offboarding") return;
+    if (!formsReady || formsFetching) return;
     if (!forms.length) return;
     const currentOk = forms.some((f) => f.id === String(view.source.formId));
     if (currentOk) return;
@@ -300,16 +340,33 @@ export default function AssessmentAnalytics() {
         scoreSource: scoreSourceForCategory(formCategory),
       },
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- only when category forms arrive
-  }, [forms, formCategory]);
+  }, [
+    forms,
+    formCategory,
+    formsReady,
+    formsFetching,
+    view.source.formId,
+    patch,
+    view.source,
+  ]);
 
-  const onDrill = async (dims: Record<string, string>) => {
-    try {
-      const res = await drillPivot(view, dims);
-      setDrill({ dims, rows: res.data, total: res.meta.total });
-    } catch {
-      toast.error(t("analyticsDrillFailed"));
-    }
+  const loadDrill = React.useCallback(
+    async (dims: Record<string, string>, page = 1) => {
+      const seq = ++drillSeqRef.current;
+      try {
+        const res = await drillPivot(view, dims, page);
+        if (seq !== drillSeqRef.current) return;
+        setDrill({ dims, rows: res.data, total: res.meta.total, page });
+      } catch {
+        if (seq !== drillSeqRef.current) return;
+        toast.error(t("analyticsDrillFailed"));
+      }
+    },
+    [t, view],
+  );
+
+  const onDrill = (dims: Record<string, string>) => {
+    void loadDrill(dims, 1);
   };
 
   const onExport = async () => {
@@ -997,7 +1054,12 @@ export default function AssessmentAnalytics() {
           <DialogHeader className="shrink-0 border-b border-border bg-white px-6 py-4 pr-12 text-left">
             <DialogTitle>{t("analyticsDrillTitle")}</DialogTitle>
             <DialogDescription>
-              {t("analyticsDrillCount", { count: drill?.total ?? 0 })}
+              {drill && drill.total > drill.rows.length
+                ? t("analyticsDrillShowing", {
+                    shown: drill.rows.length,
+                    total: drill.total,
+                  })
+                : t("analyticsDrillCount", { count: drill?.total ?? 0 })}
             </DialogDescription>
           </DialogHeader>
           <div className="min-h-0 flex-1 overflow-y-auto bg-white px-6 py-4">
@@ -1008,6 +1070,32 @@ export default function AssessmentAnalytics() {
               noDataPlaceholder={t("analyticsDrillEmpty")}
             />
           </div>
+          {drill && drill.total > DRILL_PAGE_SIZE ? (
+            <div className="flex shrink-0 items-center justify-between border-t border-border bg-white px-6 py-3">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={drill.page <= 1}
+                onClick={() => void loadDrill(drill.dims, drill.page - 1)}
+              >
+                {tCommon("previous")}
+              </Button>
+              <span className="text-xs text-muted-foreground">
+                {t("analyticsDrillPage", {
+                  page: drill.page,
+                  pages: Math.ceil(drill.total / DRILL_PAGE_SIZE),
+                })}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={drill.page * DRILL_PAGE_SIZE >= drill.total}
+                onClick={() => void loadDrill(drill.dims, drill.page + 1)}
+              >
+                {tCommon("next")}
+              </Button>
+            </div>
+          ) : null}
         </DialogContent>
       </Dialog>
     </div>
