@@ -237,6 +237,7 @@ export default function AssessmentAnalytics() {
   const [drillLoading, setDrillLoading] = React.useState(false);
   // Keep dialog open even when no data loaded yet (shows loading spinner)
   const [drillOpen, setDrillOpen] = React.useState(false);
+  const latestViewRef = React.useRef<SavedView | null>(null);
 
   const { data: views = [], isLoading: viewsLoading } = useQuery({
     queryKey: ["assessment-analytics-views"],
@@ -244,6 +245,10 @@ export default function AssessmentAnalytics() {
   });
 
   const { view, replace, patch } = useSavedView();
+
+  React.useEffect(() => {
+    latestViewRef.current = view;
+  }, [view]);
 
   const [formCategory, setFormCategory] =
     React.useState<AnalyticsFormCategory>(() =>
@@ -350,7 +355,6 @@ export default function AssessmentAnalytics() {
     formsFetching,
     view.source.formId,
     patch,
-    view.source,
   ]);
 
   const loadDrill = React.useCallback(
@@ -359,17 +363,20 @@ export default function AssessmentAnalytics() {
       setDrillLoading(true);
       setDrillOpen(true);
       try {
-        const res = await drillPivot(view, dims, page);
+        const currentView = latestViewRef.current ?? view;
+        const res = await drillPivot(currentView, dims, page);
         if (seq !== drillSeqRef.current) return;
         setDrill({ dims, rows: res.data, total: res.meta.total, page });
       } catch {
         if (seq !== drillSeqRef.current) return;
+        setDrill(null);
+        setDrillOpen(false);
         toast.error(t("analyticsDrillFailed"));
       } finally {
         setDrillLoading(false);
       }
     },
-    [t, view],
+    [t],
   );
 
   const onDrill = (dims: Record<string, string>) => {
@@ -383,8 +390,10 @@ export default function AssessmentAnalytics() {
       const a = document.createElement("a");
       a.href = url;
       a.download = `${view.name || "analysis"}.xlsx`;
+      document.body.appendChild(a);
       a.click();
-      URL.revokeObjectURL(url);
+      a.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 100);
     } catch {
       toast.error(t("analyticsExportFailed"));
     }
