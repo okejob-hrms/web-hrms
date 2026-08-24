@@ -53,13 +53,19 @@ export function StackedChart({ result, grouped, onDrill }: Props) {
             (s, x) => s + (typeof x.value === "number" ? x.value : 0),
             0,
           );
+          const rowMax = Math.max(
+            1,
+            ...segments.map((x) =>
+              typeof x.value === "number" ? x.value : 0,
+            ),
+          );
           return (
             <div key={r.key} className="grid grid-cols-[140px_1fr_48px] items-center gap-3">
               <div className="truncate text-sm font-semibold text-[#3f3b36]">{r.label}</div>
               <div className={`flex h-8 overflow-hidden rounded-md ${grouped ? "gap-0.5" : ""}`}>
                 {segments.map((seg) => {
                   const width = grouped
-                    ? `${100 / Math.max(1, segments.length)}%`
+                    ? `${seg.value != null ? (seg.value / rowMax) * 100 : 0}%`
                     : `${total > 0 && seg.value != null ? (seg.value / total) * 100 : 0}%`;
                   return (
                     <button

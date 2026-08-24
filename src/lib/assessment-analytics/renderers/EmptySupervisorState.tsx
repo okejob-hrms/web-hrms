@@ -1,15 +1,17 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 export function EmptySupervisorState() {
+  const t = useTranslations("dashboard");
+
   return (
     <div className="flex min-h-[280px] flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-muted/50 px-8 text-center">
       <div className="text-base font-semibold">
-        Belum ada siklus penilaian atasan yang selesai
+        {t("analyticsEmptySupervisorTitle")}
       </div>
       <p className="max-w-md text-sm text-muted-foreground">
-        Distribusi grade dari Penilaian Atasan baru muncul setelah submission
-        digabung (status Merged). Sumber nilai ini kosong saat ini — itu
-        perilaku yang benar, bukan error.
+        {t("analyticsEmptySupervisorBody")}
       </p>
     </div>
   );

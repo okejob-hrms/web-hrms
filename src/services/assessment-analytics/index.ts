@@ -67,35 +67,45 @@ export async function fetchAnalyticsFields(formId: string): Promise<FieldsRespon
   return res.data;
 }
 
-export async function queryPivot(view: SavedView): Promise<PivotResult> {
+export async function queryPivot(
+  view: SavedView,
+  signal?: AbortSignal,
+): Promise<PivotResult> {
   const res = await api
-    .post("assessment-analytics/query", { json: view })
+    .post("assessment-analytics/query", { json: view, signal })
     .json<ApiWrap<PivotResult>>();
   return res.data;
 }
+
+export type DrillPivotRow = {
+  employee_id: number;
+  employee_name: string;
+  department: string | null;
+  job_level: string | null;
+  position: string | null;
+  raw_score: number | null;
+  period_key: string | null;
+  submitted_at: string | null;
+};
 
 export async function drillPivot(
   view: SavedView,
   dims: Record<string, string>,
   page = 1,
 ): Promise<{
-  data: Array<{
-    employee_id: number;
-    employee_name: string;
-    department: string | null;
-    job_level: string | null;
-    position: string | null;
-    raw_score: number | null;
-    period_key: string | null;
-    submitted_at: string | null;
-  }>;
+  data: DrillPivotRow[];
   meta: { total: number; scoreSource: string };
 }> {
   const res = await api
     .post("assessment-analytics/drill", {
       json: { view, dims, page, per_page: 50 },
     })
-    .json<ApiWrap<{ data: never[]; meta: { total: number; scoreSource: string } }>>();
+    .json<
+      ApiWrap<{
+        data: DrillPivotRow[];
+        meta: { total: number; scoreSource: string };
+      }>
+    >();
   return res.data;
 }
 
@@ -110,5 +120,5 @@ export async function saveAnalyticsView(
 }
 
 export async function exportPivotXlsx(view: SavedView): Promise<Blob> {
-  return api.post("assessment-analytics/export", { json: { view } }).blob();
+  return api.post("assessment-analytics/export", { json: view }).blob();
 }

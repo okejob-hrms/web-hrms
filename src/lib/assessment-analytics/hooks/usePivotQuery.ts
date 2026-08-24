@@ -35,7 +35,7 @@ export function usePivotQuery(view: SavedView | null, enabled = true) {
             (f) => Array.isArray(f.values) && f.values.length > 0,
           ),
         };
-        const result = await queryPivot(sanitized);
+        const result = await queryPivot(sanitized, ac.signal);
         if (!ac.signal.aborted) setData(result);
       } catch (e) {
         if (!ac.signal.aborted) {

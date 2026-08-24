@@ -24,7 +24,6 @@ import {
 import { toast } from "sonner";
 
 import type {
-  FilterClause,
   MeasureField,
   SavedView,
 } from "@hrms/assessment-analytics";
@@ -94,20 +93,36 @@ function scoreSourceForCategory(
   return category === "supervisor" ? "supervisor_final" : "self";
 }
 
-function measureForField(field: string): MeasureField {
+function formatForShowAs(
+  showAs: MeasureField["showAs"],
+  field = "count",
+): MeasureField["format"] {
+  const isPct =
+    showAs === "pct_of_grand_total" ||
+    showAs === "pct_of_row" ||
+    showAs === "pct_of_column";
   if (field === "score.raw" || field === "score") {
+    return { decimals: 1, ...(isPct ? { suffix: "%" } : {}) };
+  }
+  return isPct ? { decimals: 1, suffix: "%" } : { decimals: 0 };
+}
+
+function measureForField(field: string, showAs?: MeasureField["showAs"]): MeasureField {
+  if (field === "score.raw" || field === "score") {
+    const resolvedShowAs = showAs ?? "raw";
     return {
       field: "score.raw",
       agg: "avg",
-      showAs: "raw",
-      format: { decimals: 1 },
+      showAs: resolvedShowAs,
+      format: formatForShowAs(resolvedShowAs, "score.raw"),
     };
   }
+  const resolvedShowAs = showAs ?? "pct_of_grand_total";
   return {
     field: "count",
     agg: "count",
-    showAs: "pct_of_grand_total",
-    format: { decimals: 1, suffix: "%" },
+    showAs: resolvedShowAs,
+    format: formatForShowAs(resolvedShowAs, "count"),
   };
 }
 
@@ -175,17 +190,8 @@ function addFieldToShelf(
     return { values: [measureForField(field)] };
   }
 
-  // filters — empty values are stripped at query time (no-op until set)
-  const nextFilter: FilterClause = {
-    field,
-    op: "in",
-    values: [],
-  };
-  return {
-    rows,
-    columns,
-    filters: [...filters, nextFilter],
-  };
+  // Filters require a value picker — block drops until that UI exists.
+  return {};
 }
 
 function smartAddField(view: SavedView, field: string): Partial<SavedView> {
@@ -562,10 +568,10 @@ export default function AssessmentAnalytics() {
                   }
                   patch({
                     values: [
-                      {
-                        ...measureForField("count"),
-                        showAs: displayMode === "raw" ? "raw" : displayMode,
-                      },
+                      measureForField(
+                        "count",
+                        displayMode === "raw" ? "raw" : displayMode,
+                      ),
                     ],
                   });
                 }}
@@ -630,11 +636,13 @@ export default function AssessmentAnalytics() {
                 ]}
                 onSelect={(value) => {
                   const current = view.values[0] ?? measureForField("count");
+                  const showAs = value as MeasureField["showAs"];
                   patch({
                     values: [
                       {
                         ...current,
-                        showAs: value as MeasureField["showAs"],
+                        showAs,
+                        format: formatForShowAs(showAs, current.field),
                       },
                     ],
                   });
@@ -905,23 +913,14 @@ export default function AssessmentAnalytics() {
               <DropShelf
                 shelf="filters"
                 title={t("analyticsFilters")}
-                hint={t("analyticsDragHint")}
-                active={dragOverShelf === "filters"}
+                hint={t("analyticsFiltersComingSoon")}
+                active={false}
                 dragging={!!dragField}
+                disabled
                 pills={view.filters.map((f) => ({
                   id: f.field,
                   label: fieldLabel(f.field, t),
                 }))}
-                onDragOver={(e) => {
-                  e.preventDefault();
-                  setDragOverShelf("filters");
-                }}
-                onDragLeave={() => setDragOverShelf(null)}
-                onDrop={(field) => {
-                  patch(addFieldToShelf(view, field, "filters"));
-                  setDragField(null);
-                  setDragOverShelf(null);
-                }}
                 onRemove={(id) =>
                   patch({
                     filters: view.filters.filter((f) => f.field !== id),
@@ -1110,6 +1109,7 @@ function DropShelf({
   pills,
   active,
   dragging,
+  disabled = false,
   onDragOver,
   onDragLeave,
   onDrop,
@@ -1123,30 +1123,37 @@ function DropShelf({
   pills: Array<{ id: string; label: string }>;
   active: boolean;
   dragging: boolean;
-  onDragOver: (e: React.DragEvent) => void;
-  onDragLeave: () => void;
-  onDrop: (field: string) => void;
+  disabled?: boolean;
+  onDragOver?: (e: React.DragEvent) => void;
+  onDragLeave?: () => void;
+  onDrop?: (field: string) => void;
   onRemove: (id: string) => void;
   onClear: () => void;
   clearLabel: string;
 }) {
   return (
     <div
-      onDragOver={onDragOver}
-      onDragLeave={onDragLeave}
-      onDrop={(e) => {
-        e.preventDefault();
-        const field =
-          e.dataTransfer.getData(DRAG_MIME) ||
-          e.dataTransfer.getData("text/plain");
-        if (field) onDrop(field);
-      }}
+      onDragOver={disabled ? undefined : onDragOver}
+      onDragLeave={disabled ? undefined : onDragLeave}
+      onDrop={
+        disabled
+          ? undefined
+          : (e) => {
+              e.preventDefault();
+              const field =
+                e.dataTransfer.getData(DRAG_MIME) ||
+                e.dataTransfer.getData("text/plain");
+              if (field) onDrop?.(field);
+            }
+      }
       className={
-        active
-          ? "min-h-[72px] rounded-xl border border-dashed border-primary bg-primary/10 p-3"
-          : dragging
-            ? "min-h-[72px] rounded-xl border border-dashed border-primary/40 bg-primary-background/60 p-3"
-            : "min-h-[72px] rounded-xl border border-dashed border-border bg-muted/60 p-3"
+        disabled
+          ? "min-h-[72px] rounded-xl border border-dashed border-border bg-muted/30 p-3 opacity-70"
+          : active
+            ? "min-h-[72px] rounded-xl border border-dashed border-primary bg-primary/10 p-3"
+            : dragging
+              ? "min-h-[72px] rounded-xl border border-dashed border-primary/40 bg-primary-background/60 p-3"
+              : "min-h-[72px] rounded-xl border border-dashed border-border bg-muted/60 p-3"
       }
     >
       <div className="mb-1 flex items-center justify-between text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
@@ -1236,8 +1243,7 @@ function MetaBadges({
 }: {
   result: ReturnType<typeof usePivotQuery>["data"];
   sourceLabel: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  t: (key: any, values?: Record<string, unknown>) => string;
+  t: ReturnType<typeof useTranslations<"dashboard">>;
 }) {
   if (!result) return null;
   const backfilled = result.meta.orgSnapshotCoverage.backfilledCurrent > 0;

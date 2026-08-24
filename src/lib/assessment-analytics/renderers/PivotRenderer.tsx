@@ -1,8 +1,8 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import type { PivotResult, SavedView } from "@hrms/assessment-analytics";
 import { getRenderer, isRendererValid } from "@hrms/assessment-analytics";
-import { gradeColor } from "./colors";
 import { ColumnChart } from "./ColumnChart";
 import { StackedChart } from "./StackedChart";
 import { TableRenderer } from "./TableRenderer";
@@ -16,6 +16,7 @@ type Props = {
 };
 
 export function PivotRenderer({ view, result, loading, onDrill }: Props) {
+  const t = useTranslations("dashboard");
   const valid = isRendererValid(view);
   const spec = getRenderer(view.render.type);
 
@@ -30,7 +31,7 @@ export function PivotRenderer({ view, result, loading, onDrill }: Props) {
   if (loading) {
     return (
       <div className="flex min-h-[280px] items-center justify-center text-sm text-muted-foreground">
-        Memuat pratinjau…
+        {t("analyticsPreviewLoading")}
       </div>
     );
   }
@@ -38,7 +39,7 @@ export function PivotRenderer({ view, result, loading, onDrill }: Props) {
   if (!result) {
     return (
       <div className="flex min-h-[280px] items-center justify-center text-sm text-muted-foreground">
-        Belum ada data pratinjau.
+        {t("analyticsPreviewEmpty")}
       </div>
     );
   }
