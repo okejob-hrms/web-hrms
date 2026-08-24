@@ -111,11 +111,26 @@ function measureForField(field: string): MeasureField {
   };
 }
 
+function isMeasureField(field: string): boolean {
+  return field === "count" || field === "score.raw" || field === "score";
+}
+
+function isDualAxisRender(type: string): boolean {
+  return type === "column_stacked" || type === "column_grouped";
+}
+
 function addFieldToShelf(
   view: SavedView,
   field: string,
   shelf: ShelfKey,
 ): Partial<SavedView> {
+  if (
+    (shelf === "rows" || shelf === "columns" || shelf === "filters") &&
+    isMeasureField(field)
+  ) {
+    return addFieldToShelf(view, field, "values");
+  }
+
   const rows = view.rows.filter((r) => r.field !== field);
   const columns = view.columns.filter((c) => c.field !== field);
   const filters = view.filters.filter((f) => f.field !== field);
@@ -132,8 +147,7 @@ function addFieldToShelf(
             ? view.render.type === "table"
               ? "table"
               : "column_stacked"
-            : view.render.type === "column_stacked" ||
-                view.render.type === "column_clustered"
+            : isDualAxisRender(view.render.type)
               ? "column"
               : view.render.type,
       },
@@ -363,8 +377,7 @@ export default function AssessmentAnalytics() {
           render: {
             ...view.render,
             type:
-              view.render.type === "column_stacked" ||
-              view.render.type === "column_clustered"
+              isDualAxisRender(view.render.type)
                 ? "column"
                 : view.render.type,
           },
@@ -836,8 +849,7 @@ export default function AssessmentAnalytics() {
                       ...view.render,
                       type:
                         nextColumns.length === 0 &&
-                        (view.render.type === "column_stacked" ||
-                          view.render.type === "column_clustered")
+                        isDualAxisRender(view.render.type)
                           ? "column"
                           : view.render.type,
                     },
@@ -848,11 +860,9 @@ export default function AssessmentAnalytics() {
                     columns: [],
                     render: {
                       ...view.render,
-                      type:
-                        view.render.type === "column_stacked" ||
-                        view.render.type === "column_clustered"
-                          ? "column"
-                          : view.render.type,
+                      type: isDualAxisRender(view.render.type)
+                        ? "column"
+                        : view.render.type,
                     },
                   })
                 }
@@ -949,7 +959,11 @@ export default function AssessmentAnalytics() {
             <div className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
               {t("analyticsChartType")}
             </div>
-            {RENDERER_REGISTRY.filter((r) => r.id !== "scorecard").map((r) => {
+            {RENDERER_REGISTRY.filter((r) =>
+              ["column", "column_stacked", "column_grouped", "table"].includes(
+                r.id,
+              ),
+            ).map((r) => {
               const Icon = CHART_TYPE_ICONS[r.id];
               return (
                 <Button
@@ -987,12 +1001,6 @@ export default function AssessmentAnalytics() {
               {t("analyticsDrillCount", { count: drill?.total ?? 0 })}
             </DialogDescription>
           </DialogHeader>
-          <div className="flex shrink-0 justify-end border-b border-border bg-white px-6 py-2">
-            <Button variant="outline" size="sm" onClick={onExport}>
-              <Download className="mr-1.5 h-4 w-4" />
-              Excel
-            </Button>
-          </div>
           <div className="min-h-0 flex-1 overflow-y-auto bg-white px-6 py-4">
             <DataTable
               columns={drillColumns}

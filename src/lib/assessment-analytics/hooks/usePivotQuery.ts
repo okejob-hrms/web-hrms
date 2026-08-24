@@ -13,6 +13,11 @@ export function usePivotQuery(view: SavedView | null, enabled = true) {
 
   useEffect(() => {
     if (!enabled || !view?.source?.formId || !view.source.scoreSource) {
+      abortRef.current?.abort();
+      if (timerRef.current) clearTimeout(timerRef.current);
+      setData(null);
+      setError(null);
+      setLoading(false);
       return;
     }
 

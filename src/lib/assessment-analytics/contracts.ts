@@ -115,6 +115,8 @@ export type PivotResult = {
     };
     definitionHashMatch: boolean;
     warnings: string[];
+    /** Present when the query returned zero facts for a known product reason */
+    emptyReason?: "no_supervisor_merged" | string;
   };
 };
 
