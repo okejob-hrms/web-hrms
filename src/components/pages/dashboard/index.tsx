@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
@@ -11,22 +12,60 @@ import { PendingAction } from './sections/pending-action';
 import { Analytics } from './sections/analytics';
 import AppSkeleton from '@/components/partials/app-skeleton';
 
+const TAB_VALUES = [
+  'pending-actions',
+  'analytics',
+  'offboarding',
+  'payroll',
+  'assessment-dashboard',
+] as const;
+
+type TabValue = (typeof TAB_VALUES)[number];
+
+function isTabValue(value: string | null): value is TabValue {
+  return !!value && (TAB_VALUES as readonly string[]).includes(value);
+}
+
 export default function DashboardLive() {
   const t = useTranslations('dashboard');
-  const [user, setUser] = React.useState<string | null>(null);
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
-  React.useEffect(() => {
-    const storedUser = JSON.stringify(localStorage.getItem('user'));
-    setUser(storedUser);
-  }, []);
+  const activeTab = React.useMemo((): TabValue => {
+    const fromQuery = searchParams.get('tab');
+    if (isTabValue(fromQuery)) return fromQuery;
+    // Deep links like ?overview=leave should open Pending Action
+    if (searchParams.get('overview')) return 'pending-actions';
+    return 'pending-actions';
+  }, [searchParams]);
 
-  console.log(user);
+  const onTabChange = React.useCallback(
+    (value: string) => {
+      if (!isTabValue(value)) return;
+
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('tab', value);
+
+      // overview only applies to Pending Action
+      if (value !== 'pending-actions') {
+        params.delete('overview');
+      }
+      if (value !== 'assessment-dashboard') {
+        params.delete('mode');
+      }
+
+      const qs = params.toString();
+      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    },
+    [pathname, router, searchParams],
+  );
 
   const tabs = React.useMemo(
     () => [
       {
         name: t('pendingOverview'),
-        value: 'pending-actions',
+        value: 'pending-actions' as const,
         content: (
           <React.Suspense fallback={<AppSkeleton />}>
             <PendingAction />
@@ -35,22 +74,22 @@ export default function DashboardLive() {
       },
       {
         name: t('analytics'),
-        value: 'analytics',
+        value: 'analytics' as const,
         content: <Analytics />,
       },
       {
         name: t('offboarding'),
-        value: 'offboarding',
+        value: 'offboarding' as const,
         content: <Offboarding />,
       },
       {
         name: t('payroll'),
-        value: 'payroll',
+        value: 'payroll' as const,
         content: <Payroll />,
       },
       {
         name: t('assessment'),
-        value: 'assessment-dashboard',
+        value: 'assessment-dashboard' as const,
         content: <Assessment />,
       },
     ],
@@ -61,7 +100,11 @@ export default function DashboardLive() {
     <div className="mx-auto font-sans min-h-screen">
       <div className="flex flex-col justify-between gap-6">
         <div className="flex flex-col gap-4 px-6">
-          <Tabs defaultValue={tabs[0].value} className="w-full mx-auto">
+          <Tabs
+            value={activeTab}
+            onValueChange={onTabChange}
+            className="w-full mx-auto"
+          >
             <TabsList className="p-1 w-full bg-secondary-background h-50 md:h-12 flex flex-col md:flex-row">
               {tabs.map((tab) => (
                 <TabsTrigger

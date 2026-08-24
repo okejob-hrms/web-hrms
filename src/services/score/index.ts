@@ -5,8 +5,11 @@ import { PaginationState } from "@tanstack/react-table";
 export const getScore = async (
   pagination?: PaginationState,
   work_value?: number,
+  score_source: "supervisor_final" | "self" = "supervisor_final",
 ): Promise<ScoreResponse> => {
-  const searchParams: Record<string, string> = {};
+  const searchParams: Record<string, string> = {
+    score_source,
+  };
 
   if (pagination) {
     const page = pagination.pageIndex + 1;
