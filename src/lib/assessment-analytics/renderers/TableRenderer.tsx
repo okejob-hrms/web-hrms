@@ -33,7 +33,7 @@ export function TableRenderer({ result, onDrill }: Props) {
               <tr
                 key={m.key}
                 className="cursor-pointer border-b border-[#efeeeb] hover:bg-[#f7f7f6]"
-                onClick={() => !row?.suppressed && onDrill?.({ [rowDim.key]: m.key })}
+                onClick={() => row && !row.suppressed && onDrill?.({ [rowDim.key]: m.key })}
               >
                 <td className="px-3 py-2 font-medium">
                   <span className="inline-flex items-center gap-2">
@@ -83,7 +83,7 @@ export function TableRenderer({ result, onDrill }: Props) {
                     key={c.key}
                     className="cursor-pointer px-3 py-2 tabular-nums hover:bg-[#f7f7f6]"
                     onClick={() =>
-                      !row?.suppressed &&
+                      row && !row.suppressed &&
                       onDrill?.({ [rowDim.key]: r.key, [colDim.key]: c.key })
                     }
                   >

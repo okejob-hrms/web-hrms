@@ -62,5 +62,13 @@ export function PivotRenderer({ view, result, loading, onDrill }: Props) {
     );
   }
 
+  if (["bar", "line", "pie"].includes(view.render.type)) {
+    return (
+      <div className="flex min-h-[280px] items-center justify-center rounded-xl border border-dashed border-border bg-muted/50 px-6 text-center text-sm text-muted-foreground">
+        {t("analyticsChartTypeNotSupported")}
+      </div>
+    );
+  }
+
   return <ColumnChart result={result} onDrill={onDrill} />;
 }

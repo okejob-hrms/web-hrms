@@ -498,6 +498,7 @@
     "analyticsChart": "Grafik",
     "analyticsTable": "Tabel",
     "analyticsChartType": "Jenis grafik",
+    "analyticsChartTypeNotSupported": "Jenis grafik belum tersedia.",
     "analyticsSubmissionCount": "{count} submission dianalisis",
     "analyticsHeadcount": "Jumlah karyawan",
     "analyticsScore": "Nilai",

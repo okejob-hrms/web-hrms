@@ -234,6 +234,9 @@ export default function AssessmentAnalytics() {
     page: number;
   } | null>(null);
   const drillSeqRef = React.useRef(0);
+  const [drillLoading, setDrillLoading] = React.useState(false);
+  // Keep dialog open even when no data loaded yet (shows loading spinner)
+  const [drillOpen, setDrillOpen] = React.useState(false);
 
   const { data: views = [], isLoading: viewsLoading } = useQuery({
     queryKey: ["assessment-analytics-views"],
@@ -353,6 +356,8 @@ export default function AssessmentAnalytics() {
   const loadDrill = React.useCallback(
     async (dims: Record<string, string>, page = 1) => {
       const seq = ++drillSeqRef.current;
+      setDrillLoading(true);
+      setDrillOpen(true);
       try {
         const res = await drillPivot(view, dims, page);
         if (seq !== drillSeqRef.current) return;
@@ -360,6 +365,8 @@ export default function AssessmentAnalytics() {
       } catch {
         if (seq !== drillSeqRef.current) return;
         toast.error(t("analyticsDrillFailed"));
+      } finally {
+        setDrillLoading(false);
       }
     },
     [t, view],
@@ -656,7 +663,9 @@ export default function AssessmentAnalytics() {
                     value={view.columns[0]?.field ?? NONE}
                     options={[
                       { value: NONE, label: t("analyticsNone") },
-                      ...groupFieldOptions,
+                      ...groupFieldOptions.filter(
+                        (o) => o.value !== view.rows[0]?.field,
+                      ),
                     ]}
                     onSelect={(value) => setGroupField("columns", value)}
                     onRemove={() => setGroupField("columns", NONE)}
@@ -679,34 +688,43 @@ export default function AssessmentAnalytics() {
               )}
             </p>
             <p className="flex flex-wrap items-center gap-x-1 gap-y-1.5">
-              {t("analyticsDisplayedAs")}{" "}
-              <ConfigChip
-                value={displayMode}
-                options={[
-                  { value: "raw", label: t("analyticsRaw") },
-                  { value: "pct_of_row", label: t("analyticsPctRow") },
-                  { value: "pct_of_column", label: t("analyticsPctCol") },
-                  {
-                    value: "pct_of_grand_total",
-                    label: t("analyticsPctTotal"),
-                  },
-                ]}
-                onSelect={(value) => {
-                  const current = view.values[0] ?? measureForField("count");
-                  const showAs = value as MeasureField["showAs"];
-                  patch({
-                    values: [
+              {view.values[0]?.field === "score.raw" ||
+              view.values[0]?.field === "score" ? (
+                <span className="text-xs text-muted-foreground">
+                  {t("analyticsDisplayedAs")}
+                </span>
+              ) : (
+                <>
+                  {t("analyticsDisplayedAs")}{" "}
+                  <ConfigChip
+                    value={displayMode}
+                    options={[
+                      { value: "raw", label: t("analyticsRaw") },
+                      { value: "pct_of_row", label: t("analyticsPctRow") },
+                      { value: "pct_of_column", label: t("analyticsPctCol") },
                       {
-                        ...current,
-                        showAs,
-                        format: formatForShowAs(showAs, current.field),
+                        value: "pct_of_grand_total",
+                        label: t("analyticsPctTotal"),
                       },
-                    ],
-                  });
-                }}
-              >
-                {displayLabel}
-              </ConfigChip>
+                    ]}
+                    onSelect={(value) => {
+                      const current = view.values[0] ?? measureForField("count");
+                      const showAs = value as MeasureField["showAs"];
+                      patch({
+                        values: [
+                          {
+                            ...current,
+                            showAs,
+                            format: formatForShowAs(showAs, current.field),
+                          },
+                        ],
+                      });
+                    }}
+                  >
+                    {displayLabel}
+                  </ConfigChip>
+                </>
+              )}
             </p>
             <div className="flex flex-wrap items-center gap-x-1 gap-y-1.5 border-t border-border pt-3 text-sm">
               {t("analyticsCategory")}{" "}
@@ -1049,7 +1067,7 @@ export default function AssessmentAnalytics() {
         description={t("analyticsTemplatesHint")}
       />
 
-      <Dialog open={!!drill} onOpenChange={(o) => !o && setDrill(null)}>
+      <Dialog open={drillOpen || !!drill} onOpenChange={(o) => { if (!o) { setDrill(null); setDrillOpen(false); } }}>
         <DialogContent className="flex max-h-[90vh] w-screen flex-col gap-0 overflow-hidden rounded-2xl bg-white p-0 sm:max-w-3xl">
           <DialogHeader className="shrink-0 border-b border-border bg-white px-6 py-4 pr-12 text-left">
             <DialogTitle>{t("analyticsDrillTitle")}</DialogTitle>

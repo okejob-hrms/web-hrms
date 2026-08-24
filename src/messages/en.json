@@ -498,6 +498,7 @@
     "analyticsChart": "Chart",
     "analyticsTable": "Table",
     "analyticsChartType": "Chart type",
+    "analyticsChartTypeNotSupported": "Chart type not supported yet.",
     "analyticsSubmissionCount": "{count} submissions analyzed",
     "analyticsHeadcount": "Employee count",
     "analyticsScore": "Score",
