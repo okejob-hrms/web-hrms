@@ -138,6 +138,50 @@ export const updateSelfAssessment = async (
   }
 };
 
+export const exportSelfAssessmentExcel = async (
+  periodId: number,
+): Promise<Blob> => {
+  try {
+    const response = await api.get(
+      `employee/self-assessments/${periodId}/export`,
+      { timeout: 120000 },
+    );
+    const blob = await response.blob();
+
+    // Shared api Accepts JSON; a misconfigured 2xx JSON body must not download as .xlsx
+    if (blob.type.includes("json")) {
+      let message = "Failed to export self assessment";
+      try {
+        const errorResponse = JSON.parse(await blob.text()) as {
+          message?: string;
+        };
+        if (errorResponse?.message) {
+          message = errorResponse.message;
+        }
+      } catch {
+        // body may not be JSON despite content-type
+      }
+      throw new Error(message);
+    }
+
+    return blob;
+  } catch (error: any) {
+    if (error?.name === "HTTPError" && error.response) {
+      let message = "Failed to export self assessment";
+      try {
+        const errorResponse = await error.response.json();
+        if (errorResponse?.message) {
+          message = errorResponse.message;
+        }
+      } catch {
+        // response body may not be JSON (e.g. fatal PHP error)
+      }
+      throw new Error(message);
+    }
+    throw error;
+  }
+};
+
 export const getEmployeeSelfAssessments = async (
   pagination?: PaginationState,
   filters?: { search?: string; date?: string; status?: number },

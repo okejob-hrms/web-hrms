@@ -25,6 +25,12 @@
     "paths": {
       "@/*": [
         "./src/*"
+      ],
+      "@hrms/assessment-analytics": [
+        "./src/lib/assessment-analytics/index.ts"
+      ],
+      "@hrms/assessment-analytics/*": [
+        "./src/lib/assessment-analytics/*"
       ]
     }
   },
