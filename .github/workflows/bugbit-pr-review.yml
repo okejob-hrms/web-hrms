@@ -4,6 +4,7 @@ on:
   pull_request:
     types: [opened, reopened, ready_for_review, synchronize]
     branches:
+      - dev
       - staging
   workflow_dispatch:
     inputs:
@@ -19,6 +20,7 @@ concurrency:
 permissions:
   contents: read
   pull-requests: write
+  issues: write   # needed for auto-describe label inference
 
 jobs:
   bugbit_review:
@@ -42,21 +44,20 @@ jobs:
           fi
 
       - name: Checkout PR head
-        # Pin to v4.2.2 (not mutable @v4)
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           fetch-depth: 0
           ref: refs/pull/${{ steps.pr.outputs.number }}/head
           persist-credentials: false
 
-      - name: Run bugbit review
-        # JuicyBurger/bugbit v1.3.0 — PR title/body context + progressive slim diffs
-        uses: JuicyBurger/bugbit@775295fedf6af3e3706ad3c0c94edbff0a000874
+      - name: Run bugbit review + describe
+        # JuicyBurger/bugbit v1.4.2
+        uses: JuicyBurger/bugbit@1f369580065d69835e4bdb3773398042f48180fb
         with:
           cursor-api-key: ${{ secrets.CURSOR_API_KEY }}
           github-token: ${{ github.token }}
-          # Cursor SDK Auto (server-selected). Avoids pinning Claude/GPT/etc.
           model: auto
           review-modes: code-review
+          auto-describe: true
           post-clean-summary: true
           pr-number: ${{ steps.pr.outputs.number }}
