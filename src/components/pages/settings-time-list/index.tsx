@@ -65,7 +65,7 @@ export default function SettingsAttendanceConfiguration() {
 
   if (!data) return <p>{tCommon("noData")}</p>;
 
-  const { workingHours, late_tolerance, max_late_tolerance } = data;
+  const { workingHours, late_tolerance, max_late_tolerance, pre_shift_window_minutes, post_shift_window_minutes, punch_dedupe_minutes, cross_midnight_shift_date, unresolved_retry_days } = data;
 
   // =======================
   // Table Columns
@@ -168,6 +168,9 @@ export default function SettingsAttendanceConfiguration() {
         <div className="font-bold text-md mt-5">
           {t("gracePeriod")}
         </div>
+        <p className="text-sm text-muted-foreground mb-2">
+          Tolerance controls late/early classification. Capture window controls which punches belong to a shift.
+        </p>
         <div className="grid grid-cols-3 sm:grid-cols-1 gap-4">
           <div className="space-y-2">
             <div className="text-gray-500">{t("gracePeriodTolerance")}</div>
@@ -182,6 +185,41 @@ export default function SettingsAttendanceConfiguration() {
               {t("minutesAfterStartShift", {
                 minutes: max_late_tolerance ?? "-",
               })}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <div className="text-gray-500">Pre-shift capture window</div>
+            <div className="text-gray-500">
+              {pre_shift_window_minutes ?? "-"} {t("minutes")}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <div className="text-gray-500">Post-shift capture window</div>
+            <div className="text-gray-500">
+              {post_shift_window_minutes ?? "-"} {t("minutes")}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <div className="text-gray-500">Punch dedupe</div>
+            <div className="text-gray-500">
+              {punch_dedupe_minutes ?? "-"} {t("minutes")}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <div className="text-gray-500">Cross-midnight counted date</div>
+            <div className="text-gray-500">
+              {cross_midnight_shift_date === "start_day" ? "Start day" : "End day"}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <div className="text-gray-500">Unresolved punch retry days</div>
+            <div className="text-gray-500">
+              {unresolved_retry_days ?? "-"}
             </div>
           </div>
         </div>

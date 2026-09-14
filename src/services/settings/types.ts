@@ -137,6 +137,11 @@ export interface WorkScheduleResponse {
 export interface WorkSchedulePart {
   late_tolerance: number;
   max_late_tolerance: number;
+  pre_shift_window_minutes: number;
+  post_shift_window_minutes: number;
+  punch_dedupe_minutes: number;
+  cross_midnight_shift_date: "end_day" | "start_day";
+  unresolved_retry_days: number;
   schedules: WorkSchedule[];
 }
 
@@ -212,6 +217,11 @@ export interface WorkScheduleReq {
 export interface AttendanceRequest {
   late_tolerance: number;
   max_late_tolerance: number;
+  pre_shift_window_minutes?: number;
+  post_shift_window_minutes?: number;
+  punch_dedupe_minutes?: number;
+  cross_midnight_shift_date?: "end_day" | "start_day";
+  unresolved_retry_days?: number;
   work_schedules: WorkScheduleReq[];
   enable_late_deduction?: boolean;
 }
