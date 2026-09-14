@@ -57,6 +57,11 @@ export interface WorkingHour {
 export interface AttendanceConfigData {
   late_tolerance: number;
   max_late_tolerance: number;
+  pre_shift_window_minutes: number;
+  post_shift_window_minutes: number;
+  punch_dedupe_minutes: number;
+  cross_midnight_shift_date: "end_day" | "start_day";
+  unresolved_retry_days: number;
   workingHours: WorkingHour[];
   rawWorkSchedules: WorkScheduleReq[];
   enable_late_deduction?: boolean;
@@ -86,6 +91,11 @@ export function useAttendance() {
       const c = res.data;
       const late_tolerance = c.late_tolerance;
       const max_late_tolerance = c.max_late_tolerance;
+      const pre_shift_window_minutes = c.pre_shift_window_minutes ?? 180;
+      const post_shift_window_minutes = c.post_shift_window_minutes ?? 180;
+      const punch_dedupe_minutes = c.punch_dedupe_minutes ?? 2;
+      const cross_midnight_shift_date = c.cross_midnight_shift_date ?? "end_day";
+      const unresolved_retry_days = c.unresolved_retry_days ?? 14;
 
       const workingHours = c.schedules.flatMap((day) =>
         day.schedules.length > 0
@@ -123,6 +133,11 @@ export function useAttendance() {
       return {
         late_tolerance,
         max_late_tolerance,
+        pre_shift_window_minutes,
+        post_shift_window_minutes,
+        punch_dedupe_minutes,
+        cross_midnight_shift_date,
+        unresolved_retry_days,
         workingHours,
         rawWorkSchedules,
       };

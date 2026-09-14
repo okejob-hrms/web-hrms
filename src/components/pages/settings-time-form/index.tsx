@@ -389,6 +389,10 @@ export default function SettingsAttendanceConfigurationForm() {
             <h2 className="text-xl font-semibold pt-6 border-t">
               Grace Period & Absent Threshold
             </h2>
+            <p className="text-sm text-muted-foreground">
+              Tolerance is used only for late/early classification. Capture window
+              is used only to decide which punches belong to a shift.
+            </p>
 
             {/* Grace Period */}
             <FormField
@@ -424,6 +428,84 @@ export default function SettingsAttendanceConfigurationForm() {
                       type="number"
                       className="sm:w-50 w-100"
                     />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="pre_shift_window_minutes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Pre-shift capture window (minutes)</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="180" {...field} className="sm:w-50 w-100" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="post_shift_window_minutes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Post-shift capture window (minutes)</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="180" {...field} className="sm:w-50 w-100" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="punch_dedupe_minutes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Punch dedupe (minutes)</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="2" {...field} className="sm:w-50 w-100" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="cross_midnight_shift_date"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Cross-midnight counted date</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="sm:w-50 w-100">
+                        <SelectValue placeholder="Select mode" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="end_day">End day (default)</SelectItem>
+                      <SelectItem value="start_day">Start day</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="unresolved_retry_days"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Unresolved punch retry days</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="14" {...field} className="sm:w-50 w-100" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

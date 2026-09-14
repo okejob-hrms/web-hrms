@@ -21,6 +21,11 @@ import {
 const companySchema = z.object({
   late_tolerance: z.string().min(1, "Late tolerance must be at least 1"),
   max_late_tolerance: z.string().min(1, "Absent after must be at least 1"),
+  pre_shift_window_minutes: z.string().min(1, "Pre-shift window is required"),
+  post_shift_window_minutes: z.string().min(1, "Post-shift window is required"),
+  punch_dedupe_minutes: z.string().min(1, "Punch dedupe is required"),
+  cross_midnight_shift_date: z.enum(["end_day", "start_day"]),
+  unresolved_retry_days: z.string().min(1, "Unresolved retry days is required"),
   workSchedules: z
     .array(
       z.object({
@@ -61,6 +66,11 @@ function mapToApiPayload(values: CompanyFormValues): AttendanceRequest {
   return {
     late_tolerance: Number(values.late_tolerance),
     max_late_tolerance: Number(values.max_late_tolerance),
+    pre_shift_window_minutes: Number(values.pre_shift_window_minutes),
+    post_shift_window_minutes: Number(values.post_shift_window_minutes),
+    punch_dedupe_minutes: Number(values.punch_dedupe_minutes),
+    cross_midnight_shift_date: values.cross_midnight_shift_date,
+    unresolved_retry_days: Number(values.unresolved_retry_days),
     work_schedules: (values.workSchedules ?? [])?.map((day) => ({
       day_of_week: day.day_of_week,
       day_name: DAY_NAMES[day.day_of_week] ?? "",
@@ -84,6 +94,11 @@ function mapFromApiResponse(data: AttendanceConfigData): CompanyFormValues {
   return {
     late_tolerance: String(data?.late_tolerance ?? ""),
     max_late_tolerance: String(data?.max_late_tolerance ?? ""),
+    pre_shift_window_minutes: String(data?.pre_shift_window_minutes ?? 180),
+    post_shift_window_minutes: String(data?.post_shift_window_minutes ?? 180),
+    punch_dedupe_minutes: String(data?.punch_dedupe_minutes ?? 2),
+    cross_midnight_shift_date: data?.cross_midnight_shift_date ?? "end_day",
+    unresolved_retry_days: String(data?.unresolved_retry_days ?? 14),
     workSchedules: data?.rawWorkSchedules?.map((day) => ({
       day_of_week: day.day_of_week,
       schedules: (day.schedules ?? []).map((s) => {
