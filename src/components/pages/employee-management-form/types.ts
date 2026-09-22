@@ -140,6 +140,7 @@ export function createEmployeeManagementFormScheme(
     salary_nett: z
       .number({ message: t("salaryNettRequired") })
       .min(1, t("salaryNettMin")),
+    include_in_payroll: z.boolean().default(true),
     allowances: z.array(
       z
         .object({
@@ -309,6 +310,7 @@ export const employeeManagementFormDefaultValues = {
   ],
   base_salary: 0,
   salary_nett: 0,
+  include_in_payroll: true,
   status: "1",
   job_position_id: "",
   department_id: "",
