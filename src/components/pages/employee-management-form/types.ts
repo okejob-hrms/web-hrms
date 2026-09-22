@@ -140,7 +140,7 @@ export function createEmployeeManagementFormScheme(
     salary_nett: z
       .number({ message: t("salaryNettRequired") })
       .min(1, t("salaryNettMin")),
-    include_in_payroll: z.boolean().default(true),
+    include_in_payroll: z.boolean(),
     allowances: z.array(
       z
         .object({
