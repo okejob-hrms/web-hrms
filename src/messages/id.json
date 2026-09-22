@@ -656,6 +656,8 @@
     "team": "Tim",
     "baseSalary": "Gaji Pokok",
     "salaryNett": "Gaji (Bersih)",
+    "includeInPayroll": "Sertakan dalam payroll",
+    "includeInPayrollHint": "Jika dimatikan, karyawan ini dilewati saat generate payslip. Gunakan untuk akun uji.",
     "allowance": "Tunjangan",
     "bank": "Bank",
     "accountNumber": "Nomor Rekening",

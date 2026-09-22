@@ -656,6 +656,8 @@
     "team": "Team",
     "baseSalary": "Base Salary",
     "salaryNett": "Salary (Nett)",
+    "includeInPayroll": "Include in payroll",
+    "includeInPayrollHint": "When off, this employee is skipped when generating payslips. Use for test accounts.",
     "allowance": "Allowance",
     "bank": "Bank",
     "accountNumber": "Account Number",

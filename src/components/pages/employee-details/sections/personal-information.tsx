@@ -609,6 +609,18 @@ export const PersonalInformationDetail = React.memo(
               )}
             </p>
           </div>
+          {canViewCompensation && (
+            <div className="flex flex-col">
+              <p className="text-sm text-text-disabled">
+                {t("includeInPayroll")}
+              </p>
+              <p>
+                {data.employment?.include_in_payroll === false
+                  ? tCommon("no")
+                  : tCommon("yes")}
+              </p>
+            </div>
+          )}
           <Separator className="md:col-span-3" />
         </div>
 
