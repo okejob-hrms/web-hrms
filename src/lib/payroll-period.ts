@@ -4,6 +4,14 @@ import 'dayjs/locale/id';
 export const MAX_PAY_PERIOD_DAYS = 31;
 
 /**
+ * "26 Aug 2026" in the UI locale ("26 Agt 2026" in id).
+ */
+export function formatPeriodDate(value: string | null | undefined, locale: string, fallback = '-'): string {
+  if (!value || !dayjs(value).isValid()) return fallback;
+  return dayjs(value).locale(locale === 'id' ? 'id' : 'en').format('D MMM YYYY');
+}
+
+/**
  * "27 Aug 2026 – 26 Sep 2026" in the UI locale; falls back to the server label when dates are missing.
  */
 export function formatPeriodRange(
@@ -15,10 +23,7 @@ export function formatPeriodRange(
   if (!start || !end || !dayjs(start).isValid() || !dayjs(end).isValid()) {
     return fallback ?? null;
   }
-  const lang = locale === 'id' ? 'id' : 'en';
-  const format = (value: string) => dayjs(value).locale(lang).format('D MMM YYYY');
-
-  return `${format(start)} – ${format(end)}`;
+  return `${formatPeriodDate(start, locale)} – ${formatPeriodDate(end, locale)}`;
 }
 
 /**

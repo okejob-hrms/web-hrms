@@ -17,11 +17,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { RequestPayrollGroup } from '@/services/payroll/types';
 import { getMonthOptions } from '@/lib/formatting';
 import { PAYSLIP_AUTO_SEND_ENABLED } from '@/lib/feature-flags';
-import { majorityLabel, periodDays } from '@/lib/payroll-period';
+import { formatPeriodDate, majorityLabel, periodDays } from '@/lib/payroll-period';
 import AutoSendPayslipFields from './auto-send-payslip-fields';
 import { resolveLocale } from '@/lib/i18n/locale';
-import dayjs from 'dayjs';
-
 interface Props {
   onUpdate: (e?: React.FormEvent) => void;
   isOpen: boolean;
@@ -128,7 +126,7 @@ export default function PayrunsAddModal({
               {previousPeriodEnd && (
                 <p className="text-xs text-gray-500 mt-1">
                   {t('periodPrefillHint', {
-                    date: dayjs(previousPeriodEnd).format('D MMM YYYY'),
+                    date: formatPeriodDate(previousPeriodEnd, locale),
                   })}
                 </p>
               )}

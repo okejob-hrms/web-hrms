@@ -1,7 +1,7 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
-import dayjs from 'dayjs';
+import { useLocale, useTranslations } from 'next-intl';
+import { formatPeriodDate } from '@/lib/payroll-period';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,11 +23,10 @@ interface Props {
   onCancel: () => void;
 }
 
-const formatDate = (value?: string) =>
-  value ? dayjs(value).format('D MMM YYYY') : '-';
-
 export default function PayrunRuleConfirm({ error, onConfirm, onCancel }: Props) {
   const t = useTranslations('payroll');
+  const locale = useLocale();
+  const formatDate = (value?: string) => formatPeriodDate(value, locale);
   const tCommon = useTranslations('common');
   const isGap = error?.error_code === PAYRUN_GAP;
 
