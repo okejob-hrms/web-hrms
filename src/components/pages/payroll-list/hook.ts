@@ -55,29 +55,43 @@ export function usePayroll() {
     if (!openAdd) return;
 
     let cancelled = false;
+    setPreviousPeriodEnd(null);
+    setFormData((prev) => ({ ...prev, period_start: '', period_end: '' }));
+
     getNextPeriod()
       .then((res) => {
         if (cancelled) return;
         setPreviousPeriodEnd(res.data.previous_period_end);
-        setFormData((prev) => ({
-          ...prev,
-          period_start: res.data.period_start,
-          period_end: res.data.period_end,
-          period_year: res.data.period_year,
-          period_month: res.data.period_month,
-        }));
+        setFormData((prev) =>
+          // Dates the user already picked win over a late prefill
+          prev.period_start || prev.period_end
+            ? prev
+            : {
+                ...prev,
+                period_start: res.data.period_start,
+                period_end: res.data.period_end,
+                period_year: res.data.period_year,
+                period_month: res.data.period_month,
+              },
+        );
       })
-      .catch(() => setPreviousPeriodEnd(null));
+      .catch(() => {
+        if (!cancelled) setPreviousPeriodEnd(null);
+      });
 
     return () => {
       cancelled = true;
     };
   }, [openAdd]);
 
-  const askToAcknowledge = async (err: unknown, retry: (code: string) => void) => {
+  const askToAcknowledge = async (
+    err: unknown,
+    retry: (code: string) => void,
+    acknowledgeable: string[] = [PAYRUN_GAP, PAYRUN_PERIOD_NOT_ENDED],
+  ) => {
     const rule = await readPayrunRuleError(err);
-    if (rule?.error_code === PAYRUN_GAP || rule?.error_code === PAYRUN_PERIOD_NOT_ENDED) {
-      const code = rule.error_code;
+    const code = rule?.error_code;
+    if (rule && code && acknowledgeable.includes(code)) {
       ruleRetry.current = () => retry(code);
       setRuleError(rule);
       return true;
@@ -206,8 +220,10 @@ export function usePayroll() {
       payrollDataRefetch();
     },
     onError: (err, { payrunId }) => {
-      askToAcknowledge(err, () =>
-        mutationPostRegenerate.mutate({ payrunId, acknowledge: true }),
+      askToAcknowledge(
+        err,
+        () => mutationPostRegenerate.mutate({ payrunId, acknowledge: true }),
+        [PAYRUN_PERIOD_NOT_ENDED],
       );
     },
     onSettled: () => setLoading(false),

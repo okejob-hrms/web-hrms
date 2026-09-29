@@ -202,7 +202,10 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
                   className="text-xs font-normal"
                   title={t('prorationTitle')}
                 >
-                  {t(`prorationReason_${row.original.proration.reason}`)} ·{' '}
+                  {t.has(`prorationReason_${row.original.proration.reason}`)
+                    ? t(`prorationReason_${row.original.proration.reason}`)
+                    : t('prorationTitle')}{' '}
+                  ·{' '}
                   {t('prorationDays', {
                     daysPayable: row.original.proration.days_payable,
                     daysInPeriod: row.original.proration.days_in_period,
