@@ -15,8 +15,7 @@ import {
   getAttendancePenalties,
 } from '@/services/payroll/types';
 import { useLocale, useTranslations } from 'next-intl';
-import dayjs from 'dayjs';
-import 'dayjs/locale/id';
+import { formatPeriodDate } from '@/lib/payroll-period';
 
 type AttendancePenaltyEvidenceListProps = {
   items: DeductionList[];
@@ -58,7 +57,7 @@ export function AttendancePenaltyEvidenceList({
 }: AttendancePenaltyEvidenceListProps) {
   const t = useTranslations('employee');
   const tPayroll = useTranslations('payroll');
-  const locale = useLocale() === 'id' ? 'id' : 'en';
+  const locale = useLocale();
   const penalties = getAttendancePenalties(items);
 
   if (penalties.length === 0) {
@@ -102,7 +101,7 @@ export function AttendancePenaltyEvidenceList({
             ) : null}
             {item.incurred_on ? (
               <p className="text-xs text-muted-foreground">
-                {tPayroll('penaltyIncurredOn')}: {dayjs(item.incurred_on).locale(locale).format('D MMM YYYY')}
+                {tPayroll('penaltyIncurredOn')}: {formatPeriodDate(item.incurred_on, locale)}
               </p>
             ) : null}
             {item.period ? (

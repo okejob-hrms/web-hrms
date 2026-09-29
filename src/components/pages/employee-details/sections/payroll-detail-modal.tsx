@@ -74,7 +74,7 @@ export function PayrollDetailModal({
               <div className="space-y-1">
                 <div className="text-gray-500">Period</div>
                 <div className="font-medium">{payroll.payrun.period_label}</div>
-                {payroll.payrun.period_range_label && (
+                {((payroll.payrun.period_start && payroll.payrun.period_end) || payroll.payrun.period_range_label) && (
                   <div className="text-xs text-gray-500">
                     {formatPeriodRange(
                       payroll.payrun.period_start,

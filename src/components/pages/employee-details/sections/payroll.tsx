@@ -44,7 +44,7 @@ export const PayrollDetail = React.memo(function PayrollDetail({
         cell: ({ row }) => (
           <div className="flex flex-col">
             <span>{row.original.period_label ?? "-"}</span>
-            {row.original.period_range_label && (
+            {((row.original.period_start && row.original.period_end) || row.original.period_range_label) && (
               <span className="text-xs text-gray-500">
                 {formatPeriodRange(
                   row.original.period_start,

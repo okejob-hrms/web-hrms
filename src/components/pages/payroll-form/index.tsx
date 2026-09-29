@@ -595,7 +595,7 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
             <div className="text-sm font-semibold">
               {detailData?.data?.period_label}
             </div>
-            {detailData?.data?.period_range_label && (
+            {((detailData?.data?.period_start && detailData?.data?.period_end) || detailData?.data?.period_range_label) && (
               <div className="text-xs text-gray-500">
                 {formatPeriodRange(
                   detailData.data.period_start,

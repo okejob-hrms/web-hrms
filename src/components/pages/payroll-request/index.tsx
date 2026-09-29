@@ -143,7 +143,7 @@ export const PayrollRequest = () => {
       cell: ({ row }) => (
         <div className="flex flex-col">
           <span className="text-gray-600">{row.original.payrun.period_label}</span>
-          {row.original.payrun.period_range_label && (
+          {((row.original.payrun.period_start && row.original.payrun.period_end) || row.original.payrun.period_range_label) && (
             <span className="text-xs text-gray-500">
               {formatPeriodRange(
                 row.original.payrun.period_start,
