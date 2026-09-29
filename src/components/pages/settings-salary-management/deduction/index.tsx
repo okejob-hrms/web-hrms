@@ -53,6 +53,8 @@ import {
 import Image from 'next/image';
 import { toTitleCase } from '@/lib/menu';
 
+const isPph21 = (name?: string | null) => name?.toUpperCase() === 'PPH21';
+
 export default function SettingsSalaryDeduction() {
   const t = useTranslations('settings');
   const tCommon = useTranslations('common');
@@ -309,7 +311,7 @@ export default function SettingsSalaryDeduction() {
       data: {
         ...form,
         status: 1,
-        tiers: form.name === 'PPH21' ? form.tiers : [],
+        tiers: isPph21(form.name) ? form.tiers : [],
       },
     });
   };
@@ -363,7 +365,7 @@ export default function SettingsSalaryDeduction() {
       {/* Modal Form */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent
-          className={`${form.name === 'PPH21' ? 'w-full md:max-w-6xl' : 'max-w-3xl'} max-h-[90vh] overflow-y-auto bg-white`}
+          className={`${isPph21(form.name) ? 'w-full md:max-w-6xl' : 'max-w-3xl'} max-h-[90vh] overflow-y-auto bg-white`}
         >
           <DialogHeader>
             <DialogTitle>
@@ -373,7 +375,7 @@ export default function SettingsSalaryDeduction() {
 
           {/* Form Fields */}
           <div
-            className={`${form.name === 'PPH21' ? 'grid md:grid-cols-2 gap-4 md:gap-10' : 'grid gap-4'}`}
+            className={`${isPph21(form.name) ? 'grid md:grid-cols-2 gap-4 md:gap-10' : 'grid gap-4'}`}
           >
             <div className="grid gap-4 py-2">
               <div className="space-y-2">
@@ -473,7 +475,7 @@ export default function SettingsSalaryDeduction() {
               <hr className="my-2" />
 
               <h4 className="font-medium">{t('contribution')}</h4>
-              {form.name === 'PPH21' ? (
+              {isPph21(form.name) ? (
                 <div className="space-y-2">
                   <Label>
                     {t('calculationBasis')} <span className="text-red-500">*</span>
@@ -563,7 +565,7 @@ export default function SettingsSalaryDeduction() {
             </div>
 
             <div>
-              {form.name === 'PPH21' && (
+              {isPph21(form.name) && (
                 <>
                   <h4 className="font-medium mb-3">{t('tieredRules')}</h4>
                   {form.tiers.map((rule, idx) => (
@@ -706,14 +708,14 @@ export default function SettingsSalaryDeduction() {
       {/* Modal Detail */}
       <Dialog open={openDetail} onOpenChange={setOpenDetail}>
         <DialogContent
-          className={`${editing?.name === 'PPH21' ? 'w-full md:max-w-6xl' : 'max-w-3xl'} max-h-[90vh] overflow-y-auto bg-white`}
+          className={`${isPph21(editing?.name) ? 'w-full md:max-w-6xl' : 'max-w-3xl'} max-h-[90vh] overflow-y-auto bg-white`}
         >
           <DialogHeader>
             <DialogTitle>{t('detailSalaryDeduction')}</DialogTitle>
           </DialogHeader>
 
           <div
-            className={`${editing?.name === 'PPH21' ? 'grid md:grid-cols-2 gap-4 md:gap-10' : 'grid gap-4'}`}
+            className={`${isPph21(editing?.name) ? 'grid md:grid-cols-2 gap-4 md:gap-10' : 'grid gap-4'}`}
           >
             <div className="grid gap-4 py-2">
               <div className="space-y-2">
@@ -763,7 +765,7 @@ export default function SettingsSalaryDeduction() {
               <hr className="my-2" />
 
               <h4 className="font-medium">{t('contribution')}</h4>
-              {editing?.name === 'PPH21' ? (
+              {isPph21(editing?.name) ? (
                 <div className="space-y-2">
                   <Label>{t('calculationBasis')}</Label>
                   <Label className="font-semibold">
@@ -810,7 +812,7 @@ export default function SettingsSalaryDeduction() {
             </div>
 
             <div>
-              {editing?.name === 'PPH21' && (
+              {isPph21(editing?.name) && (
                 <>
                   <h4 className="font-medium mb-3">{t('tieredRules')}</h4>
                   {editing?.tiers?.map((rule, idx) => (
