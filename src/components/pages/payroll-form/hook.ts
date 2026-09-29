@@ -4,18 +4,20 @@ import * as React from "react";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { PaginationState } from "@tanstack/react-table";
 import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { toast } from "sonner";
-import { AdditionalItem, AdditionalRequest, AllowanceItem, AllowanceRequest, OvertimePayrun, OvertimeRequest, Payrun, Payslip, PenaltyPayrun, PenaltyRequest, RequestPayrollGroup, WorkHourPayrun, WorkingHourRequest } from "@/services/payroll/types";
+import { AdditionalItem, AdditionalRequest, AllowanceItem, AllowanceRequest, OvertimePayrun, OvertimeRequest, PAYRUN_PERIOD_NOT_ENDED, Payrun, PayrunRuleError, Payslip, PenaltyPayrun, PenaltyRequest, RequestPayrollGroup, WorkHourPayrun, WorkingHourRequest } from "@/services/payroll/types";
 import { Filters } from "./types";
-import { getPayrollDetail, getPayrollDetailSpend, getPayrollEmployee, getPayrollViewLog, postFinalPayrun, postRecalculate, postRegenerate, putAdditionalPayrun, putAllowancePayrun, putOvertimePayrun, putPenaltyPayrun, putWorkingHourPayrun } from "@/services/payroll";
+import { getPayrollDetail, getPayrollDetailSpend, getPayrollEmployee, getPayrollViewLog, postFinalPayrun, postRecalculate, postRegenerate, putAdditionalPayrun, putAllowancePayrun, putOvertimePayrun, putPenaltyPayrun, putWorkingHourPayrun, readPayrunRuleError } from "@/services/payroll";
 import { PaginatedResponse } from "@/lib/types";
 import { AllowanceTypeResponse } from "@/services/salary/types";
 import { getAllowanceType } from "@/services/salary";
 import { formatCurrency } from "@/lib/utils";
+import { formatPeriodRange } from "@/lib/payroll-period";
 
 export function usePayrollDetail() {
   const t = useTranslations("payroll");
+  const locale = useLocale();
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: 0,
     pageSize: 10,
@@ -337,6 +339,7 @@ export function usePayrollDetail() {
 
   async function handleDownload(payslip: Payslip, payrun: Payrun) {
     const html2pdf = (await import("html2pdf.js")).default;
+    const periodRange = formatPeriodRange(payrun.period_start, payrun.period_end, locale, payrun.period_range_label);
     
     const PAYSLIP_TEMPLATE = `
       <div style="background:white;margin:0 auto;padding:50px;font-family: Arial;">
@@ -352,7 +355,7 @@ export function usePayrollDetail() {
         <h2 style="color:#2B88C4;font-weight:600;font-size:18px;margin-bottom:12px;">Payroll Details</h2>
 
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;row-gap:8px;margin-bottom:24px;">
-          <div><p style="font-size:12px;margin-bottom:0px">Payroll Period</p><p style="font-weight:600;font-size: 14px; margin-bottom:0px;">${payrun.period_label}</p></div>
+          <div><p style="font-size:12px;margin-bottom:0px">Payroll Period</p><p style="font-weight:600;font-size: 14px; margin-bottom:0px;">${payrun.period_label}</p>${periodRange ? `<p style="font-size:12px;margin-bottom:0px;color:#6B7280;">${periodRange}</p>` : ''}</div>
           <div><p style="font-size:12px;margin-bottom:0px;">Employee Name/ID</p><p style="font-weight:600;font-size: 14px; margin-bottom:0px;">${payslip.employee.name}/${payslip.employee.code ?? payslip.employee.id}</p></div>
           <div><p style="font-size:12px;margin-bottom:0px;">Position</p><p style="font-weight:600;font-size: 14px; margin-bottom:0px;">${payslip.employee.job_title}</p></div>
           <div><p style="font-size:12px;margin-bottom:0px;">Job Level</p><p style="font-weight:600;font-size: 14px; margin-bottom:0px;">${payslip.employee.job_level}</p></div>
@@ -452,8 +455,12 @@ export function usePayrollDetail() {
     window.open(url, "_blank");
   }
 
+  const [ruleError, setRuleError] = React.useState<PayrunRuleError | null>(null);
+  const ruleRetry = React.useRef<(() => void) | null>(null);
+
   const mutationPostRegenerate = useMutation({
-    mutationFn: (payrunId: string) => postRegenerate(payrunId),
+    mutationFn: ({ payrunId, acknowledge }: { payrunId: string; acknowledge?: boolean }) =>
+      postRegenerate(payrunId, { acknowledge_early_generation: acknowledge }),
     onMutate: () => setLoading(true),
     onSuccess: () => {
       toast.success("Payrun successfully regenerate");
@@ -462,8 +469,15 @@ export function usePayrollDetail() {
       auditTrailRefetch();
       employeeListRefetch();
     },
-    onError: (err) => {
-      toast.error(`Failed to save: ${err.message}`);
+    onError: async (err, { payrunId }) => {
+      const rule = await readPayrunRuleError(err);
+      if (rule?.error_code === PAYRUN_PERIOD_NOT_ENDED) {
+        ruleRetry.current = () =>
+          mutationPostRegenerate.mutate({ payrunId, acknowledge: true });
+        setRuleError(rule);
+        return;
+      }
+      toast.error(`Failed to save: ${rule?.message ?? err.message}`);
     },
     onSettled: () => setLoading(false),
   });
@@ -473,8 +487,20 @@ export function usePayrollDetail() {
       toast.error("Payroll ID not found");
       return;
     }
-    mutationPostRegenerate.mutate(id)
+    mutationPostRegenerate.mutate({ payrunId: id })
   }
+
+  const confirmRule = () => {
+    const retry = ruleRetry.current;
+    ruleRetry.current = null;
+    setRuleError(null);
+    retry?.();
+  };
+
+  const cancelRule = () => {
+    ruleRetry.current = null;
+    setRuleError(null);
+  };
 
   const mutationPostRecalculate = useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: {payslip_id: number} }) => postRecalculate(id, payload),
@@ -589,6 +615,8 @@ export function usePayrollDetail() {
     openConfirmRecalculate,
     setOpenConfirmRecalculate,
     handleRegenerateCalculate,
-
+    ruleError,
+    confirmRule,
+    cancelRule,
   };
 }

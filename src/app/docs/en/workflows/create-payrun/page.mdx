@@ -1,0 +1,39 @@
+# Create a payrun
+
+## When to use
+
+Use this workflow at the end of each pay period to create the payrun that calculates everyone's payslips, for example from 27 August to 26 September.
+
+## Prerequisites
+
+- You are signed in as HR or Admin with permission to create payruns.
+- Attendance, overtime and penalties for the pay period are complete.
+
+## Steps
+
+1. Go to the [Payrun List](/docs/manual/pages/payroll-list) and click **+ New Payruns**.
+2. Check **Start date** and **Cutoff date**. They are filled in for you: the start date is the day after the previous payrun ended, and the cutoff date keeps the same cutoff day as the previous payrun (for example 26th). Change them only if your company's pay period has changed.
+3. Check the payroll month shown under the dates, for example *Payroll month: September 2026 (31 days)*. The payroll month is the month with the most days in the period (27 Sep – 26 Oct is *October*) and becomes the name of the payrun.
+4. Add **Notes** if needed.
+5. Click **Save**.
+6. If a warning appears, read it before continuing:
+   - **Some days are not covered** — lists the days that fall between this payrun and its neighbours. Choose **Cancel** and fix the dates, or **Create anyway** if the gap is intended.
+   - **Pay period has not ended** — the cutoff date is today or later. Choose **Cancel** and come back after the period ends, or **Generate anyway**.
+7. Wait for **Generation Status** to show completed, then open the payrun to review it. See [Process payrun](/docs/workflows/process-payrun).
+
+## Expected result
+
+A new draft payrun appears in the list with its payroll month and date range. Payslips are generated for everyone employed during the period.
+
+## Good to know
+
+- **New hires, rehires and leavers** are paid only for the days they worked in the period. On the payrun detail page these employees show a badge with the reason and the days paid, for example *New hire · 22 of 31 days*.
+- **Needs HR review** appears on a new hire when this is the company's first payrun, so the system cannot tell a new hire from an existing employee. Check the employee's salary before finalizing.
+- **Penalties** are charged by the payrun whose cutoff date is on or after the attendance date. Penalties recorded after a payrun was generated are deducted in the next payrun, once. See [FAQ](/docs/faq).
+- **Dates cannot be changed** after payslips exist. To use different dates, cancel the draft payrun and create a new one.
+
+## Common mistakes
+
+- **Payrun overlaps an existing payrun** — Another payrun already covers some of these dates. Adjust the start date or cancel the other draft payrun.
+- **Payroll month already used** — Each payroll month can have only one payrun. Check the dates; the next period normally starts the day after the previous cutoff. A period can be at most 31 days.
+- **Creating the payrun too early** — Payslips created before the cutoff date miss later attendance, overtime and penalties.

@@ -31,6 +31,7 @@ export default {
   "approve-business-trip": "Setujui atau tolak perjalanan dinas",
   "approve-attendance": "Setujui atau tolak kehadiran/cuti",
   "view-payrun": "Lihat daftar dan detail payrun",
+  "create-payrun": "Buat payrun",
   "process-payrun": "Proses payrun",
   "payroll-access": "Minta akses payroll",
   "self-assessment": "Lengkapi penilaian diri",
