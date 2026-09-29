@@ -404,7 +404,7 @@ const Header = React.memo(function Header({ showBackNavigate }: HeaderProps) {
     <header className="w-full flex flex-row justify-between px-4 md:px-10 py-2 items-center bg-white border-b">
       <div className="flex flex-row items-center gap-2">
         <div className="relative w-8 h-8 md:w-10 md:h-10">
-          <Image src="/logo.png" alt="logo" fill className="object-cover" />
+          <Image src="/logo.png" alt="logo" fill sizes="40px" className="object-cover" />
         </div>
         <span className="font-semibold md:text-lg text-base">{t('appName')}</span>
         {showBackNavigate && null}
@@ -451,7 +451,7 @@ const HeaderBreadcumb = React.memo(function BreadcrumbWithCustomSeparator({
             ? t(item.key)
             : toTitleCase(item.segment);
           return (
-            <div key={item.link} className="flex gap-2">
+            <div key={`${index}-${item.link}`} className="flex gap-2">
               <BreadcrumbItem>
                 <BreadcrumbLink asChild>
                   <Link href={item.link}>{label}</Link>

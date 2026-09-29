@@ -104,9 +104,12 @@ export interface DeductionSalaryItem {
   effective_to: string;
   employee_contribution: string;
   employer_contribution: string;
+  rounding_mode?: DeductionRoundingMode;
   updated_at?: string;
   tiers?: DeductionSalaryTier[];
 }
+
+export type DeductionRoundingMode = 'none' | 'up' | 'down';
 
 export interface RequestDeductionSalary {
   name: string;
@@ -119,6 +122,7 @@ export interface RequestDeductionSalary {
   employee_contribution: string;
   calculation_basis?: string;
   contribution_type?: string;
+  rounding_mode?: DeductionRoundingMode;
   tiers?: DeductionSalaryTier[];
 }
 

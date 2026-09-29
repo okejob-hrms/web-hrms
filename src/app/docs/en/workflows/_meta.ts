@@ -31,6 +31,7 @@ export default {
   "approve-business-trip": "Approve or reject a business trip",
   "approve-attendance": "Approve or reject attendance or leave",
   "view-payrun": "View payrun list and details",
+  "create-payrun": "Create a payrun",
   "process-payrun": "Process payrun",
   "payroll-access": "Request payroll access",
   "self-assessment": "Complete self assessment",

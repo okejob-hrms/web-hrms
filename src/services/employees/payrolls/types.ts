@@ -9,6 +9,9 @@ export interface IEmployeePayroll {
   period_year: number;
   period_month: number;
   period_label: string;
+  period_start?: string | null;
+  period_end?: string | null;
+  period_range_label?: string | null;
   send_payslip_at: string;
   auto_send_payslip: boolean;
   status: number;
@@ -58,6 +61,7 @@ export interface IPayslipDeduction {
   user_penalty_id?: number | null;
   attendance_rule_id?: number | null;
   period?: string | null;
+  incurred_on?: string | null;
   description?: string | null;
   condition_type?: string | null;
   meta?: Record<string, unknown> | null;

@@ -12,6 +12,7 @@ export interface IFinalSalaryResponse {
   proration?: {
     divisor: number;
     days_in_month: number;
+    days_in_period?: number;
     days_payable: number;
     payable_hours: number;
     factor: number;
