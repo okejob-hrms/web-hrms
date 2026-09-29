@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/select';
 import { toast } from 'sonner';
 import {
+  DeductionRoundingMode,
   DeductionSalaryItem,
   DeductionSalaryTier,
   RequestDeductionSalary,
@@ -54,6 +55,18 @@ import Image from 'next/image';
 import { toTitleCase } from '@/lib/menu';
 
 const isPph21 = (name?: string | null) => name?.toUpperCase() === 'PPH21';
+
+const ROUNDING_LABEL_KEYS: Record<
+  DeductionRoundingMode,
+  'roundingNone' | 'roundingUp' | 'roundingDown'
+> = {
+  none: 'roundingNone',
+  up: 'roundingUp',
+  down: 'roundingDown',
+};
+
+const toDateInput = (value?: string | null) =>
+  value ? dayjs(value).format('YYYY-MM-DD') : '';
 
 export default function SettingsSalaryDeduction() {
   const t = useTranslations('settings');
@@ -162,11 +175,13 @@ export default function SettingsSalaryDeduction() {
       accessorKey: 'effective_to',
       header: t('effectiveTo'),
       cell: ({ row }) =>
-        formatDate(row.original.effective_to, locale, {
-          month: 'long',
-          day: 'numeric',
-          year: 'numeric',
-        }),
+        row.original.effective_to
+          ? formatDate(row.original.effective_to, locale, {
+              month: 'long',
+              day: 'numeric',
+              year: 'numeric',
+            })
+          : '-',
     },
     {
       accessorKey: 'updated_at',
@@ -192,14 +207,15 @@ export default function SettingsSalaryDeduction() {
               setForm({
                 name: item.name,
                 deduction_type: item.deduction_type,
-                effective_date: dayjs(item.effective_date).format('YYYY-MM-DD'),
-                effective_to: dayjs(item.effective_to).format('YYYY-MM-DD'),
+                effective_date: toDateInput(item.effective_date),
+                effective_to: toDateInput(item.effective_to),
                 description: item.description,
                 tiers: item.tiers || [],
                 employee_contribution: item.employee_contribution,
                 employer_contribution: item.employer_contribution,
                 calculation_basis: item.calculation_basis,
                 contribution_type: item.contribution_type,
+                rounding_mode: item.rounding_mode ?? 'none',
               });
               setOpen(true);
             }}
@@ -278,6 +294,7 @@ export default function SettingsSalaryDeduction() {
     description: string;
     calculation_basis: string;
     contribution_type: string;
+    rounding_mode: DeductionRoundingMode;
     tiers: DeductionSalaryTier[];
   }>({
     name: '',
@@ -290,6 +307,7 @@ export default function SettingsSalaryDeduction() {
     employer_contribution: '',
     calculation_basis: '',
     contribution_type: '',
+    rounding_mode: 'none',
   });
 
   const handleDelete = () => {
@@ -328,6 +346,7 @@ export default function SettingsSalaryDeduction() {
       employer_contribution: '',
       calculation_basis: '',
       contribution_type: '',
+      rounding_mode: 'none',
     });
   };
 
@@ -561,6 +580,31 @@ export default function SettingsSalaryDeduction() {
                     }
                   />
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>{t('roundingMode')}</Label>
+                <Select
+                  value={form.rounding_mode}
+                  onValueChange={(val) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      rounding_mode: val as DeductionRoundingMode,
+                    }))
+                  }
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder={t('roundingMode')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">{t('roundingNone')}</SelectItem>
+                    <SelectItem value="up">{t('roundingUp')}</SelectItem>
+                    <SelectItem value="down">{t('roundingDown')}</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  {t('roundingHint')}
+                </p>
               </div>
             </div>
 
@@ -809,6 +853,13 @@ export default function SettingsSalaryDeduction() {
                   </Label>
                 </div>
               </div>
+
+              <div className="space-y-2">
+                <Label>{t('roundingMode')}</Label>
+                <Label className="font-semibold">
+                  {t(ROUNDING_LABEL_KEYS[editing?.rounding_mode ?? 'none'])}
+                </Label>
+              </div>
             </div>
 
             <div>
@@ -892,8 +943,8 @@ export default function SettingsSalaryDeduction() {
                     setForm({
                       name: editing.name,
                       deduction_type: editing.deduction_type,
-                      effective_date: editing.effective_date ?? '',
-                      effective_to: editing.effective_to ?? '',
+                      effective_date: toDateInput(editing.effective_date),
+                      effective_to: toDateInput(editing.effective_to),
                       employee_contribution:
                         editing.employee_contribution ?? '',
                       employer_contribution:
@@ -901,6 +952,7 @@ export default function SettingsSalaryDeduction() {
                       description: editing.description ?? '',
                       calculation_basis: editing.calculation_basis,
                       contribution_type: editing.contribution_type,
+                      rounding_mode: editing.rounding_mode ?? 'none',
                       tiers: editing.tiers ?? [],
                     });
                   }
