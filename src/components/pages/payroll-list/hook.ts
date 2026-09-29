@@ -7,11 +7,23 @@ import { PaginationState } from "@tanstack/react-table";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Filters } from "./types";
-import { RequestPayrollGroup, ResponsePayrollItem, ResponsePayrollList } from "@/services/payroll/types";
-import { getPayroll, postPayrollGroup, postRegenerate } from "@/services/payroll";
+import { useTranslations } from "next-intl";
+import {
+  PAYRUN_GAP,
+  PAYRUN_PERIOD_NOT_ENDED,
+  PayrunRuleError,
+  RequestPayrollGroup,
+  ResponsePayrollItem,
+  ResponsePayrollList,
+} from "@/services/payroll/types";
+import { getNextPeriod, getPayroll, postPayrollGroup, postRegenerate, readPayrunRuleError } from "@/services/payroll";
 import { PaginatedResponse } from "@/lib/types";
+import dayjs from "dayjs";
+import { PAYSLIP_AUTO_SEND_ENABLED } from "@/lib/feature-flags";
+import { MAX_PAY_PERIOD_DAYS, periodDays } from "@/lib/payroll-period";
 
 export function usePayroll() {
+  const t = useTranslations('payroll');
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: 0,
     pageSize: 10,
@@ -25,14 +37,67 @@ export function usePayroll() {
   });
   const [formData, setFormData] = React.useState<RequestPayrollGroup>({
     period_year: new Date().getFullYear(),
-    period_month: new Date().getMonth(),
+    period_month: new Date().getMonth() + 1,
+    period_start: '',
+    period_end: '',
     auto_send_payslip: false,
-    send_payslip_at: new Date().toDateString(),
+    send_payslip_at: dayjs().format('YYYY-MM-DD'),
     notes: '',
   });
+  const [previousPeriodEnd, setPreviousPeriodEnd] = React.useState<string | null>(null);
+  const [ruleError, setRuleError] = React.useState<PayrunRuleError | null>(null);
+  const ruleRetry = React.useRef<(() => void) | null>(null);
   const router = useRouter();
   
   const queryClient = useQueryClient();
+
+  React.useEffect(() => {
+    if (!openAdd) return;
+
+    let cancelled = false;
+    getNextPeriod()
+      .then((res) => {
+        if (cancelled) return;
+        setPreviousPeriodEnd(res.data.previous_period_end);
+        setFormData((prev) => ({
+          ...prev,
+          period_start: res.data.period_start,
+          period_end: res.data.period_end,
+          period_year: res.data.period_year,
+          period_month: res.data.period_month,
+        }));
+      })
+      .catch(() => setPreviousPeriodEnd(null));
+
+    return () => {
+      cancelled = true;
+    };
+  }, [openAdd]);
+
+  const askToAcknowledge = async (err: unknown, retry: (code: string) => void) => {
+    const rule = await readPayrunRuleError(err);
+    if (rule?.error_code === PAYRUN_GAP || rule?.error_code === PAYRUN_PERIOD_NOT_ENDED) {
+      const code = rule.error_code;
+      ruleRetry.current = () => retry(code);
+      setRuleError(rule);
+      return true;
+    }
+
+    toast.error(`Failed to save: ${rule?.message ?? (err as Error).message}`);
+    return false;
+  };
+
+  const confirmRule = () => {
+    const retry = ruleRetry.current;
+    ruleRetry.current = null;
+    setRuleError(null);
+    retry?.();
+  };
+
+  const cancelRule = () => {
+    ruleRetry.current = null;
+    setRuleError(null);
+  };
 
   // get list
   const {
@@ -91,8 +156,17 @@ export function usePayroll() {
       payrollDataRefetch();
       setOpenAdd(false);
     },
-    onError: (err) => {
-      toast.error(`Failed to save: ${err.message}`);
+    onError: (err, { data }) => {
+      askToAcknowledge(err, (code) =>
+        submitMutation.mutate({
+          data: {
+            ...data,
+            ...(code === PAYRUN_GAP
+              ? { acknowledge_gap: true }
+              : { acknowledge_early_generation: true }),
+          },
+        }),
+      );
     },
     onSettled: () => setLoading(false),
   });
@@ -102,19 +176,39 @@ export function usePayroll() {
   }
 
   const handleAddGroup = (values: RequestPayrollGroup) => {
-    submitMutation.mutate({data: values})
+    if (!values.period_start || !values.period_end) {
+      toast.error(t('periodDatesRequired'));
+      return;
+    }
+    if (values.period_end < values.period_start) {
+      toast.error(t('periodEndBeforeStart'));
+      return;
+    }
+    if (periodDays(values.period_start, values.period_end) > MAX_PAY_PERIOD_DAYS) {
+      toast.error(t('periodTooLong', { max: MAX_PAY_PERIOD_DAYS }));
+      return;
+    }
+    const { acknowledge_gap: _gap, acknowledge_early_generation: _early, ...fresh } = values;
+    if (!PAYSLIP_AUTO_SEND_ENABLED) {
+      delete fresh.auto_send_payslip;
+      delete fresh.send_payslip_at;
+    }
+    submitMutation.mutate({ data: fresh })
   }
 
   const mutationPostRegenerate = useMutation({
-    mutationFn: (payrunId: string) => postRegenerate(payrunId),
+    mutationFn: ({ payrunId, acknowledge }: { payrunId: string; acknowledge?: boolean }) =>
+      postRegenerate(payrunId, { acknowledge_early_generation: acknowledge }),
     onMutate: () => setLoading(true),
     onSuccess: () => {
       toast.success("Payrun successfully regenerate");
       queryClient.invalidateQueries({ queryKey: ["payroll"] });
       payrollDataRefetch();
     },
-    onError: (err) => {
-      toast.error(`Failed to save: ${err.message}`);
+    onError: (err, { payrunId }) => {
+      askToAcknowledge(err, () =>
+        mutationPostRegenerate.mutate({ payrunId, acknowledge: true }),
+      );
     },
     onSettled: () => setLoading(false),
   });
@@ -124,7 +218,7 @@ export function usePayroll() {
       toast.error("Payroll ID not found");
       return;
     }
-    mutationPostRegenerate.mutate(id)
+    mutationPostRegenerate.mutate({ payrunId: id })
   }
 
 
@@ -144,6 +238,10 @@ export function usePayroll() {
     handleAddGroup, 
     formData,
     setFormData,
+    previousPeriodEnd,
     handleRegenerate,
+    ruleError,
+    confirmRule,
+    cancelRule,
   };
 }

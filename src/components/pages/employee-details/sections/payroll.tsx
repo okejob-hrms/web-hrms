@@ -10,7 +10,8 @@ import dayjs from "dayjs";
 import { Eye } from "lucide-react";
 import { PayrollDetailModal } from "./payroll-detail-modal";
 import * as React from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+import { formatPeriodRange } from "@/lib/payroll-period";
 import { usePermissionStore } from "@/hooks/use-permission-store";
 import {
   COMPENSATION_VIEW_PERMISSION,
@@ -26,6 +27,7 @@ export const PayrollDetail = React.memo(function PayrollDetail({
 }: Props) {
   const t = useTranslations("employee");
   const tCommon = useTranslations("common");
+  const locale = useLocale();
   const canViewCompensation = usePermissionStore((state) =>
     state.can(COMPENSATION_VIEW_PERMISSION),
   );
@@ -39,7 +41,21 @@ export const PayrollDetail = React.memo(function PayrollDetail({
       {
         accessorKey: "period_label",
         header: t("employeePayrollPeriod"),
-        cell: ({ row }) => row.original.period_label ?? "-",
+        cell: ({ row }) => (
+          <div className="flex flex-col">
+            <span>{row.original.period_label ?? "-"}</span>
+            {row.original.period_range_label && (
+              <span className="text-xs text-gray-500">
+                {formatPeriodRange(
+                  row.original.period_start,
+                  row.original.period_end,
+                  locale,
+                  row.original.period_range_label,
+                )}
+              </span>
+            )}
+          </div>
+        ),
       },
       {
         id: "total_payslips",
@@ -127,7 +143,7 @@ export const PayrollDetail = React.memo(function PayrollDetail({
         ),
       },
     ],
-    [t, tCommon, canViewCompensation],
+    [t, tCommon, locale, canViewCompensation],
   );
 
   const { data: payrollData } = useQuery({

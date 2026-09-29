@@ -1,0 +1,39 @@
+# Buat payrun
+
+## Kapan digunakan
+
+Gunakan alur ini di akhir setiap periode penggajian untuk membuat payrun yang menghitung slip gaji semua karyawan, misalnya dari 27 Agustus sampai 26 September.
+
+## Prasyarat
+
+- Anda masuk sebagai HR atau Admin dengan izin membuat payrun.
+- Data kehadiran, lembur, dan denda untuk periode tersebut sudah lengkap.
+
+## Langkah
+
+1. Buka [Daftar Payrun](/docs/manual/pages/payroll-list) dan klik **+ Payrun Baru**.
+2. Periksa **Tanggal mulai** dan **Tanggal cutoff**. Keduanya terisi otomatis: tanggal mulai adalah sehari setelah payrun sebelumnya berakhir, dan tanggal cutoff memakai tanggal cutoff yang sama dengan payrun sebelumnya (mis. tanggal 26). Ubah hanya jika periode penggajian perusahaan berubah.
+3. Periksa bulan penggajian yang tampil di bawah tanggal, mis. *Bulan penggajian: September 2026 (31 hari)*. Bulan penggajian adalah bulan dengan jumlah hari terbanyak dalam periode (27 Sep – 26 Okt adalah *Oktober*) dan menjadi nama payrun.
+4. Isi **Catatan** jika perlu.
+5. Klik **Simpan**.
+6. Jika muncul peringatan, baca sebelum melanjutkan:
+   - **Ada hari yang tidak tercakup** — menampilkan hari-hari di antara payrun ini dan payrun sebelum/sesudahnya. Pilih **Batal** dan perbaiki tanggal, atau **Tetap buat** jika jeda memang disengaja.
+   - **Periode penggajian belum berakhir** — tanggal cutoff adalah hari ini atau setelahnya. Pilih **Batal** dan kembali setelah periode berakhir, atau **Tetap buat slip gaji**.
+7. Tunggu sampai **Status Pembuatan** selesai, lalu buka payrun untuk meninjaunya. Lihat [Proses payrun](/docs/workflows/process-payrun).
+
+## Hasil yang diharapkan
+
+Payrun draf baru muncul di daftar dengan bulan penggajian dan rentang tanggalnya. Slip gaji dibuat untuk semua karyawan yang bekerja selama periode tersebut.
+
+## Perlu diketahui
+
+- **Karyawan baru, dipekerjakan kembali, dan karyawan keluar** hanya dibayar untuk hari kerja mereka dalam periode. Di halaman detail payrun, karyawan ini menampilkan label alasan dan jumlah hari yang dibayar, mis. *Karyawan baru · 22 dari 31 hari*.
+- **Perlu ditinjau HR** muncul pada karyawan baru jika ini payrun pertama perusahaan, sehingga sistem tidak dapat membedakan karyawan baru dari karyawan lama. Periksa gaji karyawan sebelum memfinalkan.
+- **Denda** dipotong oleh payrun yang tanggal cutoff-nya sama dengan atau setelah tanggal kehadiran. Denda yang dicatat setelah payrun dibuat akan dipotong di payrun berikutnya, satu kali saja. Lihat [FAQ](/docs/faq).
+- **Tanggal tidak dapat diubah** setelah slip gaji ada. Untuk memakai tanggal lain, batalkan payrun draf dan buat yang baru.
+
+## Kesalahan umum
+
+- **Payrun tumpang tindih dengan payrun lain** — Payrun lain sudah mencakup sebagian tanggal ini. Sesuaikan tanggal mulai atau batalkan payrun draf lainnya.
+- **Bulan penggajian sudah dipakai** — Setiap bulan penggajian hanya boleh memiliki satu payrun. Periksa tanggal; periode berikutnya biasanya dimulai sehari setelah cutoff sebelumnya. Periode paling lama 31 hari.
+- **Membuat payrun terlalu awal** — Slip gaji yang dibuat sebelum tanggal cutoff tidak mencakup kehadiran, lembur, dan denda setelahnya.

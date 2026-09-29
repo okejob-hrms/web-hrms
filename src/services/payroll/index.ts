@@ -1,5 +1,6 @@
+import { HTTPError } from "ky";
 import { api } from "@/lib/api";
-import { AdditionalRequest, AllowanceRequest, OvertimeRequest, PayrunLog, PayrunViewResponse, PayslipResponse, PenaltyRequest, RequestPayrollGroup, ResponsePayrollDetail, ResponsePayrollList, TotalSpendResponse, WorkingHourRequest } from "./types";
+import { AdditionalRequest, AllowanceRequest, NextPeriodResponse, OvertimeRequest, PayrunLog, PayrunRuleError, PayrunViewResponse, PayslipResponse, PenaltyRequest, RequestPayrollGroup, ResponsePayrollDetail, ResponsePayrollList, TotalSpendResponse, WorkingHourRequest } from "./types";
 import { PaginationState } from "@tanstack/react-table";
 
 export const getPayroll = async (
@@ -145,12 +146,33 @@ export const putPenaltyPayrun = async (
 
 export const postRegenerate = async (
   id: string,
+  options: { acknowledge_early_generation?: boolean } = {},
 ): Promise<ResponsePayrollList> => {
   return api
     .post(`payruns/${id}/retry-generate-payslips`, {
-      json: {},
+      json: options,
     })
     .json<ResponsePayrollList>();
+};
+
+export const getNextPeriod = async (): Promise<NextPeriodResponse> => {
+  return api.get('payruns/next-period').json<NextPeriodResponse>();
+};
+
+/**
+ * Reads the `{ message, error_code, details }` body of a failed pay run request, if any.
+ */
+export const readPayrunRuleError = async (
+  error: unknown,
+): Promise<PayrunRuleError | null> => {
+  if (!(error instanceof HTTPError)) return null;
+
+  try {
+    const body = (await error.response.clone().json()) as PayrunRuleError;
+    return body?.message ? body : null;
+  } catch {
+    return null;
+  }
 };
 
 export const getPayrollPrint = async (

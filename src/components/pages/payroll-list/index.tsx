@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { DataTable } from '@/components/tables/data-table';
 import { ColumnDef } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
@@ -25,7 +25,9 @@ import dayjs from 'dayjs';
 import { usePayroll } from './hook';
 import { Filters } from './types';
 import PayrunsAddModal from './section/add-modal';
+import PayrunRuleConfirm from './section/payrun-rule-confirm';
 import { formatCurrency } from '@/lib/utils';
+import { formatPeriodRange } from '@/lib/payroll-period';
 import { ResponsePayrollItem } from '@/services/payroll/types';
 import { Can } from '@/components/auth/can';
 import { usePermissionStore } from '@/hooks/use-permission-store';
@@ -38,6 +40,7 @@ export const PayrollList = () => {
   const router = useRouter();
   const t = useTranslations('payroll');
   const tCommon = useTranslations('common');
+  const locale = useLocale();
   const canViewCompensation = usePermissionStore((state) =>
     state.can(COMPENSATION_VIEW_PERMISSION),
   );
@@ -54,7 +57,11 @@ export const PayrollList = () => {
     handleAddGroup,
     formData,
     setFormData,
+    previousPeriodEnd,
     handleRegenerate,
+    ruleError,
+    confirmRule,
+    cancelRule,
   } = usePayroll();
 
   const columns: ColumnDef<ResponsePayrollItem>[] = [
@@ -62,6 +69,21 @@ export const PayrollList = () => {
       accessorKey: 'period_label',
       header: t('payruns'),
       size: 200,
+      cell: ({ row }) => (
+        <div className="flex flex-col">
+          <span>{row.original.period_label}</span>
+          {row.original.period_range_label && (
+            <span className="text-xs text-gray-500">
+              {formatPeriodRange(
+                row.original.period_start,
+                row.original.period_end,
+                locale,
+                row.original.period_range_label,
+              )}
+            </span>
+          )}
+        </div>
+      ),
     },
     {
       id: 'total_payslips',
@@ -174,7 +196,7 @@ export const PayrollList = () => {
               </DropdownMenu>
             )}
 
-            {row.original.generation_status === 3 && (
+            {row.original.generation_status === 3 && row.original.status === 0 && (
               <Button
                 variant="outline"
                 className="border-red-600 text-red-600"
@@ -260,6 +282,12 @@ export const PayrollList = () => {
           setIsOpen={(e) => setOpenAdd(e)}
           formData={formData}
           setFormData={setFormData}
+          previousPeriodEnd={previousPeriodEnd}
+        />
+        <PayrunRuleConfirm
+          error={ruleError}
+          onConfirm={confirmRule}
+          onCancel={cancelRule}
         />
       </div>
     </div>

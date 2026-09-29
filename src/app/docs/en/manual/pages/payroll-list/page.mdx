@@ -13,7 +13,7 @@ View and manage payruns. You can search by name, filter by date, create a new pa
 1. **Search by payruns name** — Type to find payruns.
 2. **Pick a date** — Filter payruns by date.
 3. **New Payruns** — Open the form to create a new payrun.
-4. **Payruns table** — Rows show Payruns (name/period), Total Payslip, Total Pay, Payslip Status, Generation Status.
+4. **Payruns table** — Rows show Payruns (payroll month with its date range, for example *September 2026* and *27 Aug 2026 – 26 Sep 2026*), Total Payslip, Total Pay, Payslip Status, Generation Status.
 5. **Row menu** — Open actions for a payrun (e.g. view detail, edit).
 6. **Pagination** — Move between pages of results.
 
@@ -31,10 +31,25 @@ View and manage payruns. You can search by name, filter by date, create a new pa
 ## Common tasks
 
 - **View payruns** — Use the table to see periods, totals, and status. Click a payrun name to open details.
-- **Create a payrun** — Click **+ New Payruns**, fill the form, and save.
+- **Create a payrun** — Click **+ New Payruns**, check the **Start date** and **Cutoff date**, and save. See [Create a payrun](/docs/workflows/create-payrun).
 - **Filter by date** — Use **Pick a date** to narrow the list.
+- **Regenerate a failed payrun** — The **Regenerate** button appears only for draft payruns whose generation failed.
+
+## New payrun form
+
+| Field | What it does | Notes |
+|-------|--------------|-------|
+| Start date | First day of the pay period. | Filled in automatically: the day after the previous payrun ended. |
+| Cutoff date | Last day of the pay period. | Filled in automatically, keeping the same cutoff day as earlier payruns (a 28th or 30th cutoff is shortened in February and returns in March). |
+| Notes | Free text for HR. | |
+
+The payroll month (the name of the payrun) is the month with the most days in the period: 27 Aug – 26 Sep is the *September* payrun, and 27 Sep – 26 Oct is the *October* payrun. If both months have the same number of days, the cutoff month is used. A pay period can be at most 31 days, and each payroll month can have only one payrun.
 
 ## Troubleshooting
 
 - **List is empty** — Check search and date filter; clear them if needed. If you don't have access, ask your admin.
 - **Cannot create payruns** — This may be restricted by role. If you don't see **+ New Payruns**, ask your admin.
+- **"The pay period overlaps an existing payrun"** — Another payrun already covers some of these dates. Change the start date, or cancel the other payrun first.
+- **"Some days are not covered"** — There is a gap between this payrun and the previous or next one. Attendance and overtime on those days will not be paid. Adjust the dates, or choose **Create anyway** if the gap is intended.
+- **"Pay period has not ended"** — The cutoff date is today or later. Payslips created now miss attendance, overtime and penalties after today. Wait until the period ends, or choose **Generate anyway**.
+- **Regenerate is missing** — Finalized, sent and cancelled payruns cannot be regenerated.

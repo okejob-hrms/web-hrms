@@ -12,7 +12,7 @@ Melihat satu payrun: periode pembayaran, status slip gaji, total pengeluaran per
 
 1. **Edit Payrun** — Buka form edit untuk payrun ini.
 2. **Riwayat Payrun** — Lihat riwayat payrun ini.
-3. **Regenerasi Payrun** — Regenerasi payrun.
+3. **Buat Ulang Payrun** — Regenerasi payrun.
 4. **Periode Pembayaran** — Menampilkan periode payrun.
 5. **Status Slip Gaji** — Menampilkan status draf atau final.
 6. **Total Pengeluaran Perusahaan** — Ringkasan total pengeluaran untuk payrun ini.
@@ -27,8 +27,8 @@ Melihat satu payrun: periode pembayaran, status slip gaji, total pengeluaran per
 |--------|------|----------------|-------|
 | 1 | Edit Payrun | Ke halaman edit untuk payrun ini. | Jika tidak terlihat, tanyakan ke admin. |
 | 2 | Riwayat Payrun | Membuka tampilan riwayat. | |
-| 3 | Regenerasi Payrun | Meregenerasi payrun. | Gunakan dengan hati-hati. |
-| 4 | Periode Pembayaran | Menampilkan periode payrun ini. | |
+| 3 | Buat Ulang Payrun | Meregenerasi payrun. | Hanya untuk payrun draf. Jika periode penggajian belum berakhir, Anda diminta konfirmasi terlebih dahulu. |
+| 4 | Periode Pembayaran | Menampilkan bulan penggajian dan rentang tanggalnya, mis. *September 2026* dan *27 Aug 2026 – 26 Sep 2026*. | |
 | 5 | Status Slip Gaji | Menampilkan draf atau final. | |
 | 6 | Total Pengeluaran Perusahaan | Menampilkan total pengeluaran. | |
 | 7 | Daftar Gaji Kotor Karyawan | Judul dan jumlah karyawan. | |
@@ -41,8 +41,9 @@ Melihat satu payrun: periode pembayaran, status slip gaji, total pengeluaran per
 - **Lihat ringkasan payrun** — Periksa Periode Pembayaran, Status Slip Gaji, dan Total Pengeluaran Perusahaan.
 - **Edit payrun** — Klik **Edit Payrun** untuk mengubah detail (URL berisi ID payrun).
 - **Cari karyawan** — Gunakan kotak pencarian untuk memfilter Daftar Gaji Kotor Karyawan.
+- **Periksa gaji prorata** — Karyawan yang dibayar untuk sebagian periode menampilkan label di bawah namanya berisi alasan (*Karyawan baru*, *Dipekerjakan kembali*, *Karyawan keluar*, atau *Masuk dan keluar pada periode ini*) dan jumlah hari yang dibayar, mis. *22 dari 31 hari*. Label **Perlu ditinjau HR** berarti ini payrun pertama perusahaan dan sistem tidak dapat memastikan karyawan tersebut baru; periksa gajinya sebelum memfinalkan.
 
 ## Pemecahan masalah
 
 - **Pengeluaran atau daftar kosong** — Data mungkin masih dimuat, atau payrun belum punya slip gaji. Jika mengharapkan data, tanyakan ke admin.
-- **Tidak bisa edit atau regenerasi** — Aksi ini mungkin dibatasi oleh peran. Jika tidak melihat tombol, tanyakan ke admin.
+- **Tidak bisa edit atau regenerasi** — Aksi ini mungkin dibatasi oleh peran. Jika tidak melihat tombol, tanyakan ke admin. **Buat Ulang Payrun** disembunyikan setelah payrun final, terkirim, atau dibatalkan.

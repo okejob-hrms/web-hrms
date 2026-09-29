@@ -23,7 +23,8 @@ import {
   sumAttendancePenalties,
 } from '@/services/payroll/types';
 import { usePathname, useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
+import { formatPeriodRange } from '@/lib/payroll-period';
 import PayrunApproveModal from './section/confirm-modal';
 import AllowanceModal from './section/allowance-modal';
 import WorkHourModal from './section/work-hour-modal';
@@ -33,6 +34,7 @@ import PenaltyModal from './section/penalty-modal';
 import { PayrunsHistorySheet } from './section/audit-trail';
 import { getStatusPayroll } from '@/lib/helpers';
 import PayrunGenerateModal from './section/confirm-generate';
+import PayrunRuleConfirm from '@/components/pages/payroll-list/section/payrun-rule-confirm';
 import { AttendancePenaltyEvidenceDialog } from '@/components/shared/attendance-penalty-evidence';
 
 type PayrollFormFormProps = {
@@ -112,6 +114,9 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
     openConfirmRecalculate,
     setOpenConfirmRecalculate,
     handleRegenerateCalculate,
+    ruleError,
+    confirmRule,
+    cancelRule,
   } = usePayrollDetail();
 
   const t = useTranslations('payroll');
@@ -119,6 +124,7 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
   const tEmployee = useTranslations('employee');
   const tOffboarding = useTranslations('offboarding');
   const tAtt = useTranslations('attendance');
+  const locale = useLocale();
 
   React.useEffect(() => {
     if (id !== undefined && id !== null) {
@@ -189,6 +195,30 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
             <span className="text-text-secondary">
               {row.original.employee.code || '-'}
             </span>
+            {row.original.proration?.reason && (
+              <div className="flex flex-wrap gap-1 mt-1">
+                <Badge
+                  variant="outline"
+                  className="text-xs font-normal"
+                  title={t('prorationTitle')}
+                >
+                  {t(`prorationReason_${row.original.proration.reason}`)} ·{' '}
+                  {t('prorationDays', {
+                    daysPayable: row.original.proration.days_payable,
+                    daysInPeriod: row.original.proration.days_in_period,
+                  })}
+                </Badge>
+                {row.original.proration.needs_hr_review && (
+                  <Badge
+                    variant="outline"
+                    className="text-xs font-normal border-orange-500 text-orange-600"
+                    title={t('needsHrReviewHint')}
+                  >
+                    {t('needsHrReview')}
+                  </Badge>
+                )}
+              </div>
+            )}
           </div>
         </div>
       ),
@@ -544,7 +574,7 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
                 <Clock />
                 {t('payrunHistory')}
               </Button>
-              {employeeList?.data.payrun.status !== 2 && (
+              {employeeList?.data.payrun.status === 0 && (
                 <Button
                   onClick={() => setOpenConfirmGenerate(true)}
                   type="button"
@@ -562,6 +592,16 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
             <div className="text-sm font-semibold">
               {detailData?.data?.period_label}
             </div>
+            {detailData?.data?.period_range_label && (
+              <div className="text-xs text-gray-500">
+                {formatPeriodRange(
+                  detailData.data.period_start,
+                  detailData.data.period_end,
+                  locale,
+                  detailData.data.period_range_label,
+                )}
+              </div>
+            )}
           </div>
 
           <div className="col-span-2">
@@ -841,6 +881,12 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
               open={penaltyEvidenceOpen}
               onOpenChange={setPenaltyEvidenceOpen}
               items={penaltyEvidenceItems}
+            />
+
+            <PayrunRuleConfirm
+              error={ruleError}
+              onConfirm={confirmRule}
+              onCancel={cancelRule}
             />
 
             <PayrunsHistorySheet
