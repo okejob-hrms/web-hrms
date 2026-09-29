@@ -41,15 +41,15 @@ export default function PayrunsAddModal({
   const tCommon = useTranslations('common');
   const locale = resolveLocale(useLocale());
   const monthOptions = useMemo(() => getMonthOptions(locale), [locale]);
+  const days = periodDays(formData.period_start ?? '', formData.period_end ?? '');
   const periodLabel = useMemo(() => {
     const month = monthOptions.find(
       (item) => Number(item.id) === Number(formData.period_month),
     );
-    return formData.period_end && month
+    return formData.period_end && month && days > 0
       ? `${month.label} ${formData.period_year}`
       : '';
-  }, [monthOptions, formData.period_end, formData.period_month, formData.period_year]);
-  const days = periodDays(formData.period_start ?? '', formData.period_end ?? '');
+  }, [monthOptions, formData.period_end, formData.period_month, formData.period_year, days]);
 
   const setDates = (start: string, end: string) => {
     const label = majorityLabel(start, end);
