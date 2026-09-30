@@ -1640,7 +1640,8 @@
       "bulkDone": "Membuat {created} penugasan, {conflicts} konflik",
       "reresolve": "Resolusi ulang",
       "reresolveDone": "Resolusi ulang punch selesai",
-      "saveFailed": "Gagal menyimpan perubahan roster"
+      "saveFailed": "Gagal menyimpan perubahan roster",
+      "lastChangedBy": "Terakhir diubah oleh {name} {at}"
     },
     "shiftPatterns": {
       "title": "Pola Shift",
@@ -1687,7 +1688,10 @@
       "assignmentEnded": "Assignment diakhiri",
       "close": "Tutup",
       "unknownEmployee": "Karyawan tidak diketahui",
-      "loadAssigneesFailed": "Gagal memuat assignee. Silakan coba lagi."
+      "loadAssigneesFailed": "Gagal memuat assignee. Silakan coba lagi.",
+      "owner": "Pemilik",
+      "ownerHr": "HR",
+      "ownerSupervisor": "Atasan: {name}"
     },
     "unresolvedPunches": {
       "title": "Punch Belum Teratribusi",
@@ -1973,6 +1977,38 @@
     "addAllowance": "Tambah Tunjangan"
   },
   "ess": {
+    "teamRoster": {
+      "title": "Roster Tim",
+      "subtitle": "Atur shift untuk {count} bawahan langsung Anda.",
+      "noTeam": "Anda tidak memiliki bawahan langsung, jadi tidak ada roster tim untuk dikelola.",
+      "loading": "Memuat roster tim…",
+      "loadFailed": "Gagal memuat roster tim.",
+      "tabRoster": "Roster",
+      "tabPatterns": "Pola",
+      "month": "Bulan",
+      "bulkAssign": "Atur massal",
+      "pastLocked": "Tanggal sebelum {date} dikunci. Hubungi HR untuk mengubah hari yang sudah lewat.",
+      "cellUpdated": "Roster diperbarui",
+      "bulkDone": "Atur massal selesai: {created} tersimpan, {conflicts} dilewati",
+      "saveFailed": "Gagal menyimpan perubahan",
+      "createPattern": "Buat pola",
+      "patternName": "Pola",
+      "owner": "Pemilik",
+      "ownerMine": "Milik saya",
+      "ownerHr": "HR",
+      "cycle": "Siklus",
+      "cycleDays": "{n} hari",
+      "actions": "Aksi",
+      "assignees": "Karyawan terpasang",
+      "assign": "Pasang ke tim",
+      "edit": "Ubah",
+      "delete": "Hapus",
+      "noPatterns": "Belum ada pola.",
+      "patternSaved": "Pola disimpan",
+      "patternDeleted": "Pola dihapus",
+      "patternAssigned": "Pola dipasang",
+      "assignmentEnded": "Penugasan diakhiri"
+    },
     "quickActions": "Aksi Cepat",
     "forYouToday": "Untuk Anda Hari Ini",
     "completeOffboardingJourney": "Selesaikan perjalanan offboarding Anda!",

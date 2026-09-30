@@ -7,6 +7,8 @@ export type RosterCell = {
   shift_name: string | null;
   is_day_off: boolean;
   source: string;
+  updated_by_name?: string | null;
+  updated_at?: string | null;
 };
 
 export type RosterCalendar = {
@@ -15,6 +17,8 @@ export type RosterCalendar = {
     user_id: number;
     name: string | null;
     code: string | null;
+    branch_id?: number | null;
+    branch_name?: string | null;
   }>;
   dates: string[];
   cells: Record<number, Record<string, RosterCell[]>>;
@@ -34,6 +38,9 @@ export type ShiftPattern = {
   cycle_length_days: number;
   is_active: boolean;
   branch?: { id: number; name: string } | null;
+  owner_employee_id?: number | null;
+  owner?: { id: number; user?: { id: number; name: string } | null } | null;
+  can_edit?: boolean;
   days: ShiftPatternDay[];
 };
 

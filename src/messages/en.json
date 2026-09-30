@@ -1640,7 +1640,8 @@
       "bulkDone": "Created {created} assignment(s), {conflicts} conflict(s)",
       "reresolve": "Re-resolve",
       "reresolveDone": "Punch re-resolve completed",
-      "saveFailed": "Could not save roster changes"
+      "saveFailed": "Could not save roster changes",
+      "lastChangedBy": "Last changed by {name} {at}"
     },
     "shiftPatterns": {
       "title": "Shift Patterns",
@@ -1687,7 +1688,10 @@
       "assignmentEnded": "Assignment ended",
       "close": "Close",
       "unknownEmployee": "Unknown employee",
-      "loadAssigneesFailed": "Could not load assignees. Please try again."
+      "loadAssigneesFailed": "Could not load assignees. Please try again.",
+      "owner": "Owner",
+      "ownerHr": "HR",
+      "ownerSupervisor": "Supervisor: {name}"
     },
     "unresolvedPunches": {
       "title": "Unresolved Punches",
@@ -1973,6 +1977,38 @@
     "addAllowance": "Add Allowance"
   },
   "ess": {
+    "teamRoster": {
+      "title": "Team Roster",
+      "subtitle": "Plan shifts for your {count, plural, one {# direct report} other {# direct reports}}.",
+      "noTeam": "You have no direct reports, so there is no team roster to manage.",
+      "loading": "Loading team roster…",
+      "loadFailed": "Could not load the team roster.",
+      "tabRoster": "Roster",
+      "tabPatterns": "Patterns",
+      "month": "Month",
+      "bulkAssign": "Bulk assign",
+      "pastLocked": "Dates before {date} are locked. Ask HR to change past days.",
+      "cellUpdated": "Roster updated",
+      "bulkDone": "Bulk assign done: {created} saved, {conflicts} skipped",
+      "saveFailed": "Could not save changes",
+      "createPattern": "Create pattern",
+      "patternName": "Pattern",
+      "owner": "Owner",
+      "ownerMine": "Mine",
+      "ownerHr": "HR",
+      "cycle": "Cycle",
+      "cycleDays": "{n} days",
+      "actions": "Actions",
+      "assignees": "Assignees",
+      "assign": "Assign to team",
+      "edit": "Edit",
+      "delete": "Delete",
+      "noPatterns": "No patterns available yet.",
+      "patternSaved": "Pattern saved",
+      "patternDeleted": "Pattern deleted",
+      "patternAssigned": "Pattern assigned",
+      "assignmentEnded": "Assignment ended"
+    },
     "quickActions": "Quick Actions",
     "forYouToday": "For You Today",
     "completeOffboardingJourney": "Complete your offboarding journey!",
