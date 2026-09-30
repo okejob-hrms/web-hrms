@@ -89,7 +89,10 @@ export function PatternAssigneesDialog({
               {!isLoading && !isError && !rows?.length && message(t('noAssignees'))}
               {rows?.map((row) => {
                 const active = isAssignmentActive(row.effective_to);
-                const endValue = endDateById[row.id] ?? defaultEnd;
+                const startsOn = row.effective_from.slice(0, 10);
+                const rowDefaultEnd = startsOn > defaultEnd ? startsOn : defaultEnd;
+                const rowMinEnd = minEndDate && minEndDate > startsOn ? minEndDate : startsOn;
+                const endValue = endDateById[row.id] ?? rowDefaultEnd;
                 return (
                   <TableRow key={row.id}>
                     <TableCell className="font-medium">
@@ -112,10 +115,10 @@ export function PatternAssigneesDialog({
                           <Input
                             type="date"
                             className="h-8 w-35"
-                            min={minEndDate}
+                            min={rowMinEnd}
                             value={endValue}
                             onChange={(e) =>
-                              setEndDateById((prev) => ({ ...prev, [row.id]: e.target.value || defaultEnd }))
+                              setEndDateById((prev) => ({ ...prev, [row.id]: e.target.value || rowDefaultEnd }))
                             }
                             aria-label={t('endOn')}
                           />
