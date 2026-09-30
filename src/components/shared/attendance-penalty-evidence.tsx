@@ -3,6 +3,7 @@
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -13,7 +14,8 @@ import {
   DeductionList,
   getAttendancePenalties,
 } from '@/services/payroll/types';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
+import { formatPeriodDate } from '@/lib/payroll-period';
 
 type AttendancePenaltyEvidenceListProps = {
   items: DeductionList[];
@@ -55,6 +57,7 @@ export function AttendancePenaltyEvidenceList({
 }: AttendancePenaltyEvidenceListProps) {
   const t = useTranslations('employee');
   const tPayroll = useTranslations('payroll');
+  const locale = useLocale();
   const penalties = getAttendancePenalties(items);
 
   if (penalties.length === 0) {
@@ -96,6 +99,11 @@ export function AttendancePenaltyEvidenceList({
             {summary.length > 0 ? (
               <p className="text-xs text-muted-foreground">{summary.join(' · ')}</p>
             ) : null}
+            {item.incurred_on ? (
+              <p className="text-xs text-muted-foreground">
+                {tPayroll('penaltyIncurredOn')}: {formatPeriodDate(item.incurred_on, locale)}
+              </p>
+            ) : null}
             {item.period ? (
               <p className="text-xs text-muted-foreground">
                 {tPayroll('period')}: {item.period}
@@ -128,6 +136,9 @@ export function AttendancePenaltyEvidenceDialog({
       <DialogContent className="max-w-lg p-6 rounded-2xl bg-white">
         <DialogHeader>
           <DialogTitle>{title ?? t('penaltyEvidenceTitle')}</DialogTitle>
+          <DialogDescription className="sr-only">
+            {t('penaltyEvidenceDescription')}
+          </DialogDescription>
         </DialogHeader>
         <AttendancePenaltyEvidenceList items={items} />
       </DialogContent>

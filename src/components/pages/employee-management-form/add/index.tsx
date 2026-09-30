@@ -151,6 +151,7 @@ export const AddEmployeeForm = React.memo(function AddEmployee() {
           allowance_type_id: Number(item?.allowance_type_id),
           allowance_value: Number(item?.allowance_value),
         })),
+        include_in_payroll: Boolean(values.include_in_payroll ?? true),
         phone_number: Number(convertPhoneToNumber(String(values.phone_number))),
         bank_id: Number(values.bank_id),
         npwp: values.npwp?.trim() ? values.npwp : null,

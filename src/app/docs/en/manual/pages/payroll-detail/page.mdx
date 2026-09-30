@@ -27,8 +27,8 @@ View a single payrun: payment period, payslip status, total company spend, and t
 |--------|------|----------------|-------|
 | 1 | Edit Payruns | Goes to the edit page for this payrun. | If you don't see this, ask your admin. |
 | 2 | Payruns History | Opens the history view. | |
-| 3 | Regenerate Payrun | Regenerates the payrun. | Use with care. |
-| 4 | Payment Period | Displays the period for this payrun. | |
+| 3 | Regenerate Payrun | Regenerates the payrun. | Draft payruns only. If the pay period has not ended, you are asked to confirm first. |
+| 4 | Payment Period | Displays the payroll month and its date range, for example *September 2026* and *27 Aug 2026 – 26 Sep 2026*. | |
 | 5 | Payslip Status | Displays draft or final. | |
 | 6 | Total Company Spend | Shows total spend. | |
 | 7 | Employee Gross Pay List | Heading and employee count. | |
@@ -41,8 +41,9 @@ View a single payrun: payment period, payslip status, total company spend, and t
 - **View payrun summary** — Check Payment Period, Payslip Status, and Total Company Spend.
 - **Edit the payrun** — Click **Edit Payruns** to change details (URL includes the payrun ID).
 - **Find an employee** — Use the search box to filter the Employee Gross Pay List.
+- **Check prorated salaries** — Employees paid for part of the period show a badge under their name with the reason (*New hire*, *Rehire*, *Leaver* or *Joined and left this period*) and the days paid, for example *22 of 31 days*. A **Needs HR review** badge means this is the company's first payrun and the system could not confirm the employee is new; check the salary before finalizing.
 
 ## Troubleshooting
 
 - **Empty spend or list** — Data may still be loading, or the payrun may have no payslips yet. If you expect data, ask your admin.
-- **Cannot edit or regenerate** — These actions may be restricted by role. If you don't see the buttons, ask your admin.
+- **Cannot edit or regenerate** — These actions may be restricted by role. If you don't see the buttons, ask your admin. **Regenerate Payrun** is hidden once the payrun is finalized, sent or cancelled.

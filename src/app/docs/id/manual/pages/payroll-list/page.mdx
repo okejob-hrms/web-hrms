@@ -13,7 +13,7 @@ Melihat dan mengelola payrun. Anda dapat mencari berdasarkan nama, memfilter ber
 1. **Cari berdasarkan nama payrun** — Ketik untuk menemukan payrun.
 2. **Pilih tanggal** — Filter payrun berdasarkan tanggal.
 3. **Payrun Baru** — Buka form untuk membuat payrun baru.
-4. **Tabel payrun** — Baris menampilkan Payrun (nama/periode), Total Slip Gaji, Total Gaji, Status Slip Gaji, Status Generasi.
+4. **Tabel payrun** — Baris menampilkan Payrun (bulan penggajian beserta rentang tanggalnya, mis. *September 2026* dan *27 Agt 2026 – 26 Sep 2026*), Total Slip Gaji, Total Gaji, Status Slip Gaji, Status Generasi.
 5. **Menu baris** — Buka aksi untuk payrun (mis. lihat detail, edit).
 6. **Paginasi** — Pindah antar halaman hasil.
 
@@ -31,10 +31,25 @@ Melihat dan mengelola payrun. Anda dapat mencari berdasarkan nama, memfilter ber
 ## Tugas umum
 
 - **Lihat payrun** — Gunakan tabel untuk melihat periode, total, dan status. Klik nama payrun untuk membuka detail.
-- **Buat payrun** — Klik **+ Payrun Baru**, isi form, dan simpan.
+- **Buat payrun** — Klik **+ Payrun Baru**, periksa **Tanggal mulai** dan **Tanggal cutoff**, lalu simpan. Lihat [Buat payrun](/docs/workflows/create-payrun).
 - **Filter berdasarkan tanggal** — Gunakan **Pilih tanggal** untuk mempersempit daftar.
+- **Buat ulang payrun yang gagal** — Tombol **Buat Ulang** hanya muncul untuk payrun draf yang pembuatannya gagal.
+
+## Form payrun baru
+
+| Kolom | Fungsi | Catatan |
+|-------|--------|---------|
+| Tanggal mulai | Hari pertama periode penggajian. | Terisi otomatis: sehari setelah payrun sebelumnya berakhir. |
+| Tanggal cutoff | Hari terakhir periode penggajian. | Terisi otomatis dengan tanggal cutoff yang sama seperti payrun sebelumnya (cutoff tanggal 28 atau 30 dipendekkan di Februari dan kembali normal di Maret). |
+| Catatan | Teks bebas untuk HR. | |
+
+Bulan penggajian (nama payrun) adalah bulan dengan jumlah hari terbanyak dalam periode: 27 Agt – 26 Sep adalah payrun *September*, dan 27 Sep – 26 Okt adalah payrun *Oktober*. Jika jumlah harinya sama, dipakai bulan tanggal cutoff. Periode penggajian paling lama 31 hari, dan setiap bulan penggajian hanya boleh memiliki satu payrun.
 
 ## Pemecahan masalah
 
 - **Daftar kosong** — Periksa pencarian dan filter tanggal; hapus jika perlu. Jika tidak punya akses, tanyakan ke admin.
 - **Tidak bisa membuat payrun** — Mungkin dibatasi oleh peran. Jika tidak melihat **+ Payrun Baru**, tanyakan ke admin.
+- **"The pay period overlaps an existing payrun"** — Payrun lain sudah mencakup sebagian tanggal ini. Ubah tanggal mulai, atau batalkan payrun lain terlebih dahulu.
+- **"Ada hari yang tidak tercakup"** — Ada jeda antara payrun ini dan payrun sebelum/sesudahnya. Kehadiran dan lembur pada hari tersebut tidak akan dibayar. Sesuaikan tanggal, atau pilih **Tetap buat** jika jeda memang disengaja.
+- **"Periode penggajian belum berakhir"** — Tanggal cutoff adalah hari ini atau setelahnya. Slip gaji yang dibuat sekarang tidak mencakup kehadiran, lembur, dan denda setelah hari ini. Tunggu sampai periode berakhir, atau pilih **Tetap buat slip gaji**.
+- **Tombol Buat Ulang tidak ada** — Payrun yang sudah final, terkirim, atau dibatalkan tidak dapat dibuat ulang.

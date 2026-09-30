@@ -12,7 +12,8 @@ import { StatusBadge } from '@/components/shared/status-badge';
 import { getStatusPayroll } from '@/lib/helpers';
 import { AttendancePenaltyEvidenceList } from '@/components/shared/attendance-penalty-evidence';
 import { DeductionList } from '@/services/payroll/types';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
+import { formatPeriodRange } from '@/lib/payroll-period';
 
 interface PayrollDetailModalProps {
   userId: number;
@@ -28,6 +29,7 @@ export function PayrollDetailModal({
   onOpenChange,
 }: PayrollDetailModalProps) {
   const t = useTranslations('payroll');
+  const locale = useLocale();
   const { data: payrollData, isLoading } = useQuery({
     queryKey: ['payroll-detail', userId, payrollId],
     queryFn: () => getPayrollEmployeeDetails(userId, payrollId!),
@@ -72,6 +74,16 @@ export function PayrollDetailModal({
               <div className="space-y-1">
                 <div className="text-gray-500">Period</div>
                 <div className="font-medium">{payroll.payrun.period_label}</div>
+                {((payroll.payrun.period_start && payroll.payrun.period_end) || payroll.payrun.period_range_label) && (
+                  <div className="text-xs text-gray-500">
+                    {formatPeriodRange(
+                      payroll.payrun.period_start,
+                      payroll.payrun.period_end,
+                      locale,
+                      payroll.payrun.period_range_label,
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="space-y-1">

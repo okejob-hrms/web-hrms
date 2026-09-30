@@ -1,7 +1,8 @@
 'use client';
 
 import * as React from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
+import { formatPeriodRange } from '@/lib/payroll-period';
 import { DataTable } from '@/components/tables/data-table';
 import { ColumnDef, PaginationState } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
@@ -52,6 +53,7 @@ export const PayrollRequest = () => {
   const tCommon = useTranslations('common');
   const tAttendance = useTranslations('attendance');
   const tToast = useTranslations('toast');
+  const locale = useLocale();
   const [filters, setFilters] = React.useState<Filters>({
     date: '',
     search: '',
@@ -139,9 +141,19 @@ export const PayrollRequest = () => {
       header: t('payrunRequest'),
       size: 200,
       cell: ({ row }) => (
-        <span className="text-gray-600">
-          {dayjs(row.original.payrun.period_label).format('MMMM D, YYYY')}
-        </span>
+        <div className="flex flex-col">
+          <span className="text-gray-600">{row.original.payrun.period_label}</span>
+          {((row.original.payrun.period_start && row.original.payrun.period_end) || row.original.payrun.period_range_label) && (
+            <span className="text-xs text-gray-500">
+              {formatPeriodRange(
+                row.original.payrun.period_start,
+                row.original.payrun.period_end,
+                locale,
+                row.original.payrun.period_range_label,
+              )}
+            </span>
+          )}
+        </div>
       ),
     },
     {

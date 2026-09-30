@@ -97,7 +97,9 @@ export const FinalSalaryBenefits = React.memo(function FinalSalaryBenefits({
                       <span className="text-xs text-text-secondary font-normal">
                         {t("prorationHint", {
                           daysPayable: salary.data.proration.days_payable,
-                          daysInMonth: salary.data.proration.days_in_month,
+                          daysInPeriod:
+                            salary.data.proration.days_in_period ??
+                            salary.data.proration.days_in_month,
                           divisor: salary.data.proration.divisor,
                         })}
                       </span>

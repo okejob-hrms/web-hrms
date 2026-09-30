@@ -6,7 +6,13 @@ import { Separator } from "@/components/ui/separator";
 import { InputForm } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash, Edit } from "lucide-react";
-import { FormLabel } from "@/components/ui/form";
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+} from "@/components/ui/form";
+import { Switch } from "@/components/ui/switch";
 import { useQuery } from "@tanstack/react-query";
 import { getAllowanceTypes } from "@/services/allowance-types";
 import { useFormContext, useFieldArray } from "react-hook-form";
@@ -318,6 +324,29 @@ export const SalaryInformationSection = React.memo(
             iconPosition="left"
             type="number"
             icon={<span className="text-text-disabled text-base">Rp</span>}
+          />
+
+          <FormField
+            control={control}
+            name="include_in_payroll"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center justify-between rounded-md border p-3 md:col-span-2">
+                <div className="space-y-0.5">
+                  <FormLabel className="text-base font-normal">
+                    {t("includeInPayroll")}
+                  </FormLabel>
+                  <p className="text-xs text-muted-foreground">
+                    {t("includeInPayrollHint")}
+                  </p>
+                </div>
+                <FormControl>
+                  <Switch
+                    checked={Boolean(field.value)}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+              </FormItem>
+            )}
           />
 
           {/* If there is no allowance display this section */}

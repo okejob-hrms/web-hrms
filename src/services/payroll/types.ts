@@ -6,6 +6,7 @@ export interface ResponsePayrollList {
 }
 
 export interface ResponsePayrollItem {
+    /** @deprecated See PAYSLIP_AUTO_SEND_ENABLED. */
     auto_send_payslip: boolean;
     can_be_cancelled: boolean;
     can_be_locked: boolean;
@@ -22,6 +23,10 @@ export interface ResponsePayrollItem {
     period_label: string;
     period_month: number;
     period_year: number;
+    period_start?: string | null;
+    period_end?: string | null;
+    period_range_label?: string | null;
+    /** @deprecated See PAYSLIP_AUTO_SEND_ENABLED. */
     send_payslip_at: string;
     sent_at: null;
     status: number;
@@ -55,8 +60,53 @@ export interface RequestPayrollGroup {
     notes: string;
     period_month: number;
     period_year: number;
+    period_start?: string;
+    period_end?: string;
+    acknowledge_gap?: boolean;
+    acknowledge_early_generation?: boolean;
+    /** @deprecated See PAYSLIP_AUTO_SEND_ENABLED. */
     auto_send_payslip?: boolean;
+    /** @deprecated See PAYSLIP_AUTO_SEND_ENABLED. */
     send_payslip_at?: string;
+}
+
+export interface NextPeriodResponse {
+    status: string;
+    message: string;
+    data: {
+        period_start: string;
+        period_end: string;
+        period_year: number;
+        period_month: number;
+        days: number;
+        previous_payrun_id: number | null;
+        previous_period_end: string | null;
+    };
+}
+
+export const PAYRUN_GAP = 'PAYRUN_GAP';
+export const PAYRUN_PERIOD_NOT_ENDED = 'PAYRUN_PERIOD_NOT_ENDED';
+
+export interface PayrunRuleError {
+    message: string;
+    error_code?: string;
+    details?: {
+        gaps?: { from: string; to: string; adjacent_payrun_id: number | null }[];
+        period_end?: string;
+        today?: string;
+        [key: string]: unknown;
+    };
+}
+
+export interface PayslipProration {
+    reason: 'joiner' | 'rehire' | 'leaver' | 'joiner_leaver' | null;
+    days_payable: number;
+    days_in_period: number;
+    days_in_month?: number;
+    join_date: string | null;
+    last_working_date: string | null;
+    factor: number;
+    needs_hr_review: boolean;
 }
 
 export interface ResponsePayrollDetail {
@@ -82,7 +132,12 @@ export interface Payrun {
   period_year: number;
   period_month: number;
   period_label: string;
+  period_start?: string | null;
+  period_end?: string | null;
+  period_range_label?: string | null;
+  /** @deprecated See PAYSLIP_AUTO_SEND_ENABLED. */
   send_payslip_at: string;
+  /** @deprecated See PAYSLIP_AUTO_SEND_ENABLED. */
   auto_send_payslip: boolean;
   status: number;
   status_label: string;
@@ -120,6 +175,7 @@ export interface Payslip {
   overtime: [];
   additional_earning: PayslipAdditionalItem[];
   deduction: DeductionList[];
+  proration?: PayslipProration | null;
   currency: string;
   status: number;
   status_label: string;
@@ -168,6 +224,7 @@ export interface DeductionList {
   user_penalty_id?: number | null;
   attendance_rule_id?: number | null;
   period?: string | null;
+  incurred_on?: string | null;
   description?: string | null;
   condition_type?: string | null;
   meta?: AttendancePenaltyMeta | null;
@@ -324,6 +381,9 @@ export interface PayrunPayrunViewResponse {
     period_label: string;
     period_month: number;
     period_year: number;
+    period_start?: string | null;
+    period_end?: string | null;
+    period_range_label?: string | null;
 }
 
 export interface Pagination {
