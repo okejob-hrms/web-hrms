@@ -166,10 +166,6 @@ export const ROUTE_VIEW_PERMISSIONS: Array<{
     permission: 'time_attendance.attendance_configuration.view',
   },
   {
-    match: '/settings/time-attendance/shift-patterns',
-    permission: 'time_attendance.attendance_configuration.view',
-  },
-  {
     match: '/settings/time-attendance/unresolved-punches',
     permission: 'time_attendance.attendance_records.approval',
   },

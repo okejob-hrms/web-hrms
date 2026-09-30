@@ -2,12 +2,8 @@
   "slug": "ess-team-roster",
   "route": "/ess/team-roster",
   "controls": [
-    { "number": 1, "name": "Roster tab", "selectorOrRef": "tab" },
-    { "number": 2, "name": "Month", "selectorOrRef": "month picker" },
-    { "number": 3, "name": "Roster cell", "selectorOrRef": "grid cell (title = last changed by)" },
-    { "number": 4, "name": "Bulk assign", "selectorOrRef": "bulk assign button" },
-    { "number": 5, "name": "Patterns tab", "selectorOrRef": "tab" },
-    { "number": 6, "name": "Create pattern", "selectorOrRef": "create pattern button" },
-    { "number": 7, "name": "Actions", "selectorOrRef": "row actions dropdown" }
+    { "number": 1, "name": "Month", "selectorOrRef": "month picker" },
+    { "number": 2, "name": "Roster cell", "selectorOrRef": "grid cell (title = last changed by)" },
+    { "number": 3, "name": "Bulk assign", "selectorOrRef": "bulk assign button" }
   ]
 }

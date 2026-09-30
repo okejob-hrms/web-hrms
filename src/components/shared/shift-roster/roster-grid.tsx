@@ -90,7 +90,7 @@ export function RosterGrid({ calendar, isCellEditable, onCellClick, renderAction
                       <span>{label || '·'}</span>
                       {source ? (
                         <Badge variant="secondary" className="h-5 px-1.5 text-[10px] uppercase">
-                          {source === 'manual' ? 'M' : source === 'pattern' ? 'P' : source[0]}
+                          {source === 'manual' ? 'M' : source === 'roster' ? 'R' : source[0]}
                         </Badge>
                       ) : null}
                     </div>

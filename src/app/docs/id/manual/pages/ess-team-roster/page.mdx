@@ -2,7 +2,7 @@
 
 ## Tujuan
 
-Supervisor menggunakan halaman ini di **Web ESS** untuk mengatur shift bawahan langsungnya. Anda dapat mengatur shift atau libur untuk satu hari, mengisi rentang tanggal untuk beberapa orang sekaligus, serta membuat pola shift (misalnya "2 hari pagi, 1 hari libur") dan memasangnya ke tim.
+Supervisor menggunakan halaman ini di **Web ESS** untuk mengatur shift bawahan langsungnya. Anda dapat mengatur shift atau libur untuk satu hari, atau mengisi rentang tanggal untuk beberapa orang sekaligus.
 
 Halaman ini hanya tersedia jika Anda adalah **supervisor utama** dari minimal satu karyawan. Buka dari ubin **Roster Tim** di akses cepat ESS, atau buka `/ess/team-roster`.
 
@@ -10,42 +10,30 @@ Halaman ini hanya tersedia jika Anda adalah **supervisor utama** dari minimal sa
 
 - Anda hanya dapat mengubah **hari ini dan tanggal mendatang**. Hari yang sudah lewat dikunci; hubungi HR untuk memperbaikinya.
 - Anda hanya dapat mengubah karyawan yang melapor **langsung** kepada Anda (jalur pelaporan utama).
-- Anda dapat mengubah dan menghapus **pola yang Anda buat** (pemilik **Milik saya**). Pola buatan HR (pemilik **HR**) dapat dipasang ke tim, tetapi tidak dapat diubah.
 - Jika HR atau supervisor lain mengubah hari yang sama, **perubahan yang terakhir disimpan yang berlaku**. Arahkan kursor ke sel untuk melihat siapa yang terakhir mengubah.
 
 ## Di halaman ini
 
-1. **Tab Roster** — Grid bulanan: satu baris per anggota tim, satu kolom per hari.
-2. **Bulan** — Pindah ke bulan lain, termasuk bulan mendatang.
-3. **Sel roster** — Menampilkan nama shift atau **Off** (libur). **M** berarti diatur manual; **P** berarti berasal dari pola. Sel yang dikunci (hari lewat) berwarna abu-abu.
-4. **Atur massal** — Mengatur shift atau libur yang sama untuk beberapa anggota tim dalam satu rentang tanggal.
-5. **Tab Pola** — Daftar pola yang dapat Anda gunakan, dengan **Pemilik** (Milik saya atau HR) dan panjang **Siklus**.
-6. **Buat pola** — Membuat pola berulang baru.
-7. Menu **Aksi** — **Karyawan terpasang**, **Pasang ke tim**, serta **Ubah** dan **Hapus** (untuk pola milik Anda).
+1. **Bulan** — Pindah ke bulan lain, termasuk bulan mendatang.
+2. **Sel roster** — Grid bulanan dengan satu baris per anggota tim dan satu kolom per hari. Setiap sel menampilkan nama shift atau **Off** (libur). **M** berarti diatur manual; **R** berarti berasal dari roster. Sel yang dikunci (hari lewat) berwarna abu-abu.
+3. **Atur massal** — Mengatur shift atau libur yang sama untuk beberapa anggota tim dalam satu rentang tanggal.
 
 ## Kontrol
 
 | No | Nama | Fungsi | Catatan |
 |----|------|--------|---------|
-| 1 | Tab Roster | Menampilkan grid tim bulanan. | Tab bawaan. |
-| 2 | Bulan | Mengganti bulan yang ditampilkan. | Bulan mendatang dapat dipilih untuk perencanaan. |
-| 3 | Sel roster | Klik untuk membuka dialog ubah untuk karyawan dan hari tersebut. | Hanya hari ini dan setelahnya yang dapat diubah. |
-| 4 | Atur massal | Membuka dialog untuk mengisi rentang tanggal bagi karyawan terpilih. | **Jika bentrok** memilih **Lewati manual yang ada** atau **Timpa**. Rentang maksimal 62 hari. |
-| 5 | Tab Pola | Menampilkan pola Anda dan pola HR yang tersedia untuk tim. | Kolom Pemilik menampilkan **Milik saya** atau **HR**. |
-| 6 | Buat pola | Membuka editor pola. | Isi nama, panjang siklus, dan shift atau libur untuk setiap hari siklus. |
-| 7 | Aksi | Membuka aksi pola. | **Ubah** dan **Hapus** hanya muncul untuk pola milik Anda. |
+| 1 | Bulan | Mengganti bulan yang ditampilkan. | Bulan mendatang dapat dipilih untuk perencanaan. |
+| 2 | Sel roster | Klik untuk membuka dialog ubah untuk karyawan dan hari tersebut. | Hanya hari ini dan setelahnya yang dapat diubah. |
+| 3 | Atur massal | Membuka dialog untuk mengisi rentang tanggal bagi karyawan terpilih. | **Jika bentrok** memilih **Lewati manual yang ada** atau **Timpa**. Rentang maksimal 62 hari. |
 
 ## Tugas umum
 
-- **Ubah satu hari** — Di tab **Roster**, klik sel karyawan dan tanggal, pilih **Set shift**, **Set libur**, atau **Hapus manual**, lalu klik **Simpan**.
+- **Ubah satu hari** — Klik sel karyawan dan tanggal, pilih **Set shift**, **Set libur**, atau **Hapus manual**, lalu klik **Simpan**.
 - **Rencanakan satu minggu untuk beberapa orang** — Klik **Atur massal**, pilih karyawan, rentang tanggal, dan shift (atau libur), lalu simpan.
-- **Buat jadwal bergilir** — Di **Pola**, klik **Buat pola**, atur siklus, lalu gunakan **Aksi → Pasang ke tim**. Pilih karyawan, **Tanggal jangkar** (hari ke-1 siklus), dan tanggal **Berlaku dari** (hari ini atau setelahnya).
-- **Hentikan pola untuk seseorang** — Gunakan **Aksi → Karyawan terpasang**, pilih tanggal akhir, lalu klik **Akhiri**. Hari pola setelah tanggal tersebut dihapus.
 
 ## Pemecahan masalah
 
 - **Ubin Roster Tim tidak muncul** — Anda belum tercatat sebagai supervisor utama siapa pun. Minta HR memeriksa jalur pelaporan Anda.
 - **"Supervisors can only change today or future dates."** — Anda memilih tanggal yang sudah lewat. Pilih hari ini atau setelahnya, atau hubungi HR.
 - **Karyawan tidak muncul di grid** — Hanya karyawan aktif yang melapor langsung kepada Anda yang ditampilkan.
-- **Ubah atau Hapus tidak ada pada pola** — Pola tersebut dibuat oleh HR. Anda tetap dapat memasangnya.
 - **Sel berubah tanpa Anda ubah** — Orang lain (HR atau supervisor lain) menyimpannya kemudian. Arahkan kursor ke sel untuk melihat siapa.

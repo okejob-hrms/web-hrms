@@ -1,10 +1,6 @@
 import { apiEmployee } from '@/lib/api';
 import type { ApiResponse } from '@/lib/types';
-import type {
-  RosterCalendar,
-  ShiftPattern,
-  ShiftPatternAssignment,
-} from '@/services/shift-roster';
+import type { RosterCalendar } from '@/services/shift-roster';
 
 export type TeamRosterMeta = {
   has_team: boolean;
@@ -15,13 +11,6 @@ export type TeamRosterMeta = {
 export type TeamRosterCalendar = RosterCalendar & {
   editable_from: string;
   shifts: Array<{ id: number; name: string }>;
-};
-
-type PatternPayload = {
-  name: string;
-  cycle_length_days: number;
-  is_active?: boolean;
-  days: Array<{ day_index: number; shift_id: number | null }>;
 };
 
 export const getTeamRosterMeta = async () =>
@@ -51,42 +40,3 @@ export const bulkAssignTeamRoster = async (payload: {
   apiEmployee
     .post('ess/team-roster/bulk', { json: payload })
     .json<ApiResponse<{ created: number; conflicts: Array<Record<string, unknown>> }>>();
-
-export const getTeamPatterns = async () =>
-  apiEmployee.get('ess/team-roster/patterns').json<ApiResponse<ShiftPattern[]>>();
-
-export const createTeamPattern = async (payload: PatternPayload) =>
-  apiEmployee.post('ess/team-roster/patterns', { json: payload }).json<ApiResponse<ShiftPattern>>();
-
-export const updateTeamPattern = async (id: number, payload: Partial<PatternPayload>) =>
-  apiEmployee
-    .put(`ess/team-roster/patterns/${id}`, { json: payload })
-    .json<ApiResponse<ShiftPattern>>();
-
-export const deleteTeamPattern = async (id: number) =>
-  apiEmployee.delete(`ess/team-roster/patterns/${id}`).json<ApiResponse<null>>();
-
-export const assignTeamPattern = async (
-  id: number,
-  payload: {
-    employee_ids: number[];
-    anchor_date: string;
-    effective_from: string;
-    effective_to?: string | null;
-  },
-) =>
-  apiEmployee
-    .post(`ess/team-roster/patterns/${id}/assign`, { json: payload })
-    .json<ApiResponse<unknown>>();
-
-export const getTeamPatternAssignments = async (id: number) =>
-  apiEmployee
-    .get(`ess/team-roster/patterns/${id}/assignments`)
-    .json<ApiResponse<ShiftPatternAssignment[]>>();
-
-export const endTeamPatternAssignment = async (assignmentId: number, effective_to?: string) =>
-  apiEmployee
-    .post(`ess/team-roster/pattern-assignments/${assignmentId}/end`, {
-      json: effective_to ? { effective_to } : {},
-    })
-    .json<ApiResponse<ShiftPatternAssignment>>();
