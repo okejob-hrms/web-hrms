@@ -232,6 +232,16 @@
       "notes": ""
     },
     {
+      "slug": "mobile-team-roster",
+      "title": "Mobile: Roster Tim",
+      "path": "/team-roster",
+      "section": "profile",
+      "requiresAuth": true,
+      "captureRecipe": "Home tab Team Roster tile, or Profile > Team Roster (supervisors only)",
+      "prerequisites": ["Supervisor with at least one primary direct report", "At least one shift configured by HR"],
+      "notes": "Includes the pattern form (/team-pattern-form) and bottom sheets for cell edit, bulk assign, assign and assignees"
+    },
+    {
       "slug": "mobile-payslip",
       "title": "Mobile: Payslip",
       "path": "/payslip",

@@ -1,0 +1,55 @@
+# Mobile: Team Roster
+
+## Purpose
+
+Supervisors use **Team Roster** in the ESS CPS mobile app to plan shifts for their direct reports. This is the mobile version of [ESS Team Roster](/docs/en/manual/pages/ess-team-roster) in Web ESS; both show the same data, so a change made on one is visible on the other.
+
+The screen is only shown if you are the **primary supervisor** of at least one employee. Open it from the **Team Roster** tile on the **Home** tab (next to Overtime Request and New Leave Request), or from **Profile → Team Roster**.
+
+## What you can and cannot change
+
+- You can change **today and future dates** only. Past days are read-only; ask HR to correct them.
+- You can only change employees who report **directly** to you.
+- You can edit and delete patterns marked **Mine**. Patterns marked **HR** can be assigned but not edited.
+- If someone else saves the same day later, their change wins. Each employee row shows **Last changed by** with the name of the person who changed it last.
+
+## On this screen
+
+1. **Roster tab** — Plan shifts day by day.
+2. **Month selector** — Move between months, including future months.
+3. **Day strip** — Scroll and tap a day. Past days are greyed out.
+4. **Bulk assign** — Fill a date range for several team members at once.
+5. **Employee list** — One card per team member showing the shift for the selected day (or **No shift** / **Day off**), whether it is **Manual** or from a **Pattern**, and who changed it last. Tap a card to edit (today or later only).
+6. **Patterns tab** — Your patterns (**Mine**) and HR patterns (**HR**) with their cycle length.
+7. **Pattern menu (⋮)** — **Assign to team**, **Assignees**, and for your own patterns **Edit pattern** and **Delete**.
+8. **Create pattern** — Button at the bottom of the Patterns tab.
+
+## Controls
+
+| Number | Name | What it does | Notes |
+|--------|------|--------------|-------|
+| 1 | Roster tab | Shows the day-by-day roster. | Default tab. |
+| 2 | Month selector | Changes the month. | Future months are allowed. |
+| 3 | Day strip | Selects the day shown in the list. | Opens on today when viewing the current month. |
+| 4 | Bulk assign | Opens a sheet to select employees, **From** / **To** dates, a shift or **Day off**, and **Overwrite existing entries**. | Dates before today cannot be picked. |
+| 5 | Employee card | Opens the **Edit roster** sheet: **Shift**, **Day off**, or **Clear**, then **Save**. | Not tappable on past days. |
+| 6 | Patterns tab | Lists available patterns. | Pull down to refresh. |
+| 7 | Pattern menu | Pattern actions. | **Edit pattern** and **Delete** only for **Mine**. |
+| 8 | Create pattern | Opens the pattern form: name, **Cycle length (days)**, and a shift or **Day off** for each day. | Maximum cycle is 31 days on mobile. |
+
+## Common tasks
+
+- **Change one day** — On **Roster**, pick the day in the day strip, tap the employee, choose **Shift** (and select one), **Day off**, or **Clear**, then tap **Save**.
+- **Plan a range for several people** — Tap **Bulk assign**, tick employees (or **Select all**), set **From** and **To**, choose a shift or switch on **Day off**, then tap **Save**.
+- **Create and assign a rotation** — On **Patterns**, tap **Create pattern**, fill in the days, and save. Then open the pattern menu → **Assign to team**, tick employees, set the **Anchor date (cycle day 1)** and **Effective from**, and tap **Save**.
+- **Stop a pattern for someone** — Pattern menu → **Assignees** → **End**, pick the end date, and confirm. Pattern days after that date are removed.
+
+## Troubleshooting
+
+- **Team Roster is not on the Home tab or Profile** — You are not recorded as anyone's primary supervisor. Ask HR to check your reporting lines. The tile can take a moment to appear after login.
+- **Tapping an employee does nothing** — The selected day is in the past. Pick today or a later day.
+- **"Supervisors can only change today or future dates."** — Choose today or later, or ask HR.
+- **Edit pattern / Delete is missing** — The pattern belongs to HR (**HR**). You can still assign it.
+- **The shift changed after you saved it** — HR or another supervisor saved a newer change. Check **Last changed by**.
+
+**Prerequisites for capture/testing:** a supervisor account with at least one primary direct report, and at least one shift configured by HR.

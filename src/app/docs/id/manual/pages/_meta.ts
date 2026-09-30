@@ -13,6 +13,7 @@ export default {
   "ess-overtime": "Lembur ESS",
   "ess-business-trip": "Business Trip ESS",
   "ess-offboarding": "Offboarding ESS",
+  "ess-team-roster": "Roster Tim ESS",
   "employee-management": "Daftar Karyawan",
   "employee-management-add": "Tambah Karyawan",
   "employee-management-detail": "Detail Karyawan",

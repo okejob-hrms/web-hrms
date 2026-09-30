@@ -11,6 +11,7 @@ export default {
   "mobile-inbox": "Mobile: Kotak Masuk",
   "mobile-profile": "Mobile: Profil",
   "mobile-profile-detail": "Mobile: Detail Profil",
+  "mobile-team-roster": "Mobile: Roster Tim",
   "mobile-profile-edit": "Mobile: Edit Profil",
   "mobile-attendance": "Mobile: Kehadiran & Lembur",
   "mobile-location-confirmed": "Mobile: Lokasi Terkonfirmasi",

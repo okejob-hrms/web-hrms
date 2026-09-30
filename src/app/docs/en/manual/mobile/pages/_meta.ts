@@ -11,6 +11,8 @@ export default {
   "mobile-inbox": "Mobile: Inbox",
   "mobile-profile": "Mobile: Profile",
   "mobile-profile-detail": "Mobile: Profile Detail",
+  "mobile-team-roster": "Mobile: Team Roster",
+  "mobile-team-roster": "Mobile: Team Roster",
   "mobile-profile-edit": "Mobile: Edit Profile",
   "mobile-attendance": "Mobile: Attendance & Overtime",
   "mobile-location-confirmed": "Mobile: Location Confirmed",
