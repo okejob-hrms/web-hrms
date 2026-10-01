@@ -389,6 +389,9 @@ export default function SettingsAttendanceConfigurationForm() {
             <h2 className="text-xl font-semibold pt-6 border-t">
               Grace Period & Absent Threshold
             </h2>
+            <p className="text-sm text-muted-foreground">
+              {t('captureWindowHint')}
+            </p>
 
             {/* Grace Period */}
             <FormField
@@ -424,6 +427,84 @@ export default function SettingsAttendanceConfigurationForm() {
                       type="number"
                       className="sm:w-50 w-100"
                     />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="pre_shift_window_minutes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('preShiftWindow')} ({t('minutes')})</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="180" {...field} className="sm:w-50 w-100" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="post_shift_window_minutes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('postShiftWindow')} ({t('minutes')})</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="180" {...field} className="sm:w-50 w-100" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="punch_dedupe_minutes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('punchDedupe')} ({t('minutes')})</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="2" {...field} className="sm:w-50 w-100" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="cross_midnight_shift_date"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('crossMidnightDate')}</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="sm:w-50 w-100">
+                        <SelectValue placeholder={t('crossMidnightSelect')} />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="end_day">{t('crossMidnightEndDayDefault')}</SelectItem>
+                      <SelectItem value="start_day">{t('crossMidnightStartDay')}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="unresolved_retry_days"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('unresolvedRetryDays')}</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="14" {...field} className="sm:w-50 w-100" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

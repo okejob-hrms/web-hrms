@@ -179,6 +179,7 @@ export const BasicDatePicker: React.FC<BasicDatePickerProps> = (props) => {
               captionLayout="dropdown"
               fromYear={1900}
               toYear={new Date().getFullYear() + 10}
+              disabled={props.disabled}
             />
           </PopoverContent>
         </Popover>

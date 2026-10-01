@@ -98,6 +98,8 @@ export interface IMutateEmployeeRequests {
   /** Omitted when the editor lacks compensation.view (BE preserves existing). */
   base_salary?: number | null;
   salary_nett?: number;
+  /** When false, employee is skipped by payslip generation. Default true. */
+  include_in_payroll?: boolean;
   allowances?: {
     allowance_type_id: number;
     allowance_value: number;
@@ -177,6 +179,7 @@ export interface IEmployeeDetailsResponse {
     end_date: string;
     base_salary: string;
     salary_nett: string;
+    include_in_payroll?: boolean;
     allowances: {
       id: number;
       employment_id: number;

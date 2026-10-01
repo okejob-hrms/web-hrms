@@ -1,0 +1,10 @@
+{
+  "slug": "ess-team-roster",
+  "route": "/ess/team-roster",
+  "controls": [
+    { "number": 1, "name": "Week", "selectorOrRef": "week picker" },
+    { "number": 2, "name": "Team shift", "selectorOrRef": "team shift" },
+    { "number": 3, "name": "Member override", "selectorOrRef": "member week or day override" },
+    { "number": 4, "name": "Publish", "selectorOrRef": "publish button" }
+  ]
+}

@@ -19,6 +19,13 @@ export function AppSidebar({ title, titleKey, menuItems }: AppSidebarProps) {
   const t = useTranslations('sidebar');
   const displayTitle = title ?? (titleKey ? t(titleKey) : t('module'));
 
+  const isGroupActive = (item: MenuItem) => {
+    if (item.subItem?.some((sub) => pathname === `/${sub.value}` || pathname.startsWith(`/${sub.value}/`))) {
+      return true;
+    }
+    return Boolean(item.value && pathname.includes(`${item.value}`));
+  };
+
   return (
     <Sidebar variant="floating">
       <SidebarContent>
@@ -30,7 +37,7 @@ export function AppSidebar({ title, titleKey, menuItems }: AppSidebarProps) {
                 {item.subItem ? (
                   <div
                     className={`py-1.5 px-2 rounded-none flex flex-row justify-between items-center text-left text-sm ${
-                      pathname.includes(`${item.value}`)
+                      isGroupActive(item)
                         ? 'text-primary border-l-2 border-primary font-bold'
                         : 'text-gray-700 hover:text-primary'
                     }`}

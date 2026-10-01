@@ -2,6 +2,7 @@
 
 import {
   ClockPlusIcon,
+  CalendarRange,
   ClipboardCheck,
   GitCompareArrowsIcon,
   Plane,
@@ -13,6 +14,7 @@ import { useTranslations } from 'next-intl';
 import * as React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getWaitingDashboardEmployee } from '@/services/ess';
+import { getTeamRosterMeta } from '@/services/ess/team-roster';
 
 export const EssQuickActions = () => {
   const router = useRouter();
@@ -22,6 +24,11 @@ export const EssQuickActions = () => {
   const { data: waitingStat } = useQuery({
     queryKey: ['waitingStat'],
     queryFn: () => getWaitingDashboardEmployee(),
+  });
+
+  const { data: teamRosterMeta } = useQuery({
+    queryKey: ['team-roster-meta'],
+    queryFn: async () => (await getTeamRosterMeta()).data,
   });
 
   const approvalsCount = waitingStat?.data.total ?? 0;
@@ -53,6 +60,15 @@ export const EssQuickActions = () => {
       icon: <ClipboardCheck className="text-white" />,
       badge: approvalsCount,
     },
+    ...(teamRosterMeta?.has_team
+      ? [
+          {
+            title: t('teamRoster.title'),
+            path: '/ess/team-roster',
+            icon: <CalendarRange className="text-white" />,
+          },
+        ]
+      : []),
     {
       title: tSidebar('selfAssessment'),
       path: '/ess/assessment',

@@ -180,6 +180,27 @@ export const menus: Record<string, MenuItem[]> = {
       ],
     },
     {
+      key: 'shiftManagement',
+      value: 'settings/shift-management',
+      subItem: [
+        {
+          key: 'shiftRoster',
+          value: 'settings/time-attendance/shift-roster',
+          permission: 'time_attendance.attendance_configuration.view',
+        },
+        {
+          key: 'unresolvedPunches',
+          value: 'settings/time-attendance/unresolved-punches',
+          permission: 'time_attendance.attendance_records.approval',
+        },
+        {
+          key: 'rosterSetup',
+          value: 'settings/time-attendance/roster-setup',
+          permission: 'time_attendance.attendance_configuration.view',
+        },
+      ],
+    },
+    {
       key: 'leaveConfiguration',
       value: 'settings/leave-management',
       permission: 'time_attendance.leave_configuration.view',
@@ -286,6 +307,9 @@ const BREADCRUMB_SEGMENT_KEYS: Record<string, string> = {
   holiday: 'holiday',
   'attendance-rule': 'attendanceRule',
   'attendance-machines': 'attendanceMachines',
+  'shift-roster': 'shiftRoster',
+  'unresolved-punches': 'unresolvedPunches',
+  'roster-setup': 'rosterSetup',
   'leave-management': 'leaveManagement',
   'form-template': 'formTemplate',
   'salary-management': 'salaryManagement',

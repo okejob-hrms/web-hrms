@@ -13,6 +13,7 @@ export default {
   "ess-overtime": "ESS Overtime",
   "ess-business-trip": "ESS Business Trip",
   "ess-offboarding": "ESS Offboarding",
+  "ess-team-roster": "ESS Team Roster",
   "employee-management": "Employee List",
   "employee-management-add": "Add Employee",
   "employee-management-detail": "Employee Detail",
