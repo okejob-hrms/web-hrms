@@ -18,6 +18,8 @@ export type RosterEmployee = RosterCalendar['employees'][number];
 
 type RosterGridProps = {
   calendar: RosterCalendar | undefined;
+  isLoading?: boolean;
+  emptyLabel?: string;
   isCellEditable: (date: string) => boolean;
   onCellClick: (employee: RosterEmployee, date: string, cells: RosterCell[]) => void;
   renderActions?: (employee: RosterEmployee) => React.ReactNode;
@@ -35,7 +37,14 @@ function lastChangedTitle(cells: RosterCell[], label: (name: string, at: string)
   return label(latest.updated_by_name, at);
 }
 
-export function RosterGrid({ calendar, isCellEditable, onCellClick, renderActions }: RosterGridProps) {
+export function RosterGrid({
+  calendar,
+  isLoading,
+  emptyLabel,
+  isCellEditable,
+  onCellClick,
+  renderActions,
+}: RosterGridProps) {
   const t = useTranslations('settings.shiftRoster');
 
   return (
@@ -60,7 +69,7 @@ export function RosterGrid({ calendar, isCellEditable, onCellClick, renderAction
                 colSpan={(calendar?.dates.length ?? 0) + (renderActions ? 2 : 1)}
                 className="text-center text-text-secondary"
               >
-                {t('noEmployees')}
+                {isLoading ? t('loading') : (emptyLabel ?? t('noEmployees'))}
               </TableCell>
             </TableRow>
           )}

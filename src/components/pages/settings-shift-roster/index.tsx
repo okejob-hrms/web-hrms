@@ -135,6 +135,7 @@ export default function SettingsShiftRoster() {
 
       <RosterGrid
         calendar={calendar}
+        isLoading={calendarQuery.isLoading}
         isCellEditable={() => canEdit}
         onCellClick={(employee, date, cells) =>
           setCellTarget({

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -18,21 +19,26 @@ import {
 // -------------------------
 // SCHEMA & TYPES
 // -------------------------
+type SettingsT = ReturnType<typeof useTranslations<"settings">>;
+
 // Bounds match the core UpdateWorkingScheduleRequest rules.
-const wholeNumber = (label: string, min: number, max: number) =>
+const wholeNumber = (t: SettingsT, label: string, min: number, max: number) =>
   z
     .string()
-    .regex(/^\d+$/, `${label} must be a whole number`)
-    .refine((v) => Number(v) >= min && Number(v) <= max, `${label} must be between ${min} and ${max}`);
+    .regex(/^\d+$/, t("mustBeWholeNumber", { label }))
+    .refine(
+      (v) => Number(v) >= min && Number(v) <= max,
+      t("mustBeBetween", { label, min, max }),
+    );
 
-const companySchema = z.object({
+const buildCompanySchema = (t: SettingsT) => z.object({
   late_tolerance: z.string().min(1, "Late tolerance must be at least 1"),
   max_late_tolerance: z.string().min(1, "Absent after must be at least 1"),
-  pre_shift_window_minutes: wholeNumber("Pre-shift window", 0, 720),
-  post_shift_window_minutes: wholeNumber("Post-shift window", 0, 720),
-  punch_dedupe_minutes: wholeNumber("Punch dedupe", 0, 60),
+  pre_shift_window_minutes: wholeNumber(t, t("preShiftWindow"), 0, 720),
+  post_shift_window_minutes: wholeNumber(t, t("postShiftWindow"), 0, 720),
+  punch_dedupe_minutes: wholeNumber(t, t("punchDedupe"), 0, 60),
   cross_midnight_shift_date: z.enum(["end_day", "start_day"]),
-  unresolved_retry_days: wholeNumber("Unresolved retry days", 1, 90),
+  unresolved_retry_days: wholeNumber(t, t("unresolvedRetryDays"), 1, 90),
   workSchedules: z
     .array(
       z.object({
@@ -54,7 +60,7 @@ const companySchema = z.object({
     .optional(),
 });
 
-export type CompanyFormValues = z.infer<typeof companySchema>;
+export type CompanyFormValues = z.infer<ReturnType<typeof buildCompanySchema>>;
 
 // -------------------------
 // MAPPER API <-> FORM
@@ -221,6 +227,9 @@ export function useCompanyForm() {
       branchDetail?.data?.settings?.timezone ||
       DEFAULT_INDONESIA_TIMEZONE,
   );
+
+  const t = useTranslations("settings");
+  const companySchema = useMemo(() => buildCompanySchema(t), [t]);
 
   const form = useForm<CompanyFormValues>({
     resolver: zodResolver(companySchema),

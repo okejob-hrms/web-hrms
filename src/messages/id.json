@@ -1406,6 +1406,8 @@
     "crossMidnightStartDay": "Hari mulai",
     "crossMidnightSelect": "Pilih mode",
     "unresolvedRetryDays": "Hari coba ulang punch belum terselesaikan",
+    "mustBeWholeNumber": "{label} harus berupa bilangan bulat",
+    "mustBeBetween": "{label} harus antara {min} dan {max}",
     "absentAfter": "Absen Setelah",
     "selectShift": "Pilih shift",
     "selectTime": "Pilih waktu",
@@ -1651,7 +1653,8 @@
       "reresolveDone": "Resolusi ulang punch selesai",
       "saveFailed": "Gagal menyimpan perubahan roster",
       "lastChangedBy": "Terakhir diubah oleh {name} {at}",
-      "off": "Libur"
+      "off": "Libur",
+      "loading": "Memuat roster…"
     },
     "unresolvedPunches": {
       "title": "Punch Belum Teratribusi",
@@ -1947,6 +1950,7 @@
       "subtitle": "Atur shift untuk {count} bawahan langsung Anda.",
       "noTeam": "Anda tidak memiliki bawahan langsung, jadi tidak ada roster tim untuk dikelola.",
       "loading": "Memuat roster tim…",
+      "noMembers": "Tidak ada anggota tim untuk ditampilkan.",
       "loadFailed": "Gagal memuat roster tim.",
       "month": "Bulan",
       "bulkAssign": "Atur massal",

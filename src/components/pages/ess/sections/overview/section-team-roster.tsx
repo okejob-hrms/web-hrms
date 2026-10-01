@@ -114,6 +114,8 @@ export const SectionTeamRoster = () => {
         ) : null}
         <RosterGrid
           calendar={roster}
+          isLoading={rosterQuery.isLoading}
+          emptyLabel={t('noMembers')}
           isCellEditable={(date) =>
             editableFrom !== null && !dayjs(date).isBefore(dayjs(editableFrom), 'day')
           }

@@ -147,6 +147,7 @@ export default function SettingsUnresolvedPunches() {
               })) ?? []),
             ]}
             value={branchId}
+            placeholder={t('allBranches')}
             onValueChange={(v) => {
               setBranchId(String(v ?? ''));
               setPage(1);
@@ -163,6 +164,7 @@ export default function SettingsUnresolvedPunches() {
               { value: 'ambiguous', label: t('reasonAmbiguous') },
             ]}
             value={reason}
+            placeholder={t('allReasons')}
             onValueChange={(v) => {
               setReason(String(v ?? ''));
               setPage(1);
@@ -172,6 +174,7 @@ export default function SettingsUnresolvedPunches() {
         <BasicDatePicker
           label={t('from')}
           value={strToDate(from)}
+          disabled={to ? { after: strToDate(to)! } : undefined}
           onSelect={(d) => {
             setFrom(dateToStr(d));
             setPage(1);
@@ -180,6 +183,7 @@ export default function SettingsUnresolvedPunches() {
         <BasicDatePicker
           label={t('to')}
           value={strToDate(to)}
+          disabled={from ? { before: strToDate(from)! } : undefined}
           onSelect={(d) => {
             setTo(dateToStr(d));
             setPage(1);

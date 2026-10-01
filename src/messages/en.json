@@ -1406,6 +1406,8 @@
     "crossMidnightStartDay": "Start day",
     "crossMidnightSelect": "Select mode",
     "unresolvedRetryDays": "Unresolved punch retry days",
+    "mustBeWholeNumber": "{label} must be a whole number",
+    "mustBeBetween": "{label} must be between {min} and {max}",
     "absentAfter": "Absent After",
     "selectShift": "Select shift",
     "selectTime": "Select time",
@@ -1651,7 +1653,8 @@
       "reresolveDone": "Punch re-resolve completed",
       "saveFailed": "Could not save roster changes",
       "lastChangedBy": "Last changed by {name} {at}",
-      "off": "Off"
+      "off": "Off",
+      "loading": "Loading roster…"
     },
     "unresolvedPunches": {
       "title": "Unresolved Punches",
@@ -1947,6 +1950,7 @@
       "subtitle": "Plan shifts for your {count, plural, one {# direct report} other {# direct reports}}.",
       "noTeam": "You have no direct reports, so there is no team roster to manage.",
       "loading": "Loading team roster…",
+      "noMembers": "No team members to show.",
       "loadFailed": "Could not load the team roster.",
       "month": "Month",
       "bulkAssign": "Bulk assign",
