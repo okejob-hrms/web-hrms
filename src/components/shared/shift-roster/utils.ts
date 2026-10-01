@@ -40,6 +40,16 @@ export function isAssignmentActive(effectiveTo: string | null | undefined): bool
   return !dayjs(String(effectiveTo).slice(0, 10)).isBefore(dayjs(), 'day');
 }
 
+/** Monday of the week containing `date` (rosters run Monday–Sunday). */
+export function weekStartOf(date: dayjs.ConfigType = undefined): string {
+  const d = dayjs(date);
+  return d.subtract((d.day() + 6) % 7, 'day').format('YYYY-MM-DD');
+}
+
+export function shiftWeek(weekStart: string, weeks: number): string {
+  return dayjs(weekStart).add(weeks * 7, 'day').format('YYYY-MM-DD');
+}
+
 export type SelectOption = { value: string; label: string };
 
 export type ShiftOption = { id: number; name: string };

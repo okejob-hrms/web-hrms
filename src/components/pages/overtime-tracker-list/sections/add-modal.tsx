@@ -16,6 +16,7 @@ import { RequestOvertime } from '@/services/overtime/types';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useTranslations } from 'next-intl';
+import { OvertimeDurationHint, overtimeMinutes } from './overtime-duration-hint';
 
 interface Props {
   onUpdate: (e?: React.FormEvent) => void;
@@ -100,6 +101,9 @@ export default function OvertimeAddModal({
               />
             </div>
             <div className="col-span-3">
+              <OvertimeDurationHint start={formData.start_time} end={formData.end_time} />
+            </div>
+            <div className="col-span-3">
               <div className="text-sm text-gray-500">{tCommon('notes')}</div>
               <Textarea
                 rows={5}
@@ -122,6 +126,7 @@ export default function OvertimeAddModal({
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleUpdate}
+              disabled={overtimeMinutes(formData.start_time, formData.end_time) === null}
               className="flex-1 bg-primary text-white rounded-md py-2 font-medium"
             >
               {tCommon('save')}

@@ -2,70 +2,65 @@
 
 import * as React from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import dayjs from 'dayjs';
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { RosterBulkDialog } from '@/components/shared/shift-roster/roster-bulk-dialog';
+import { getErrorMessage } from '@/components/shared/shift-roster/utils';
+import { WeekPicker } from '@/components/shared/shift-roster/week-picker';
+import { WeekRosterEditor } from '@/components/shared/shift-roster/week-roster-editor';
+import type { RosterOverrideTarget } from '@/components/shared/shift-roster/roster-override-dialog';
+import type { RosterOverridePayload } from '@/services/shift-roster';
 import {
-  RosterCellDialog,
-  type RosterCellTarget,
-} from '@/components/shared/shift-roster/roster-cell-dialog';
-import { RosterGrid } from '@/components/shared/shift-roster/roster-grid';
-import { getErrorMessage, toShiftOptions } from '@/components/shared/shift-roster/utils';
-import {
-  bulkAssignTeamRoster,
-  getTeamRoster,
   getTeamRosterMeta,
-  setTeamRosterCell,
+  getTeamRosterWeek,
+  publishTeamRosterWeek,
+  setTeamRosterMember,
+  setTeamRosterMemberDay,
+  setTeamRosterTeam,
 } from '@/services/ess/team-roster';
 
 export const SectionTeamRoster = () => {
   const t = useTranslations('ess.teamRoster');
+  const tWeek = useTranslations('rosterWeek');
   const qc = useQueryClient();
-  const [month, setMonth] = React.useState(dayjs().format('YYYY-MM'));
-  const [cellTarget, setCellTarget] = React.useState<RosterCellTarget | null>(null);
-  const [bulkOpen, setBulkOpen] = React.useState(false);
+  const [weekStart, setWeekStart] = React.useState<string | null>(null);
 
   const metaQuery = useQuery({
     queryKey: ['team-roster-meta'],
     queryFn: async () => (await getTeamRosterMeta()).data,
   });
-  const hasTeam = Boolean(metaQuery.data?.has_team);
+  const meta = metaQuery.data;
+  const isOwner = meta?.role === 'owner';
 
-  const rosterQuery = useQuery({
-    queryKey: ['team-roster', month],
-    queryFn: async () => (await getTeamRoster(month)).data,
-    enabled: hasTeam,
+  React.useEffect(() => {
+    if (meta && weekStart === null) {
+      // Owners plan ahead; team leads mostly check the current week.
+      setWeekStart(isOwner ? meta.next_week_start : meta.current_week_start);
+    }
+  }, [meta, isOwner, weekStart]);
+
+  const weekQuery = useQuery({
+    queryKey: ['team-roster-week', weekStart],
+    queryFn: async () => (await getTeamRosterWeek(weekStart!)).data,
+    enabled: Boolean(meta?.has_team && weekStart),
   });
 
-  const roster = rosterQuery.data;
-  const editableFrom = roster?.editable_from ?? null;
-  const shiftOptions = toShiftOptions(roster?.shifts);
   const onError = async (e: unknown) => toast.error(await getErrorMessage(e, t('saveFailed')));
+  const invalidate = () => qc.invalidateQueries({ queryKey: ['team-roster-week', weekStart] });
 
-  const invalidateRoster = () => qc.invalidateQueries({ queryKey: ['team-roster'] });
-
-  const cellMutation = useMutation({
-    mutationFn: setTeamRosterCell,
+  const saveMutation = useMutation({
+    mutationFn: async (fn: () => Promise<unknown>) => fn(),
     onSuccess: () => {
-      toast.success(t('cellUpdated'));
-      setCellTarget(null);
-      invalidateRoster();
+      toast.success(tWeek('saved'));
+      invalidate();
     },
     onError,
   });
 
-  const bulkMutation = useMutation({
-    mutationFn: bulkAssignTeamRoster,
-    onSuccess: (res) => {
-      toast.success(
-        t('bulkDone', { created: res.data?.created ?? 0, conflicts: res.data?.conflicts?.length ?? 0 }),
-      );
-      setBulkOpen(false);
-      invalidateRoster();
+  const publishMutation = useMutation({
+    mutationFn: () => publishTeamRosterWeek(weekStart!),
+    onSuccess: () => {
+      toast.success(tWeek('published'));
+      invalidate();
     },
     onError,
   });
@@ -74,7 +69,7 @@ export const SectionTeamRoster = () => {
     return <div className="py-6 text-sm text-text-secondary">{t('loading')}</div>;
   }
 
-  if (!hasTeam) {
+  if (!meta?.has_team) {
     return (
       <div className="py-6">
         <div className="rounded-md border bg-white p-6 text-center shadow-sm">
@@ -85,69 +80,41 @@ export const SectionTeamRoster = () => {
     );
   }
 
+  const onOverride = (target: RosterOverrideTarget, payload: RosterOverridePayload) =>
+    saveMutation.mutateAsync(() =>
+      target.date
+        ? setTeamRosterMemberDay(weekStart!, target.employeeId, target.date, payload)
+        : setTeamRosterMember(weekStart!, target.employeeId, payload),
+    );
+
   return (
     <div className="flex flex-col gap-4 py-6">
       <div className="flex flex-col gap-4 rounded-md border bg-white p-6 shadow-sm">
         <div>
           <h2 className="text-xl font-semibold">{t('title')}</h2>
           <p className="text-sm text-text-secondary">
-            {t('subtitle', { count: metaQuery.data?.team_size ?? 0 })}
+            {isOwner ? t('subtitleOwner', { count: meta.teams_count }) : t('subtitleLead')}
           </p>
         </div>
 
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div className="space-y-2 sm:w-60">
-            <Label>{t('month')}</Label>
-            <Input type="month" value={month} onChange={(e) => setMonth(e.target.value)} />
-          </div>
-          <Button disabled={!editableFrom} onClick={() => setBulkOpen(true)}>
-            {t('bulkAssign')}
-          </Button>
-        </div>
-        {editableFrom ? (
-          <p className="text-xs text-text-secondary">{t('pastLocked', { date: editableFrom })}</p>
-        ) : null}
-        {rosterQuery.isError ? (
-          <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">
-            {t('loadFailed')}
-          </div>
-        ) : null}
-        <RosterGrid
-          calendar={roster}
-          isLoading={rosterQuery.isLoading}
-          emptyLabel={t('noMembers')}
-          isCellEditable={(date) =>
-            editableFrom !== null && !dayjs(date).isBefore(dayjs(editableFrom), 'day')
+        {weekStart ? <WeekPicker weekStart={weekStart} onChange={setWeekStart} /> : null}
+        {isOwner ? <p className="text-xs text-text-secondary">{t('pastLocked')}</p> : null}
+
+        <WeekRosterEditor
+          view={weekQuery.data}
+          isLoading={weekQuery.isLoading}
+          isError={weekQuery.isError}
+          canEdit={isOwner}
+          isSaving={saveMutation.isPending}
+          isPublishing={publishMutation.isPending}
+          emptyLabel={isOwner ? undefined : t('notPublished')}
+          onSetTeam={(koordinatorId, shiftId) =>
+            saveMutation.mutateAsync(() => setTeamRosterTeam(weekStart!, koordinatorId, shiftId))
           }
-          onCellClick={(employee, date, cells) =>
-            setCellTarget({
-              employeeId: employee.id,
-              employeeName: employee.name ?? String(employee.id),
-              date,
-              cells,
-            })
-          }
+          onOverride={onOverride}
+          onPublish={() => publishMutation.mutateAsync()}
         />
       </div>
-
-      <RosterCellDialog
-        target={cellTarget}
-        shiftOptions={shiftOptions}
-        isPending={cellMutation.isPending}
-        onClose={() => setCellTarget(null)}
-        onSubmit={(payload) => cellMutation.mutate(payload)}
-      />
-
-      <RosterBulkDialog
-        open={bulkOpen}
-        onOpenChange={setBulkOpen}
-        employees={roster?.employees ?? []}
-        shiftOptions={shiftOptions}
-        isPending={bulkMutation.isPending}
-        month={month}
-        minDate={editableFrom ?? undefined}
-        onSubmit={(payload) => bulkMutation.mutate(payload)}
-      />
     </div>
   );
 };

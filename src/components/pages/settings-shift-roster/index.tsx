@@ -5,183 +5,234 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { SearchableSelect } from '@/components/ui/combobox';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Can } from '@/components/auth/can';
-import { RosterBulkDialog } from '@/components/shared/shift-roster/roster-bulk-dialog';
 import {
-  RosterCellDialog,
-  type RosterCellTarget,
-} from '@/components/shared/shift-roster/roster-cell-dialog';
-import { RosterGrid } from '@/components/shared/shift-roster/roster-grid';
-import { getErrorMessage, toShiftOptions } from '@/components/shared/shift-roster/utils';
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { getErrorMessage, weekStartOf } from '@/components/shared/shift-roster/utils';
+import { WeekPicker } from '@/components/shared/shift-roster/week-picker';
+import { WeekRosterEditor } from '@/components/shared/shift-roster/week-roster-editor';
+import type { RosterOverrideTarget } from '@/components/shared/shift-roster/roster-override-dialog';
 import { usePermissionStore } from '@/hooks/use-permission-store';
-import { getBranches, getShift } from '@/services/settings';
 import {
-  bulkAssignRoster,
-  getRosterCalendar,
+  getOwnerRosterWeek,
+  getOwnerlessTeamRosterWeek,
+  getRosterWeek,
+  getRosterWeekIndex,
+  publishRosterWeek,
   reresolveRoster,
-  setRosterCell,
+  setRosterWeekMember,
+  setRosterWeekMemberDay,
+  setRosterWeekTeam,
+  type RosterOverridePayload,
+  type RosterWeekStatus,
 } from '@/services/shift-roster';
+
+type Selection = { kind: 'owner' | 'team'; id: number; weekId: number | null };
 
 export default function SettingsShiftRoster() {
   const t = useTranslations('settings.shiftRoster');
+  const tWeek = useTranslations('rosterWeek');
   const canEdit = usePermissionStore((s) => s.can('time_attendance.attendance_configuration.edit'));
   const qc = useQueryClient();
 
-  const [branchId, setBranchId] = React.useState<string>('');
-  const [month, setMonth] = React.useState(dayjs().format('YYYY-MM'));
-  const [cellTarget, setCellTarget] = React.useState<RosterCellTarget | null>(null);
-  const [bulkOpen, setBulkOpen] = React.useState(false);
+  const [weekStart, setWeekStart] = React.useState(() => weekStartOf());
+  const [selection, setSelection] = React.useState<Selection | null>(null);
 
-  const branchesQuery = useQuery({
-    queryKey: ['branches', 'roster'],
+  const indexQuery = useQuery({
+    queryKey: ['roster-week-index', weekStart],
+    queryFn: async () => (await getRosterWeekIndex(weekStart)).data,
+  });
+
+  // Opening a week by owner/team creates its draft, so view-only users can only open weeks that exist.
+  const weekQuery = useQuery({
+    queryKey: ['roster-week', weekStart, selection?.kind, selection?.id, canEdit],
     queryFn: async () => {
-      const res = await getBranches();
-      return res.data ?? [];
+      if (!selection) return undefined;
+      if (canEdit) {
+        return selection.kind === 'owner'
+          ? (await getOwnerRosterWeek(weekStart, selection.id)).data
+          : (await getOwnerlessTeamRosterWeek(weekStart, selection.id)).data;
+      }
+      return selection.weekId ? (await getRosterWeek(selection.weekId)).data : undefined;
     },
+    enabled: Boolean(selection && (canEdit || selection.weekId)),
   });
 
-  React.useEffect(() => {
-    if (!branchId && branchesQuery.data?.length) {
-      setBranchId(String(branchesQuery.data[0].id));
-    }
-  }, [branchId, branchesQuery.data]);
+  const weekId = weekQuery.data?.week?.id;
+  const onError = async (e: unknown) => toast.error(await getErrorMessage(e, t('saveFailed')));
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: ['roster-week', weekStart] });
+    qc.invalidateQueries({ queryKey: ['roster-week-index', weekStart] });
+  };
 
-  const shiftsQuery = useQuery({
-    queryKey: ['shifts'],
-    queryFn: async () => (await getShift()).data ?? [],
-  });
-
-  const calendarQuery = useQuery({
-    queryKey: ['shift-roster', branchId, month],
-    queryFn: async () => (await getRosterCalendar(Number(branchId), month)).data,
-    enabled: Boolean(branchId),
-  });
-
-  const invalidate = () => qc.invalidateQueries({ queryKey: ['shift-roster'] });
-
-  const setCellMutation = useMutation({
-    mutationFn: setRosterCell,
+  const saveMutation = useMutation({
+    mutationFn: async (fn: () => Promise<unknown>) => fn(),
     onSuccess: () => {
-      toast.success(t('cellUpdated'));
-      setCellTarget(null);
+      toast.success(tWeek('saved'));
       invalidate();
     },
-    onError: async (e) => toast.error(await getErrorMessage(e, t('saveFailed'))),
+    onError,
   });
 
-  const bulkMutation = useMutation({
-    mutationFn: bulkAssignRoster,
-    onSuccess: (res) => {
-      const conflicts = res.data?.conflicts?.length ?? 0;
-      toast.success(t('bulkDone', { created: res.data?.created ?? 0, conflicts }));
-      setBulkOpen(false);
+  const publishMutation = useMutation({
+    mutationFn: () => publishRosterWeek(weekId!),
+    onSuccess: () => {
+      toast.success(tWeek('published'));
       invalidate();
     },
-    onError: async (e) => toast.error(await getErrorMessage(e, t('saveFailed'))),
+    onError,
   });
 
   const reresolveMutation = useMutation({
     mutationFn: reresolveRoster,
     onSuccess: () => toast.success(t('reresolveDone')),
-    onError: async (e) => toast.error(await getErrorMessage(e, t('saveFailed'))),
+    onError,
   });
 
-  const branchOptions =
-    branchesQuery.data?.map((b) => ({
-      value: String(b.id),
-      label: b.name,
-    })) ?? [];
+  const changeWeek = (next: string) => {
+    setWeekStart(next);
+    setSelection(null);
+  };
 
-  const shiftOptions = toShiftOptions(shiftsQuery.data as Array<{ id: number; name: string }> | undefined);
-  const calendar = calendarQuery.data;
+  const statusBadge = (status: RosterWeekStatus | null) => (
+    <Badge variant={status === 'published' ? 'default' : status === 'draft' ? 'secondary' : 'outline'}>
+      {status === 'published' ? tWeek('statusPublished') : status === 'draft' ? tWeek('statusDraft') : t('notStarted')}
+    </Badge>
+  );
+
+  const openButton = (next: Selection) => {
+    const active = selection?.kind === next.kind && selection.id === next.id;
+    const disabled = !canEdit && !next.weekId;
+    return (
+      <Button size="sm" variant={active ? 'default' : 'outline'} disabled={disabled} onClick={() => setSelection(next)}>
+        {canEdit ? t('open') : t('view')}
+      </Button>
+    );
+  };
+
+  const index = indexQuery.data;
+  const weekEnd = dayjs(weekStart).add(6, 'day').format('YYYY-MM-DD');
 
   return (
     <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="font-semibold text-xl">{t('title')}</h2>
-          <p className="text-sm text-text-secondary">{t('subtitle')}</p>
-        </div>
-        <Can permission="time_attendance.attendance_configuration.edit">
-          <Button onClick={() => setBulkOpen(true)}>{t('bulkAssign')}</Button>
-        </Can>
+      <div>
+        <h2 className="font-semibold text-xl">{t('title')}</h2>
+        <p className="text-sm text-text-secondary">{t('subtitle')}</p>
       </div>
 
-      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
-        <div className="space-y-2">
-          <Label>{t('branch')}</Label>
-          <SearchableSelect
-            options={branchOptions}
-            value={branchId}
-            onValueChange={(v) => setBranchId(String(v ?? ''))}
-            placeholder={t('selectBranch')}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label>{t('month')}</Label>
-          <Input type="month" value={month} onChange={(e) => setMonth(e.target.value)} />
-        </div>
-      </div>
+      <WeekPicker weekStart={weekStart} onChange={changeWeek} />
 
-      {calendarQuery.isError ? (
+      {indexQuery.isError ? (
         <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">
           {t('loadFailed')}
         </div>
       ) : null}
 
-      <RosterGrid
-        calendar={calendar}
-        isLoading={calendarQuery.isLoading}
-        isCellEditable={() => canEdit}
-        onCellClick={(employee, date, cells) =>
-          setCellTarget({
-            employeeId: employee.id,
-            employeeName: employee.name ?? String(employee.id),
-            date,
-            cells,
-          })
-        }
-        renderActions={(employee) => (
-          <Can permission="time_attendance.attendance_configuration.edit">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={reresolveMutation.isPending}
-              onClick={() =>
-                reresolveMutation.mutate({
-                  employee_id: employee.id,
-                  from: dayjs(month).startOf('month').format('YYYY-MM-DD'),
-                  to: dayjs(month).endOf('month').format('YYYY-MM-DD'),
-                })
-              }
-            >
-              {t('reresolve')}
-            </Button>
-          </Can>
-        )}
-      />
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>{t('owner')}</TableHead>
+              <TableHead>{t('teams')}</TableHead>
+              <TableHead>{t('status')}</TableHead>
+              <TableHead className="text-right">{t('actions')}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {indexQuery.isLoading ? (
+              <TableRow>
+                <TableCell colSpan={4} className="text-center text-text-secondary">{tWeek('loading')}</TableCell>
+              </TableRow>
+            ) : null}
+            {index?.owners.map((owner) => (
+              <TableRow key={`o-${owner.owner_employee_id}`}>
+                <TableCell className="font-medium">{owner.owner_name ?? '—'}</TableCell>
+                <TableCell className="text-sm">
+                  {owner.teams.map((team) => `${team.koordinator_name ?? '—'} (${team.members_count})`).join(', ')}
+                </TableCell>
+                <TableCell>{statusBadge(owner.status)}</TableCell>
+                <TableCell className="text-right">
+                  {openButton({ kind: 'owner', id: owner.owner_employee_id, weekId: owner.week_id })}
+                </TableCell>
+              </TableRow>
+            ))}
+            {index?.teams_without_owner.map((team) => (
+              <TableRow key={`t-${team.koordinator_employee_id}`}>
+                <TableCell>
+                  <div className="font-medium">{t('noOwner')}</div>
+                  <div className="text-xs text-text-secondary">
+                    {tWeek.has(`ownerStatus.${team.owner_status}`)
+                      ? tWeek(`ownerStatus.${team.owner_status}`)
+                      : team.owner_status}
+                    {team.supervisor_name ? ` · ${team.supervisor_name}` : ''}
+                  </div>
+                </TableCell>
+                <TableCell className="text-sm">
+                  {team.koordinator_name ?? '—'} ({team.members_count})
+                </TableCell>
+                <TableCell>{statusBadge(team.status)}</TableCell>
+                <TableCell className="text-right">
+                  {openButton({ kind: 'team', id: team.koordinator_employee_id, weekId: team.week_id })}
+                </TableCell>
+              </TableRow>
+            ))}
+            {index && !index.owners.length && !index.teams_without_owner.length ? (
+              <TableRow>
+                <TableCell colSpan={4} className="text-center text-text-secondary">{t('noTeams')}</TableCell>
+              </TableRow>
+            ) : null}
+          </TableBody>
+        </Table>
+      </div>
 
-      <RosterCellDialog
-        target={cellTarget}
-        shiftOptions={shiftOptions}
-        isPending={setCellMutation.isPending}
-        onClose={() => setCellTarget(null)}
-        onSubmit={(payload) => setCellMutation.mutate(payload)}
-      />
-
-      <RosterBulkDialog
-        open={bulkOpen}
-        onOpenChange={setBulkOpen}
-        employees={calendar?.employees ?? []}
-        shiftOptions={shiftOptions}
-        isPending={bulkMutation.isPending}
-        month={month}
-        onSubmit={(payload) => bulkMutation.mutate(payload)}
-      />
+      {selection ? (
+        <WeekRosterEditor
+          view={weekQuery.data}
+          isLoading={weekQuery.isLoading}
+          isError={weekQuery.isError}
+          canEdit={canEdit}
+          isSaving={saveMutation.isPending}
+          isPublishing={publishMutation.isPending}
+          onSetTeam={(koordinatorId, shiftId) =>
+            saveMutation.mutateAsync(() => setRosterWeekTeam(weekId!, koordinatorId, shiftId))
+          }
+          onOverride={(target: RosterOverrideTarget, payload: RosterOverridePayload) =>
+            saveMutation.mutateAsync(() =>
+              target.date
+                ? setRosterWeekMemberDay(weekId!, target.employeeId, target.date, payload)
+                : setRosterWeekMember(weekId!, target.employeeId, payload),
+            )
+          }
+          onPublish={() => publishMutation.mutateAsync()}
+          renderMemberActions={
+            canEdit
+              ? (member) =>
+                  member.rostered ? (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      disabled={reresolveMutation.isPending}
+                      title={t('reresolveHint')}
+                      onClick={() =>
+                        reresolveMutation.mutate({ employee_id: member.employee_id, from: weekStart, to: weekEnd })
+                      }
+                    >
+                      {t('reresolve')}
+                    </Button>
+                  ) : null
+              : undefined
+          }
+        />
+      ) : (
+        <p className="text-sm text-text-secondary">{t('pickRoster')}</p>
+      )}
     </div>
   );
 }

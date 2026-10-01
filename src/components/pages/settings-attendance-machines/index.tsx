@@ -37,8 +37,8 @@ import {
   useIclockDevices,
   useIclockHealth,
   useIclockLogs,
-  useIclockUnmatched,
 } from './hook';
+import { UnknownPinsTab } from './unknown-pins-tab';
 import type {
   IclockBackfillResult,
   IclockReconcileReport,
@@ -114,7 +114,6 @@ export default function SettingsAttendanceMachines() {
   const [activeTab, setActiveTab] = React.useState('overview');
   const healthQuery = useIclockHealth(true);
   const devicesQuery = useIclockDevices(activeTab === 'machines' || activeTab === 'repair');
-  const unmatchedQuery = useIclockUnmatched(activeTab === 'unmatched');
   const actions = useIclockActions();
 
   const statusLabel = (status: number): string => {
@@ -520,47 +519,7 @@ export default function SettingsAttendanceMachines() {
         </TabsContent>
 
         <TabsContent value="unmatched" className="space-y-4">
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t('pin')}</TableHead>
-                  <TableHead>{t('punches')}</TableHead>
-                  <TableHead>{t('first')}</TableHead>
-                  <TableHead>{t('last')}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {unmatchedQuery.isError ? (
-                  <TableRow>
-                    <TableCell colSpan={4} className="text-destructive text-center">
-                      {t('failedLoadUnmatched', {
-                        message: unmatchedQuery.error?.message || t('tryAgain'),
-                      })}
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  (unmatchedQuery.data ?? []).map((row) => (
-                    <TableRow key={row.iclock_employee_code}>
-                      <TableCell className="font-medium">{row.iclock_employee_code}</TableCell>
-                      <TableCell>{row.punch_count}</TableCell>
-                      <TableCell>{formatDt(row.first_punched_at)}</TableCell>
-                      <TableCell>{formatDt(row.last_punched_at)}</TableCell>
-                    </TableRow>
-                  ))
-                )}
-                {!unmatchedQuery.isLoading &&
-                !unmatchedQuery.isError &&
-                (unmatchedQuery.data?.length ?? 0) === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={4} className="text-muted-foreground text-center">
-                      {t('noUnmatchedPins')}
-                    </TableCell>
-                  </TableRow>
-                ) : null}
-              </TableBody>
-            </Table>
-          </div>
+          <UnknownPinsTab enabled={activeTab === 'unmatched'} canEdit={canEdit} />
         </TabsContent>
 
         <TabsContent value="repair" className="space-y-6">

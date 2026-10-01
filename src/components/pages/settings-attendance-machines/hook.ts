@@ -10,7 +10,6 @@ import {
   getIclockDevices,
   getIclockHealth,
   getIclockLogs,
-  getIclockUnmatched,
   reconcileIclock,
   reprocessIclock,
   syncIclockDevices,
@@ -72,14 +71,6 @@ export function useIclockLogs(
   return useQuery({
     queryKey: ['iclock', 'logs', params],
     queryFn: async () => (await getIclockLogs(params)).data,
-    enabled,
-  });
-}
-
-export function useIclockUnmatched(enabled = true) {
-  return useQuery({
-    queryKey: ['iclock', 'unmatched'],
-    queryFn: async () => (await getIclockUnmatched()).data ?? [],
     enabled,
   });
 }

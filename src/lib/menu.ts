@@ -193,6 +193,11 @@ export const menus: Record<string, MenuItem[]> = {
           value: 'settings/time-attendance/unresolved-punches',
           permission: 'time_attendance.attendance_records.approval',
         },
+        {
+          key: 'rosterSetup',
+          value: 'settings/time-attendance/roster-setup',
+          permission: 'time_attendance.attendance_configuration.view',
+        },
       ],
     },
     {
@@ -304,6 +309,7 @@ const BREADCRUMB_SEGMENT_KEYS: Record<string, string> = {
   'attendance-machines': 'attendanceMachines',
   'shift-roster': 'shiftRoster',
   'unresolved-punches': 'unresolvedPunches',
+  'roster-setup': 'rosterSetup',
   'leave-management': 'leaveManagement',
   'form-template': 'formTemplate',
   'salary-management': 'salaryManagement',

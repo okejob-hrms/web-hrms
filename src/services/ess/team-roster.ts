@@ -1,42 +1,48 @@
 import { apiEmployee } from '@/lib/api';
 import type { ApiResponse } from '@/lib/types';
-import type { RosterCalendar } from '@/services/shift-roster';
+import type {
+  RosterEditResult,
+  RosterOverridePayload,
+  RosterWeekView,
+} from '@/services/shift-roster';
+
+export type TeamRosterRole = 'owner' | 'team_lead' | 'none';
 
 export type TeamRosterMeta = {
+  role: TeamRosterRole;
   has_team: boolean;
-  team_size: number;
-  supervisor_employee_id: number | null;
+  teams_count: number;
+  current_week_start: string;
+  next_week_start: string;
 };
 
-export type TeamRosterCalendar = RosterCalendar & {
-  editable_from: string;
-  shifts: Array<{ id: number; name: string }>;
-};
+const base = 'ess/team-roster';
 
 export const getTeamRosterMeta = async () =>
-  apiEmployee.get('ess/team-roster/meta').json<ApiResponse<TeamRosterMeta>>();
+  apiEmployee.get(`${base}/meta`).json<ApiResponse<TeamRosterMeta>>();
 
-export const getTeamRoster = async (month: string) =>
+export const getTeamRosterWeek = async (weekStart: string) =>
+  apiEmployee.get(`${base}/weeks/${weekStart}`).json<ApiResponse<RosterWeekView>>();
+
+export const setTeamRosterTeam = async (weekStart: string, koordinatorId: number, shiftId: number | null) =>
   apiEmployee
-    .get('ess/team-roster', { searchParams: { month } })
-    .json<ApiResponse<TeamRosterCalendar>>();
+    .put(`${base}/weeks/${weekStart}/teams/${koordinatorId}`, { json: { shift_id: shiftId } })
+    .json<ApiResponse<RosterEditResult>>();
 
-export const setTeamRosterCell = async (payload: {
-  employee_id: number;
-  date: string;
-  shift_id?: number | null;
-  is_day_off?: boolean;
-  clear?: boolean;
-}) => apiEmployee.post('ess/team-roster/cell', { json: payload }).json<ApiResponse<null>>();
-
-export const bulkAssignTeamRoster = async (payload: {
-  employee_ids: number[];
-  from: string;
-  to: string;
-  shift_id?: number | null;
-  is_day_off?: boolean;
-  on_conflict?: 'skip' | 'overwrite';
-}) =>
+export const setTeamRosterMember = async (weekStart: string, employeeId: number, payload: RosterOverridePayload) =>
   apiEmployee
-    .post('ess/team-roster/bulk', { json: payload })
-    .json<ApiResponse<{ created: number; conflicts: Array<Record<string, unknown>> }>>();
+    .put(`${base}/weeks/${weekStart}/members/${employeeId}`, { json: payload })
+    .json<ApiResponse<RosterEditResult>>();
+
+export const setTeamRosterMemberDay = async (
+  weekStart: string,
+  employeeId: number,
+  date: string,
+  payload: RosterOverridePayload,
+) =>
+  apiEmployee
+    .put(`${base}/weeks/${weekStart}/members/${employeeId}/days/${date}`, { json: payload })
+    .json<ApiResponse<RosterEditResult>>();
+
+export const publishTeamRosterWeek = async (weekStart: string) =>
+  apiEmployee.post(`${base}/weeks/${weekStart}/publish`).json<ApiResponse<RosterEditResult>>();
