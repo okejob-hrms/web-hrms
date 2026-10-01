@@ -63,7 +63,11 @@ export function UnknownPinsTab({ enabled, canEdit }: { enabled: boolean; canEdit
   const onError = async (e: unknown) => toast.error(await getErrorMessage(e, t('tryAgain')));
 
   const ignoreMutation = useMutation({
-    mutationFn: () => ignoreIclockPins({ pins: selected, note: note.trim() || undefined }),
+    mutationFn: () =>
+      ignoreIclockPins({
+        pins: selected.filter((pin) => (unmatchedQuery.data ?? []).some((row) => row.pin === pin)),
+        note: note.trim() || undefined,
+      }),
     onSuccess: (res) => {
       toast.success(t('pinsIgnored', { count: res.data?.added ?? 0, logs: res.data?.logs_ignored ?? 0 }));
       setSelected([]);
@@ -85,7 +89,8 @@ export function UnknownPinsTab({ enabled, canEdit }: { enabled: boolean; canEdit
   });
 
   const rows = unmatchedQuery.data ?? [];
-  const allSelected = rows.length > 0 && selected.length === rows.length;
+  const visibleSelected = selected.filter((pin) => rows.some((row) => row.pin === pin));
+  const allSelected = rows.length > 0 && visibleSelected.length === rows.length;
   const toggle = (pin: string, on: boolean) =>
     setSelected((s) => (on ? Array.from(new Set([...s, pin])) : s.filter((p) => p !== pin)));
 
@@ -98,8 +103,8 @@ export function UnknownPinsTab({ enabled, canEdit }: { enabled: boolean; canEdit
             <p className="text-sm text-muted-foreground">{t('unknownPinsHint')}</p>
           </div>
           {canEdit ? (
-            <Button disabled={!selected.length} onClick={() => setIgnoreOpen(true)}>
-              {t('markPartTimer', { count: selected.length })}
+            <Button disabled={!visibleSelected.length} onClick={() => setIgnoreOpen(true)}>
+              {t('markPartTimer', { count: visibleSelected.length })}
             </Button>
           ) : null}
         </div>
@@ -212,7 +217,7 @@ export function UnknownPinsTab({ enabled, canEdit }: { enabled: boolean; canEdit
         <DialogContent className="max-w-md bg-white">
           <DialogHeader>
             <DialogTitle>{t('markPartTimerTitle')}</DialogTitle>
-            <DialogDescription>{t('markPartTimerConfirm', { pins: selected.join(', ') })}</DialogDescription>
+            <DialogDescription>{t('markPartTimerConfirm', { pins: visibleSelected.join(', ') })}</DialogDescription>
           </DialogHeader>
           <div className="space-y-2">
             <Label>{t('note')}</Label>

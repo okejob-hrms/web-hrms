@@ -69,6 +69,10 @@ export const SectionTeamRoster = () => {
     return <div className="py-6 text-sm text-text-secondary">{t('loading')}</div>;
   }
 
+  if (metaQuery.isError) {
+    return <div className="py-6 text-sm text-text-secondary">{t('loadFailed')}</div>;
+  }
+
   if (!meta?.has_team) {
     return (
       <div className="py-6">

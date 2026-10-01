@@ -27,6 +27,7 @@ import {
 } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
 import { Can } from '@/components/auth/can';
+import { todayInIndonesiaTimezone } from '@/lib/indonesia-timezone';
 import {
   dateToStr,
   getErrorMessage,
@@ -40,6 +41,27 @@ import {
   getUnresolvedPunches,
   type UnresolvedPunch,
 } from '@/services/shift-roster';
+
+/** Punch time in WIB. A zoned instant is converted; a wall-clock string is shown as sent. */
+function companyPunch(value: string): { date: string; dateTime: string } {
+  const trimmed = value.trim();
+  const naive = trimmed.match(/^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2})/);
+  const hasZone = /[zZ]|[+-]\d{2}:?\d{2}$/.test(trimmed);
+  if (naive && !hasZone) {
+    return { date: naive[1], dateTime: `${naive[1]} ${naive[2]}` };
+  }
+  const instant = new Date(trimmed);
+  if (Number.isNaN(instant.getTime())) {
+    return { date: trimmed.slice(0, 10), dateTime: trimmed };
+  }
+  const local = new Date(instant.getTime() + 7 * 3_600_000);
+  const y = local.getUTCFullYear();
+  const m = String(local.getUTCMonth() + 1).padStart(2, '0');
+  const d = String(local.getUTCDate()).padStart(2, '0');
+  const hh = String(local.getUTCHours()).padStart(2, '0');
+  const mm = String(local.getUTCMinutes()).padStart(2, '0');
+  return { date: `${y}-${m}-${d}`, dateTime: `${y}-${m}-${d} ${hh}:${mm}` };
+}
 
 function reasonBadgeVariant(
   reason: string | null | undefined,
@@ -59,7 +81,7 @@ export default function SettingsUnresolvedPunches() {
   const [to, setTo] = React.useState('');
   const [page, setPage] = React.useState(1);
   const [assignTarget, setAssignTarget] = React.useState<UnresolvedPunch | null>(null);
-  const [countedDate, setCountedDate] = React.useState(dayjs().format('YYYY-MM-DD'));
+  const [countedDate, setCountedDate] = React.useState(() => todayInIndonesiaTimezone());
   const [shiftId, setShiftId] = React.useState('');
   const [discardTarget, setDiscardTarget] = React.useState<UnresolvedPunch | null>(null);
   const [discardReason, setDiscardReason] = React.useState('');
@@ -226,7 +248,8 @@ export default function SettingsUnresolvedPunches() {
               </TableRow>
             )}
             {rows.map((row) => {
-              const daysPending = dayjs().diff(dayjs(row.punched_at), 'day');
+              const punch = companyPunch(row.punched_at);
+              const daysPending = dayjs(todayInIndonesiaTimezone()).diff(dayjs(punch.date), 'day');
               return (
                 <TableRow key={row.id}>
                   <TableCell>
@@ -236,7 +259,7 @@ export default function SettingsUnresolvedPunches() {
                     ) : null}
                   </TableCell>
                   <TableCell>{row.employee?.branch?.name ?? '—'}</TableCell>
-                  <TableCell>{dayjs(row.punched_at).format('YYYY-MM-DD HH:mm')}</TableCell>
+                  <TableCell>{punch.dateTime}</TableCell>
                   <TableCell>
                     <Badge variant={reasonBadgeVariant(row.unresolved_reason)}>
                       {reasonLabel(row.unresolved_reason)}
@@ -251,7 +274,7 @@ export default function SettingsUnresolvedPunches() {
                           variant="outline"
                           onClick={() => {
                             setAssignTarget(row);
-                            setCountedDate(dayjs(row.punched_at).format('YYYY-MM-DD'));
+                            setCountedDate(punch.date);
                             setShiftId('');
                           }}
                         >
@@ -315,7 +338,7 @@ export default function SettingsUnresolvedPunches() {
           <div className="space-y-4">
             <p className="text-sm text-text-secondary">
               {assignTarget?.employee?.user?.name} ·{' '}
-              {assignTarget ? dayjs(assignTarget.punched_at).format('YYYY-MM-DD HH:mm') : ''}
+              {assignTarget ? companyPunch(assignTarget.punched_at).dateTime : ''}
             </p>
             <BasicDatePicker
               label={t('countedDate')}
@@ -354,7 +377,7 @@ export default function SettingsUnresolvedPunches() {
           <div className="space-y-4">
             <p className="text-sm text-text-secondary">
               {discardTarget?.employee?.user?.name} ·{' '}
-              {discardTarget ? dayjs(discardTarget.punched_at).format('YYYY-MM-DD HH:mm') : ''}
+              {discardTarget ? companyPunch(discardTarget.punched_at).dateTime : ''}
             </p>
             <p className="text-sm">{t('discardConfirm')}</p>
             <div className="space-y-2">

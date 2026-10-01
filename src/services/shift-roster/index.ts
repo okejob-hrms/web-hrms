@@ -159,7 +159,7 @@ export const publishRosterWeek = async (weekId: number) =>
   api.post(`${base}/${weekId}/publish`).json<ApiResponse<RosterEditResult>>();
 
 export const reresolveRoster = async (payload: { employee_id: number; from: string; to: string }) =>
-  api.post('setting/attendance/roster/reresolve', { json: payload }).json<ApiResponse<Record<string, unknown>>>();
+  api.post('setting/attendance/roster-weeks/reresolve', { json: payload }).json<ApiResponse<Record<string, unknown>>>();
 
 export const getUnresolvedPunches = async (params: {
   branch_id?: number;

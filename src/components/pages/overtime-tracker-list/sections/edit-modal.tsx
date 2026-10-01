@@ -42,6 +42,11 @@ export default function OvertimeEditModal({
 }: Props) {
   const t = useTranslations('attendance');
   const tCommon = useTranslations('common');
+  const [timesTouched, setTimesTouched] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!isOpen) setTimesTouched(false);
+  }, [isOpen]);
   const avatarSrc = getPublicFileUrl(
     data?.employee?.avatar_url ?? data?.employee?.profile?.photo_profile,
   );
@@ -106,6 +111,7 @@ export default function OvertimeEditModal({
                 type="time"
                 value={formData.start_time}
                 onChange={(e) => {
+                  setTimesTouched(true);
                   setFormData((prev) => ({
                     ...prev,
                     start_time: e.target.value,
@@ -119,6 +125,7 @@ export default function OvertimeEditModal({
                 type="time"
                 value={formData.end_time}
                 onChange={(e) => {
+                  setTimesTouched(true);
                   setFormData((prev) => ({
                     ...prev,
                     end_time: e.target.value,
@@ -127,7 +134,11 @@ export default function OvertimeEditModal({
               />
             </div>
             <div className="col-span-3">
-              <OvertimeDurationHint start={formData.start_time} end={formData.end_time} />
+              <OvertimeDurationHint
+                start={formData.start_time}
+                end={formData.end_time}
+                showSameTimeError={timesTouched}
+              />
             </div>
             <div className="col-span-3">
               <div className="text-sm text-gray-500">{tCommon('notes')}</div>

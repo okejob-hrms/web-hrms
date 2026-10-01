@@ -50,19 +50,18 @@ export default function SettingsShiftRoster() {
     queryFn: async () => (await getRosterWeekIndex(weekStart)).data,
   });
 
-  // Opening a week by owner/team creates its draft, so view-only users can only open weeks that exist.
+  // A week that already exists is read as-is. The creating endpoint runs only from Start, when there is no week yet.
   const weekQuery = useQuery({
-    queryKey: ['roster-week', weekStart, selection?.kind, selection?.id, canEdit],
+    queryKey: ['roster-week', weekStart, selection?.kind, selection?.id, selection?.weekId, canEdit],
     queryFn: async () => {
       if (!selection) return undefined;
-      if (canEdit) {
-        return selection.kind === 'owner'
-          ? (await getOwnerRosterWeek(weekStart, selection.id)).data
-          : (await getOwnerlessTeamRosterWeek(weekStart, selection.id)).data;
-      }
-      return selection.weekId ? (await getRosterWeek(selection.weekId)).data : undefined;
+      if (selection.weekId) return (await getRosterWeek(selection.weekId)).data;
+      if (!canEdit) return undefined;
+      return selection.kind === 'owner'
+        ? (await getOwnerRosterWeek(weekStart, selection.id)).data
+        : (await getOwnerlessTeamRosterWeek(weekStart, selection.id)).data;
     },
-    enabled: Boolean(selection && (canEdit || selection.weekId)),
+    enabled: Boolean(selection && (selection.weekId || canEdit)),
   });
 
   const weekId = weekQuery.data?.week?.id;
@@ -120,7 +119,7 @@ export default function SettingsShiftRoster() {
     const disabled = !canEdit && !next.weekId;
     return (
       <Button size="sm" variant={active ? 'default' : 'outline'} disabled={disabled} onClick={() => setSelection(next)}>
-        {canEdit ? t('open') : t('view')}
+        {!canEdit ? t('view') : next.weekId ? t('open') : t('start')}
       </Button>
     );
   };

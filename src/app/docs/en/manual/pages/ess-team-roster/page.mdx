@@ -2,38 +2,31 @@
 
 ## Purpose
 
-Supervisors use this page in **Web ESS** to plan shifts for their direct reports. You can set a shift or a day off for one day, or fill a date range for several people at once.
+Roster owners use this page in **Web ESS** to plan and publish the weekly roster for their teams. Team leads open the same page to see the published week. They cannot edit it.
 
-The page is only available if you are the **primary supervisor** of at least one employee. Open it from the **Team Roster** tile in ESS quick access, or go to `/ess/team-roster`.
+Access comes from the job levels set in **Settings → Roster Setup**, not from being someone's primary supervisor on its own. Open it from the **Team Roster** tile in ESS quick access, or go to `/ess/team-roster`.
 
 ## What you can and cannot change
 
-- You can change **today and future dates** only. Past days are locked; ask HR to correct them.
-- You can only change employees who report **directly** to you (primary reporting line).
-- If HR or another supervisor changes the same day, the **last saved change wins**. Hover over a cell to see who changed it last.
+- A roster owner sets one shift for each team for the week, can change one member for the whole week, and can change one member for a single day.
+- Publishing makes that week the roster employees clock in against. An ended week is locked; ask HR to change it.
+- A team lead sees only the published week, read-only.
+- There is no monthly grid and no bulk assign on this page.
 
 ## On this page
 
-1. **Month** — Switch to another month, including future months.
-2. **Roster cell** — Monthly grid with one row per team member and one column per day. Each cell shows the shift name or **Off**. **M** means the day was set manually; **R** means it comes from a roster. Locked (past) cells are greyed out.
-3. **Bulk assign** — Set the same shift or day off for several team members over a date range.
-
-## Controls
-
-| Number | Name | What it does | Notes |
-|--------|------|--------------|-------|
-| 1 | Month | Changes the month shown. | Future months are allowed for planning. |
-| 2 | Roster cell | Click to open the edit dialog for that employee and day. | Only today and later can be edited. |
-| 3 | Bulk assign | Opens a dialog to fill a date range for selected employees. | **On conflict** chooses **Skip existing manual** or **Overwrite**. Maximum range is 62 days. |
+1. **Week** — Move to another week. Owners start on next week. Team leads start on the current week.
+2. **Team shift** — The shift the whole team works that week (Morning, Evening or Night).
+3. **Member override** — Change one person for the whole week, or for one day, including a day off.
+4. **Publish** — Owners only. Confirms and publishes the week.
 
 ## Common tasks
 
-- **Change one day** — Click the cell for the employee and date, choose **Set shift**, **Set day off**, or **Clear manual**, then click **Save**.
-- **Plan a week for several people** — Click **Bulk assign**, select employees, pick the date range and shift (or day off), then save.
+- **Plan next week** — Set each team's shift, adjust any member who should differ, then click **Publish**.
+- **Check your shift** — As a team lead, open the current week. You see the published roster only.
 
 ## Troubleshooting
 
-- **Team Roster tile is missing** — You are not recorded as the primary supervisor of anyone. Ask HR to check your reporting lines.
-- **"Supervisors can only change today or future dates."** — You picked a past date. Choose today or later, or ask HR.
-- **An employee is missing from the grid** — Only active employees who report directly to you are shown.
-- **A cell changed without you editing it** — Someone else (HR or another supervisor) saved it later. Hover over the cell to see who.
+- **Team Roster tile is missing** — Your job level is not a roster owner or team lead for this company, or you have no roster team. Ask HR to check **Roster Setup** and the reporting line.
+- **"This week has not been published."** — The owner has not published it yet. Team leads cannot open a draft.
+- **A past week will not save** — Ended weeks are locked in ESS. HR changes them under **Settings → Shift Roster**.
