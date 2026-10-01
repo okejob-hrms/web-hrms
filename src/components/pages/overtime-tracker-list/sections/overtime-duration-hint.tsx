@@ -16,7 +16,15 @@ export function overtimeMinutes(start: string, end: string): number | null {
   return e > s ? e - s : e + 1440 - s;
 }
 
-export function OvertimeDurationHint({ start, end }: { start: string; end: string }) {
+export function OvertimeDurationHint({
+  start,
+  end,
+  showSameTimeError = true,
+}: {
+  start: string;
+  end: string;
+  showSameTimeError?: boolean;
+}) {
   const t = useTranslations('attendance');
   const s = toMinutes(start);
   const e = toMinutes(end);
@@ -24,7 +32,7 @@ export function OvertimeDurationHint({ start, end }: { start: string; end: strin
 
   const minutes = overtimeMinutes(start, end);
   if (minutes === null) {
-    return <p className="text-xs text-destructive">{t('overtimeSameTime')}</p>;
+    return showSameTimeError ? <p className="text-xs text-destructive">{t('overtimeSameTime')}</p> : null;
   }
 
   return (

@@ -98,7 +98,9 @@ export const SectionTeamRoster = () => {
         </div>
 
         {weekStart ? <WeekPicker weekStart={weekStart} onChange={setWeekStart} /> : null}
-        {isOwner ? <p className="text-xs text-text-secondary">{t('pastLocked')}</p> : null}
+        {isOwner && weekQuery.data && !weekQuery.data.editable ? (
+          <p className="text-xs text-text-secondary">{t('pastLocked')}</p>
+        ) : null}
 
         <WeekRosterEditor
           view={weekQuery.data}

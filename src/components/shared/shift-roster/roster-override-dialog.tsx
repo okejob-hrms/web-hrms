@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import dayjs from 'dayjs';
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -15,7 +14,7 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import type { RosterOverride, RosterOverridePayload } from '@/services/shift-roster';
-import type { SelectOption } from './utils';
+import { useLocalDateFormat, type SelectOption } from './utils';
 
 export type RosterOverrideTarget = {
   employeeId: number;
@@ -37,6 +36,7 @@ type RosterOverrideDialogProps = {
 
 export function RosterOverrideDialog({ target, shiftOptions, isPending, onClose, onSubmit }: RosterOverrideDialogProps) {
   const t = useTranslations('rosterWeek');
+  const formatDate = useLocalDateFormat();
   const [mode, setMode] = React.useState<'shift' | 'off' | 'clear'>('shift');
   const [shiftId, setShiftId] = React.useState('');
 
@@ -66,7 +66,7 @@ export function RosterOverrideDialog({ target, shiftOptions, isPending, onClose,
         {target && (
           <div className="space-y-4">
             <p className="text-sm text-text-secondary">
-              {target.employeeName} · {target.date ? dayjs(target.date).format('ddd, DD MMM YYYY') : t('wholeWeek')}
+              {target.employeeName} · {target.date ? formatDate(target.date, 'ddd, DD MMM YYYY') : t('wholeWeek')}
             </p>
             <div className="flex flex-wrap gap-2">
               <Button variant={mode === 'shift' ? 'default' : 'outline'} size="sm" onClick={() => setMode('shift')}>

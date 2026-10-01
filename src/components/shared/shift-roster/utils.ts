@@ -1,6 +1,14 @@
 import dayjs from 'dayjs';
+import 'dayjs/locale/id';
 import { HTTPError } from 'ky';
+import { useLocale } from 'next-intl';
 import type { ApiErrorResponse } from '@/lib/types';
+
+/** Formats dates with day and month names in the UI language. */
+export function useLocalDateFormat() {
+  const locale = useLocale() === 'id' ? 'id' : 'en';
+  return (date: dayjs.ConfigType, format: string) => dayjs(date).locale(locale).format(format);
+}
 
 export async function getErrorMessage(error: unknown, fallback: string): Promise<string> {
   if (error instanceof HTTPError) {

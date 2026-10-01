@@ -29,7 +29,7 @@ import type {
   RosterWeekView,
 } from '@/services/shift-roster';
 import { RosterOverrideDialog, type RosterOverrideTarget } from './roster-override-dialog';
-import { toShiftOptions } from './utils';
+import { toShiftOptions, useLocalDateFormat } from './utils';
 
 type WeekRosterEditorProps = {
   view: RosterWeekView | undefined;
@@ -66,8 +66,20 @@ export function WeekRosterEditor({
   renderMemberActions,
 }: WeekRosterEditorProps) {
   const t = useTranslations('rosterWeek');
+  const formatDate = useLocalDateFormat();
   const [target, setTarget] = React.useState<RosterOverrideTarget | null>(null);
   const [confirmPublish, setConfirmPublish] = React.useState(false);
+  // Picked team shifts shown until the refetched week replaces them.
+  const [pendingTeamShift, setPendingTeamShift] = React.useState<Record<number, number | null>>({});
+
+  React.useEffect(() => setPendingTeamShift({}), [view]);
+
+  const pickTeamShift = (koordinatorId: number, shiftId: number | null) => {
+    setPendingTeamShift((p) => ({ ...p, [koordinatorId]: shiftId }));
+    onSetTeam(koordinatorId, shiftId).catch(() =>
+      setPendingTeamShift(({ [koordinatorId]: _, ...rest }) => rest),
+    );
+  };
 
   const editable = canEdit && Boolean(view?.editable) && Boolean(view?.week);
   const isPublished = view?.week?.status === 'published';
@@ -147,7 +159,12 @@ export function WeekRosterEditor({
         <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm border bg-amber-50" />{t('legendDay')}</span>
       </div>
 
-      {view.teams.map((team) => (
+      {view.teams.map((team) => {
+        const teamShiftId =
+          team.koordinator_employee_id in pendingTeamShift
+            ? pendingTeamShift[team.koordinator_employee_id]
+            : team.shift_id;
+        return (
         <div key={team.koordinator_employee_id} className="rounded-md border">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b p-3">
             <div className="font-medium">{t('team', { name: team.koordinator_name ?? '—' })}</div>
@@ -157,14 +174,14 @@ export function WeekRosterEditor({
                 <div className="w-48">
                   <SearchableSelect
                     options={shiftOptions}
-                    value={team.shift_id ? String(team.shift_id) : ''}
+                    value={teamShiftId ? String(teamShiftId) : ''}
                     placeholder={t('selectShift')}
                     disabled={isSaving}
                     allowClear={!isPublished}
                     onValueChange={(v) => {
                       const next = v ? Number(v) : null;
-                      if (next !== team.shift_id && (next !== null || !isPublished)) {
-                        void onSetTeam(team.koordinator_employee_id, next);
+                      if (next !== teamShiftId && (next !== null || !isPublished)) {
+                        pickTeamShift(team.koordinator_employee_id, next);
                       }
                     }}
                   />
@@ -181,11 +198,10 @@ export function WeekRosterEditor({
                   <TableHead className="min-w-[200px]">{t('member')}</TableHead>
                   {view.days.map((date) => (
                     <TableHead key={date} className="min-w-[96px] text-center text-xs">
-                      {dayjs(date).format('ddd')}
-                      <div className="font-normal text-text-secondary">{dayjs(date).format('DD MMM')}</div>
+                      {formatDate(date, 'ddd')}
+                      <div className="font-normal text-text-secondary">{formatDate(date, 'DD MMM')}</div>
                     </TableHead>
                   ))}
-                  {showActions ? <TableHead className="text-right">{t('actions')}</TableHead> : null}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -200,6 +216,16 @@ export function WeekRosterEditor({
                           {!member.rostered ? <Badge variant="secondary" className="text-[10px]">{t('fixed')}</Badge> : null}
                         </div>
                         <div className="text-xs text-text-secondary">{member.code}</div>
+                        {showActions ? (
+                          <div className="mt-1 flex flex-wrap gap-1">
+                            {memberEditable ? (
+                              <Button size="sm" variant="outline" className="h-7 px-2 text-xs" onClick={() => openWeek(member, team.shift_id)}>
+                                {t('wholeWeek')}
+                              </Button>
+                            ) : null}
+                            {renderMemberActions?.(member)}
+                          </div>
+                        ) : null}
                       </TableCell>
                       {member.days.map((day) => (
                         <TableCell
@@ -213,18 +239,6 @@ export function WeekRosterEditor({
                           {member.rostered ? dayLabel(day) : '·'}
                         </TableCell>
                       ))}
-                      {showActions ? (
-                        <TableCell className="text-right">
-                          <div className="flex flex-wrap justify-end gap-2">
-                            {memberEditable ? (
-                              <Button size="sm" variant="outline" onClick={() => openWeek(member, team.shift_id)}>
-                                {t('wholeWeek')}
-                              </Button>
-                            ) : null}
-                            {renderMemberActions?.(member)}
-                          </div>
-                        </TableCell>
-                      ) : null}
                     </TableRow>
                   );
                 })}
@@ -232,7 +246,8 @@ export function WeekRosterEditor({
             </Table>
           </div>
         </div>
-      ))}
+        );
+      })}
 
       {view.history?.length ? (
         <div className="rounded-md border p-3">

@@ -35,6 +35,11 @@ export default function OvertimeAddModal({
 }: Props) {
   const t = useTranslations('attendance');
   const tCommon = useTranslations('common');
+  const [timesTouched, setTimesTouched] = React.useState(false);
+
+  React.useEffect(() => {
+    if (isOpen) setTimesTouched(false);
+  }, [isOpen]);
 
   const handleUpdate = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -80,6 +85,7 @@ export default function OvertimeAddModal({
                 type="time"
                 value={formData.start_time}
                 onChange={(e) => {
+                  setTimesTouched(true);
                   setFormData((prev) => ({
                     ...prev,
                     start_time: e.target.value,
@@ -93,6 +99,7 @@ export default function OvertimeAddModal({
                 type="time"
                 value={formData.end_time}
                 onChange={(e) => {
+                  setTimesTouched(true);
                   setFormData((prev) => ({
                     ...prev,
                     end_time: e.target.value,
@@ -101,7 +108,11 @@ export default function OvertimeAddModal({
               />
             </div>
             <div className="col-span-3">
-              <OvertimeDurationHint start={formData.start_time} end={formData.end_time} />
+              <OvertimeDurationHint
+                start={formData.start_time}
+                end={formData.end_time}
+                showSameTimeError={timesTouched}
+              />
             </div>
             <div className="col-span-3">
               <div className="text-sm text-gray-500">{tCommon('notes')}</div>

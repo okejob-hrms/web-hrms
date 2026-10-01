@@ -66,6 +66,14 @@ export default function SettingsShiftRoster() {
   });
 
   const weekId = weekQuery.data?.week?.id;
+
+  React.useEffect(() => {
+    if (weekId && selection && !selection.weekId) {
+      setSelection({ ...selection, weekId });
+      qc.invalidateQueries({ queryKey: ['roster-week-index', weekStart] });
+    }
+  }, [weekId, selection, qc, weekStart]);
+
   const onError = async (e: unknown) => toast.error(await getErrorMessage(e, t('saveFailed')));
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ['roster-week', weekStart] });
@@ -154,7 +162,7 @@ export default function SettingsShiftRoster() {
             {index?.owners.map((owner) => (
               <TableRow key={`o-${owner.owner_employee_id}`}>
                 <TableCell className="font-medium">{owner.owner_name ?? '—'}</TableCell>
-                <TableCell className="text-sm">
+                <TableCell className="text-sm whitespace-normal">
                   {owner.teams.map((team) => `${team.koordinator_name ?? '—'} (${team.members_count})`).join(', ')}
                 </TableCell>
                 <TableCell>{statusBadge(owner.status)}</TableCell>
@@ -174,7 +182,7 @@ export default function SettingsShiftRoster() {
                     {team.supervisor_name ? ` · ${team.supervisor_name}` : ''}
                   </div>
                 </TableCell>
-                <TableCell className="text-sm">
+                <TableCell className="text-sm whitespace-normal">
                   {team.koordinator_name ?? '—'} ({team.members_count})
                 </TableCell>
                 <TableCell>{statusBadge(team.status)}</TableCell>
@@ -218,6 +226,7 @@ export default function SettingsShiftRoster() {
                     <Button
                       size="sm"
                       variant="ghost"
+                      className="h-7 px-2 text-xs"
                       disabled={reresolveMutation.isPending}
                       title={t('reresolveHint')}
                       onClick={() =>
