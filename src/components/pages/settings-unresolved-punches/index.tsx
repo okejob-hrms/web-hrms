@@ -33,7 +33,7 @@ import {
   strToDate,
   toShiftOptions,
 } from '@/components/shared/shift-roster/utils';
-import { getBranches, getShift } from '@/services/settings';
+import { getBranchesAll, getShift } from '@/services/settings';
 import {
   assignUnresolvedPunch,
   discardUnresolvedPunch,
@@ -66,7 +66,7 @@ export default function SettingsUnresolvedPunches() {
 
   const branchesQuery = useQuery({
     queryKey: ['branches', 'unresolved'],
-    queryFn: async () => (await getBranches()).data ?? [],
+    queryFn: async () => (await getBranchesAll()).data ?? [],
   });
 
   const shiftsQuery = useQuery({
