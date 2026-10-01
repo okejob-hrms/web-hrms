@@ -390,8 +390,7 @@ export default function SettingsAttendanceConfigurationForm() {
               Grace Period & Absent Threshold
             </h2>
             <p className="text-sm text-muted-foreground">
-              Tolerance is used only for late/early classification. Capture window
-              is used only to decide which punches belong to a shift.
+              {t('captureWindowHint')}
             </p>
 
             {/* Grace Period */}
@@ -439,7 +438,7 @@ export default function SettingsAttendanceConfigurationForm() {
               name="pre_shift_window_minutes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Pre-shift capture window (minutes)</FormLabel>
+                  <FormLabel>{t('preShiftWindow')} ({t('minutes')})</FormLabel>
                   <FormControl>
                     <Input type="number" placeholder="180" {...field} className="sm:w-50 w-100" />
                   </FormControl>
@@ -453,7 +452,7 @@ export default function SettingsAttendanceConfigurationForm() {
               name="post_shift_window_minutes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Post-shift capture window (minutes)</FormLabel>
+                  <FormLabel>{t('postShiftWindow')} ({t('minutes')})</FormLabel>
                   <FormControl>
                     <Input type="number" placeholder="180" {...field} className="sm:w-50 w-100" />
                   </FormControl>
@@ -467,7 +466,7 @@ export default function SettingsAttendanceConfigurationForm() {
               name="punch_dedupe_minutes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Punch dedupe (minutes)</FormLabel>
+                  <FormLabel>{t('punchDedupe')} ({t('minutes')})</FormLabel>
                   <FormControl>
                     <Input type="number" placeholder="2" {...field} className="sm:w-50 w-100" />
                   </FormControl>
@@ -481,16 +480,16 @@ export default function SettingsAttendanceConfigurationForm() {
               name="cross_midnight_shift_date"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Cross-midnight counted date</FormLabel>
+                  <FormLabel>{t('crossMidnightDate')}</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger className="sm:w-50 w-100">
-                        <SelectValue placeholder="Select mode" />
+                        <SelectValue placeholder={t('crossMidnightSelect')} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="end_day">End day (default)</SelectItem>
-                      <SelectItem value="start_day">Start day</SelectItem>
+                      <SelectItem value="end_day">{t('crossMidnightEndDayDefault')}</SelectItem>
+                      <SelectItem value="start_day">{t('crossMidnightStartDay')}</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -503,7 +502,7 @@ export default function SettingsAttendanceConfigurationForm() {
               name="unresolved_retry_days"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Unresolved punch retry days</FormLabel>
+                  <FormLabel>{t('unresolvedRetryDays')}</FormLabel>
                   <FormControl>
                     <Input type="number" placeholder="14" {...field} className="sm:w-50 w-100" />
                   </FormControl>

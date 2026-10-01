@@ -18,14 +18,21 @@ import {
 // -------------------------
 // SCHEMA & TYPES
 // -------------------------
+// Bounds match the core UpdateWorkingScheduleRequest rules.
+const wholeNumber = (label: string, min: number, max: number) =>
+  z
+    .string()
+    .regex(/^\d+$/, `${label} must be a whole number`)
+    .refine((v) => Number(v) >= min && Number(v) <= max, `${label} must be between ${min} and ${max}`);
+
 const companySchema = z.object({
   late_tolerance: z.string().min(1, "Late tolerance must be at least 1"),
   max_late_tolerance: z.string().min(1, "Absent after must be at least 1"),
-  pre_shift_window_minutes: z.string().min(1, "Pre-shift window is required"),
-  post_shift_window_minutes: z.string().min(1, "Post-shift window is required"),
-  punch_dedupe_minutes: z.string().min(1, "Punch dedupe is required"),
+  pre_shift_window_minutes: wholeNumber("Pre-shift window", 0, 720),
+  post_shift_window_minutes: wholeNumber("Post-shift window", 0, 720),
+  punch_dedupe_minutes: wholeNumber("Punch dedupe", 0, 60),
   cross_midnight_shift_date: z.enum(["end_day", "start_day"]),
-  unresolved_retry_days: z.string().min(1, "Unresolved retry days is required"),
+  unresolved_retry_days: wholeNumber("Unresolved retry days", 1, 90),
   workSchedules: z
     .array(
       z.object({

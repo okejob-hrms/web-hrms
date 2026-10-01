@@ -3,7 +3,6 @@
 import * as React from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
-import { HTTPError } from 'ky';
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
@@ -26,8 +25,14 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Textarea } from '@/components/ui/textarea';
 import { Can } from '@/components/auth/can';
-import type { ApiErrorResponse } from '@/lib/types';
+import {
+  dateToStr,
+  getErrorMessage,
+  strToDate,
+  toShiftOptions,
+} from '@/components/shared/shift-roster/utils';
 import { getBranches, getShift } from '@/services/settings';
 import {
   assignUnresolvedPunch,
@@ -35,27 +40,6 @@ import {
   getUnresolvedPunches,
   type UnresolvedPunch,
 } from '@/services/shift-roster';
-
-async function getErrorMessage(error: unknown, fallback: string): Promise<string> {
-  if (error instanceof HTTPError) {
-    try {
-      const errorData = (await error.response.json()) as ApiErrorResponse;
-      if (errorData.message) return errorData.message;
-    } catch {
-      // fall through
-    }
-  }
-  if (error instanceof Error && error.message) return error.message;
-  return fallback;
-}
-
-function dateToStr(d: Date | undefined): string {
-  return d ? dayjs(d).format('YYYY-MM-DD') : '';
-}
-
-function strToDate(s: string): Date | undefined {
-  return s ? dayjs(s).toDate() : undefined;
-}
 
 function reasonBadgeVariant(
   reason: string | null | undefined,
@@ -77,6 +61,8 @@ export default function SettingsUnresolvedPunches() {
   const [assignTarget, setAssignTarget] = React.useState<UnresolvedPunch | null>(null);
   const [countedDate, setCountedDate] = React.useState(dayjs().format('YYYY-MM-DD'));
   const [shiftId, setShiftId] = React.useState('');
+  const [discardTarget, setDiscardTarget] = React.useState<UnresolvedPunch | null>(null);
+  const [discardReason, setDiscardReason] = React.useState('');
 
   const branchesQuery = useQuery({
     queryKey: ['branches', 'unresolved'],
@@ -117,9 +103,10 @@ export default function SettingsUnresolvedPunches() {
   });
 
   const discardMutation = useMutation({
-    mutationFn: (id: number) => discardUnresolvedPunch(id),
+    mutationFn: () => discardUnresolvedPunch(discardTarget!.id, discardReason.trim() || undefined),
     onSuccess: () => {
       toast.success(t('discarded'));
+      setDiscardTarget(null);
       invalidate();
     },
     onError: async (e) => toast.error(await getErrorMessage(e, t('actionFailed'))),
@@ -249,8 +236,10 @@ export default function SettingsUnresolvedPunches() {
                         <Button
                           size="sm"
                           variant="destructive"
-                          disabled={discardMutation.isPending}
-                          onClick={() => discardMutation.mutate(row.id)}
+                          onClick={() => {
+                            setDiscardTarget(row);
+                            setDiscardReason('');
+                          }}
                         >
                           {t('discard')}
                         </Button>
@@ -312,12 +301,7 @@ export default function SettingsUnresolvedPunches() {
             <div className="space-y-2">
               <Label>{t('shift')}</Label>
               <SearchableSelect
-                options={
-                  shiftsQuery.data?.map((s: { id: number; name: string }) => ({
-                    value: String(s.id),
-                    label: s.name,
-                  })) ?? []
-                }
+                options={toShiftOptions(shiftsQuery.data)}
                 value={shiftId}
                 onValueChange={(v) => setShiftId(String(v ?? ''))}
                 placeholder={t('selectShift')}
@@ -333,6 +317,41 @@ export default function SettingsUnresolvedPunches() {
               onClick={() => assignMutation.mutate()}
             >
               {t('save')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={Boolean(discardTarget)} onOpenChange={(open) => !open && setDiscardTarget(null)}>
+        <DialogContent className="max-w-md bg-white">
+          <DialogHeader>
+            <DialogTitle>{t('discardTitle')}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-text-secondary">
+              {discardTarget?.employee?.user?.name} ·{' '}
+              {discardTarget ? dayjs(discardTarget.punched_at).format('YYYY-MM-DD HH:mm') : ''}
+            </p>
+            <p className="text-sm">{t('discardConfirm')}</p>
+            <div className="space-y-2">
+              <Label>{t('discardReason')}</Label>
+              <Textarea
+                value={discardReason}
+                maxLength={255}
+                onChange={(e) => setDiscardReason(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDiscardTarget(null)}>
+              {t('cancel')}
+            </Button>
+            <Button
+              variant="destructive"
+              disabled={discardMutation.isPending}
+              onClick={() => discardMutation.mutate()}
+            >
+              {t('discard')}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -169,7 +169,7 @@ export default function SettingsAttendanceConfiguration() {
           {t("gracePeriod")}
         </div>
         <p className="text-sm text-muted-foreground mb-2">
-          Tolerance controls late/early classification. Capture window controls which punches belong to a shift.
+          {t("captureWindowHint")}
         </p>
         <div className="grid grid-cols-3 sm:grid-cols-1 gap-4">
           <div className="space-y-2">
@@ -189,35 +189,37 @@ export default function SettingsAttendanceConfiguration() {
           </div>
 
           <div className="space-y-2">
-            <div className="text-gray-500">Pre-shift capture window</div>
+            <div className="text-gray-500">{t("preShiftWindow")}</div>
             <div className="text-gray-500">
               {pre_shift_window_minutes ?? "-"} {t("minutes")}
             </div>
           </div>
 
           <div className="space-y-2">
-            <div className="text-gray-500">Post-shift capture window</div>
+            <div className="text-gray-500">{t("postShiftWindow")}</div>
             <div className="text-gray-500">
               {post_shift_window_minutes ?? "-"} {t("minutes")}
             </div>
           </div>
 
           <div className="space-y-2">
-            <div className="text-gray-500">Punch dedupe</div>
+            <div className="text-gray-500">{t("punchDedupe")}</div>
             <div className="text-gray-500">
               {punch_dedupe_minutes ?? "-"} {t("minutes")}
             </div>
           </div>
 
           <div className="space-y-2">
-            <div className="text-gray-500">Cross-midnight counted date</div>
+            <div className="text-gray-500">{t("crossMidnightDate")}</div>
             <div className="text-gray-500">
-              {cross_midnight_shift_date === "start_day" ? "Start day" : "End day"}
+              {cross_midnight_shift_date === "start_day"
+                ? t("crossMidnightStartDay")
+                : t("crossMidnightEndDay")}
             </div>
           </div>
 
           <div className="space-y-2">
-            <div className="text-gray-500">Unresolved punch retry days</div>
+            <div className="text-gray-500">{t("unresolvedRetryDays")}</div>
             <div className="text-gray-500">
               {unresolved_retry_days ?? "-"}
             </div>

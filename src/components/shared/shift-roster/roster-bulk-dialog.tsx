@@ -18,6 +18,8 @@ import {
 import { Label } from '@/components/ui/label';
 import { dateToStr, strToDate, type SelectOption } from './utils';
 
+const MAX_RANGE_DAYS = 62;
+
 export type RosterBulkPayload = {
   employee_ids: number[];
   from: string;
@@ -66,7 +68,20 @@ export function RosterBulkDialog({
     if (end.isBefore(start, 'day')) end = start;
     setFrom(start.format('YYYY-MM-DD'));
     setTo(end.format('YYYY-MM-DD'));
+    setEmployeeIds([]);
+    setShiftId('');
+    setDayOff(false);
+    setConflict('skip');
   }, [open, month, minDate]);
+
+  const visibleEmployeeIds = employees.map((e) => e.id);
+  const selectedIds = employeeIds.filter((id) => visibleEmployeeIds.includes(id));
+
+  let rangeError: string | null = null;
+  if (from && to) {
+    if (dayjs(to).isBefore(from, 'day')) rangeError = t('rangeInvalid');
+    else if (dayjs(to).diff(from, 'day') >= MAX_RANGE_DAYS) rangeError = t('rangeTooLong', { max: MAX_RANGE_DAYS });
+  }
 
   const disabledBefore = minDate ? { before: dayjs(minDate).toDate() } : undefined;
 
@@ -106,6 +121,7 @@ export function RosterBulkDialog({
               disabled={disabledBefore}
             />
           </div>
+          {rangeError ? <p className="text-sm text-destructive">{rangeError}</p> : null}
           <label className="flex items-center gap-2 text-sm">
             <Checkbox checked={dayOff} onCheckedChange={(checked) => setDayOff(checked === true)} />
             <span>{t('setDayOff')}</span>
@@ -138,14 +154,14 @@ export function RosterBulkDialog({
             {t('cancel')}
           </Button>
           <Button
-            disabled={isPending || !employeeIds.length || !from || !to}
+            disabled={isPending || !selectedIds.length || !from || !to || Boolean(rangeError)}
             onClick={() => {
               if (!dayOff && !shiftId) {
                 toast.error(t('shiftRequired'));
                 return;
               }
               onSubmit({
-                employee_ids: employeeIds,
+                employee_ids: selectedIds,
                 from,
                 to,
                 shift_id: dayOff ? null : Number(shiftId),
