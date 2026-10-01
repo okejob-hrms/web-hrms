@@ -1650,7 +1650,8 @@
       "reresolve": "Re-resolve",
       "reresolveDone": "Punch re-resolve completed",
       "saveFailed": "Could not save roster changes",
-      "lastChangedBy": "Last changed by {name} {at}"
+      "lastChangedBy": "Last changed by {name} {at}",
+      "off": "Off"
     },
     "unresolvedPunches": {
       "title": "Unresolved Punches",
@@ -1682,6 +1683,8 @@
       "assigned": "Punch assigned",
       "discarded": "Punch discarded",
       "actionFailed": "Action failed",
+      "loading": "Loading…",
+      "loadFailed": "Could not load unresolved punches. Try again.",
       "pageOf": "Page {page} of {last} · {total} total",
       "previous": "Previous",
       "next": "Next"

@@ -73,7 +73,7 @@ export function RosterGrid({ calendar, isCellEditable, onCellClick, renderAction
               {calendar.dates.map((date) => {
                 const cells = calendar.cells?.[employee.id]?.[date] ?? [];
                 const label = cells.length
-                  ? cells.map((c) => c.shift_name ?? (c.is_day_off ? 'Off' : '—')).join(', ')
+                  ? cells.map((c) => c.shift_name ?? (c.is_day_off ? t('off') : '—')).join(', ')
                   : '';
                 const source = cells[0]?.source;
                 const editable = isCellEditable(date);

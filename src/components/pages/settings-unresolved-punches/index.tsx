@@ -115,6 +115,12 @@ export default function SettingsUnresolvedPunches() {
   const rows = listQuery.data?.data ?? [];
   const pagination = listQuery.data?.pagination;
 
+  React.useEffect(() => {
+    if (pagination && pagination.last_page >= 1 && pagination.current_page > pagination.last_page) {
+      setPage(pagination.last_page);
+    }
+  }, [pagination]);
+
   const reasonLabel = (value: string | null | undefined) => {
     if (value === 'no_roster') return t('reasonNoRoster');
     if (value === 'outside_window') return t('reasonOutsideWindow');
@@ -194,7 +200,21 @@ export default function SettingsUnresolvedPunches() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {!rows.length && (
+            {listQuery.isLoading && (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center text-text-secondary">
+                  {t('loading')}
+                </TableCell>
+              </TableRow>
+            )}
+            {listQuery.isError && (
+              <TableRow>
+                <TableCell colSpan={6} className="bg-destructive/5 text-center text-destructive">
+                  {t('loadFailed')}
+                </TableCell>
+              </TableRow>
+            )}
+            {listQuery.isSuccess && !rows.length && (
               <TableRow>
                 <TableCell colSpan={6} className="text-center text-text-secondary">
                   {t('empty')}

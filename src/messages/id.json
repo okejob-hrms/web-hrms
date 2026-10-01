@@ -1650,7 +1650,8 @@
       "reresolve": "Resolusi ulang",
       "reresolveDone": "Resolusi ulang punch selesai",
       "saveFailed": "Gagal menyimpan perubahan roster",
-      "lastChangedBy": "Terakhir diubah oleh {name} {at}"
+      "lastChangedBy": "Terakhir diubah oleh {name} {at}",
+      "off": "Libur"
     },
     "unresolvedPunches": {
       "title": "Punch Belum Teratribusi",
@@ -1682,6 +1683,8 @@
       "assigned": "Punch di-assign",
       "discarded": "Punch dibuang",
       "actionFailed": "Aksi gagal",
+      "loading": "Memuat…",
+      "loadFailed": "Gagal memuat punch belum teratribusi. Coba lagi.",
       "pageOf": "Halaman {page} dari {last} · {total} total",
       "previous": "Sebelumnya",
       "next": "Berikutnya"

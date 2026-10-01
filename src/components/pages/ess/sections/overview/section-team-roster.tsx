@@ -42,7 +42,7 @@ export const SectionTeamRoster = () => {
   });
 
   const roster = rosterQuery.data;
-  const editableFrom = roster?.editable_from ?? dayjs().format('YYYY-MM-DD');
+  const editableFrom = roster?.editable_from ?? null;
   const shiftOptions = toShiftOptions(roster?.shifts);
   const onError = async (e: unknown) => toast.error(await getErrorMessage(e, t('saveFailed')));
 
@@ -100,9 +100,13 @@ export const SectionTeamRoster = () => {
             <Label>{t('month')}</Label>
             <Input type="month" value={month} onChange={(e) => setMonth(e.target.value)} />
           </div>
-          <Button onClick={() => setBulkOpen(true)}>{t('bulkAssign')}</Button>
+          <Button disabled={!editableFrom} onClick={() => setBulkOpen(true)}>
+            {t('bulkAssign')}
+          </Button>
         </div>
-        <p className="text-xs text-text-secondary">{t('pastLocked', { date: editableFrom })}</p>
+        {editableFrom ? (
+          <p className="text-xs text-text-secondary">{t('pastLocked', { date: editableFrom })}</p>
+        ) : null}
         {rosterQuery.isError ? (
           <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">
             {t('loadFailed')}
@@ -110,7 +114,9 @@ export const SectionTeamRoster = () => {
         ) : null}
         <RosterGrid
           calendar={roster}
-          isCellEditable={(date) => !dayjs(date).isBefore(dayjs(editableFrom), 'day')}
+          isCellEditable={(date) =>
+            editableFrom !== null && !dayjs(date).isBefore(dayjs(editableFrom), 'day')
+          }
           onCellClick={(employee, date, cells) =>
             setCellTarget({
               employeeId: employee.id,
@@ -137,7 +143,7 @@ export const SectionTeamRoster = () => {
         shiftOptions={shiftOptions}
         isPending={bulkMutation.isPending}
         month={month}
-        minDate={editableFrom}
+        minDate={editableFrom ?? undefined}
         onSubmit={(payload) => bulkMutation.mutate(payload)}
       />
     </div>
