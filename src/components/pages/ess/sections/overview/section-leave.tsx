@@ -3,8 +3,9 @@
 import * as React from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { Clock, X } from 'lucide-react';
+import { Clock, Plus, X } from 'lucide-react';
 
 import {
   getEssLeaveBalance,
@@ -64,6 +65,7 @@ export const SectionLeave = () => {
   const tCommon = useTranslations('common');
   const tStatus = useTranslations('status');
   const queryClient = useQueryClient();
+  const router = useRouter();
 
   const [statusFilter, setStatusFilter] = React.useState<string>(STATUS_ALL);
   const [cancelTarget, setCancelTarget] = React.useState<EssLeaveItem | null>(null);
@@ -86,12 +88,13 @@ export const SectionLeave = () => {
   const cancelMutation = useMutation({
     mutationFn: (id: number) => essLeaveCancel(id),
     onSuccess: () => {
-      toast.success(tAtt('deleteLeaveSuccess'));
+      toast.success(t('cancelLeaveSuccess'));
       setCancelTarget(null);
       queryClient.invalidateQueries({ queryKey: ['ess-leaves'] });
+      queryClient.invalidateQueries({ queryKey: ['ess-leave-balance'] });
     },
     onError: () => {
-      toast.error(tAtt('deleteLeaveFailed'));
+      toast.error(t('cancelLeaveFailed'));
     },
   });
 
@@ -107,7 +110,17 @@ export const SectionLeave = () => {
 
   return (
     <div className="font-sans min-h-screen flex flex-col space-y-6 px-6 md:px-12">
-      <h2 className="font-semibold text-xl text-primary">{tAtt('leaveRequest')}</h2>
+      <div className="flex items-center justify-between gap-2">
+        <h2 className="font-semibold text-xl text-primary">{tAtt('leaveRequest')}</h2>
+        <Button
+          size="sm"
+          onClick={() => router.push('/ess/leave/leave-form')}
+          className="flex items-center gap-1"
+        >
+          <Plus className="w-4 h-4" />
+          {tAtt('newLeaveRequest')}
+        </Button>
+      </div>
 
       {/* Leave Balance */}
       <div className="space-y-2">

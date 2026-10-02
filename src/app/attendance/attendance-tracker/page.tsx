@@ -17,7 +17,9 @@ export default function AttendanceTracker() {
           <TabsTrigger value="adjustments">{t('pendingAdjustments')}</TabsTrigger>
         </TabsList>
         <TabsContent value="tracker">
-          <AttendanceTrackerList />
+          <div className="-mx-6 md:-mx-11">
+            <AttendanceTrackerList />
+          </div>
         </TabsContent>
         <TabsContent value="adjustments">
           <PendingAdjustmentsTab />

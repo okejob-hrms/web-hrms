@@ -49,6 +49,9 @@ export interface EssProfileUpdatePayload {
 export const updateEssProfile = async (
   payload: EssProfileUpdatePayload,
 ): Promise<EssProfileResponse> => {
+  // NOTE: The ESS-scoped PUT ess/profile route does not exist in core (api-ess.php).
+  // The canonical update path is PUT user/profile (api-v1.php) which accepts the same
+  // editable fields. Switch to `apiEmployee` + `ess/profile` if the route is added.
   const res = await api.put<EssProfileResponse>('user/profile', { json: payload });
   return res.json();
 };

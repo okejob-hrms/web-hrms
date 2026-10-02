@@ -58,7 +58,8 @@ export const getAttendanceDashboardEmployee = async (
   )
 
   const json = await response.json()
-  const trend: DashboardAttendanceTrend[] = (json.data.trend ?? []).map((item) => ({
+  const data = json.data ?? null;
+  const trend: DashboardAttendanceTrend[] = (data?.trend ?? []).map((item) => ({
     date: item.date,
     ontime: item.on_time,
     late: item.late,
@@ -70,18 +71,31 @@ export const getAttendanceDashboardEmployee = async (
   return {
     status: json.status,
     message: json.message,
-    data: {
-      start_date: json.data.start_date,
-      end_date: json.data.end_date,
-      trend,
-      summary: {
-        total_ontime: json.data.summary.on_time,
-        total_late: json.data.summary.late,
-        total_overtime: json.data.summary.overtime,
-        total_absent: json.data.summary.absent,
-        total_leave: json.data.summary.leave,
-      },
-    },
+    data: data
+      ? {
+          start_date: data.start_date,
+          end_date: data.end_date,
+          trend,
+          summary: {
+            total_ontime: data.summary?.on_time ?? 0,
+            total_late: data.summary?.late ?? 0,
+            total_overtime: data.summary?.overtime ?? 0,
+            total_absent: data.summary?.absent ?? 0,
+            total_leave: data.summary?.leave ?? 0,
+          },
+        }
+      : {
+          start_date: '',
+          end_date: '',
+          trend: [],
+          summary: {
+            total_ontime: 0,
+            total_late: 0,
+            total_overtime: 0,
+            total_absent: 0,
+            total_leave: 0,
+          },
+        },
   }
 }
 
