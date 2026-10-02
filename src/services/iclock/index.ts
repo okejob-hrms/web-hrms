@@ -4,6 +4,7 @@ import type {
   IclockBackfillResult,
   IclockDevice,
   IclockHealth,
+  IclockIgnoredPin,
   IclockLog,
   IclockReconcileReport,
   IclockReprocessRangeResult,
@@ -55,6 +56,22 @@ export const getIclockLogs = async (params: LogsParams = {}) => {
 
 export const getIclockUnmatched = async (): Promise<ApiResponse<IclockUnmatchedPin[]>> => {
   return api.get('setting/iclock/unmatched').json();
+};
+
+export const getIclockIgnoredPins = async (): Promise<ApiResponse<IclockIgnoredPin[]>> => {
+  return api.get('setting/iclock/ignored-pins').json();
+};
+
+export const ignoreIclockPins = async (payload: { pins: string[]; note?: string }) => {
+  return api
+    .post('setting/iclock/ignored-pins', { json: payload })
+    .json<ApiResponse<{ added: number; already_ignored: number; logs_ignored: number }>>();
+};
+
+export const unignoreIclockPin = async (id: number) => {
+  return api
+    .delete(`setting/iclock/ignored-pins/${id}`)
+    .json<ApiResponse<{ pin: string; logs_requeued: number }>>();
 };
 
 export const triggerIclockSync = async (payload: { sync?: boolean; dry_run?: boolean } = {}) => {

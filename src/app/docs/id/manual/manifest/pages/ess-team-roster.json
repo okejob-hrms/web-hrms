@@ -1,0 +1,10 @@
+{
+  "slug": "ess-team-roster",
+  "route": "/ess/team-roster",
+  "controls": [
+    { "number": 1, "name": "Minggu", "selectorOrRef": "week picker" },
+    { "number": 2, "name": "Shift tim", "selectorOrRef": "team shift" },
+    { "number": 3, "name": "Penggantian anggota", "selectorOrRef": "member week or day override" },
+    { "number": 4, "name": "Terbitkan", "selectorOrRef": "publish button" }
+  ]
+}

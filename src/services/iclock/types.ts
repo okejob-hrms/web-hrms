@@ -35,10 +35,20 @@ export type IclockLog = {
 };
 
 export type IclockUnmatchedPin = {
-  iclock_employee_code: string;
+  pin: string;
+  name: string | null;
   punch_count: number;
   last_punched_at: string | null;
   first_punched_at: string | null;
+  devices: string[];
+};
+
+export type IclockIgnoredPin = {
+  id: number;
+  pin: string;
+  note: string | null;
+  created_at: string | null;
+  created_by?: { id: number; name: string } | null;
 };
 
 export type IclockReconcileReport = {

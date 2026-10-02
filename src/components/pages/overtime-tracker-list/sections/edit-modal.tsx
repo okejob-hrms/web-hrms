@@ -19,6 +19,7 @@ import { OvertimeListItem, RequestOvertime } from '@/services/overtime/types';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useTranslations } from 'next-intl';
+import { OvertimeDurationHint, overtimeMinutes } from './overtime-duration-hint';
 
 interface Props {
   onUpdate: (e?: React.FormEvent) => void;
@@ -41,6 +42,11 @@ export default function OvertimeEditModal({
 }: Props) {
   const t = useTranslations('attendance');
   const tCommon = useTranslations('common');
+  const [timesTouched, setTimesTouched] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!isOpen) setTimesTouched(false);
+  }, [isOpen]);
   const avatarSrc = getPublicFileUrl(
     data?.employee?.avatar_url ?? data?.employee?.profile?.photo_profile,
   );
@@ -105,6 +111,7 @@ export default function OvertimeEditModal({
                 type="time"
                 value={formData.start_time}
                 onChange={(e) => {
+                  setTimesTouched(true);
                   setFormData((prev) => ({
                     ...prev,
                     start_time: e.target.value,
@@ -118,11 +125,19 @@ export default function OvertimeEditModal({
                 type="time"
                 value={formData.end_time}
                 onChange={(e) => {
+                  setTimesTouched(true);
                   setFormData((prev) => ({
                     ...prev,
                     end_time: e.target.value,
                   }));
                 }}
+              />
+            </div>
+            <div className="col-span-3">
+              <OvertimeDurationHint
+                start={formData.start_time}
+                end={formData.end_time}
+                showSameTimeError={timesTouched}
               />
             </div>
             <div className="col-span-3">
@@ -148,6 +163,7 @@ export default function OvertimeEditModal({
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleUpdate}
+              disabled={overtimeMinutes(formData.start_time, formData.end_time) === null}
               className="flex-1 bg-primary text-white rounded-md py-2 font-medium"
             >
               {tCommon('save')}

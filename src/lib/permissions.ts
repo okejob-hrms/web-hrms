@@ -162,6 +162,18 @@ export const ROUTE_VIEW_PERMISSIONS: Array<{
     permission: 'time_attendance.attendance_configuration.view',
   },
   {
+    match: '/settings/time-attendance/shift-roster',
+    permission: 'time_attendance.attendance_configuration.view',
+  },
+  {
+    match: '/settings/time-attendance/unresolved-punches',
+    permission: 'time_attendance.attendance_records.approval',
+  },
+  {
+    match: '/settings/time-attendance/roster-setup',
+    permission: 'time_attendance.attendance_configuration.view',
+  },
+  {
     match: '/settings/leave-management',
     permission: 'time_attendance.leave_configuration.view',
   },
