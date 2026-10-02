@@ -6,7 +6,6 @@ export interface DashboardAttendanceResponse {
 
 export interface DashboardAttendance {
     end_date:   string;
-    month:      string;
     start_date: string;
     summary:    DashboardAttendanceSummary;
     trend:      DashboardAttendanceTrend[];
@@ -39,6 +38,7 @@ export interface WaitingApprovalData {
   leaves: WaitingApprovalItem[];
   overtimes: WaitingApprovalItem[];
   offboardings: WaitingApprovalItem[];
+  business_trips?: WaitingApprovalItem[];
   total: number;
 }
 
@@ -47,7 +47,7 @@ export type WaitingApprovalDataMeta = WaitingApprovalItem;
 
 export interface WaitingApprovalItem {
   id: number;
-  type: 'leave' | 'overtime' | 'offboarding' | string;
+  type: 'leave' | 'overtime' | 'offboarding' | 'business_trip' | string;
   user: {
     id: number;
     name: string;
@@ -60,6 +60,7 @@ export interface WaitingApprovalItem {
   start_date?: string;
   end_date?: string;
   reason?: string;
+  destination?: string;
   overtime_date?: string;
   request_date?: string;
   start_time?: string;
