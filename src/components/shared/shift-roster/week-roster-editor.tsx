@@ -127,15 +127,17 @@ export function WeekRosterEditor({
   const week = view.week;
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex min-w-0 flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-2 text-sm">
+        <div className="flex min-w-0 flex-wrap items-center gap-2 text-sm">
           <Badge variant={isPublished ? 'default' : 'secondary'}>
             {isPublished ? t('statusPublished') : t('statusDraft')}
           </Badge>
-          {week.owner_name ? <span className="text-text-secondary">{t('owner', { name: week.owner_name })}</span> : null}
+          {week.owner_name ? (
+            <span className="break-words text-text-secondary">{t('owner', { name: week.owner_name })}</span>
+          ) : null}
           {isPublished && week.published_at ? (
-            <span className="text-text-secondary">
+            <span className="break-words text-text-secondary">
               {t('publishedBy', {
                 name: week.published_by_name ?? '—',
                 at: dayjs(week.published_at).format('YYYY-MM-DD HH:mm'),
@@ -145,7 +147,7 @@ export function WeekRosterEditor({
           {!view.editable ? <span className="text-text-secondary">{t('readOnly')}</span> : null}
         </div>
         {editable && !isPublished ? (
-          <Button onClick={() => setConfirmPublish(true)} disabled={isPublishing}>
+          <Button className="shrink-0" onClick={() => setConfirmPublish(true)} disabled={isPublishing}>
             {t('publish')}
           </Button>
         ) : null}
@@ -154,9 +156,9 @@ export function WeekRosterEditor({
       {editable && isPublished ? <p className="text-xs text-text-secondary">{t('publishedEditHint')}</p> : null}
 
       <div className="flex flex-wrap gap-3 text-xs text-text-secondary">
-        <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm border" />{t('legendTeam')}</span>
-        <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm border bg-blue-50" />{t('legendWeek')}</span>
-        <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm border bg-amber-50" />{t('legendDay')}</span>
+        <span className="flex items-center gap-1"><span className="h-3 w-3 shrink-0 rounded-sm border" />{t('legendTeam')}</span>
+        <span className="flex items-center gap-1"><span className="h-3 w-3 shrink-0 rounded-sm border bg-blue-50" />{t('legendWeek')}</span>
+        <span className="flex items-center gap-1"><span className="h-3 w-3 shrink-0 rounded-sm border bg-amber-50" />{t('legendDay')}</span>
       </div>
 
       {view.teams.map((team) => {
@@ -165,13 +167,15 @@ export function WeekRosterEditor({
             ? pendingTeamShift[team.koordinator_employee_id]
             : team.shift_id;
         return (
-        <div key={team.koordinator_employee_id} className="rounded-md border">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b p-3">
-            <div className="font-medium">{t('team', { name: team.koordinator_name ?? '—' })}</div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-text-secondary">{t('teamShift')}</span>
+        <div key={team.koordinator_employee_id} className="min-w-0 overflow-hidden rounded-md border">
+          <div className="flex flex-col gap-3 border-b p-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+            <div className="min-w-0 font-medium break-words">
+              {t('team', { name: team.koordinator_name ?? '—' })}
+            </div>
+            <div className="flex min-w-0 flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
+              <span className="shrink-0 text-sm text-text-secondary">{t('teamShift')}</span>
               {editable ? (
-                <div className="w-48">
+                <div className="w-full min-w-0 sm:w-48">
                   <SearchableSelect
                     options={shiftOptions}
                     value={teamShiftId ? String(teamShiftId) : ''}
@@ -187,17 +191,19 @@ export function WeekRosterEditor({
                   />
                 </div>
               ) : (
-                <span className="text-sm font-medium">{team.shift_name ?? '—'}</span>
+                <span className="text-sm font-medium break-words">{team.shift_name ?? '—'}</span>
               )}
             </div>
           </div>
-          <div className="overflow-auto">
-            <Table>
+          <div className="-mx-px overflow-x-auto overscroll-x-contain">
+            <Table className="min-w-[640px]">
               <TableHeader>
                 <TableRow>
-                  <TableHead className="min-w-[200px]">{t('member')}</TableHead>
+                  <TableHead className="sticky left-0 z-10 min-w-[140px] bg-background sm:min-w-[200px]">
+                    {t('member')}
+                  </TableHead>
                   {view.days.map((date) => (
-                    <TableHead key={date} className="min-w-[96px] text-center text-xs">
+                    <TableHead key={date} className="min-w-[72px] text-center text-xs sm:min-w-[96px]">
                       {formatDate(date, 'ddd')}
                       <div className="font-normal text-text-secondary">{formatDate(date, 'DD MMM')}</div>
                     </TableHead>
@@ -209,7 +215,7 @@ export function WeekRosterEditor({
                   const memberEditable = editable && member.rostered;
                   return (
                     <TableRow key={member.employee_id}>
-                      <TableCell>
+                      <TableCell className="sticky left-0 z-10 bg-background">
                         <div className="flex flex-wrap items-center gap-1 font-medium">
                           {member.name ?? '—'}
                           {member.is_lead ? <Badge variant="outline" className="text-[10px]">{t('lead')}</Badge> : null}
@@ -219,7 +225,7 @@ export function WeekRosterEditor({
                         {showActions ? (
                           <div className="mt-1 flex flex-wrap gap-1">
                             {memberEditable ? (
-                              <Button size="sm" variant="outline" className="h-7 px-2 text-xs" onClick={() => openWeek(member, team.shift_id)}>
+                              <Button size="sm" variant="outline" className="h-8 min-h-8 px-2 text-xs" onClick={() => openWeek(member, team.shift_id)}>
                                 {t('wholeWeek')}
                               </Button>
                             ) : null}
@@ -230,7 +236,7 @@ export function WeekRosterEditor({
                       {member.days.map((day) => (
                         <TableCell
                           key={day.date}
-                          className={`text-center text-xs ${member.rostered ? sourceClass[day.source] : 'text-text-secondary'} ${
+                          className={`min-h-11 text-center text-xs ${member.rostered ? sourceClass[day.source] : 'text-text-secondary'} ${
                             memberEditable ? 'cursor-pointer hover:bg-muted/60' : ''
                           }`}
                           title={member.rostered ? undefined : t('fixedHint')}
@@ -281,7 +287,7 @@ export function WeekRosterEditor({
       />
 
       <Dialog open={confirmPublish} onOpenChange={setConfirmPublish}>
-        <DialogContent className="max-w-md bg-white">
+        <DialogContent className="max-w-[min(28rem,calc(100%-2rem))] bg-white">
           <DialogHeader>
             <DialogTitle>{t('publishTitle')}</DialogTitle>
             <DialogDescription>{t('publishConfirm')}</DialogDescription>

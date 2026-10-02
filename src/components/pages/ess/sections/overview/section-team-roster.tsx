@@ -92,11 +92,11 @@ export const SectionTeamRoster = () => {
     );
 
   return (
-    <div className="flex flex-col gap-4 py-6">
-      <div className="flex flex-col gap-4 rounded-md border bg-white p-6 shadow-sm">
-        <div>
-          <h2 className="text-xl font-semibold">{t('title')}</h2>
-          <p className="text-sm text-text-secondary">
+    <div className="flex min-w-0 flex-col gap-4 py-4 sm:py-6">
+      <div className="flex min-w-0 flex-col gap-4 rounded-md border bg-white p-4 shadow-sm sm:p-6">
+        <div className="min-w-0">
+          <h2 className="text-xl font-semibold break-words">{t('title')}</h2>
+          <p className="text-sm text-text-secondary break-words">
             {isOwner ? t('subtitleOwner', { count: meta.teams_count }) : t('subtitleLead')}
           </p>
         </div>

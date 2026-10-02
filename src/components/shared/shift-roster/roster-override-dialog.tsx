@@ -59,24 +59,39 @@ export function RosterOverrideDialog({ target, shiftOptions, isPending, onClose,
 
   return (
     <Dialog open={Boolean(target)} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-md bg-white">
+      <DialogContent className="max-w-[min(28rem,calc(100%-2rem))] bg-white">
         <DialogHeader>
           <DialogTitle>{target?.date ? t('editDay') : t('editWeek')}</DialogTitle>
         </DialogHeader>
         {target && (
           <div className="space-y-4">
-            <p className="text-sm text-text-secondary">
+            <p className="text-sm text-text-secondary break-words">
               {target.employeeName} · {target.date ? formatDate(target.date, 'ddd, DD MMM YYYY') : t('wholeWeek')}
             </p>
             <div className="flex flex-wrap gap-2">
-              <Button variant={mode === 'shift' ? 'default' : 'outline'} size="sm" onClick={() => setMode('shift')}>
+              <Button
+                variant={mode === 'shift' ? 'default' : 'outline'}
+                size="sm"
+                className="min-h-9"
+                onClick={() => setMode('shift')}
+              >
                 {t('setShift')}
               </Button>
-              <Button variant={mode === 'off' ? 'default' : 'outline'} size="sm" onClick={() => setMode('off')}>
+              <Button
+                variant={mode === 'off' ? 'default' : 'outline'}
+                size="sm"
+                className="min-h-9"
+                onClick={() => setMode('off')}
+              >
                 {t('setDayOff')}
               </Button>
               {target.current ? (
-                <Button variant={mode === 'clear' ? 'default' : 'outline'} size="sm" onClick={() => setMode('clear')}>
+                <Button
+                  variant={mode === 'clear' ? 'default' : 'outline'}
+                  size="sm"
+                  className="min-h-9"
+                  onClick={() => setMode('clear')}
+                >
                   {target.date ? t('clearDayOverride') : t('clearWeekOverride')}
                 </Button>
               ) : null}
