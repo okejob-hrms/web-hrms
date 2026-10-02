@@ -175,7 +175,13 @@ export const EssPage = () => {
         title: tSidebar('leaveRequest'),
         item,
       })) ?? [];
-    return [...overtimes, ...leaves];
+    const businessTrips =
+      (dashboardAnalytics.waitingStat?.data.business_trips ?? []).map((item) => ({
+        key: `bt-${item.id}`,
+        title: tSidebar('businessTrip'),
+        item,
+      }));
+    return [...overtimes, ...leaves, ...businessTrips];
   }, [dashboardAnalytics.waitingStat?.data, tSidebar]);
 
   const LineChartComponent = () => (

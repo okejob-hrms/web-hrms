@@ -2076,7 +2076,8 @@
     "payslipPeriod": "Periode",
     "payslipGross": "Gaji Kotor",
     "payslipNet": "Gaji Bersih",
-    "assessmentAssessors": "Penilai"
+    "assessmentAssessors": "Penilai",
+    "approvalsBTDestination": "Tujuan"
   },
   "formatting": {
     "days": "{count} hari",
