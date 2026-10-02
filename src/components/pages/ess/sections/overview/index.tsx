@@ -13,6 +13,7 @@ import { SectionTeamRoster } from "./section-team-roster";
 import { SectionAttendance } from "./section-attendance";
 import { SectionProfile } from "./section-profile";
 import { SectionPayslip } from "./section-payslip";
+import { SectionSupervisorAssessment } from "./section-supervisor-assessment";
 
 type EssOverviewProps = {
   overview?: string;
@@ -45,6 +46,8 @@ export default function EssOverview({ overview }: EssOverviewProps) {
         return <SectionProfile />;
       case "payslip":
         return <SectionPayslip />;
+      case "supervisor-assessment":
+        return <SectionSupervisorAssessment />;
       default:
         return <SectionLeave />;
     }

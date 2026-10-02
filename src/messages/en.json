@@ -2075,7 +2075,8 @@
     "payslipPrintRequested": "Print request submitted",
     "payslipPeriod": "Period",
     "payslipGross": "Gross Salary",
-    "payslipNet": "Net Salary"
+    "payslipNet": "Net Salary",
+    "assessmentAssessors": "Assessors"
   },
   "formatting": {
     "days": "{count} days",

@@ -93,6 +93,11 @@ export const EssQuickActions = () => {
       icon: <UserStarIcon className="text-white" />,
     },
     {
+      title: t('mySupervisorAssessment'),
+      path: '/ess/supervisor-assessment',
+      icon: <UserStarIcon className="text-white" />,
+    },
+    {
       title: t('organizationStructure'),
       path: '/ess/organization',
       icon: <GitCompareArrowsIcon className="text-white" />,

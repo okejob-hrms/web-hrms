@@ -2075,7 +2075,8 @@
     "payslipPrintRequested": "Permintaan cetak terkirim",
     "payslipPeriod": "Periode",
     "payslipGross": "Gaji Kotor",
-    "payslipNet": "Gaji Bersih"
+    "payslipNet": "Gaji Bersih",
+    "assessmentAssessors": "Penilai"
   },
   "formatting": {
     "days": "{count} hari",
