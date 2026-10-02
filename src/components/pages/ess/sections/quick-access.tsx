@@ -10,6 +10,7 @@ import {
   UserStarIcon,
   CalendarDays,
   Receipt,
+  UserCircle,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -65,6 +66,11 @@ export const EssQuickActions = () => {
       title: tSidebar('businessTrip'),
       path: '/ess/business-trip',
       icon: <Plane className="text-white" />,
+    },
+    {
+      title: t('myProfile'),
+      path: '/ess/profile',
+      icon: <UserCircle className="text-white" />,
     },
     {
       title: t('approvals'),

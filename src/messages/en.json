@@ -2056,7 +2056,18 @@
     "myPayslip": "My Payslip",
     "myProfile": "My Profile",
     "mySupervisorAssessment": "My Assessment",
-    "cancelLeaveConfirm": "Are you sure you want to cancel this leave request?"
+    "cancelLeaveConfirm": "Are you sure you want to cancel this leave request?",
+    "profileProtectedHint": "Some fields (name, email, ID number, NPWP, BPJS, marital status, date of birth, gender) can only be updated by HR. Contact your HR team to make changes.",
+    "profileIdentitySection": "Identity (Read-only)",
+    "profileContactSection": "Contact & Address",
+    "profilePhone": "Phone Number",
+    "profilePlaceOfBirth": "Place of Birth",
+    "profileBloodType": "Blood Type",
+    "profileResidentialAddress": "Residential Address",
+    "profileCitizenIdAddress": "KTP Address",
+    "profileMaritalStatus": "Marital Status",
+    "profileDateOfBirth": "Date of Birth",
+    "profileGender": "Gender"
   },
   "formatting": {
     "days": "{count} days",

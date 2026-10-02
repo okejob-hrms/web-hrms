@@ -2056,7 +2056,18 @@
     "myPayslip": "Slip Gaji Saya",
     "myProfile": "Profil Saya",
     "mySupervisorAssessment": "Penilaian Saya",
-    "cancelLeaveConfirm": "Apakah Anda yakin ingin membatalkan permintaan cuti ini?"
+    "cancelLeaveConfirm": "Apakah Anda yakin ingin membatalkan permintaan cuti ini?",
+    "profileProtectedHint": "Beberapa kolom (nama, email, nomor KTP, NPWP, BPJS, status menikah, tanggal lahir, jenis kelamin) hanya dapat diperbarui oleh HR. Hubungi tim HR Anda untuk melakukan perubahan.",
+    "profileIdentitySection": "Identitas (Hanya Baca)",
+    "profileContactSection": "Kontak & Alamat",
+    "profilePhone": "Nomor Telepon",
+    "profilePlaceOfBirth": "Tempat Lahir",
+    "profileBloodType": "Golongan Darah",
+    "profileResidentialAddress": "Alamat Domisili",
+    "profileCitizenIdAddress": "Alamat KTP",
+    "profileMaritalStatus": "Status Pernikahan",
+    "profileDateOfBirth": "Tanggal Lahir",
+    "profileGender": "Jenis Kelamin"
   },
   "formatting": {
     "days": "{count} hari",
