@@ -10,6 +10,7 @@ import { SectionOkr } from "./section-okr";
 import { SectionBusinessTrip } from "./section-business-trip";
 import { SectionApprovals } from "./section-approvals";
 import { SectionTeamRoster } from "./section-team-roster";
+import { SectionAttendance } from "./section-attendance";
 
 type EssOverviewProps = {
   overview?: string;
@@ -36,6 +37,8 @@ export default function EssOverview({ overview }: EssOverviewProps) {
         return <SectionOffboarding />;
       case "team-roster":
         return <SectionTeamRoster />;
+      case "attendance":
+        return <SectionAttendance />;
       default:
         return <SectionLeave />;
     }

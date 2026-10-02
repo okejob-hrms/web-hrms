@@ -5,6 +5,14 @@ import {
   EssLeaveActionPayload,
   EssOvertimeStatusPayload,
   WaitingResponse,
+  EssAttendanceHistory,
+  EssAttendanceHistoryResponse,
+  EssAttendanceAdjustPayload,
+  EssLeaveBalance,
+  EssLeaveListResponse,
+  EssPayslipListResponse,
+  EssPayslipDetailResponse,
+  EssSupervisorAssessmentListResponse,
 } from "./types";
 
 type PersonalTrendApiResponse = {
@@ -136,6 +144,102 @@ export const essOvertimeStatus = async (
   const response = await apiEmployee.post(
     `ess/overtime/${overtimeId}/status`,
     { json: payload },
+  );
+  return response.json();
+};
+
+// ─── Attendance history ────────────────────────────────────────────────────
+export const getEssAttendanceHistory = async (params?: {
+  period?: string;   // Y-m e.g. "2026-10"
+  status?: string;
+}): Promise<EssAttendanceHistoryResponse> => {
+  const searchParams: Record<string, string> = {};
+  if (params?.period) searchParams.period = params.period;
+  if (params?.status !== undefined && params.status !== '')
+    searchParams.status = params.status;
+  const response = await apiEmployee.get<EssAttendanceHistoryResponse>(
+    'ess/attendance/history',
+    { searchParams },
+  );
+  return response.json();
+};
+
+export const adjustEssAttendance = async (
+  id: number,
+  payload: EssAttendanceAdjustPayload,
+) => {
+  const response = await apiEmployee.put(
+    `ess/attendance/${id}`,
+    { json: payload },
+  );
+  return response.json();
+};
+
+// ─── Leave balance + ESS leave list ───────────────────────────────────────
+export const getEssLeaveBalance = async (): Promise<{ data: EssLeaveBalance[] }> => {
+  const response = await apiEmployee.get<{ data: EssLeaveBalance[] }>(
+    'ess/leave/balance',
+  );
+  return response.json();
+};
+
+export const getEssLeaves = async (params?: {
+  status?: number;
+  per_page?: number;
+  page?: number;
+}): Promise<EssLeaveListResponse> => {
+  const searchParams: Record<string, string> = {};
+  if (params?.status !== undefined) searchParams.status = String(params.status);
+  if (params?.per_page) searchParams.per_page = String(params.per_page);
+  if (params?.page) searchParams.page = String(params.page);
+  const response = await apiEmployee.get<EssLeaveListResponse>(
+    'ess/leave',
+    { searchParams },
+  );
+  return response.json();
+};
+
+// ─── Payslip ─────────────────────────────────────────────────────────────
+export const getEssPayslips = async (params?: {
+  per_page?: number;
+  page?: number;
+}): Promise<EssPayslipListResponse> => {
+  const searchParams: Record<string, string> = {};
+  if (params?.per_page) searchParams.per_page = String(params.per_page);
+  if (params?.page) searchParams.page = String(params.page);
+  const response = await apiEmployee.get<EssPayslipListResponse>(
+    'ess/payslip',
+    { searchParams },
+  );
+  return response.json();
+};
+
+export const getEssPayslipDetail = async (id: number): Promise<EssPayslipDetailResponse> => {
+  const response = await apiEmployee.get<EssPayslipDetailResponse>(`ess/payslip/${id}`);
+  return response.json();
+};
+
+export const requestEssPayslipView = async (id: number) => {
+  const response = await apiEmployee.post(`ess/payslip/${id}/request-view`, { json: {} });
+  return response.json();
+};
+
+export const requestEssPayslipPrint = async (id: number) => {
+  const response = await apiEmployee.post(`ess/payslip/${id}/request-print`, { json: {} });
+  return response.json();
+};
+
+// ─── ESS Supervisor Assessment ────────────────────────────────────────────
+export const getEssSupervisorAssessments = async (params?: {
+  per_page?: number;
+  page?: number;
+}): Promise<EssSupervisorAssessmentListResponse> => {
+  const searchParams: Record<string, string> = {};
+  if (params?.per_page) searchParams.per_page = String(params.per_page);
+  if (params?.page) searchParams.page = String(params.page);
+  const response = await apiEmployee.get<EssSupervisorAssessmentListResponse>(
+    'ess/supervisor-assessments',
+    { searchParams },
   );
   return response.json();
 };

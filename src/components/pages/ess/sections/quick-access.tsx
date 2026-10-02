@@ -8,6 +8,8 @@ import {
   Plane,
   Target,
   UserStarIcon,
+  CalendarDays,
+  Receipt,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -35,9 +37,19 @@ export const EssQuickActions = () => {
 
   const pannel = [
     {
+      title: t('myAttendance'),
+      path: '/ess/attendance',
+      icon: <CalendarDays className="text-white" />,
+    },
+    {
       title: tSidebar('leaveRequest'),
       path: '/ess/leave',
       icon: <Target className="text-white" />,
+    },
+    {
+      title: t('myPayslip'),
+      path: '/ess/payslip',
+      icon: <Receipt className="text-white" />,
     },
     {
       title: tSidebar('overtimeRequest'),

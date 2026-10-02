@@ -2051,7 +2051,11 @@
     "approvalsApproveSuccess": "Request approved",
     "approvalsRejectSuccess": "Request rejected",
     "approvalsActionFailed": "Failed to update approval",
-    "approveRequest": "Approve Request"
+    "approveRequest": "Approve Request",
+    "myAttendance": "My Attendance",
+    "myPayslip": "My Payslip",
+    "myProfile": "My Profile",
+    "mySupervisorAssessment": "My Assessment"
   },
   "formatting": {
     "days": "{count} days",

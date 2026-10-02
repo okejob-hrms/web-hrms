@@ -2051,7 +2051,11 @@
     "approvalsApproveSuccess": "Permintaan disetujui",
     "approvalsRejectSuccess": "Permintaan ditolak",
     "approvalsActionFailed": "Gagal memperbarui persetujuan",
-    "approveRequest": "Setujui Permintaan"
+    "approveRequest": "Setujui Permintaan",
+    "myAttendance": "Kehadiran Saya",
+    "myPayslip": "Slip Gaji Saya",
+    "myProfile": "Profil Saya",
+    "mySupervisorAssessment": "Penilaian Saya"
   },
   "formatting": {
     "days": "{count} hari",
