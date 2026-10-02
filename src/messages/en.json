@@ -992,6 +992,7 @@
     "shiftRequired": "Shift is required",
     "clockInRequired": "Clock-in time is required",
     "clockOutRequired": "Clock-out time is required",
+    "clockOutAfterClockIn": "Clock-out time must be after clock-in time",
     "createAttendanceSuccess": "Attendance created successfully",
     "createAttendanceFailed": "Failed to create attendance",
     "updateAttendanceSuccess": "Attendance updated successfully",

@@ -31,6 +31,14 @@ import { cn } from '@/lib/utils';
 
 const STATUS_ALL = 'all';
 
+/** Normalize API time strings to HH:mm for `<input type="time">`. */
+function toTimeInputValue(raw: string | null | undefined): string {
+  if (!raw) return '';
+  const m = raw.match(/(\d{1,2}):(\d{2})/);
+  if (!m) return '';
+  return `${m[1].padStart(2, '0')}:${m[2]}`;
+}
+
 function statusVariant(status: number): 'default' | 'secondary' | 'outline' | 'destructive' {
   if (status === 1) return 'default';    // approved / on-time
   if (status === 2) return 'destructive'; // rejected
@@ -90,11 +98,33 @@ export const SectionAttendance = () => {
   const openAdjust = (item: EssAttendanceHistory) => {
     setSelected(item);
     setForm({
-      clock_in_at: item.clock_in_at?.slice(0, 5) ?? '',
-      clock_out_at: item.clock_out_at?.slice(0, 5) ?? '',
+      clock_in_at: toTimeInputValue(item.clock_in_at),
+      clock_out_at: toTimeInputValue(item.clock_out_at),
       notes: item.notes ?? '',
     });
     setAdjustOpen(true);
+  };
+
+  const submitAdjust = () => {
+    if (!selected) return;
+    const clockIn = (form.clock_in_at ?? '').trim();
+    const clockOut = (form.clock_out_at ?? '').trim();
+    if (!clockIn) {
+      toast.error(tAtt('clockInRequired'));
+      return;
+    }
+    if (!clockOut) {
+      toast.error(tAtt('clockOutRequired'));
+      return;
+    }
+    if (clockOut <= clockIn) {
+      toast.error(tAtt('clockOutAfterClockIn'));
+      return;
+    }
+    adjustMutation.mutate({
+      id: selected.id,
+      payload: { ...form, clock_in_at: clockIn, clock_out_at: clockOut },
+    });
   };
 
   const statusTabs = [
@@ -276,10 +306,7 @@ export const SectionAttendance = () => {
             </Button>
             <Button
               disabled={adjustMutation.isPending}
-              onClick={() => {
-                if (!selected) return;
-                adjustMutation.mutate({ id: selected.id, payload: form });
-              }}
+              onClick={submitAdjust}
             >
               {adjustMutation.isPending ? tCommon('saving') : tCommon('save')}
             </Button>

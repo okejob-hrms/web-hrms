@@ -60,6 +60,10 @@ export const PendingAdjustmentsTab = () => {
 
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ['attendance-adjustment-requests'] });
+    // Approving/rejecting mutates the underlying attendance record — refresh list, detail, stats.
+    queryClient.invalidateQueries({ queryKey: ['attendance'] });
+    queryClient.invalidateQueries({ queryKey: ['attendanceDetail'] });
+    queryClient.invalidateQueries({ queryKey: ['attendanceStats'] });
   };
 
   const approveMutation = useMutation({

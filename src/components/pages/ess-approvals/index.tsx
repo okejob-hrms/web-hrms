@@ -199,8 +199,8 @@ export default function EssApprovalsList() {
     <div className="font-sans min-h-screen flex flex-col space-y-6 px-6">
       <div className="flex items-center justify-between">
         <h2 className="font-semibold text-xl text-primary">{t('approvals')}</h2>
-        {data?.data.total ? (
-          <Badge variant="secondary">{data.data.total}</Badge>
+        {items.length > 0 ? (
+          <Badge variant="secondary">{items.length}</Badge>
         ) : null}
       </div>
 

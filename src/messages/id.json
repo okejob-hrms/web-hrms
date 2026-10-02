@@ -992,6 +992,7 @@
     "shiftRequired": "Shift wajib dipilih",
     "clockInRequired": "Waktu jam masuk wajib diisi",
     "clockOutRequired": "Waktu jam keluar wajib diisi",
+    "clockOutAfterClockIn": "Waktu jam keluar harus setelah waktu jam masuk",
     "createAttendanceSuccess": "Kehadiran berhasil dibuat",
     "createAttendanceFailed": "Gagal membuat kehadiran",
     "updateAttendanceSuccess": "Kehadiran berhasil diperbarui",

@@ -64,6 +64,7 @@ export const SectionLeave = () => {
   const tAtt = useTranslations('attendance');
   const tCommon = useTranslations('common');
   const tStatus = useTranslations('status');
+  const tSettings = useTranslations('settings');
   const queryClient = useQueryClient();
   const router = useRouter();
 
@@ -131,7 +132,7 @@ export const SectionLeave = () => {
       {/* Leave Balance */}
       <div className="space-y-2">
         <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-          {tAtt('usedLeaveBalance')}
+          {tSettings('leaveBalance')}
         </h3>
         {balanceLoading ? (
           <div className="flex gap-3">
