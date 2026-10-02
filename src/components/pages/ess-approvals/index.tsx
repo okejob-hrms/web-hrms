@@ -4,10 +4,12 @@ import * as React from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
-import { Clock, CircleX, ClockCheck } from 'lucide-react';
+import { Clock, CircleX, ClockCheck, Plane } from 'lucide-react';
 import {
   essLeaveAction,
   essOvertimeStatus,
+  essBusinessTripApprove,
+  essBusinessTripReject,
   getWaitingDashboardEmployee,
 } from '@/services/ess';
 import type { WaitingApprovalItem } from '@/services/ess/types';
@@ -32,9 +34,7 @@ export default function EssApprovalsList() {
   const tSidebar = useTranslations('sidebar');
   const queryClient = useQueryClient();
 
-  const [selected, setSelected] = React.useState<WaitingApprovalItem | null>(
-    null,
-  );
+  const [selected, setSelected] = React.useState<WaitingApprovalItem | null>(null);
   const [notes, setNotes] = React.useState('');
 
   const { data, isLoading } = useQuery({
@@ -45,7 +45,11 @@ export default function EssApprovalsList() {
   const items = React.useMemo(() => {
     const leaves = data?.data.leaves ?? [];
     const overtimes = data?.data.overtimes ?? [];
-    return [...leaves, ...overtimes];
+    const businessTrips = (data?.data.business_trips ?? []).map((item) => ({
+      ...item,
+      type: 'business_trip' as const,
+    }));
+    return [...leaves, ...overtimes, ...businessTrips];
   }, [data]);
 
   const invalidate = () => {
@@ -95,16 +99,46 @@ export default function EssApprovalsList() {
     },
   });
 
-  const isSubmitting = leaveMutation.isPending || overtimeMutation.isPending;
+  const btApproveMutation = useMutation({
+    mutationFn: ({ id, notes }: { id: number; notes?: string }) =>
+      essBusinessTripApprove(id, { notes }),
+    onSuccess: () => {
+      toast.success(t('approvalsApproveSuccess'));
+      setSelected(null);
+      setNotes('');
+      invalidate();
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || t('approvalsActionFailed'));
+    },
+  });
+
+  const btRejectMutation = useMutation({
+    mutationFn: ({ id, notes }: { id: number; notes?: string }) =>
+      essBusinessTripReject(id, { notes }),
+    onSuccess: () => {
+      toast.success(t('approvalsRejectSuccess'));
+      setSelected(null);
+      setNotes('');
+      invalidate();
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || t('approvalsActionFailed'));
+    },
+  });
+
+  const isSubmitting =
+    leaveMutation.isPending ||
+    overtimeMutation.isPending ||
+    btApproveMutation.isPending ||
+    btRejectMutation.isPending;
 
   const handleApprove = () => {
     if (!selected) return;
     if (selected.type === 'leave') {
-      leaveMutation.mutate({
-        id: selected.id,
-        action: 'approve',
-        notes: notes.trim() || undefined,
-      });
+      leaveMutation.mutate({ id: selected.id, action: 'approve', notes: notes.trim() || undefined });
+    } else if (selected.type === 'business_trip') {
+      btApproveMutation.mutate({ id: selected.id, notes: notes.trim() || undefined });
     } else {
       overtimeMutation.mutate({ id: selected.id, status: 2 });
     }
@@ -113,25 +147,39 @@ export default function EssApprovalsList() {
   const handleReject = () => {
     if (!selected) return;
     if (selected.type === 'leave') {
-      leaveMutation.mutate({
-        id: selected.id,
-        action: 'reject',
-        notes: notes.trim() || undefined,
-      });
+      leaveMutation.mutate({ id: selected.id, action: 'reject', notes: notes.trim() || undefined });
+    } else if (selected.type === 'business_trip') {
+      btRejectMutation.mutate({ id: selected.id, notes: notes.trim() || undefined });
     } else {
       overtimeMutation.mutate({ id: selected.id, status: 3 });
     }
   };
 
-  const typeLabel = (item: WaitingApprovalItem) =>
-    item.type === 'leave'
-      ? tSidebar('leaveRequest')
-      : tSidebar('overtimeRequest');
+  const typeLabel = (item: WaitingApprovalItem) => {
+    if (item.type === 'leave') return tSidebar('leaveRequest');
+    if (item.type === 'business_trip') return tSidebar('businessTrip');
+    return tSidebar('overtimeRequest');
+  };
+
+  const typeIcon = (item: WaitingApprovalItem) => {
+    if (item.type === 'business_trip')
+      return <Plane className="w-3 h-3 text-blue-600" />;
+    return null;
+  };
 
   const subtitle = (item: WaitingApprovalItem) => {
     if (item.type === 'leave') {
       const parts = [
         item.leave_type?.name,
+        item.start_date && item.end_date
+          ? `${item.start_date} – ${item.end_date}`
+          : null,
+      ].filter(Boolean);
+      return parts.join(' · ');
+    }
+    if (item.type === 'business_trip') {
+      const parts = [
+        item.destination,
         item.start_date && item.end_date
           ? `${item.start_date} – ${item.end_date}`
           : null,
@@ -151,8 +199,8 @@ export default function EssApprovalsList() {
     <div className="font-sans min-h-screen flex flex-col space-y-6 px-6">
       <div className="flex items-center justify-between">
         <h2 className="font-semibold text-xl text-primary">{t('approvals')}</h2>
-        {data?.data.total ? (
-          <Badge variant="secondary">{data.data.total}</Badge>
+        {items.length > 0 ? (
+          <Badge variant="secondary">{items.length}</Badge>
         ) : null}
       </div>
 
@@ -173,7 +221,8 @@ export default function EssApprovalsList() {
               }}
             >
               <div className="flex items-center justify-between gap-3">
-                <p className="font-medium text-sm text-primary">
+                <p className="font-medium text-sm text-primary flex items-center gap-1">
+                  {typeIcon(item)}
                   {typeLabel(item)}
                 </p>
                 <Badge
@@ -184,7 +233,7 @@ export default function EssApprovalsList() {
                   {tStatus('waitingForApproval')}
                 </Badge>
               </div>
-              <p className="font-semibold">{item.user.name}</p>
+              <p className="font-semibold">{item.user?.name ?? '-'}</p>
               {subtitle(item) ? (
                 <p className="text-sm text-muted-foreground">{subtitle(item)}</p>
               ) : null}
@@ -210,49 +259,38 @@ export default function EssApprovalsList() {
             <div className="space-y-3 text-sm">
               <div>
                 <div className="text-muted-foreground">{t('approvalsType')}</div>
-                <div className="font-medium">{typeLabel(selected)}</div>
+                <div className="font-medium flex items-center gap-1">
+                  {typeIcon(selected)}{typeLabel(selected)}
+                </div>
               </div>
               <div>
-                <div className="text-muted-foreground">
-                  {t('approvalsEmployee')}
-                </div>
-                <div className="font-medium">{selected.user.name}</div>
+                <div className="text-muted-foreground">{t('approvalsEmployee')}</div>
+                <div className="font-medium">{selected.user?.name ?? '-'}</div>
               </div>
-              {selected.type === 'leave' ? (
+
+              {selected.type === 'leave' && (
                 <>
                   {selected.leave_type?.name ? (
                     <div>
-                      <div className="text-muted-foreground">
-                        {t('approvalsLeaveType')}
-                      </div>
-                      <div className="font-medium">
-                        {selected.leave_type.name}
-                      </div>
+                      <div className="text-muted-foreground">{t('approvalsLeaveType')}</div>
+                      <div className="font-medium">{selected.leave_type.name}</div>
                     </div>
                   ) : null}
                   {selected.start_date && selected.end_date ? (
                     <div>
-                      <div className="text-muted-foreground">
-                        {tCommon('duration')}
-                      </div>
-                      <div className="font-medium">
-                        {selected.start_date} – {selected.end_date}
-                      </div>
+                      <div className="text-muted-foreground">{tCommon('duration')}</div>
+                      <div className="font-medium">{selected.start_date} – {selected.end_date}</div>
                     </div>
                   ) : null}
                   {selected.reason ? (
                     <div>
-                      <div className="text-muted-foreground">
-                        {t('approvalsReason')}
-                      </div>
+                      <div className="text-muted-foreground">{t('approvalsReason')}</div>
                       <div className="font-medium">{selected.reason}</div>
                     </div>
                   ) : null}
                   <Separator />
                   <div>
-                    <div className="text-muted-foreground mb-2">
-                      {t('approvalsNotesOptional')}
-                    </div>
+                    <div className="text-muted-foreground mb-2">{t('approvalsNotesOptional')}</div>
                     <Textarea
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
@@ -261,31 +299,58 @@ export default function EssApprovalsList() {
                     />
                   </div>
                 </>
-              ) : (
+              )}
+
+              {selected.type === 'business_trip' && (
+                <>
+                  {selected.destination ? (
+                    <div>
+                      <div className="text-muted-foreground">{t('approvalsBTDestination')}</div>
+                      <div className="font-medium">{selected.destination}</div>
+                    </div>
+                  ) : null}
+                  {selected.start_date && selected.end_date ? (
+                    <div>
+                      <div className="text-muted-foreground">{tCommon('duration')}</div>
+                      <div className="font-medium">{selected.start_date} – {selected.end_date}</div>
+                    </div>
+                  ) : null}
+                  {selected.reason ? (
+                    <div>
+                      <div className="text-muted-foreground">{t('approvalsReason')}</div>
+                      <div className="font-medium">{selected.reason}</div>
+                    </div>
+                  ) : null}
+                  <Separator />
+                  <div>
+                    <div className="text-muted-foreground mb-2">{t('approvalsNotesOptional')}</div>
+                    <Textarea
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      placeholder={t('approvalsNotesHint')}
+                      rows={3}
+                    />
+                  </div>
+                </>
+              )}
+
+              {selected.type !== 'leave' && selected.type !== 'business_trip' && (
                 <>
                   {selected.overtime_date ? (
                     <div>
-                      <div className="text-muted-foreground">
-                        {t('approvalsOvertimeDate')}
-                      </div>
+                      <div className="text-muted-foreground">{t('approvalsOvertimeDate')}</div>
                       <div className="font-medium">{selected.overtime_date}</div>
                     </div>
                   ) : null}
                   {selected.start_time && selected.end_time ? (
                     <div>
-                      <div className="text-muted-foreground">
-                        {t('approvalsTime')}
-                      </div>
-                      <div className="font-medium">
-                        {selected.start_time} – {selected.end_time}
-                      </div>
+                      <div className="text-muted-foreground">{t('approvalsTime')}</div>
+                      <div className="font-medium">{selected.start_time} – {selected.end_time}</div>
                     </div>
                   ) : null}
                   {selected.notes ? (
                     <div>
-                      <div className="text-muted-foreground">
-                        {tCommon('notes')}
-                      </div>
+                      <div className="text-muted-foreground">{tCommon('notes')}</div>
                       <div className="font-medium">{selected.notes}</div>
                     </div>
                   ) : null}
