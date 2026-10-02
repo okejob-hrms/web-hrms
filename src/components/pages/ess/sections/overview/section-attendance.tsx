@@ -46,6 +46,7 @@ export const SectionAttendance = () => {
 
   const [period, setPeriod] = React.useState(() => dayjs().format('YYYY-MM'));
   const [statusFilter, setStatusFilter] = React.useState<string>(STATUS_ALL);
+  const [page, setPage] = React.useState(1);
 
   // adjust modal
   const [adjustOpen, setAdjustOpen] = React.useState(false);
@@ -53,11 +54,13 @@ export const SectionAttendance = () => {
   const [form, setForm] = React.useState<EssAttendanceAdjustPayload>({});
 
   const { data, isLoading } = useQuery({
-    queryKey: ['ess-attendance-history', period, statusFilter],
+    queryKey: ['ess-attendance-history', period, statusFilter, page],
     queryFn: () =>
       getEssAttendanceHistory({
         period,
         status: statusFilter === STATUS_ALL ? undefined : statusFilter,
+        per_page: 50,
+        page,
       }),
   });
 
@@ -75,10 +78,14 @@ export const SectionAttendance = () => {
     },
   });
 
-  const handlePrevMonth = () =>
+  const handlePrevMonth = () => {
     setPeriod((p) => dayjs(p + '-01').subtract(1, 'month').format('YYYY-MM'));
-  const handleNextMonth = () =>
+    setPage(1);
+  };
+  const handleNextMonth = () => {
     setPeriod((p) => dayjs(p + '-01').add(1, 'month').format('YYYY-MM'));
+    setPage(1);
+  };
 
   const openAdjust = (item: EssAttendanceHistory) => {
     setSelected(item);
@@ -98,6 +105,11 @@ export const SectionAttendance = () => {
   ];
 
   const rows = data?.data ?? [];
+  const pagination = data?.pagination;
+  const hasPrevPage = !!pagination && pagination.current_page > 1;
+  const hasNextPage =
+    !!pagination &&
+    (pagination.next != null || pagination.current_page < pagination.last_page);
 
   return (
     <div className="font-sans min-h-screen flex flex-col space-y-6 px-6 md:px-12">
@@ -118,7 +130,10 @@ export const SectionAttendance = () => {
 
       <Tabs
         value={statusFilter}
-        onValueChange={(v) => setStatusFilter(v)}
+        onValueChange={(v) => {
+          setStatusFilter(v);
+          setPage(1);
+        }}
         className="w-full"
       >
         <TabsList className="w-full bg-secondary-background">
@@ -187,6 +202,29 @@ export const SectionAttendance = () => {
               )}
             </div>
           ))}
+          {pagination && (hasPrevPage || hasNextPage) && (
+            <div className="flex items-center justify-between pt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={!hasPrevPage}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+              >
+                <ChevronLeft className="w-4 h-4 mr-1" /> {tCommon('previous')}
+              </Button>
+              <span className="text-sm text-muted-foreground">
+                {pagination.current_page} / {pagination.last_page}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={!hasNextPage}
+                onClick={() => setPage((p) => p + 1)}
+              >
+                {tCommon('next')} <ChevronRight className="w-4 h-4 ml-1" />
+              </Button>
+            </div>
+          )}
         </div>
       )}
 

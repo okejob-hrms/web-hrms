@@ -233,7 +233,7 @@ export default function EssApprovalsList() {
                   {tStatus('waitingForApproval')}
                 </Badge>
               </div>
-              <p className="font-semibold">{item.user.name}</p>
+              <p className="font-semibold">{item.user?.name ?? '-'}</p>
               {subtitle(item) ? (
                 <p className="text-sm text-muted-foreground">{subtitle(item)}</p>
               ) : null}
@@ -265,7 +265,7 @@ export default function EssApprovalsList() {
               </div>
               <div>
                 <div className="text-muted-foreground">{t('approvalsEmployee')}</div>
-                <div className="font-medium">{selected.user.name}</div>
+                <div className="font-medium">{selected.user?.name ?? '-'}</div>
               </div>
 
               {selected.type === 'leave' && (

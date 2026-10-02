@@ -4,7 +4,7 @@ import * as React from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
-import { Eye, Printer } from 'lucide-react';
+import { Eye, Printer, FileText } from 'lucide-react';
 
 import {
   getEssPayslips,
@@ -101,7 +101,7 @@ export const SectionPayslip = () => {
                     variant="outline"
                     onClick={() => openDetail(item)}
                   >
-                    <Eye className="w-3 h-3 mr-1" /> {tCommon('details')}
+                    <FileText className="w-3 h-3 mr-1" /> {t('payslipDetails')}
                   </Button>
                   <Button
                     size="sm"

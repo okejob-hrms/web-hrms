@@ -48,11 +48,11 @@ export type WaitingApprovalDataMeta = WaitingApprovalItem;
 export interface WaitingApprovalItem {
   id: number;
   type: 'leave' | 'overtime' | 'offboarding' | 'business_trip' | string;
-  user: {
+  user?: {
     id: number;
     name: string;
     email: string;
-  };
+  } | null;
   leave_type?: {
     id: number;
     name: string;

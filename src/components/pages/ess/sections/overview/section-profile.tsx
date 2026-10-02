@@ -98,15 +98,15 @@ export const SectionProfile = () => {
             <Input value={profile?.email ?? ''} readOnly className="bg-muted" />
           </div>
           <div>
-            <label className="text-xs text-muted-foreground">ID Number (KTP)</label>
+            <label className="text-xs text-muted-foreground">{t('profileIdNumber')}</label>
             <Input value={profile?.id_number ?? '-'} readOnly className="bg-muted" />
           </div>
           <div>
-            <label className="text-xs text-muted-foreground">NPWP</label>
+            <label className="text-xs text-muted-foreground">{t('profileNpwp')}</label>
             <Input value={profile?.npwp ?? '-'} readOnly className="bg-muted" />
           </div>
           <div>
-            <label className="text-xs text-muted-foreground">BPJS</label>
+            <label className="text-xs text-muted-foreground">{t('profileBpjs')}</label>
             <Input value={profile?.bpjs ?? '-'} readOnly className="bg-muted" />
           </div>
           <div>

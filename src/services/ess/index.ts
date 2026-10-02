@@ -166,11 +166,15 @@ export const essOvertimeStatus = async (
 export const getEssAttendanceHistory = async (params?: {
   period?: string;   // Y-m e.g. "2026-10"
   status?: string;
+  per_page?: number;
+  page?: number;
 }): Promise<EssAttendanceHistoryResponse> => {
   const searchParams: Record<string, string> = {};
   if (params?.period) searchParams.period = params.period;
   if (params?.status !== undefined && params.status !== '')
     searchParams.status = params.status;
+  if (params?.per_page) searchParams.per_page = String(params.per_page);
+  if (params?.page) searchParams.page = String(params.page);
   const response = await apiEmployee.get<EssAttendanceHistoryResponse>(
     'ess/attendance/history',
     { searchParams },

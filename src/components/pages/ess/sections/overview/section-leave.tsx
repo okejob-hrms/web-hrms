@@ -5,7 +5,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { Clock, Plus, X } from 'lucide-react';
+import { Clock, Plus, X, ChevronLeft, ChevronRight } from 'lucide-react';
 
 import {
   getEssLeaveBalance,
@@ -68,6 +68,7 @@ export const SectionLeave = () => {
   const router = useRouter();
 
   const [statusFilter, setStatusFilter] = React.useState<string>(STATUS_ALL);
+  const [page, setPage] = React.useState(1);
   const [cancelTarget, setCancelTarget] = React.useState<EssLeaveItem | null>(null);
 
   const { data: balances, isLoading: balanceLoading } = useQuery({
@@ -76,12 +77,12 @@ export const SectionLeave = () => {
   });
 
   const { data: leaves, isLoading: leavesLoading } = useQuery({
-    queryKey: ['ess-leaves', statusFilter],
+    queryKey: ['ess-leaves', statusFilter, page],
     queryFn: () =>
       getEssLeaves(
         statusFilter === STATUS_ALL
-          ? { per_page: 50 }
-          : { status: Number(statusFilter), per_page: 50 },
+          ? { per_page: 50, page }
+          : { status: Number(statusFilter), per_page: 50, page },
       ),
   });
 
@@ -107,6 +108,11 @@ export const SectionLeave = () => {
   ];
 
   const rows = leaves?.data ?? [];
+  const pagination = leaves?.pagination;
+  const hasPrevPage = !!pagination && pagination.current_page > 1;
+  const hasNextPage =
+    !!pagination &&
+    (pagination.next != null || pagination.current_page < pagination.last_page);
 
   return (
     <div className="font-sans min-h-screen flex flex-col space-y-6 px-6 md:px-12">
@@ -160,7 +166,14 @@ export const SectionLeave = () => {
       </div>
 
       {/* Status Tabs */}
-      <Tabs value={statusFilter} onValueChange={setStatusFilter} className="w-full">
+      <Tabs
+        value={statusFilter}
+        onValueChange={(v) => {
+          setStatusFilter(v);
+          setPage(1);
+        }}
+        className="w-full"
+      >
         <TabsList className="w-full bg-secondary-background flex overflow-x-auto">
           {statusTabs.map((tab) => (
             <TabsTrigger
@@ -222,6 +235,29 @@ export const SectionLeave = () => {
               )}
             </div>
           ))}
+          {pagination && (hasPrevPage || hasNextPage) && (
+            <div className="flex items-center justify-between pt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={!hasPrevPage}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+              >
+                <ChevronLeft className="w-4 h-4 mr-1" /> {tCommon('previous')}
+              </Button>
+              <span className="text-sm text-muted-foreground">
+                {pagination.current_page} / {pagination.last_page}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={!hasNextPage}
+                onClick={() => setPage((p) => p + 1)}
+              >
+                {tCommon('next')} <ChevronRight className="w-4 h-4 ml-1" />
+              </Button>
+            </div>
+          )}
         </div>
       )}
 
