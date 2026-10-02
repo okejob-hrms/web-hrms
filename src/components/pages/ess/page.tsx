@@ -175,7 +175,13 @@ export const EssPage = () => {
         title: tSidebar('leaveRequest'),
         item,
       })) ?? [];
-    return [...overtimes, ...leaves];
+    const businessTrips =
+      (dashboardAnalytics.waitingStat?.data.business_trips ?? []).map((item) => ({
+        key: `bt-${item.id}`,
+        title: tSidebar('businessTrip'),
+        item,
+      }));
+    return [...overtimes, ...leaves, ...businessTrips];
   }, [dashboardAnalytics.waitingStat?.data, tSidebar]);
 
   const LineChartComponent = () => (
@@ -271,7 +277,7 @@ export const EssPage = () => {
             <div className="space-y-3">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <h2 className="font-bold text-xl text-gray-600">
-                  {tDashboard('attendanceTrend')}
+                  {t('myAttendanceTrend')}
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Input
