@@ -983,8 +983,8 @@
     "deleteAttendanceFailed": "Gagal menghapus kehadiran",
     "selectOption": "Pilih opsi",
     "employeeName": "Nama Karyawan",
-    "clockInTime": "Waktu Jam Masuk",
-    "clockOutTime": "Waktu Jam Keluar",
+    "clockInTime": "Waktu Masuk",
+    "clockOutTime": "Waktu Keluar",
     "selectLocation": "Pilih Lokasi",
     "saveLocation": "Simpan Lokasi",
     "employeeRequired": "Karyawan wajib dipilih",
@@ -1067,7 +1067,8 @@
     "tabRejected": "Ditolak",
     "overtimeDuration": "Durasi: {hours}j {minutes}m",
     "overtimeEndsNextDay": "berakhir keesokan harinya",
-    "overtimeSameTime": "Jam mulai dan selesai tidak boleh sama."
+    "overtimeSameTime": "Jam mulai dan selesai tidak boleh sama.",
+    "pendingAdjustments": "Permintaan Penyesuaian Menunggu"
   },
   "payroll": {
     "searchPayrun": "Cari berdasarkan nama payrun",

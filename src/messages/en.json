@@ -1067,7 +1067,8 @@
     "tabRejected": "Rejected",
     "overtimeDuration": "Duration: {hours}h {minutes}m",
     "overtimeEndsNextDay": "ends the next day",
-    "overtimeSameTime": "Start and end time cannot be the same."
+    "overtimeSameTime": "Start and end time cannot be the same.",
+    "pendingAdjustments": "Pending Adjustment Requests"
   },
   "payroll": {
     "searchPayrun": "Search by payruns name",
