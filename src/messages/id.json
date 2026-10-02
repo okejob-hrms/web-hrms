@@ -2055,7 +2055,8 @@
     "myAttendance": "Kehadiran Saya",
     "myPayslip": "Slip Gaji Saya",
     "myProfile": "Profil Saya",
-    "mySupervisorAssessment": "Penilaian Saya"
+    "mySupervisorAssessment": "Penilaian Saya",
+    "cancelLeaveConfirm": "Apakah Anda yakin ingin membatalkan permintaan cuti ini?"
   },
   "formatting": {
     "days": "{count} hari",

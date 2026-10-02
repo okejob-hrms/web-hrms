@@ -2055,7 +2055,8 @@
     "myAttendance": "My Attendance",
     "myPayslip": "My Payslip",
     "myProfile": "My Profile",
-    "mySupervisorAssessment": "My Assessment"
+    "mySupervisorAssessment": "My Assessment",
+    "cancelLeaveConfirm": "Are you sure you want to cancel this leave request?"
   },
   "formatting": {
     "days": "{count} days",
