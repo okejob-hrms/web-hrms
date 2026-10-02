@@ -2067,7 +2067,15 @@
     "profileCitizenIdAddress": "KTP Address",
     "profileMaritalStatus": "Marital Status",
     "profileDateOfBirth": "Date of Birth",
-    "profileGender": "Gender"
+    "profileGender": "Gender",
+    "payslipRequestView": "Request View",
+    "payslipRequestPrint": "Request Print",
+    "payslipRequestFailed": "Failed to send payslip request",
+    "payslipViewRequested": "View request submitted",
+    "payslipPrintRequested": "Print request submitted",
+    "payslipPeriod": "Period",
+    "payslipGross": "Gross Salary",
+    "payslipNet": "Net Salary"
   },
   "formatting": {
     "days": "{count} days",

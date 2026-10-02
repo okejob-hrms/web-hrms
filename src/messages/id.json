@@ -2067,7 +2067,15 @@
     "profileCitizenIdAddress": "Alamat KTP",
     "profileMaritalStatus": "Status Pernikahan",
     "profileDateOfBirth": "Tanggal Lahir",
-    "profileGender": "Jenis Kelamin"
+    "profileGender": "Jenis Kelamin",
+    "payslipRequestView": "Minta Lihat",
+    "payslipRequestPrint": "Minta Cetak",
+    "payslipRequestFailed": "Gagal mengirim permintaan slip gaji",
+    "payslipViewRequested": "Permintaan lihat terkirim",
+    "payslipPrintRequested": "Permintaan cetak terkirim",
+    "payslipPeriod": "Periode",
+    "payslipGross": "Gaji Kotor",
+    "payslipNet": "Gaji Bersih"
   },
   "formatting": {
     "days": "{count} hari",
