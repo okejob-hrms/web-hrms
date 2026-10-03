@@ -33,8 +33,12 @@ export const SectionTeamRoster = () => {
 
   React.useEffect(() => {
     if (meta && weekStart === null) {
-      // Owners plan ahead; team leads mostly check the current week.
-      setWeekStart(isOwner ? meta.next_week_start : meta.current_week_start);
+      // Prefer backend default (current if still draft, else next). Fall back
+      // to owner→next / lead→current for older APIs without default_week_start.
+      setWeekStart(
+        meta.default_week_start ||
+          (isOwner ? meta.next_week_start : meta.current_week_start),
+      );
     }
   }, [meta, isOwner, weekStart]);
 
@@ -45,22 +49,27 @@ export const SectionTeamRoster = () => {
   });
 
   const onError = async (e: unknown) => toast.error(await getErrorMessage(e, t('saveFailed')));
-  const invalidate = () => qc.invalidateQueries({ queryKey: ['team-roster-week', weekStart] });
+  const invalidateWeek = () =>
+    qc.invalidateQueries({ queryKey: ['team-roster-week', weekStart] });
 
   const saveMutation = useMutation({
     mutationFn: async (fn: () => Promise<unknown>) => fn(),
     onSuccess: () => {
       toast.success(tWeek('saved'));
-      invalidate();
+      invalidateWeek();
     },
     onError,
   });
 
   const publishMutation = useMutation({
     mutationFn: () => publishTeamRosterWeek(weekStart!),
-    onSuccess: () => {
+    onSuccess: async () => {
       toast.success(tWeek('published'));
-      invalidate();
+      // Meta carries default_week_start; refresh so the next open advances after publish.
+      await Promise.all([
+        invalidateWeek(),
+        qc.invalidateQueries({ queryKey: ['team-roster-meta'] }),
+      ]);
     },
     onError,
   });

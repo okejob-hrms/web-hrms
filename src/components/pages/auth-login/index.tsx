@@ -125,14 +125,11 @@ export default function AuthLogin() {
                   <FormItem className="flex flex-col w-full">
                     <FormLabel className="mb-1">{t('email')}</FormLabel>
                     <FormControl>
-                      <div className="relative w-full">
-                        <Input
-                          placeholder={t('emailPlaceholder')}
-                          type="email"
-                          className="w-full"
-                          {...field}
-                        />
-                      </div>
+                      <Input
+                        placeholder={t('emailPlaceholder')}
+                        type="email"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -145,27 +142,28 @@ export default function AuthLogin() {
                 render={({ field }) => (
                   <FormItem className="flex flex-col w-full">
                     <FormLabel className="mb-1">{t('password')}</FormLabel>
-                    <FormControl>
-                      <div className="relative w-full">
+                    <div className="relative w-full">
+                      <FormControl>
                         <Input
                           placeholder={t('passwordPlaceholder')}
                           type={showPassword ? 'text' : 'password'}
-                          className="absolute w-full"
+                          className="[&_input]:pr-10"
                           {...field}
                         />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
-                        >
-                          {showPassword ? (
-                            <EyeOff size={18} />
-                          ) : (
-                            <Eye size={18} />
-                          )}
-                        </button>
-                      </div>
-                    </FormControl>
+                      </FormControl>
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 z-10 -translate-y-1/2 text-gray-500"
+                        aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      >
+                        {showPassword ? (
+                          <EyeOff size={18} />
+                        ) : (
+                          <Eye size={18} />
+                        )}
+                      </button>
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}
