@@ -4,7 +4,7 @@ import * as React from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
-import { getErrorMessage } from '@/components/shared/shift-roster/utils';
+import { getErrorMessage, isWeekEnded } from '@/components/shared/shift-roster/utils';
 import { WeekPicker } from '@/components/shared/shift-roster/week-picker';
 import { WeekRosterEditor } from '@/components/shared/shift-roster/week-roster-editor';
 import type { RosterOverrideTarget } from '@/components/shared/shift-roster/roster-override-dialog';
@@ -110,8 +110,14 @@ export const SectionTeamRoster = () => {
           </p>
         </div>
 
-        {weekStart ? <WeekPicker weekStart={weekStart} onChange={setWeekStart} /> : null}
-        {isOwner && weekQuery.data && !weekQuery.data.editable ? (
+        {weekStart ? (
+          <WeekPicker
+            weekStart={weekStart}
+            onChange={setWeekStart}
+            currentWeekStart={meta.current_week_start}
+          />
+        ) : null}
+        {weekStart && meta.current_week_start && isWeekEnded(weekStart, meta.current_week_start) ? (
           <p className="text-xs text-text-secondary">{t('pastLocked')}</p>
         ) : null}
 
