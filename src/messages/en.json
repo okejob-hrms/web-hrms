@@ -2147,6 +2147,8 @@
     "previousWeek": "Previous week",
     "nextWeek": "Next week",
     "thisWeek": "This week",
+    "relativeNextWeek": "Next week",
+    "relativeLastWeek": "Last week",
     "ownerStatus": {
       "ok": "OK",
       "no_supervisor": "No supervisor",
