@@ -58,6 +58,23 @@ export function shiftWeek(weekStart: string, weeks: number): string {
   return dayjs(weekStart).add(weeks * 7, 'day').format('YYYY-MM-DD');
 }
 
+export type RelativeWeekLabel = 'this' | 'next' | 'last';
+
+/** Compare selected Monday to branch-local current Monday (YYYY-MM-DD). */
+export function relativeWeekLabel(
+  weekStart: string,
+  currentWeekStart: string,
+): RelativeWeekLabel | null {
+  if (weekStart === currentWeekStart) return 'this';
+  if (weekStart === shiftWeek(currentWeekStart, 1)) return 'next';
+  if (weekStart === shiftWeek(currentWeekStart, -1)) return 'last';
+  return null;
+}
+
+export function isWeekEnded(weekStart: string, currentWeekStart: string): boolean {
+  return dayjs(weekStart).isBefore(dayjs(currentWeekStart), 'day');
+}
+
 export type SelectOption = { value: string; label: string };
 
 export type ShiftOption = { id: number; name: string };

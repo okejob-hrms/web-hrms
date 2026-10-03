@@ -2147,6 +2147,8 @@
     "previousWeek": "Minggu sebelumnya",
     "nextWeek": "Minggu berikutnya",
     "thisWeek": "Minggu ini",
+    "relativeNextWeek": "Minggu depan",
+    "relativeLastWeek": "Minggu lalu",
     "ownerStatus": {
       "ok": "OK",
       "no_supervisor": "Tidak ada atasan",
