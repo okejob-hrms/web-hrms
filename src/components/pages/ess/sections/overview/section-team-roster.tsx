@@ -33,8 +33,12 @@ export const SectionTeamRoster = () => {
 
   React.useEffect(() => {
     if (meta && weekStart === null) {
-      // Owners plan ahead; team leads mostly check the current week.
-      setWeekStart(isOwner ? meta.next_week_start : meta.current_week_start);
+      // Prefer backend default (current if still draft, else next). Fall back
+      // to owner→next / lead→current for older APIs without default_week_start.
+      setWeekStart(
+        meta.default_week_start ||
+          (isOwner ? meta.next_week_start : meta.current_week_start),
+      );
     }
   }, [meta, isOwner, weekStart]);
 

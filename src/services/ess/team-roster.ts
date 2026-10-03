@@ -14,6 +14,8 @@ export type TeamRosterMeta = {
   teams_count: number;
   current_week_start: string;
   next_week_start: string;
+  /** Preferred picker start: current week if unpublished, else next week. */
+  default_week_start?: string;
 };
 
 const base = 'ess/team-roster';
