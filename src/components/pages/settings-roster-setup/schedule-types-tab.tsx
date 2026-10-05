@@ -37,12 +37,30 @@ import {
 
 const PAGE_SIZE = 50;
 
+function optionsFrom(
+  rows: ScheduleTypeRow[],
+  idKey: 'branch_id' | 'job_position_id' | 'job_level_id',
+  nameKey: 'branch_name' | 'job_position_name' | 'job_level_name',
+) {
+  const map = new Map<string, string>();
+  for (const row of rows) {
+    const id = row[idKey];
+    if (id != null) map.set(String(id), row[nameKey] ?? String(id));
+  }
+  return Array.from(map, ([value, label]) => ({ value, label })).sort((a, b) =>
+    a.label.localeCompare(b.label),
+  );
+}
+
 export function ScheduleTypesTab({ enabled }: { enabled: boolean }) {
   const t = useTranslations('settings.rosterSetup');
   const canEdit = usePermissionStore((s) => s.can('time_attendance.attendance_configuration.edit'));
   const qc = useQueryClient();
   const [search, setSearch] = React.useState('');
   const [action, setAction] = React.useState('');
+  const [branch, setBranch] = React.useState('');
+  const [position, setPosition] = React.useState('');
+  const [level, setLevel] = React.useState('');
   const [limit, setLimit] = React.useState(PAGE_SIZE);
   const [confirmApply, setConfirmApply] = React.useState(false);
 
@@ -78,19 +96,36 @@ export function ScheduleTypesTab({ enabled }: { enabled: boolean }) {
   const typeLabel = (type: ScheduleType | null) =>
     type === 'roster' ? t('typeRoster') : type === 'fixed' ? t('typeFixed') : '—';
 
+  const allRows = query.data?.rows ?? [];
+  const branchOptions = React.useMemo(() => optionsFrom(allRows, 'branch_id', 'branch_name'), [allRows]);
+  const positionOptions = React.useMemo(
+    () => optionsFrom(allRows, 'job_position_id', 'job_position_name'),
+    [allRows],
+  );
+  const levelOptions = React.useMemo(
+    () => optionsFrom(allRows, 'job_level_id', 'job_level_name'),
+    [allRows],
+  );
+
   const rows = React.useMemo(() => {
     const term = search.trim().toLowerCase();
-    return (query.data?.rows ?? []).filter(
+    return allRows.filter(
       (row) =>
         (!action || row.action === action) &&
+        (!branch || String(row.branch_id ?? '') === branch) &&
+        (!position || String(row.job_position_id ?? '') === position) &&
+        (!level || String(row.job_level_id ?? '') === level) &&
         (!term ||
           (row.name ?? '').toLowerCase().includes(term) ||
           (row.code ?? '').toLowerCase().includes(term) ||
-          (row.branch_name ?? '').toLowerCase().includes(term)),
+          (row.branch_name ?? '').toLowerCase().includes(term) ||
+          (row.job_position_name ?? '').toLowerCase().includes(term) ||
+          (row.job_level_name ?? '').toLowerCase().includes(term)),
     );
-  }, [query.data, search, action]);
+  }, [allRows, search, action, branch, position, level]);
 
   const summary = query.data?.summary;
+  const colSpan = canEdit ? 6 : 5;
 
   return (
     <div className="flex flex-col gap-4">
@@ -107,6 +142,39 @@ export function ScheduleTypesTab({ enabled }: { enabled: boolean }) {
               setLimit(PAGE_SIZE);
             }}
           />
+          <div className="w-56">
+            <SearchableSelect
+              options={branchOptions}
+              value={branch}
+              placeholder={t('allBranches')}
+              onValueChange={(v) => {
+                setBranch(String(v ?? ''));
+                setLimit(PAGE_SIZE);
+              }}
+            />
+          </div>
+          <div className="w-56">
+            <SearchableSelect
+              options={positionOptions}
+              value={position}
+              placeholder={t('allJobPositions')}
+              onValueChange={(v) => {
+                setPosition(String(v ?? ''));
+                setLimit(PAGE_SIZE);
+              }}
+            />
+          </div>
+          <div className="w-56">
+            <SearchableSelect
+              options={levelOptions}
+              value={level}
+              placeholder={t('allJobLevels')}
+              onValueChange={(v) => {
+                setLevel(String(v ?? ''));
+                setLimit(PAGE_SIZE);
+              }}
+            />
+          </div>
           <div className="w-56">
             <SearchableSelect
               options={[
@@ -146,6 +214,7 @@ export function ScheduleTypesTab({ enabled }: { enabled: boolean }) {
             <TableRow>
               <TableHead>{t('employee')}</TableHead>
               <TableHead>{t('branch')}</TableHead>
+              <TableHead>{t('positionLevel')}</TableHead>
               <TableHead>{t('currentType')}</TableHead>
               <TableHead>{t('defaultType')}</TableHead>
               {canEdit ? <TableHead className="text-right">{t('actions')}</TableHead> : null}
@@ -154,17 +223,23 @@ export function ScheduleTypesTab({ enabled }: { enabled: boolean }) {
           <TableBody>
             {query.isLoading ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center text-text-secondary">{t('loading')}</TableCell>
+                <TableCell colSpan={colSpan} className="text-center text-text-secondary">
+                  {t('loading')}
+                </TableCell>
               </TableRow>
             ) : null}
             {query.isError ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center text-destructive">{t('loadFailed')}</TableCell>
+                <TableCell colSpan={colSpan} className="text-center text-destructive">
+                  {t('loadFailed')}
+                </TableCell>
               </TableRow>
             ) : null}
             {query.isSuccess && !rows.length ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center text-text-secondary">{t('noEmployees')}</TableCell>
+                <TableCell colSpan={colSpan} className="text-center text-text-secondary">
+                  {t('noEmployees')}
+                </TableCell>
               </TableRow>
             ) : null}
             {rows.slice(0, limit).map((row) => (
@@ -175,35 +250,59 @@ export function ScheduleTypesTab({ enabled }: { enabled: boolean }) {
                 </TableCell>
                 <TableCell>{row.branch_name ?? '—'}</TableCell>
                 <TableCell>
+                  <div>{row.job_position_name ?? '—'}</div>
+                  <div className="text-xs text-text-secondary">{row.job_level_name ?? '—'}</div>
+                </TableCell>
+                <TableCell>
                   <div className="flex flex-wrap items-center gap-1">
                     {typeLabel(row.current)}
-                    {row.overridden ? <Badge variant="outline" className="text-[10px]">{t('setByHr')}</Badge> : null}
+                    {row.overridden ? (
+                      <Badge variant="outline" className="text-[10px]">
+                        {t('setByHr')}
+                      </Badge>
+                    ) : null}
                   </div>
                 </TableCell>
                 <TableCell>
                   <div className="flex flex-wrap items-center gap-1">
                     {typeLabel(row.proposed)}
-                    {row.action === 'change' ? <Badge variant="secondary" className="text-[10px]">{t('willChange')}</Badge> : null}
+                    {row.action === 'change' ? (
+                      <Badge variant="secondary" className="text-[10px]">
+                        {t('willChange')}
+                      </Badge>
+                    ) : null}
                   </div>
                 </TableCell>
                 {canEdit ? (
                   <TableCell className="text-right">
                     <div className="flex flex-wrap justify-end gap-2">
                       {row.current !== 'roster' || !row.overridden ? (
-                        <Button size="sm" variant="outline" disabled={rowMutation.isPending}
-                          onClick={() => rowMutation.mutate({ row, type: 'roster' })}>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={rowMutation.isPending}
+                          onClick={() => rowMutation.mutate({ row, type: 'roster' })}
+                        >
                           {t('setRoster')}
                         </Button>
                       ) : null}
                       {row.current !== 'fixed' || !row.overridden ? (
-                        <Button size="sm" variant="outline" disabled={rowMutation.isPending}
-                          onClick={() => rowMutation.mutate({ row, type: 'fixed' })}>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={rowMutation.isPending}
+                          onClick={() => rowMutation.mutate({ row, type: 'fixed' })}
+                        >
                           {t('setFixed')}
                         </Button>
                       ) : null}
                       {row.overridden ? (
-                        <Button size="sm" variant="ghost" disabled={rowMutation.isPending}
-                          onClick={() => rowMutation.mutate({ row, type: null })}>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          disabled={rowMutation.isPending}
+                          onClick={() => rowMutation.mutate({ row, type: null })}
+                        >
                           {t('useDefault')}
                         </Button>
                       ) : null}
@@ -231,7 +330,9 @@ export function ScheduleTypesTab({ enabled }: { enabled: boolean }) {
             <DialogDescription>{t('applyConfirm', { count: summary?.changes ?? 0 })}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setConfirmApply(false)}>{t('cancel')}</Button>
+            <Button variant="outline" onClick={() => setConfirmApply(false)}>
+              {t('cancel')}
+            </Button>
             <Button disabled={applyMutation.isPending} onClick={() => applyMutation.mutate()}>
               {t('apply')}
             </Button>
