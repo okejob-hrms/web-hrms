@@ -210,6 +210,9 @@ export const PendingAdjustmentsTab = () => {
               data?.pagination
                 ? {
                     current_page: data.pagination.current_page,
+                    current_page_url: '',
+                    first_page_url: '',
+                    path: 'api/v1/employee/attendance-adjustment-requests',
                     last_page: data.pagination.last_page,
                     per_page: data.pagination.per_page,
                     total: data.pagination.total,
