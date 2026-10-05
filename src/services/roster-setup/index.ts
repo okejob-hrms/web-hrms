@@ -9,6 +9,10 @@ export type ScheduleTypeRow = {
   name: string | null;
   branch_id: number | null;
   branch_name: string | null;
+  job_position_id: number | null;
+  job_position_name: string | null;
+  job_level_id: number | null;
+  job_level_name: string | null;
   current: ScheduleType | null;
   proposed: ScheduleType;
   overridden: boolean;
