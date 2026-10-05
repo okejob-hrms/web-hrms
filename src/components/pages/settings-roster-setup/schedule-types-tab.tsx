@@ -37,6 +37,16 @@ import {
 
 const PAGE_SIZE = 50;
 
+type FilterState = {
+  search: string;
+  action: string;
+  branch: string;
+  position: string;
+  level: string;
+};
+
+type FilterKey = keyof FilterState;
+
 function optionsFrom(
   rows: ScheduleTypeRow[],
   idKey: 'branch_id' | 'job_position_id' | 'job_level_id',
@@ -50,6 +60,30 @@ function optionsFrom(
   return Array.from(map, ([value, label]) => ({ value, label })).sort((a, b) =>
     a.label.localeCompare(b.label),
   );
+}
+
+function rowMatches(row: ScheduleTypeRow, filters: FilterState, omit?: FilterKey) {
+  const term = filters.search.trim().toLowerCase();
+  if (omit !== 'action' && filters.action && row.action !== filters.action) return false;
+  if (omit !== 'branch' && filters.branch && String(row.branch_id ?? '') !== filters.branch) return false;
+  if (omit !== 'position' && filters.position && String(row.job_position_id ?? '') !== filters.position) {
+    return false;
+  }
+  if (omit !== 'level' && filters.level && String(row.job_level_id ?? '') !== filters.level) return false;
+  if (omit !== 'search' && term) {
+    const haystack = [
+      row.name,
+      row.code,
+      row.branch_name,
+      row.job_position_name,
+      row.job_level_name,
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase();
+    if (!haystack.includes(term)) return false;
+  }
+  return true;
 }
 
 export function ScheduleTypesTab({ enabled }: { enabled: boolean }) {
@@ -97,35 +131,60 @@ export function ScheduleTypesTab({ enabled }: { enabled: boolean }) {
     type === 'roster' ? t('typeRoster') : type === 'fixed' ? t('typeFixed') : '—';
 
   const allRows = query.data?.rows ?? [];
-  const branchOptions = React.useMemo(() => optionsFrom(allRows, 'branch_id', 'branch_name'), [allRows]);
+  const filters = React.useMemo<FilterState>(
+    () => ({ search, action, branch, position, level }),
+    [search, action, branch, position, level],
+  );
+
+  const branchOptions = React.useMemo(
+    () =>
+      optionsFrom(
+        allRows.filter((row) => rowMatches(row, filters, 'branch')),
+        'branch_id',
+        'branch_name',
+      ),
+    [allRows, filters],
+  );
   const positionOptions = React.useMemo(
-    () => optionsFrom(allRows, 'job_position_id', 'job_position_name'),
-    [allRows],
+    () =>
+      optionsFrom(
+        allRows.filter((row) => rowMatches(row, filters, 'position')),
+        'job_position_id',
+        'job_position_name',
+      ),
+    [allRows, filters],
   );
   const levelOptions = React.useMemo(
-    () => optionsFrom(allRows, 'job_level_id', 'job_level_name'),
-    [allRows],
+    () =>
+      optionsFrom(
+        allRows.filter((row) => rowMatches(row, filters, 'level')),
+        'job_level_id',
+        'job_level_name',
+      ),
+    [allRows, filters],
   );
 
-  const rows = React.useMemo(() => {
-    const term = search.trim().toLowerCase();
-    return allRows.filter(
-      (row) =>
-        (!action || row.action === action) &&
-        (!branch || String(row.branch_id ?? '') === branch) &&
-        (!position || String(row.job_position_id ?? '') === position) &&
-        (!level || String(row.job_level_id ?? '') === level) &&
-        (!term ||
-          (row.name ?? '').toLowerCase().includes(term) ||
-          (row.code ?? '').toLowerCase().includes(term) ||
-          (row.branch_name ?? '').toLowerCase().includes(term) ||
-          (row.job_position_name ?? '').toLowerCase().includes(term) ||
-          (row.job_level_name ?? '').toLowerCase().includes(term)),
-    );
-  }, [allRows, search, action, branch, position, level]);
+  React.useEffect(() => {
+    if (branch && !branchOptions.some((o) => o.value === branch)) setBranch('');
+  }, [branch, branchOptions]);
+  React.useEffect(() => {
+    if (position && !positionOptions.some((o) => o.value === position)) setPosition('');
+  }, [position, positionOptions]);
+  React.useEffect(() => {
+    if (level && !levelOptions.some((o) => o.value === level)) setLevel('');
+  }, [level, levelOptions]);
+
+  const rows = React.useMemo(
+    () => allRows.filter((row) => rowMatches(row, filters)),
+    [allRows, filters],
+  );
 
   const summary = query.data?.summary;
+  const filtersActive = Boolean(search.trim() || action || branch || position || level);
+  const visibleChanges = rows.filter((row) => row.action === 'change').length;
   const colSpan = canEdit ? 6 : 5;
+
+  const resetLimit = () => setLimit(PAGE_SIZE);
 
   return (
     <div className="flex flex-col gap-4">
@@ -139,7 +198,7 @@ export function ScheduleTypesTab({ enabled }: { enabled: boolean }) {
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
-              setLimit(PAGE_SIZE);
+              resetLimit();
             }}
           />
           <div className="w-56">
@@ -149,7 +208,7 @@ export function ScheduleTypesTab({ enabled }: { enabled: boolean }) {
               placeholder={t('allBranches')}
               onValueChange={(v) => {
                 setBranch(String(v ?? ''));
-                setLimit(PAGE_SIZE);
+                resetLimit();
               }}
             />
           </div>
@@ -160,7 +219,7 @@ export function ScheduleTypesTab({ enabled }: { enabled: boolean }) {
               placeholder={t('allJobPositions')}
               onValueChange={(v) => {
                 setPosition(String(v ?? ''));
-                setLimit(PAGE_SIZE);
+                resetLimit();
               }}
             />
           </div>
@@ -171,7 +230,7 @@ export function ScheduleTypesTab({ enabled }: { enabled: boolean }) {
               placeholder={t('allJobLevels')}
               onValueChange={(v) => {
                 setLevel(String(v ?? ''));
-                setLimit(PAGE_SIZE);
+                resetLimit();
               }}
             />
           </div>
@@ -186,25 +245,41 @@ export function ScheduleTypesTab({ enabled }: { enabled: boolean }) {
               placeholder={t('allEmployees')}
               onValueChange={(v) => {
                 setAction(String(v ?? ''));
-                setLimit(PAGE_SIZE);
+                resetLimit();
               }}
             />
           </div>
         </div>
         {canEdit ? (
-          <Button disabled={!summary?.changes || applyMutation.isPending} onClick={() => setConfirmApply(true)}>
-            {t('applyDefaults', { count: summary?.changes ?? 0 })}
-          </Button>
+          <div className="flex flex-col items-end gap-1">
+            <Button
+              disabled={!summary?.changes || applyMutation.isPending || filtersActive}
+              onClick={() => setConfirmApply(true)}
+            >
+              {t('applyDefaults', { count: summary?.changes ?? 0 })}
+            </Button>
+            {filtersActive ? (
+              <p className="text-xs text-text-secondary">{t('clearFiltersToApply')}</p>
+            ) : null}
+          </div>
         ) : null}
       </div>
 
       {summary ? (
         <p className="text-sm text-text-secondary">
-          {t('scheduleTypesSummary', {
-            employees: summary.employees,
-            changes: summary.changes,
-            overridden: summary.overridden,
-          })}
+          {filtersActive
+            ? t('scheduleTypesFilteredSummary', {
+                employees: summary.employees,
+                visible: rows.length,
+                visibleChanges,
+                changes: summary.changes,
+                overridden: summary.overridden,
+              })
+            : t('scheduleTypesSummary', {
+                employees: summary.employees,
+                changes: summary.changes,
+                overridden: summary.overridden,
+              })}
         </p>
       ) : null}
 
