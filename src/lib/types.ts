@@ -136,6 +136,7 @@ export type BasicDatePickerProps = DayPickerProps & {
   description?: string;
   isOptional?: boolean;
   labelClassName?: string;
+  className?: string;
   onSelect: (value?: Date) => void;
   value?: Date;
   placeholder?: string;

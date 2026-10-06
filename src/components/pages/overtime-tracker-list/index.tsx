@@ -36,7 +36,10 @@ import OvertimeDeleteModal from './sections/delete-modal';
 import { InputForm } from '@/components/ui/input';
 import { Form } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
-import { BasicDateRangePicker } from '@/components/ui/date-picker';
+import {
+  BasicDatePicker,
+  BasicDateRangePicker,
+} from '@/components/ui/date-picker';
 import dayjs from 'dayjs';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -415,26 +418,47 @@ export default function OvertimeTrackerList({
               }}
             />
 
-            {!isEmployee && (
-              <>
-                <Separator orientation="vertical" className="hidden md:block" />
-                <BasicDateRangePicker
-                  className="min-w-65"
-                  value={dateRangeValue}
-                  onSelect={(range) => {
-                    setFilters((prev) => ({
-                      ...prev,
-                      start_date: range?.from
-                        ? dayjs(range.from).format('YYYY-MM-DD')
-                        : '',
-                      end_date: range?.to
-                        ? dayjs(range.to).format('YYYY-MM-DD')
-                        : '',
-                    }));
-                    setPagination((prev) => ({ ...prev, pageIndex: 0 }));
-                  }}
-                />
-              </>
+            <Separator orientation="vertical" className="hidden md:block" />
+
+            {isEmployee ? (
+              // EmDash list filters by period=Y-m derived from start_date
+              <BasicDatePicker
+                className="min-w-60"
+                value={
+                  filters.start_date
+                    ? dayjs(filters.start_date).toDate()
+                    : undefined
+                }
+                onSelect={(date) => {
+                  setFilters((prev) => ({
+                    ...prev,
+                    start_date: date
+                      ? dayjs(date).startOf('month').format('YYYY-MM-DD')
+                      : '',
+                    end_date: date
+                      ? dayjs(date).endOf('month').format('YYYY-MM-DD')
+                      : '',
+                  }));
+                  setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+                }}
+              />
+            ) : (
+              <BasicDateRangePicker
+                className="min-w-65"
+                value={dateRangeValue}
+                onSelect={(range) => {
+                  setFilters((prev) => ({
+                    ...prev,
+                    start_date: range?.from
+                      ? dayjs(range.from).format('YYYY-MM-DD')
+                      : '',
+                    end_date: range?.to
+                      ? dayjs(range.to).format('YYYY-MM-DD')
+                      : '',
+                  }));
+                  setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+                }}
+              />
             )}
           </form>
         </Form>

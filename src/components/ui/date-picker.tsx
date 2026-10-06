@@ -148,7 +148,7 @@ export const BasicDatePicker: React.FC<BasicDatePickerProps> = (props) => {
   };
 
   return (
-    <div className="space-y-2">
+    <div className={cn("space-y-2", props.className)}>
       {props.label && (
         <Label className={cn("text-sm font-normal", props.labelClassName)}>
           {props.label}
@@ -217,6 +217,13 @@ export const BasicDateRangePicker: React.FC<BasicDateRangePickerProps> = ({
   const tCommon = useTranslations("common");
   const [isOpen, setIsOpen] = React.useState(false);
   const [draft, setDraft] = React.useState<DateRange | undefined>(value);
+  // Keep a sync ref so close-after-select doesn't commit a stale from-only draft
+  const draftRef = React.useRef<DateRange | undefined>(value);
+
+  const updateDraft = (range: DateRange | undefined) => {
+    draftRef.current = range;
+    setDraft(range);
+  };
 
   const hasValue = !!(value?.from || value?.to);
 
@@ -242,12 +249,12 @@ export const BasicDateRangePicker: React.FC<BasicDateRangePickerProps> = ({
   const handleClear = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setDraft(undefined);
+    updateDraft(undefined);
     onSelect(undefined);
   };
 
   const handleSelect = (range: DateRange | undefined) => {
-    setDraft(range);
+    updateDraft(range);
     if (!range?.from) {
       onSelect(undefined);
       return;
@@ -260,17 +267,18 @@ export const BasicDateRangePicker: React.FC<BasicDateRangePickerProps> = ({
 
   const handleOpenChange = (open: boolean) => {
     if (open) {
-      setDraft(value);
+      updateDraft(value);
       setIsOpen(true);
       return;
     }
+    const current = draftRef.current;
     // Closing with only a start date → apply as single-day range
-    if (draft?.from && !draft?.to) {
-      const singleDay = { from: draft.from, to: draft.from };
-      setDraft(singleDay);
+    if (current?.from && !current?.to) {
+      const singleDay = { from: current.from, to: current.from };
+      updateDraft(singleDay);
       commitRange(singleDay);
-    } else if (!draft?.from) {
-      setDraft(value);
+    } else if (!current?.from) {
+      updateDraft(value);
     }
     setIsOpen(false);
   };
