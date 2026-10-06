@@ -6,7 +6,6 @@ export const getOvertime = async (
   pagination?: PaginationState,
   filters?: {
     search?: string;
-    date?: string;
     start_date?: string;
     end_date?: string;
     status?: number;
@@ -29,16 +28,11 @@ export const getOvertime = async (
     searchParams.search = filters.search;
   }
 
-  // Single-day date wins over month range when set
-  if (filters?.date) {
-    searchParams.date = filters.date;
-  } else {
-    if (filters?.start_date) {
-      searchParams.start_date = filters.start_date;
-    }
-    if (filters?.end_date) {
-      searchParams.end_date = filters.end_date;
-    }
+  if (filters?.start_date) {
+    searchParams.start_date = filters.start_date;
+  }
+  if (filters?.end_date) {
+    searchParams.end_date = filters.end_date;
   }
 
   const response = await api.get<OvertimeData>(
@@ -85,7 +79,6 @@ export const getOvertimeEmployee = async (
   pagination?: PaginationState,
   filters?: {
     search?: string;
-    date?: string;
     start_date?: string;
     end_date?: string;
     status?: number;
@@ -108,10 +101,8 @@ export const getOvertimeEmployee = async (
     searchParams.search = filters.search;
   }
 
-  // EmDash accepts period=Y-m; derive from explicit day or start of month window
-  if (filters?.date) {
-    searchParams.period = filters.date.slice(0, 7);
-  } else if (filters?.start_date) {
+  // EmDash accepts period=Y-m when a range start is set; omit for all periods
+  if (filters?.start_date) {
     searchParams.period = filters.start_date.slice(0, 7);
   }
 

@@ -18,7 +18,12 @@ import { PaginationState } from "@tanstack/react-table";
 
 export const getLeaves = async (
   pagination?: PaginationState,
-  filters?: { search?: string; date?: string; status?: number },
+  filters?: {
+    search?: string;
+    start_date?: string;
+    end_date?: string;
+    status?: number;
+  },
 ): Promise<
   ApiSummaryResponse<PaginatedResponse<ILeaveResponse>, ILeaveSummary>
 > => {
@@ -39,8 +44,12 @@ export const getLeaves = async (
     searchParams.search = filters.search;
   }
 
-  if (filters?.date) {
-    searchParams.date = filters.date;
+  // Leave index accepts inclusive overlap via start_date/end_date (and legacy date)
+  if (filters?.start_date) {
+    searchParams.start_date = filters.start_date;
+  }
+  if (filters?.end_date) {
+    searchParams.end_date = filters.end_date;
   }
 
   const response = await api.get<ILeaveResponse>("employee/leaves", {
@@ -166,7 +175,12 @@ export const updateStatusLeave = async (
 
 export const getLeavesEmployee = async (
   pagination?: PaginationState,
-  filters?: { search?: string; date?: string; status?: number },
+  filters?: {
+    search?: string;
+    start_date?: string;
+    end_date?: string;
+    status?: number;
+  },
 ): Promise<ILeaveEmployeeResponse> => {
   const searchParams: Record<string, string> = {};
 
@@ -185,8 +199,9 @@ export const getLeavesEmployee = async (
     searchParams.search = filters.search;
   }
 
-  if (filters?.date) {
-    searchParams.date = filters.date;
+  // EmDash my-leave accepts a single `date` only — ignore end_date from admin-shaped filters
+  if (filters?.start_date) {
+    searchParams.date = filters.start_date;
   }
 
   const response = await apiEmployee.get<ILeaveResponse>("emdash/my-leave", {

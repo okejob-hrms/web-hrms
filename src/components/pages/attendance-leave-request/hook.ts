@@ -41,7 +41,8 @@ export function useLeaveRequest(isEmployee?: boolean) {
   });
 
   const [filters, setFilters] = React.useState<Filters>({
-    date: "",
+    start_date: "",
+    end_date: "",
     search: "",
     status: 1,
   });
