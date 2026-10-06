@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Command } from "@/components/ui/command";
 import { Command as CommandPrimitive } from "cmdk";
-import { DayPickerProps } from "react-day-picker";
+import { DateRange, DayPickerProps } from "react-day-picker";
 
 //============== Models ============== //
 
@@ -139,6 +139,17 @@ export type BasicDatePickerProps = DayPickerProps & {
   onSelect: (value?: Date) => void;
   value?: Date;
   placeholder?: string;
+};
+
+export type BasicDateRangePickerProps = {
+  label?: string;
+  isOptional?: boolean;
+  labelClassName?: string;
+  className?: string;
+  placeholder?: string;
+  value?: DateRange;
+  onSelect: (range?: DateRange) => void;
+  numberOfMonths?: number;
 };
 
 export type DatePickerProps = DayPickerProps & {

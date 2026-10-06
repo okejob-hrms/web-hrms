@@ -6,7 +6,7 @@ import { Separator } from '@/components/ui/separator';
 import { InputForm } from '@/components/ui/input';
 import { Form } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
-import { DatePicker } from '@/components/ui/date-picker';
+import { BasicDateRangePicker } from '@/components/ui/date-picker';
 import dayjs from 'dayjs';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
@@ -38,9 +38,18 @@ export default function LeaveFilters({
   const form = useForm<Filters>({
     defaultValues: {
       search: '',
-      date: '',
+      start_date: '',
+      end_date: '',
     },
   });
+
+  const dateRangeValue = React.useMemo(() => {
+    if (!filters.start_date && !filters.end_date) return undefined;
+    return {
+      from: filters.start_date ? dayjs(filters.start_date).toDate() : undefined,
+      to: filters.end_date ? dayjs(filters.end_date).toDate() : undefined,
+    };
+  }, [filters.start_date, filters.end_date]);
 
   const tabs = [
     {
@@ -92,7 +101,10 @@ export default function LeaveFilters({
       </Tabs>
 
       <Form {...form}>
-        <form className="flex flex-col md:flex-row md:items-end gap-2 md:h-10">
+        <form
+          className="flex flex-col md:flex-row md:items-end gap-2 md:h-10"
+          onSubmit={(e) => e.preventDefault()}
+        >
           {!isEmployee && (
             <InputForm
               name="search"
@@ -110,19 +122,28 @@ export default function LeaveFilters({
             />
           )}
 
-          {!isEmployee && <Separator orientation="vertical" />}
+          {!isEmployee && (
+            <Separator orientation="vertical" className="hidden md:block" />
+          )}
 
-          <DatePicker
-            className="min-w-[180px]"
-            name="date"
-            onChange={(e) => {
-              setFilters((prev) => ({
-                ...prev,
-                date: e ? dayjs(e).format('YYYY-MM-DD') : '',
-              }));
-              setPagination((prev) => ({ ...prev, pageIndex: 0 }));
-            }}
-          />
+          {!isEmployee && (
+            <BasicDateRangePicker
+              className="min-w-65"
+              value={dateRangeValue}
+              onSelect={(range) => {
+                setFilters((prev) => ({
+                  ...prev,
+                  start_date: range?.from
+                    ? dayjs(range.from).format('YYYY-MM-DD')
+                    : '',
+                  end_date: range?.to
+                    ? dayjs(range.to).format('YYYY-MM-DD')
+                    : '',
+                }));
+                setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+              }}
+            />
+          )}
         </form>
       </Form>
 

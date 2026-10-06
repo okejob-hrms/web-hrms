@@ -13,13 +13,14 @@ import {
 import { PaginationState } from "@tanstack/react-table";
 
 import { Form } from "@/components/ui/form";
-import { DatePicker } from "@/components/ui/date-picker";
+import { BasicDateRangePicker } from "@/components/ui/date-picker";
 import { ComboboxForm } from "@/components/ui/combobox";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { useDebounce } from "@/hooks/use-debounce";
 import { getEmployees } from "@/services/employees";
+import { useTranslations } from "next-intl";
 
 import { BusinessTripFilters } from "../types";
 
@@ -44,8 +45,6 @@ const tabs = [
 ];
 
 interface FormValues {
-  start_date?: string;
-  end_date?: string;
   user_id?: number | null;
 }
 
@@ -54,16 +53,23 @@ export default function BusinessTripFiltersSection({
   setFilters,
   setPagination,
 }: Props) {
+  const tCommon = useTranslations("common");
   const form = useForm<FormValues>({
     defaultValues: {
-      start_date: "",
-      end_date: "",
       user_id: null,
     },
   });
 
   const [employeeSearch, setEmployeeSearch] = React.useState("");
   const debouncedSearch = useDebounce(employeeSearch, 400);
+
+  const dateRangeValue = React.useMemo(() => {
+    if (!filters.start_date && !filters.end_date) return undefined;
+    return {
+      from: filters.start_date ? dayjs(filters.start_date).toDate() : undefined,
+      to: filters.end_date ? dayjs(filters.end_date).toDate() : undefined,
+    };
+  }, [filters.start_date, filters.end_date]);
 
   const { data: employeesData } = useQuery({
     queryKey: ["business-trips-employee-options", debouncedSearch],
@@ -130,30 +136,24 @@ export default function BusinessTripFiltersSection({
       </Tabs>
 
       <Form {...form}>
-        <form className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <DatePicker
-            name="start_date"
-            label="Start Date"
-            placeholder="From"
+        <form
+          className="grid grid-cols-1 md:grid-cols-2 gap-3 md:items-end"
+          onSubmit={(e) => e.preventDefault()}
+        >
+          <BasicDateRangePicker
+            label={tCommon("date")}
             isOptional
-            onChange={(date) => {
+            className="min-w-65"
+            value={dateRangeValue}
+            onSelect={(range) => {
               setFilters((prev) => ({
                 ...prev,
-                start_date: date ? dayjs(date).format("YYYY-MM-DD") : "",
-              }));
-              setPagination((prev) => ({ ...prev, pageIndex: 0 }));
-            }}
-          />
-
-          <DatePicker
-            name="end_date"
-            label="End Date"
-            placeholder="To"
-            isOptional
-            onChange={(date) => {
-              setFilters((prev) => ({
-                ...prev,
-                end_date: date ? dayjs(date).format("YYYY-MM-DD") : "",
+                start_date: range?.from
+                  ? dayjs(range.from).format("YYYY-MM-DD")
+                  : "",
+                end_date: range?.to
+                  ? dayjs(range.to).format("YYYY-MM-DD")
+                  : "",
               }));
               setPagination((prev) => ({ ...prev, pageIndex: 0 }));
             }}

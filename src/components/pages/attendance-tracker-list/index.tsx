@@ -51,8 +51,8 @@ import AttendanceApproveModal from './sections/approve-modal';
 import AttendanceRejectModal from './sections/reject-modal';
 import AttendanceDeleteModal from './sections/delete-modal';
 import AttendanceExportModal from './sections/export-modal';
-import { Input, InputForm } from '@/components/ui/input';
-import { DatePicker } from '@/components/ui/date-picker';
+import { Input } from '@/components/ui/input';
+import { BasicDatePicker } from '@/components/ui/date-picker';
 import dayjs from 'dayjs';
 import { Can } from '@/components/auth/can';
 
@@ -378,7 +378,10 @@ export const AttendanceTrackerList = ({
       >
         {!hidePannel && (
           <>
-            <div className="flex flex-col md:flex-row md:items-end gap-2 md:h-10">
+            <form
+              className="flex flex-col md:flex-row md:items-end gap-2 md:h-10"
+              onSubmit={(e) => e.preventDefault()}
+            >
               <Input
                 name="search"
                 className="w-full md:w-1/4"
@@ -395,21 +398,23 @@ export const AttendanceTrackerList = ({
                 }}
               />
 
-              <Separator orientation="vertical" />
+              <Separator orientation="vertical" className="hidden md:block" />
 
-              <Input
-                type="date"
-                className="w-full md:w-1/4"
-                name="date"
-                onChange={(e) => {
+              {/* Daily roster view: single date (BE defaults empty → today) */}
+              <BasicDatePicker
+                className="w-full md:w-1/4 min-w-60"
+                value={
+                  filters.date ? dayjs(filters.date).toDate() : undefined
+                }
+                onSelect={(date) => {
                   setFilters((prev) => ({
                     ...prev,
-                    date: e ? dayjs(e.target.value).format('YYYY-MM-DD') : '',
+                    date: date ? dayjs(date).format('YYYY-MM-DD') : '',
                   }));
                   setPagination((prev) => ({ ...prev, pageIndex: 0 }));
                 }}
               />
-            </div>
+            </form>
             <Separator />
           </>
         )}

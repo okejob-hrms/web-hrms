@@ -21,7 +21,12 @@ import {
 } from "@/components/ui/popover";
 import { CalendarIcon, XCircle } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
-import { BasicDatePickerProps, DatePickerProps } from "@/lib/types";
+import {
+  BasicDatePickerProps,
+  BasicDateRangePickerProps,
+  DatePickerProps,
+} from "@/lib/types";
+import { DateRange } from "react-day-picker";
 import dayjs from "dayjs";
 import localizedFormat from "dayjs/plugin/localizedFormat";
 
@@ -115,6 +120,7 @@ export const DatePicker: React.FC<
                 {hasValue && (
                   <button
                     type="button"
+                    aria-label={tCommon("clearDate")}
                     onClick={handleClear}
                     className="absolute right-8 top-1/2 transform -translate-y-1/2 p-1 hover:bg-muted rounded-sm transition-colors"
                   >
@@ -186,6 +192,133 @@ export const BasicDatePicker: React.FC<BasicDatePickerProps> = (props) => {
         {hasValue && (
           <button
             type="button"
+            aria-label={tCommon("clearDate")}
+            onClick={handleClear}
+            className="absolute right-8 top-1/2 transform -translate-y-1/2 p-1 hover:bg-muted rounded-sm transition-colors"
+          >
+            <XCircle className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+          </button>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export const BasicDateRangePicker: React.FC<BasicDateRangePickerProps> = ({
+  label,
+  isOptional,
+  labelClassName,
+  className,
+  placeholder,
+  value,
+  onSelect,
+  numberOfMonths = 2,
+}) => {
+  const tCommon = useTranslations("common");
+  const [isOpen, setIsOpen] = React.useState(false);
+  const [draft, setDraft] = React.useState<DateRange | undefined>(value);
+
+  const hasValue = !!(value?.from || value?.to);
+
+  const displayLabel = React.useMemo(() => {
+    if (value?.from && value?.to) {
+      return `${dayjs(value.from).format("ll")} – ${dayjs(value.to).format("ll")}`;
+    }
+    if (value?.from) {
+      return dayjs(value.from).format("ll");
+    }
+    return null;
+  }, [value?.from, value?.to]);
+
+  const commitRange = (range?: DateRange) => {
+    if (!range?.from) {
+      onSelect(undefined);
+      return;
+    }
+    // Single-day: treat incomplete end as same as start
+    onSelect({ from: range.from, to: range.to ?? range.from });
+  };
+
+  const handleClear = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDraft(undefined);
+    onSelect(undefined);
+  };
+
+  const handleSelect = (range: DateRange | undefined) => {
+    setDraft(range);
+    if (!range?.from) {
+      onSelect(undefined);
+      return;
+    }
+    if (range.to) {
+      commitRange(range);
+      setIsOpen(false);
+    }
+  };
+
+  const handleOpenChange = (open: boolean) => {
+    if (open) {
+      setDraft(value);
+      setIsOpen(true);
+      return;
+    }
+    // Closing with only a start date → apply as single-day range
+    if (draft?.from && !draft?.to) {
+      const singleDay = { from: draft.from, to: draft.from };
+      setDraft(singleDay);
+      commitRange(singleDay);
+    } else if (!draft?.from) {
+      setDraft(value);
+    }
+    setIsOpen(false);
+  };
+
+  return (
+    <div className={cn("space-y-2", className)}>
+      {label && (
+        <Label className={cn("text-sm font-normal", labelClassName)}>
+          {label}
+          {isOptional && (
+            <span className="text-text-disabled"> {tCommon("optional")}</span>
+          )}
+        </Label>
+      )}
+      <div className="relative">
+        <Popover open={isOpen} onOpenChange={handleOpenChange}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              type="button"
+              data-empty={!hasValue}
+              className="data-[empty=true]:text-muted-foreground justify-between text-left font-normal border-input h-10 rounded-sm text-foreground w-full min-w-60 pr-16"
+            >
+              {displayLabel ? (
+                <span className="truncate">{displayLabel}</span>
+              ) : (
+                <span>{placeholder ?? tCommon("pickDateRange")}</span>
+              )}
+              <CalendarIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="range"
+              selected={draft}
+              onSelect={handleSelect}
+              numberOfMonths={numberOfMonths}
+              captionLayout="dropdown"
+              fromYear={1900}
+              toYear={new Date().getFullYear() + 10}
+              defaultMonth={draft?.from ?? value?.from}
+            />
+          </PopoverContent>
+        </Popover>
+        {hasValue && (
+          <button
+            type="button"
+            aria-label={tCommon("clearDateRange")}
             onClick={handleClear}
             className="absolute right-8 top-1/2 transform -translate-y-1/2 p-1 hover:bg-muted rounded-sm transition-colors"
           >
