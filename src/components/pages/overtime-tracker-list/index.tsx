@@ -36,13 +36,15 @@ import OvertimeDeleteModal from './sections/delete-modal';
 import { InputForm } from '@/components/ui/input';
 import { Form } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
-import { DatePicker } from '@/components/ui/date-picker';
+import {
+  BasicDatePicker,
+  BasicDateRangePicker,
+} from '@/components/ui/date-picker';
 import dayjs from 'dayjs';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   OvertimeListItem,
   RequestOvertime,
-  RequestOvertimeStatus,
 } from '@/services/overtime/types';
 import OvertimeDetailModal from './sections/detail-modal';
 import OvertimeEditModal from './sections/edit-modal';
@@ -297,9 +299,18 @@ export default function OvertimeTrackerList({
   const form = useForm<Filters>({
     defaultValues: {
       search: '',
-      date: '',
+      start_date: '',
+      end_date: '',
     },
   });
+
+  const dateRangeValue = React.useMemo(() => {
+    if (!filters.start_date && !filters.end_date) return undefined;
+    return {
+      from: filters.start_date ? dayjs(filters.start_date).toDate() : undefined,
+      to: filters.end_date ? dayjs(filters.end_date).toDate() : undefined,
+    };
+  }, [filters.start_date, filters.end_date]);
 
   const tabs = React.useMemo(
     () => [
@@ -388,7 +399,10 @@ export default function OvertimeTrackerList({
 
       <div className="flex flex-col justify-between gap-6 mt-5">
         <Form {...form}>
-          <form className="flex flex-col md:flex-row md:items-end gap-2 md:h-10">
+          <form
+            className="flex flex-col md:flex-row md:items-end gap-2 md:h-10"
+            onSubmit={(e) => e.preventDefault()}
+          >
             <InputForm
               name="search"
               placeholder={t('searchEmployee')}
@@ -404,28 +418,50 @@ export default function OvertimeTrackerList({
               }}
             />
 
-            <Separator orientation="vertical" />
+            <Separator orientation="vertical" className="hidden md:block" />
 
-            <DatePicker
-              className="min-w-[180px]"
-              name="date"
-              value={filters.date || undefined}
-              onChange={(e) => {
-                const now = dayjs();
-                setFilters((prev) => ({
-                  ...prev,
-                  date: e ? dayjs(e).format('YYYY-MM-DD') : '',
-                  // Clear day → restore current-month range hardening
-                  start_date: e
-                    ? prev.start_date
-                    : now.startOf('month').format('YYYY-MM-DD'),
-                  end_date: e
-                    ? prev.end_date
-                    : now.endOf('month').format('YYYY-MM-DD'),
-                }));
-                setPagination((prev) => ({ ...prev, pageIndex: 0 }));
-              }}
-            />
+            {isEmployee ? (
+              // EmDash list filters by period=Y-m; control is month-scoped (label/placeholder)
+              <BasicDatePicker
+                className="min-w-60"
+                displayFormat="MMMM YYYY"
+                placeholder={tCommon('pickMonth')}
+                value={
+                  filters.start_date
+                    ? dayjs(filters.start_date).toDate()
+                    : undefined
+                }
+                onSelect={(date) => {
+                  setFilters((prev) => ({
+                    ...prev,
+                    start_date: date
+                      ? dayjs(date).startOf('month').format('YYYY-MM-DD')
+                      : '',
+                    end_date: date
+                      ? dayjs(date).endOf('month').format('YYYY-MM-DD')
+                      : '',
+                  }));
+                  setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+                }}
+              />
+            ) : (
+              <BasicDateRangePicker
+                className="min-w-65"
+                value={dateRangeValue}
+                onSelect={(range) => {
+                  setFilters((prev) => ({
+                    ...prev,
+                    start_date: range?.from
+                      ? dayjs(range.from).format('YYYY-MM-DD')
+                      : '',
+                    end_date: range?.to
+                      ? dayjs(range.to).format('YYYY-MM-DD')
+                      : '',
+                  }));
+                  setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+                }}
+              />
+            )}
           </form>
         </Form>
 

@@ -7,7 +7,6 @@ import { PaginationState } from "@tanstack/react-table";
 import { toast } from "sonner";
 import { Filters } from "./types";
 import { OvertimeListItem, RequestOvertime, RequestOvertimeStatus } from "@/services/overtime/types";
-import dayjs from "dayjs";
 
 interface ApiErrorResponse {
   status?: string;
@@ -69,15 +68,11 @@ export function useOvertime(isEmployee: boolean) {
   const [selectedData, setSelectedData] = React.useState<OvertimeListItem>();
 
   const [selectedId, setSelectedId] = React.useState<string>('');
-  const [filters, setFilters] = React.useState<Filters>(() => {
-    const now = dayjs();
-    return {
-      date: '',
-      start_date: now.startOf('month').format('YYYY-MM-DD'),
-      end_date: now.endOf('month').format('YYYY-MM-DD'),
-      search: '',
-      status: 1,
-    };
+  const [filters, setFilters] = React.useState<Filters>({
+    start_date: '',
+    end_date: '',
+    search: '',
+    status: 1,
   });
   const queryClient = useQueryClient();
 
@@ -92,7 +87,6 @@ export function useOvertime(isEmployee: boolean) {
       "overtime",
       pagination,
       filters.search,
-      filters.date,
       filters.start_date,
       filters.end_date,
       filters.status,
@@ -112,7 +106,6 @@ export function useOvertime(isEmployee: boolean) {
       "overtimeEmployee",
       pagination,
       filters.search,
-      filters.date,
       filters.start_date,
       filters.end_date,
       filters.status,
