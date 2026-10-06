@@ -199,7 +199,7 @@ export const getLeavesEmployee = async (
     searchParams.search = filters.search;
   }
 
-  // EmDash leave list is period-oriented; omit date params for "all"
+  // EmDash my-leave accepts a single `date` only — ignore end_date from admin-shaped filters
   if (filters?.start_date) {
     searchParams.date = filters.start_date;
   }

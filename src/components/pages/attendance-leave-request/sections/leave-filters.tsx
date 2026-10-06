@@ -6,7 +6,10 @@ import { Separator } from '@/components/ui/separator';
 import { InputForm } from '@/components/ui/input';
 import { Form } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
-import { BasicDateRangePicker } from '@/components/ui/date-picker';
+import {
+  BasicDatePicker,
+  BasicDateRangePicker,
+} from '@/components/ui/date-picker';
 import dayjs from 'dayjs';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
@@ -33,6 +36,7 @@ export default function LeaveFilters({
   isEmployee,
 }: Props) {
   const t = useTranslations('attendance');
+  const tCommon = useTranslations('common');
   const tStatus = useTranslations('status');
 
   const form = useForm<Filters>({
@@ -126,7 +130,26 @@ export default function LeaveFilters({
             <Separator orientation="vertical" className="hidden md:block" />
           )}
 
-          {!isEmployee && (
+          {isEmployee ? (
+            // EmDash my-leave accepts a single `date` (mapped from start_date)
+            <BasicDatePicker
+              className="min-w-60"
+              placeholder={tCommon('pickDate')}
+              value={
+                filters.start_date
+                  ? dayjs(filters.start_date).toDate()
+                  : undefined
+              }
+              onSelect={(date) => {
+                setFilters((prev) => ({
+                  ...prev,
+                  start_date: date ? dayjs(date).format('YYYY-MM-DD') : '',
+                  end_date: '',
+                }));
+                setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+              }}
+            />
+          ) : (
             <BasicDateRangePicker
               className="min-w-65"
               value={dateRangeValue}

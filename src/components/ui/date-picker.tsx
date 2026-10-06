@@ -277,15 +277,8 @@ export const BasicDateRangePicker: React.FC<BasicDateRangePickerProps> = ({
       setIsOpen(true);
       return;
     }
-    const current = draftRef.current;
-    // Closing with only a start date → apply as single-day range
-    if (current?.from && !current?.to) {
-      const singleDay = { from: current.from, to: current.from };
-      updateDraft(singleDay);
-      commitRange(singleDay);
-    } else if (!current?.from) {
-      updateDraft(value);
-    }
+    // Incomplete draft on dismiss → discard and keep the last committed value
+    updateDraft(value);
     setIsOpen(false);
   };
 
