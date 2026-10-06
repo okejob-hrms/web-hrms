@@ -44,6 +44,7 @@ export const getLeaves = async (
     searchParams.search = filters.search;
   }
 
+  // Leave index accepts inclusive overlap via start_date/end_date (and legacy date)
   if (filters?.start_date) {
     searchParams.start_date = filters.start_date;
   }

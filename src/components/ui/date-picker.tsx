@@ -142,6 +142,7 @@ export const BasicDatePicker: React.FC<BasicDatePickerProps> = (props) => {
   const tCommon = useTranslations("common");
   const [isOpen, setIsOpen] = React.useState(false);
   const hasValue = !!props.value;
+  const displayFormat = props.displayFormat ?? "ll";
 
   const handleClear = () => {
     props.onSelect(undefined);
@@ -167,7 +168,7 @@ export const BasicDatePicker: React.FC<BasicDatePickerProps> = (props) => {
               className="data-[empty=true]:text-muted-foreground justify-between text-left font-normal border-input h-10 rounded-sm text-foreground w-full pr-16"
             >
               {hasValue ? (
-                dayjs(props.value).format("ll")
+                dayjs(props.value).format(displayFormat)
               ) : (
                 <span>{props.placeholder ?? tCommon("pickDate")}</span>
               )}
@@ -225,17 +226,22 @@ export const BasicDateRangePicker: React.FC<BasicDateRangePickerProps> = ({
     setDraft(range);
   };
 
+  const displaySource = isOpen ? draft : value;
   const hasValue = !!(value?.from || value?.to);
+  const hasDisplay = !!(displaySource?.from || displaySource?.to);
 
   const displayLabel = React.useMemo(() => {
-    if (value?.from && value?.to) {
-      return `${dayjs(value.from).format("ll")} – ${dayjs(value.to).format("ll")}`;
+    if (displaySource?.from && displaySource?.to) {
+      return `${dayjs(displaySource.from).format("ll")} – ${dayjs(displaySource.to).format("ll")}`;
     }
-    if (value?.from) {
-      return dayjs(value.from).format("ll");
+    if (displaySource?.from) {
+      // Partial range while open — show start and an ellipsis for the open end
+      return isOpen && !displaySource.to
+        ? `${dayjs(displaySource.from).format("ll")} – …`
+        : dayjs(displaySource.from).format("ll");
     }
     return null;
-  }, [value?.from, value?.to]);
+  }, [displaySource?.from, displaySource?.to, isOpen]);
 
   const commitRange = (range?: DateRange) => {
     if (!range?.from) {
@@ -299,7 +305,7 @@ export const BasicDateRangePicker: React.FC<BasicDateRangePickerProps> = ({
             <Button
               variant="outline"
               type="button"
-              data-empty={!hasValue}
+              data-empty={!hasDisplay}
               className="data-[empty=true]:text-muted-foreground justify-between text-left font-normal border-input h-10 rounded-sm text-foreground w-full min-w-60 pr-16"
             >
               {displayLabel ? (

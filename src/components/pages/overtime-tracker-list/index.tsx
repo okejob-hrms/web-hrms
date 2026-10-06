@@ -421,9 +421,11 @@ export default function OvertimeTrackerList({
             <Separator orientation="vertical" className="hidden md:block" />
 
             {isEmployee ? (
-              // EmDash list filters by period=Y-m derived from start_date
+              // EmDash list filters by period=Y-m; control is month-scoped (label/placeholder)
               <BasicDatePicker
                 className="min-w-60"
+                displayFormat="MMMM YYYY"
+                placeholder={tCommon('pickMonth')}
                 value={
                   filters.start_date
                     ? dayjs(filters.start_date).toDate()

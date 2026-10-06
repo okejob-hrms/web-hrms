@@ -140,6 +140,8 @@ export type BasicDatePickerProps = DayPickerProps & {
   onSelect: (value?: Date) => void;
   value?: Date;
   placeholder?: string;
+  /** dayjs format for the trigger label (e.g. "MMMM YYYY" for month filters) */
+  displayFormat?: string;
 };
 
 export type BasicDateRangePickerProps = {
