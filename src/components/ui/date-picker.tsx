@@ -218,11 +218,8 @@ export const BasicDateRangePicker: React.FC<BasicDateRangePickerProps> = ({
   const tCommon = useTranslations("common");
   const [isOpen, setIsOpen] = React.useState(false);
   const [draft, setDraft] = React.useState<DateRange | undefined>(value);
-  // Keep a sync ref so close-after-select doesn't commit a stale from-only draft
-  const draftRef = React.useRef<DateRange | undefined>(value);
 
   const updateDraft = (range: DateRange | undefined) => {
-    draftRef.current = range;
     setDraft(range);
   };
 
