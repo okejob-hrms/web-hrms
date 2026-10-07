@@ -218,6 +218,8 @@ export const BasicDateRangePicker: React.FC<BasicDateRangePickerProps> = ({
   const tCommon = useTranslations("common");
   const [isOpen, setIsOpen] = React.useState(false);
   const [draft, setDraft] = React.useState<DateRange | undefined>(value);
+  /** True after the first day click; commit only on the second (shadcn range UX). */
+  const awaitingEndRef = React.useRef(false);
 
   const updateDraft = (range: DateRange | undefined) => {
     setDraft(range);
@@ -253,29 +255,52 @@ export const BasicDateRangePicker: React.FC<BasicDateRangePickerProps> = ({
     e.preventDefault();
     e.stopPropagation();
     updateDraft(undefined);
+    awaitingEndRef.current = false;
     onSelect(undefined);
   };
 
-  const handleSelect = (range: DateRange | undefined) => {
-    updateDraft(range);
-    if (!range?.from) {
+  const handleSelect = (
+    range: DateRange | undefined,
+    triggerDate: Date,
+  ) => {
+    if (!triggerDate) {
+      updateDraft(undefined);
+      awaitingEndRef.current = false;
       onSelect(undefined);
       return;
     }
-    if (range.to) {
-      commitRange(range);
-      setIsOpen(false);
+
+    // react-day-picker may fill `to` on the first click when a range is already
+    // selected (e.g. earlier start + previous end). Ignore that; wait for click 2.
+    if (!awaitingEndRef.current) {
+      updateDraft({ from: triggerDate, to: undefined });
+      awaitingEndRef.current = true;
+      return;
     }
+
+    const start = draft?.from ?? range?.from ?? triggerDate;
+    let from = start;
+    let to = triggerDate;
+    if (from > to) {
+      [from, to] = [to, from];
+    }
+    const final = { from, to };
+    updateDraft(final);
+    commitRange(final);
+    setIsOpen(false);
+    awaitingEndRef.current = false;
   };
 
   const handleOpenChange = (open: boolean) => {
     if (open) {
       updateDraft(value);
+      awaitingEndRef.current = false;
       setIsOpen(true);
       return;
     }
     // Incomplete draft on dismiss → discard and keep the last committed value
     updateDraft(value);
+    awaitingEndRef.current = false;
     setIsOpen(false);
   };
 
