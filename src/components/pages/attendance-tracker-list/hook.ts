@@ -25,8 +25,12 @@ export function useAttendance() {
   const [selectedId, setSelectedId] = React.useState<string>('');
   const [selectedIdTrackers, setSelectedIdTrackers] = React.useState<string>('');
   const [filters, setFilters] = React.useState<Filters>({
-    date: '',
     search: '',
+    start_date: '',
+    end_date: '',
+    status: '',
+    shift_id: '',
+    source: '',
   });
 
   const [detailFilter, setDetailFilter] = React.useState(() => {
@@ -42,7 +46,16 @@ export function useAttendance() {
     isFetching,
     isRefetching,
   } = useQuery({
-    queryKey: ["attendance", pagination, filters.search, filters.date, filters.status],
+    queryKey: [
+      "attendance",
+      pagination,
+      filters.search,
+      filters.start_date,
+      filters.end_date,
+      filters.status,
+      filters.shift_id,
+      filters.source,
+    ],
     queryFn: () => getAttendance(pagination, filters),
     placeholderData: keepPreviousData,
     refetchOnMount: "always",

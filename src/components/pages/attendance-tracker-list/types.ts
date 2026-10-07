@@ -1,11 +1,15 @@
 export interface Filters {
-  // department_ids?: number[];
-  // job_position_ids?: number[];
   search?: string;
-  date?: string;
+  /** Inclusive range start (YYYY-MM-DD). Empty + empty end → BE defaults to today. */
+  start_date?: string;
+  /** Inclusive range end (YYYY-MM-DD). */
+  end_date?: string;
+  /** Attendance approval status: 0 waiting, 1 approved, 2 rejected, 3 absent */
   status?: string;
-  // start_date?: string | null;
-  // end_date?: string | null;
+  /** Shift id */
+  shift_id?: string;
+  /** metadata.created_via: ess | manual | iclock | cronjob */
+  source?: string;
 }
 
 export interface AdvancedFilterProps {
