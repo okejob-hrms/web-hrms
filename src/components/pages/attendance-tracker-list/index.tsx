@@ -58,6 +58,9 @@ import dayjs from 'dayjs';
 import { Can } from '@/components/auth/can';
 import { useQuery } from '@tanstack/react-query';
 import { getShift } from '@/services/settings';
+import { toast } from 'sonner';
+
+const MAX_FILTER_RANGE_DAYS = 31;
 
 interface AttendanceTrackerListProps {
   hidePannel?: boolean;
@@ -112,6 +115,7 @@ export const AttendanceTrackerList = ({
     queryKey: ['shifts', 'attendance-tracker-filter'],
     queryFn: getShift,
     staleTime: 5 * 60 * 1000,
+    enabled: !hidePannel,
   });
 
   const dateRangeValue = React.useMemo(() => {
@@ -120,6 +124,22 @@ export const AttendanceTrackerList = ({
       from: filters.start_date ? dayjs(filters.start_date).toDate() : undefined,
       to: filters.end_date ? dayjs(filters.end_date).toDate() : undefined,
     };
+  }, [filters.start_date, filters.end_date]);
+
+  /** Export max is 31 days — omit list defaults when the filter span is too wide. */
+  const exportDateDefaults = React.useMemo(() => {
+    if (!filters.start_date || !filters.end_date) {
+      return {
+        start: filters.start_date || undefined,
+        end: filters.end_date || undefined,
+      };
+    }
+    const days =
+      dayjs(filters.end_date).diff(dayjs(filters.start_date), 'day') + 1;
+    if (days > MAX_FILTER_RANGE_DAYS) {
+      return { start: undefined, end: undefined };
+    }
+    return { start: filters.start_date, end: filters.end_date };
   }, [filters.start_date, filters.end_date]);
 
   const shiftOptions = React.useMemo(
@@ -455,6 +475,14 @@ export const AttendanceTrackerList = ({
                 className="w-full md:w-auto min-w-65"
                 value={dateRangeValue}
                 onSelect={(range) => {
+                  if (range?.from && range?.to) {
+                    const days =
+                      dayjs(range.to).diff(dayjs(range.from), 'day') + 1;
+                    if (days > MAX_FILTER_RANGE_DAYS) {
+                      toast.error(t('exportDateRangeTooLong'));
+                      return;
+                    }
+                  }
                   setFilters((prev) => ({
                     ...prev,
                     start_date: range?.from
@@ -824,8 +852,8 @@ export const AttendanceTrackerList = ({
           <AttendanceExportModal
             isOpen={openExport}
             setIsOpen={setOpenExport}
-            defaultStartDate={filters.start_date || undefined}
-            defaultEndDate={filters.end_date || undefined}
+            defaultStartDate={exportDateDefaults.start}
+            defaultEndDate={exportDateDefaults.end}
           />
         </div>
       </div>
