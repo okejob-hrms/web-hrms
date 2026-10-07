@@ -169,11 +169,13 @@ export const AttendanceTrackerList = ({
       },
     },
     {
-      accessorKey: 'latest_attendance.metadata.shift_name',
+      accessorKey: 'latest_attendance.shift.name',
       header: t('shift'),
       size: 200,
-      cell: ({ row }) =>
-        row.original.latest_attendance?.metadata?.shift_name || '-',
+      cell: ({ row }) => {
+        const att = row.original.latest_attendance;
+        return att?.shift?.name || att?.metadata?.shift_name || '-';
+      },
     },
     {
       accessorKey: 'latest_attendance.source',
@@ -562,12 +564,12 @@ export const AttendanceTrackerList = ({
                           <div className="text-primary font-bold">
                             {item.attendance_date}
                           </div>
-                          {item.metadata.shift_name && (
+                          {(item.shift?.name || item.metadata?.shift_name) && (
                             <Badge
                               variant="default"
                               className="bg-blue-50 border-primary text-primary"
                             >
-                              {item.metadata.shift_name}
+                              {item.shift?.name || item.metadata?.shift_name}
                             </Badge>
                           )}
 
