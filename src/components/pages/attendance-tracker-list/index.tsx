@@ -52,9 +52,15 @@ import AttendanceRejectModal from './sections/reject-modal';
 import AttendanceDeleteModal from './sections/delete-modal';
 import AttendanceExportModal from './sections/export-modal';
 import { Input } from '@/components/ui/input';
-import { BasicDatePicker } from '@/components/ui/date-picker';
+import { BasicDateRangePicker } from '@/components/ui/date-picker';
+import { SearchableSelect } from '@/components/ui/combobox';
 import dayjs from 'dayjs';
 import { Can } from '@/components/auth/can';
+import { useQuery } from '@tanstack/react-query';
+import { getShift } from '@/services/settings';
+import { toast } from 'sonner';
+
+const MAX_FILTER_RANGE_DAYS = 31;
 
 interface AttendanceTrackerListProps {
   hidePannel?: boolean;
@@ -70,6 +76,7 @@ export const AttendanceTrackerList = ({
   const router = useRouter();
   const t = useTranslations('attendance');
   const tCommon = useTranslations('common');
+  const tStatus = useTranslations('status');
   const locale = resolveLocale(useLocale());
 
   const {
@@ -103,6 +110,69 @@ export const AttendanceTrackerList = ({
   } = useAttendance();
 
   const [openExport, setOpenExport] = React.useState(false);
+
+  const { data: shiftsData } = useQuery({
+    queryKey: ['shifts', 'attendance-tracker-filter'],
+    queryFn: getShift,
+    staleTime: 5 * 60 * 1000,
+    enabled: !hidePannel,
+  });
+
+  const dateRangeValue = React.useMemo(() => {
+    if (!filters.start_date && !filters.end_date) return undefined;
+    return {
+      from: filters.start_date ? dayjs(filters.start_date).toDate() : undefined,
+      to: filters.end_date ? dayjs(filters.end_date).toDate() : undefined,
+    };
+  }, [filters.start_date, filters.end_date]);
+
+  /** Export max is 31 days — omit list defaults when the filter span is too wide. */
+  const exportDateDefaults = React.useMemo(() => {
+    if (!filters.start_date || !filters.end_date) {
+      return {
+        start: filters.start_date || undefined,
+        end: filters.end_date || undefined,
+      };
+    }
+    const days =
+      dayjs(filters.end_date).diff(dayjs(filters.start_date), 'day') + 1;
+    if (days > MAX_FILTER_RANGE_DAYS) {
+      return { start: undefined, end: undefined };
+    }
+    return { start: filters.start_date, end: filters.end_date };
+  }, [filters.start_date, filters.end_date]);
+
+  const shiftOptions = React.useMemo(
+    () =>
+      (shiftsData?.data ?? []).map((shift) => ({
+        label: shift.name,
+        value: String(shift.id),
+      })),
+    [shiftsData],
+  );
+
+  const sourceOptions = React.useMemo(
+    () => [
+      { label: t('sourceEss'), value: 'ess' },
+      { label: t('sourceManual'), value: 'manual' },
+      { label: t('sourceIclock'), value: 'iclock' },
+      { label: t('sourceCronjob'), value: 'cronjob' },
+    ],
+    [t],
+  );
+
+  const statusOptions = React.useMemo(
+    () => [
+      { label: tStatus('waitingForApproval'), value: '0' },
+      { label: tStatus('approved'), value: '1' },
+      { label: tStatus('rejected'), value: '2' },
+      { label: tStatus('absent'), value: '3' },
+    ],
+    [tStatus],
+  );
+
+  const resetPage = () =>
+    setPagination((prev) => ({ ...prev, pageIndex: 0 }));
 
   const detailPeriodLabel = React.useMemo(
     () =>
@@ -379,12 +449,12 @@ export const AttendanceTrackerList = ({
         {!hidePannel && (
           <>
             <form
-              className="flex flex-col md:flex-row md:items-end gap-2 md:h-10"
+              className="flex flex-col md:flex-row md:flex-wrap md:items-end gap-2"
               onSubmit={(e) => e.preventDefault()}
             >
               <Input
                 name="search"
-                className="w-full md:w-1/4"
+                className="w-full md:w-64"
                 placeholder={t('searchEmployee')}
                 icon={<Search className="size-5 text-grayscale-20" />}
                 iconPosition="right"
@@ -394,24 +464,77 @@ export const AttendanceTrackerList = ({
                     ...prev,
                     search: e.target.value,
                   }));
-                  setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+                  resetPage();
                 }}
               />
 
-              <Separator orientation="vertical" className="hidden md:block" />
+              <Separator orientation="vertical" className="hidden md:block h-10" />
 
-              {/* Daily roster view: single date (BE defaults empty → today) */}
-              <BasicDatePicker
-                className="w-full md:w-1/4 min-w-60"
-                value={
-                  filters.date ? dayjs(filters.date).toDate() : undefined
-                }
-                onSelect={(date) => {
+              {/* Empty range → BE defaults to today */}
+              <BasicDateRangePicker
+                className="w-full md:w-auto min-w-65"
+                value={dateRangeValue}
+                onSelect={(range) => {
+                  if (range?.from && range?.to) {
+                    const days =
+                      dayjs(range.to).diff(dayjs(range.from), 'day') + 1;
+                    if (days > MAX_FILTER_RANGE_DAYS) {
+                      toast.error(t('exportDateRangeTooLong'));
+                      return;
+                    }
+                  }
                   setFilters((prev) => ({
                     ...prev,
-                    date: date ? dayjs(date).format('YYYY-MM-DD') : '',
+                    start_date: range?.from
+                      ? dayjs(range.from).format('YYYY-MM-DD')
+                      : '',
+                    end_date: range?.to
+                      ? dayjs(range.to).format('YYYY-MM-DD')
+                      : '',
                   }));
-                  setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+                  resetPage();
+                }}
+              />
+
+              <SearchableSelect
+                className="w-full md:w-[180px] h-10"
+                placeholder={t('shift')}
+                options={shiftOptions}
+                value={filters.shift_id || ''}
+                onValueChange={(value) => {
+                  setFilters((prev) => ({
+                    ...prev,
+                    shift_id: value != null && value !== '' ? String(value) : '',
+                  }));
+                  resetPage();
+                }}
+              />
+
+              <SearchableSelect
+                className="w-full md:w-[200px] h-10"
+                placeholder={t('source')}
+                options={sourceOptions}
+                value={filters.source || ''}
+                onValueChange={(value) => {
+                  setFilters((prev) => ({
+                    ...prev,
+                    source: value != null && value !== '' ? String(value) : '',
+                  }));
+                  resetPage();
+                }}
+              />
+
+              <SearchableSelect
+                className="w-full md:w-[200px] h-10"
+                placeholder={tCommon('status')}
+                options={statusOptions}
+                value={filters.status || ''}
+                onValueChange={(value) => {
+                  setFilters((prev) => ({
+                    ...prev,
+                    status: value != null && value !== '' ? String(value) : '',
+                  }));
+                  resetPage();
                 }}
               />
             </form>
@@ -729,8 +852,8 @@ export const AttendanceTrackerList = ({
           <AttendanceExportModal
             isOpen={openExport}
             setIsOpen={setOpenExport}
-            defaultStartDate={filters.date || undefined}
-            defaultEndDate={filters.date || undefined}
+            defaultStartDate={exportDateDefaults.start}
+            defaultEndDate={exportDateDefaults.end}
           />
         </div>
       </div>
