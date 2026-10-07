@@ -173,6 +173,7 @@ export interface AttendanceDetail {
     longitude: string;
   };
   shift_id: number | null;
+  shift?: { id: number; name: string; start_time?: string | null; end_time?: string | null } | null;
   status: number;
   clock_in_status: number;
   clock_out_status: number;
