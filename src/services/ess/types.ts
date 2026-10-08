@@ -130,6 +130,18 @@ export interface EssLeaveBalance {
   remaining: number;
 }
 
+export interface EssApproverItem {
+  id: number;
+  status: number;
+  status_label: string;
+  notes?: string | null;
+  user?: {
+    id: number;
+    name: string;
+    email?: string;
+  } | null;
+}
+
 export interface EssLeaveItem {
   id: number;
   leave_type: { id: number; name: string } | null;
@@ -141,6 +153,8 @@ export interface EssLeaveItem {
   status_label: string;
   created_at: string;
   notes?: string | null;
+  day?: number;
+  approvers?: EssApproverItem[];
 }
 
 export interface EssLeaveListResponse {

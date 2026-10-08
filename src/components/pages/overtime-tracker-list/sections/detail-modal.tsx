@@ -15,6 +15,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { stringAvatar } from '@/lib/utils';
 import { getPublicFileUrl } from '@/lib/helpers';
 import { OvertimeListItem } from '@/services/overtime/types';
+import { EssApproversProgress } from '@/components/shared/ess-approvers-progress';
 import { useLocale, useTranslations } from 'next-intl';
 import { formatDate } from '@/lib/formatting';
 import { resolveLocale } from '@/lib/i18n/locale';
@@ -117,6 +118,14 @@ export default function OvertimeDetailModal({
               <div className="text-sm text-gray-500">{tCommon('notes')}</div>
               <div>{data?.notes}</div>
             </div>
+            {data?.approvers && data.approvers.length > 0 && (
+              <div className="col-span-2">
+                <EssApproversProgress
+                  approvers={data.approvers}
+                  title={t('approvers')}
+                />
+              </div>
+            )}
           </div>
           <AlertDialogFooter className="flex justify-between gap-3 w-full">
             <AlertDialogCancel
