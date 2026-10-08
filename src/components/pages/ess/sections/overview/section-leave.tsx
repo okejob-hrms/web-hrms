@@ -13,6 +13,7 @@ import {
   essLeaveCancel,
 } from '@/services/ess';
 import type { EssLeaveItem } from '@/services/ess/types';
+import { EssApproversProgress } from '@/components/shared/ess-approvers-progress';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -233,6 +234,13 @@ export const SectionLeave = () => {
               </div>
               {item.reason && (
                 <div className="text-xs text-muted-foreground">{item.reason}</div>
+              )}
+              {item.approvers && item.approvers.length > 0 && (
+                <EssApproversProgress
+                  approvers={item.approvers}
+                  title={tAtt('approvers')}
+                  className="pt-1"
+                />
               )}
             </div>
           ))}

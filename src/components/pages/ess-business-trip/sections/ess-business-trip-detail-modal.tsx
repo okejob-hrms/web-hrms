@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { StatusBadge } from "@/components/shared/status-badge";
+import { EssApproversProgress } from "@/components/shared/ess-approvers-progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   formatDateRange,
@@ -124,28 +125,39 @@ export default function EssBusinessTripDetailModal({
               <div>{data.notes || "-"}</div>
             </div>
             <div className="col-span-2">
-              <div className="text-sm text-gray-500">
-                {isRejected ? "Rejector" : "Approver"}
-              </div>
-              {data.approver ? (
-                <div className="flex items-center gap-2 py-1">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={data.approver.photo_profile_url ?? ""} />
-                    <AvatarFallback className="text-primary-hover bg-primary-background text-xs font-medium">
-                      {stringAvatar(data.approver.name ?? "")}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex flex-col">
-                    <span className="text-sm font-medium">
-                      {data.approver.name}
-                    </span>
-                    <span className="text-xs text-text-disabled">
-                      {data.approver.email}
-                    </span>
-                  </div>
-                </div>
+              {data.approvers && data.approvers.length > 0 ? (
+                <EssApproversProgress
+                  approvers={data.approvers}
+                  title="Approvers"
+                />
               ) : (
-                <span>-</span>
+                <>
+                  <div className="text-sm text-gray-500">
+                    {isRejected ? "Rejector" : "Approver"}
+                  </div>
+                  {data.approver ? (
+                    <div className="flex items-center gap-2 py-1">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage
+                          src={data.approver.photo_profile_url ?? ""}
+                        />
+                        <AvatarFallback className="text-primary-hover bg-primary-background text-xs font-medium">
+                          {stringAvatar(data.approver.name ?? "")}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium">
+                          {data.approver.name}
+                        </span>
+                        <span className="text-xs text-text-disabled">
+                          {data.approver.email}
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <span>-</span>
+                  )}
+                </>
               )}
             </div>
           </div>

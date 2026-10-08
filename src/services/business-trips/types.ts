@@ -11,6 +11,14 @@ export interface IBusinessTripUser {
   photo_profile_url: string | null;
 }
 
+export interface IBusinessTripApprover {
+  id: number;
+  status: number;
+  status_label: string;
+  notes?: string | null;
+  user?: IBusinessTripUser | null;
+}
+
 export interface IBusinessTripResponse {
   id: number;
   user_id: number;
@@ -27,6 +35,7 @@ export interface IBusinessTripResponse {
   metadata: Record<string, unknown> | null;
   user: IBusinessTripUser;
   approver: IBusinessTripUser | null;
+  approvers?: IBusinessTripApprover[];
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
