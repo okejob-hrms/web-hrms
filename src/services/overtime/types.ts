@@ -20,9 +20,22 @@ export interface OvertimeDataList {
     total: number;
 }
 
+export interface OvertimeApproverItem {
+    id: number;
+    status: number;
+    status_label: string;
+    notes?: string | null;
+    user?: {
+        id: number;
+        name: string;
+        email?: string;
+    } | null;
+}
+
 export interface OvertimeListItem {
     approved_by?: null;
     approver?: null;
+    approvers?: OvertimeApproverItem[];
     created_at?: string;
     creator?: null;
     duration?: number;
@@ -34,6 +47,7 @@ export interface OvertimeListItem {
     request_date?: string;
     start_time?: string;
     status: number;
+    status_label?: string;
     updated_at?: string;
     user_id?: number;
 }
