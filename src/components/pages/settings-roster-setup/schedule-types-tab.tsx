@@ -43,6 +43,7 @@ type FilterState = {
   branch: string;
   position: string;
   level: string;
+  scheduleType: string;
 };
 
 type FilterKey = keyof FilterState;
@@ -70,6 +71,7 @@ function rowMatches(row: ScheduleTypeRow, filters: FilterState, omit?: FilterKey
     return false;
   }
   if (omit !== 'level' && filters.level && String(row.job_level_id ?? '') !== filters.level) return false;
+  if (omit !== 'scheduleType' && filters.scheduleType && row.current !== filters.scheduleType) return false;
   if (omit !== 'search' && term) {
     const haystack = [
       row.name,
@@ -95,6 +97,7 @@ export function ScheduleTypesTab({ enabled }: { enabled: boolean }) {
   const [branch, setBranch] = React.useState('');
   const [position, setPosition] = React.useState('');
   const [level, setLevel] = React.useState('');
+  const [scheduleType, setScheduleType] = React.useState('');
   const [limit, setLimit] = React.useState(PAGE_SIZE);
   const [confirmApply, setConfirmApply] = React.useState(false);
 
@@ -132,8 +135,8 @@ export function ScheduleTypesTab({ enabled }: { enabled: boolean }) {
 
   const allRows = query.data?.rows ?? [];
   const filters = React.useMemo<FilterState>(
-    () => ({ search, action, branch, position, level }),
-    [search, action, branch, position, level],
+    () => ({ search, action, branch, position, level, scheduleType }),
+    [search, action, branch, position, level, scheduleType],
   );
 
   const branchOptions = React.useMemo(
@@ -180,7 +183,9 @@ export function ScheduleTypesTab({ enabled }: { enabled: boolean }) {
   );
 
   const summary = query.data?.summary;
-  const filtersActive = Boolean(search.trim() || action || branch || position || level);
+  const filtersActive = Boolean(
+    search.trim() || action || branch || position || level || scheduleType,
+  );
   const visibleChanges = rows.filter((row) => row.action === 'change').length;
   const colSpan = canEdit ? 6 : 5;
 
@@ -230,6 +235,20 @@ export function ScheduleTypesTab({ enabled }: { enabled: boolean }) {
               placeholder={t('allJobLevels')}
               onValueChange={(v) => {
                 setLevel(String(v ?? ''));
+                resetLimit();
+              }}
+            />
+          </div>
+          <div className="w-44">
+            <SearchableSelect
+              options={[
+                { value: 'fixed', label: t('typeFixed') },
+                { value: 'roster', label: t('typeRoster') },
+              ]}
+              value={scheduleType}
+              placeholder={t('allScheduleTypes')}
+              onValueChange={(v) => {
+                setScheduleType(String(v ?? ''));
                 resetLimit();
               }}
             />
