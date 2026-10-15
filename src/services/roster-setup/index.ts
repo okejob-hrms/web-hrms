@@ -50,11 +50,18 @@ export type RosterSettingsPayload = {
 
 const base = 'setting/attendance';
 
+/** Full-tenant preview can exceed the default 10s ky timeout (esp. over a DB tunnel). */
+const PREVIEW_TIMEOUT_MS = 60_000;
+
 export const getScheduleTypePreview = async () =>
-  api.get(`${base}/schedule-types/preview`).json<ApiResponse<ScheduleTypePreview>>();
+  api
+    .get(`${base}/schedule-types/preview`, { timeout: PREVIEW_TIMEOUT_MS })
+    .json<ApiResponse<ScheduleTypePreview>>();
 
 export const applyScheduleTypes = async () =>
-  api.post(`${base}/schedule-types/apply`).json<ApiResponse<Record<string, number>>>();
+  api
+    .post(`${base}/schedule-types/apply`, { timeout: PREVIEW_TIMEOUT_MS })
+    .json<ApiResponse<Record<string, number>>>();
 
 export const overrideScheduleType = async (employeeId: number, scheduleType: ScheduleType) =>
   api
