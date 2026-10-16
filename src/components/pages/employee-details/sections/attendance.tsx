@@ -1,6 +1,6 @@
 import * as React from "react";
-import { AttendanceTrackerList } from "../../attendance-tracker-list";
 import { IEmployeeDetailsResponse } from "@/services/employees/types";
+import { RecentAttendanceTable } from "./recent-attendance-table";
 
 interface AttendanceDetailProps {
   data: IEmployeeDetailsResponse;
@@ -11,7 +11,7 @@ export const AttendanceDetail = React.memo(function AttendanceDetail({
 }: AttendanceDetailProps) {
   return (
     <div className="flex flex-col w-full gap-2 p-2">
-      <AttendanceTrackerList hidePannel relativeUser={data.user.name} />
+      <RecentAttendanceTable userId={data.user_id} />
     </div>
   );
 });

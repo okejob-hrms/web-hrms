@@ -87,14 +87,21 @@ export const getAttendanceDetail = async (
   id: string,
   monthNumber?: number,
   year?: number,
+  options?: { per_page?: number; page?: number },
 ): Promise<ApiResponse<PaginatedResponse<AttendanceDetail>>> => {
-  const reformatMonth = monthNumber
-    ? String(monthNumber).padStart(2, '0')
-    : '';
+  const searchParams: Record<string, string> = {};
+  if (monthNumber && year) {
+    searchParams.period = `${year}-${String(monthNumber).padStart(2, '0')}`;
+  }
+  if (options?.per_page) {
+    searchParams.per_page = String(options.per_page);
+  }
+  if (options?.page) {
+    searchParams.page = String(options.page);
+  }
   const response = await api.get<ApiResponse<PaginatedResponse<AttendanceDetail>>>(
-    monthNumber && year
-      ? `employee/attendances/users/${id}/history?period=${year}-${reformatMonth}`
-      : `employee/attendances/users/${id}/history`
+    `employee/attendances/users/${id}/history`,
+    { searchParams },
   );
   return response.json();
 };

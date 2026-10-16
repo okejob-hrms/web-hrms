@@ -1,20 +1,16 @@
 import { api } from '@/lib/api';
 import { ApiResponse } from '@/lib/types';
 import type {
-  IclockBackfillResult,
+  IclockCsvSyncQueued,
   IclockDevice,
   IclockHealth,
   IclockIgnoredPin,
   IclockLog,
-  IclockReconcileReport,
-  IclockReprocessRangeResult,
   IclockUnmatchedPin,
 } from './types';
 
-/** ADMS round-trips (login + scrape) often exceed the default 10s ky timeout. */
+/** ADMS device list sync can exceed the default ky timeout. */
 const ADMS_TIMEOUT_MS = 90_000;
-/** Day-chunk scrape / bulk rebuild can run for several minutes. */
-const ADMS_REPAIR_TIMEOUT_MS = 300_000;
 
 type LogsParams = {
   pin?: string;
@@ -74,54 +70,8 @@ export const unignoreIclockPin = async (id: number) => {
     .json<ApiResponse<{ pin: string; logs_requeued: number }>>();
 };
 
-export const triggerIclockSync = async (payload: { sync?: boolean; dry_run?: boolean } = {}) => {
+export const triggerIclockCsvSync = async (payload: { from: string; to: string }) => {
   return api
-    .post('setting/iclock/sync', { json: payload, timeout: ADMS_TIMEOUT_MS })
-    .json<ApiResponse<Record<string, number | boolean>>>();
-};
-
-export const reconcileIclock = async (payload: {
-  from: string;
-  to: string;
-  device?: string;
-  pin?: string;
-}) => {
-  return api
-    .post('setting/iclock/reconcile', { json: payload, timeout: ADMS_REPAIR_TIMEOUT_MS })
-    .json<ApiResponse<IclockReconcileReport>>();
-};
-
-export const backfillIclock = async (payload: {
-  from: string;
-  to: string;
-  device?: string;
-  pin?: string;
-  dry_run?: boolean;
-  confirm?: boolean;
-  rebuild_all?: boolean;
-}) => {
-  return api
-    .post('setting/iclock/backfill', { json: payload, timeout: ADMS_REPAIR_TIMEOUT_MS })
-    .json<ApiResponse<IclockBackfillResult>>();
-};
-
-export const reprocessIclock = async (
-  payload:
-    | {
-        date: string;
-        pin?: string;
-        employee_id?: number;
-        dry_run?: boolean;
-      }
-    | {
-        from: string;
-        to: string;
-        pin?: string;
-        dry_run?: boolean;
-        confirm?: boolean;
-      },
-) => {
-  return api
-    .post('setting/iclock/reprocess', { json: payload, timeout: ADMS_REPAIR_TIMEOUT_MS })
-    .json<ApiResponse<Record<string, unknown> | IclockReprocessRangeResult>>();
+    .post('setting/iclock/csv-sync', { json: payload })
+    .json<ApiResponse<IclockCsvSyncQueued>>();
 };

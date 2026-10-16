@@ -278,68 +278,58 @@ export const AttendanceTrackerList = ({
       accessorKey: 'menu',
       header: '',
       cell: ({ row }) => {
+        const attendanceId = row.original?.latest_attendance?.id;
+
         return (
           <DropdownMenu>
-            <DropdownMenuTrigger>
-              <Ellipsis className="text-grayscale-30" />
+            <DropdownMenuTrigger asChild>
+              <button type="button" className="rounded p-1 hover:bg-gray-100">
+                <Ellipsis className="text-grayscale-30" />
+              </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem>
-                <button
-                  onClick={() => {
-                    setOpenDetail(true);
-                    setSelectedId(String(row.original.id));
-                    setSelectedData(row.original);
-                    // refetchDetail();
-                  }}
-                  className="flex gap-2"
-                >
-                  <Eye />
-                  {t('attendanceDetails')}
-                </button>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onSelect={() => {
+                  setSelectedId(String(row.original.id));
+                  setSelectedData(row.original);
+                  setTimeout(() => setOpenDetail(true), 0);
+                }}
+              >
+                <Eye />
+                {t('attendanceDetails')}
               </DropdownMenuItem>
               {row.original.latest_attendance?.status !== 1 && (
                 <Can permission="time_attendance.attendance_records.approval">
-                  <DropdownMenuItem>
-                    <button
-                      onClick={() => {
-                        setOpenApprove(true);
-                        setSelectedId(
-                          String(row.original?.latest_attendance?.id),
-                        );
-                      }}
-                      className="flex gap-2"
-                    >
-                      <Clock4Icon />
-                      {t('approveAttendance')}
-                    </button>
+                  <DropdownMenuItem
+                    onSelect={() => {
+                      setSelectedId(String(attendanceId));
+                      setTimeout(() => setOpenApprove(true), 0);
+                    }}
+                  >
+                    <Clock4Icon />
+                    {t('approveAttendance')}
                   </DropdownMenuItem>
                 </Can>
               )}
               {row.original.latest_attendance?.status !== 2 && (
                 <Can permission="time_attendance.attendance_records.approval">
-                  <DropdownMenuItem>
-                    <button
-                      onClick={() => {
-                        setOpenReject(true);
-                        setSelectedId(
-                          String(row.original?.latest_attendance?.id),
-                        );
-                      }}
-                      className="flex gap-2"
-                    >
-                      <XCircle />
-                      {t('rejectAttendance')}
-                    </button>
+                  <DropdownMenuItem
+                    onSelect={() => {
+                      setSelectedId(String(attendanceId));
+                      setTimeout(() => setOpenReject(true), 0);
+                    }}
+                  >
+                    <XCircle />
+                    {t('rejectAttendance')}
                   </DropdownMenuItem>
                 </Can>
               )}
 
               <Can permission="time_attendance.attendance_records.edit">
-                <DropdownMenuItem>
+                <DropdownMenuItem asChild>
                   <Link
-                    href={`/attendance/attendance-tracker/${row.original.id}/${row.original.latest_attendance?.id}`}
-                    className="flex gap-2 justify-between items-center"
+                    href={`/attendance/attendance-tracker/${row.original.id}/${attendanceId}`}
+                    className="flex items-center gap-2"
                   >
                     <Edit3 />
                     {t('editAttendanceRecord')}
@@ -347,17 +337,14 @@ export const AttendanceTrackerList = ({
                 </DropdownMenuItem>
               </Can>
               <Can permission="time_attendance.attendance_records.delete">
-                <DropdownMenuItem>
-                  <button
-                    onClick={() => {
-                      setOpenDelete(true);
-                      setSelectedId(String(row.original?.latest_attendance?.id));
-                    }}
-                    className="flex gap-2"
-                  >
-                    <Trash />
-                    {t('deleteAttendance')}
-                  </button>
+                <DropdownMenuItem
+                  onSelect={() => {
+                    setSelectedId(String(attendanceId));
+                    setTimeout(() => setOpenDelete(true), 0);
+                  }}
+                >
+                  <Trash />
+                  {t('deleteAttendance')}
                 </DropdownMenuItem>
               </Can>
             </DropdownMenuContent>
@@ -383,7 +370,7 @@ export const AttendanceTrackerList = ({
       }));
       setPagination((prev) => ({ ...prev, pageIndex: 0 }));
     }
-  }, [relativeUser, relativeStatus]);
+  }, [relativeUser, relativeStatus, setFilters, setPagination]);
 
   return (
     <div className={`font-sans min-h-screen flex flex-col space-y-6 px-6`}>
