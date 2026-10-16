@@ -55,6 +55,20 @@ interface ManageAccessModalProps {
   employeeDocumentId: number;
 }
 
+const FQCN_TO_ALIAS: Record<string, string> = {
+  "App\\Models\\EmployeeProfile": "EmployeeProfile",
+  "App\\Models\\Department": "Departement",
+  "App\\Models\\JobLevel": "JobLevel",
+  EmployeeProfile: "EmployeeProfile",
+  Departement: "Departement",
+  Department: "Departement",
+  JobLevel: "JobLevel",
+};
+
+function toShareAlias(granteeableType: string): string {
+  return FQCN_TO_ALIAS[granteeableType] || granteeableType;
+}
+
 export default function ManageAccessModal({
   onSave,
   disabled = false,
@@ -67,15 +81,15 @@ export default function ManageAccessModal({
   const tCommon = useTranslations("common");
   const accessLevelOptions = React.useMemo(
     () => [
-      { label: t("accessPublic"), value: "public" },
-      { label: t("accessRestricted"), value: "restricted" },
       { label: t("accessConfidential"), value: "confidential" },
+      { label: t("accessRestricted"), value: "restricted" },
+      { label: t("accessPublic"), value: "public" },
     ],
     [t],
   );
   const form = useForm<AccessFormValues>({
     defaultValues: {
-      access_level: "public",
+      access_level: "confidential",
       granteeables: [],
       ...defaultValues,
     },
@@ -83,17 +97,19 @@ export default function ManageAccessModal({
 
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = React.useState(false);
+  const [linkToken, setLinkToken] = React.useState<string | null>(null);
 
   const selectedGranteeables = form.watch("granteeables");
 
   const mutation = useMutation({
     mutationFn: postManageAccessDocument,
-    onSuccess: (data) => {
+    onSuccess: (response) => {
       if (onSave) {
-        onSave(data);
+        onSave(response);
       }
+      setLinkToken(response.data?.access_control?.link_token ?? null);
       onClose();
-      form.reset();
+      form.reset({ access_level: "confidential", granteeables: [] });
       queryClient.invalidateQueries({
         queryKey: ["manage_access", employeeDocumentId],
       });
@@ -155,37 +171,17 @@ export default function ManageAccessModal({
   });
 
   React.useEffect(() => {
-    console.log("🔍 Modal state changed", { isOpen, employeeDocumentId });
-  }, [isOpen, employeeDocumentId]);
-
-  React.useEffect(() => {
-    console.log("🔍 useEffect triggered", {
-      isOpen,
-      hasManageAccessData: !!manageAccess?.data,
-      hasEmployees: !!employees?.data?.data,
-      hasDepartments: !!departments?.data?.data,
-      hasJobLevels: !!jobLevels?.data,
-      manageAccessData: manageAccess?.data,
-    });
-
     if (!manageAccess?.data || !isOpen) {
-      console.log("❌ Skipping - no manageAccess data or modal not open");
       return;
     }
 
-    console.log(
-      "✅ Setting default values from manageAccess",
-      manageAccess.data,
-    );
     const { access_control, shares } = manageAccess.data;
+    setLinkToken(access_control?.link_token ?? null);
 
-    // Set access level
     if (access_control?.access_level) {
-      console.log("📝 Setting access_level:", access_control.access_level);
       form.setValue("access_level", access_control.access_level);
     }
 
-    // Set granteeables
     if (
       shares &&
       shares.length > 0 &&
@@ -193,33 +189,38 @@ export default function ManageAccessModal({
       departments?.data?.data &&
       jobLevels?.data
     ) {
-      console.log("📝 Setting granteeables from shares:", shares);
       const formattedGranteeables = shares
         .map((share) => {
+          const type = toShareAlias(share.granteeable_type);
           let label = "";
-          const type = share.granteeable_type;
 
-          if (share.granteeable_type === "EmployeeProfile") {
+          if (type === "EmployeeProfile") {
             const employee = employees.data.data.find(
               (emp) => emp.id === share.granteeable_id,
             );
-            label = employee?.name || t("employeeFallback", { id: share.granteeable_id });
-          } else if (share.granteeable_type === "Departement") {
+            label =
+              employee?.name ||
+              t("employeeFallback", { id: share.granteeable_id });
+          } else if (type === "Departement") {
             const department = departments.data.data.find(
               (dept) => dept.id === share.granteeable_id,
             );
-            label = department?.name || t("departmentFallback", { id: share.granteeable_id });
-          } else if (share.granteeable_type === "JobLevel") {
+            label =
+              department?.name ||
+              t("departmentFallback", { id: share.granteeable_id });
+          } else if (type === "JobLevel") {
             const jobLevel = jobLevels.data.find(
               (jl) => jl.id === share.granteeable_id,
             );
-            label = jobLevel?.name || t("jobLevelFallback", { id: share.granteeable_id });
+            label =
+              jobLevel?.name ||
+              t("jobLevelFallback", { id: share.granteeable_id });
           }
 
           if (label) {
             return {
               value: share.granteeable_id.toString(),
-              type: type,
+              type,
               label,
             };
           }
@@ -228,9 +229,7 @@ export default function ManageAccessModal({
         .filter(Boolean);
 
       form.setValue("granteeables", formattedGranteeables as any);
-      console.log("✅ Formatted granteeables:", formattedGranteeables);
-    } else {
-      console.log("❌ No shares or missing data, clearing granteeables");
+    } else if (!shares?.length) {
       form.setValue("granteeables", []);
     }
   }, [
@@ -247,10 +246,11 @@ export default function ManageAccessModal({
     if (!isOpen) {
       const timer = setTimeout(() => {
         form.reset({
-          access_level: "public",
+          access_level: "confidential",
           granteeables: [],
           ...defaultValues,
         });
+        setLinkToken(null);
       }, 300);
 
       return () => clearTimeout(timer);
@@ -265,26 +265,26 @@ export default function ManageAccessModal({
       const formattedGranteeables =
         data.granteeables?.map((item) => ({
           granteeable_type: item.type,
-          granteeable_id: parseInt(item.value),
+          granteeable_id: parseInt(item.value, 10),
         })) || [];
 
-      const params = {
+      mutation.mutate({
         employee_document_id: employeeDocumentId,
         access_level: data.access_level,
         link_enabled: true,
-        granteeables: formattedGranteeables,
-      };
-
-      mutation.mutate(params);
-    } catch (error) {
-      console.error("Error updating document access:", error);
+        granteeables:
+          data.access_level === "public" ? [] : formattedGranteeables,
+      });
+    } catch {
       setIsLoading(false);
     }
   };
 
   const handleCopyLink = () => {
-    if (manageAccess?.data?.access_control?.link_token) {
-      const link = `${window.location.origin}/documents/shared/${manageAccess.data.access_control.link_token}`;
+    const token =
+      linkToken || manageAccess?.data?.access_control?.link_token;
+    if (token) {
+      const link = `${window.location.origin}/documents/shared/${token}`;
       navigator.clipboard.writeText(link);
       toast.success(t("linkCopied"));
     } else {
@@ -293,7 +293,12 @@ export default function ManageAccessModal({
   };
 
   const handleInvite = () => {
-    console.log("Invite clicked");
+    const current = form.getValues("granteeables") || [];
+    if (current.length === 0) {
+      toast.error(t("inviteSelectFirst"));
+      return;
+    }
+    toast.success(t("inviteReadyToSave"));
   };
 
   const handleClose = (open: boolean) => {
@@ -335,69 +340,79 @@ export default function ManageAccessModal({
 
   const groupedOptions: ComboboxGroup[] = React.useMemo(
     () => [
-    {
-      label: tCommon("employee"),
-      options: employeesOptions,
-      renderOption: (option, index) => {
-        const employee = employees?.data?.data?.[index];
-        return (
-          <div className="flex items-center gap-2">
-            <Avatar className="h-8 w-8">
-              <AvatarImage
-                className="size-8"
-                src={`${process.env.NEXT_PUBLIC_FILE_URL}/${employee?.photo_profile}`}
-                alt={employee?.name}
-              />
-              <AvatarFallback className="text-base font-medium">
-                {stringAvatar(employee?.name ?? "")}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex flex-col">
-              <p className="text-base font-normal text-grayscale-100">
-                {employee?.name}
-              </p>
-              <p className="text-text-disabled text-xs font-normal">
-                {employee?.job_position}
-              </p>
+      {
+        label: tCommon("employee"),
+        type: "EmployeeProfile",
+        options: employeesOptions,
+        renderOption: (option, index) => {
+          const employee = employees?.data?.data?.[index];
+          return (
+            <div className="flex items-center gap-2">
+              <Avatar className="h-8 w-8">
+                <AvatarImage
+                  className="size-8"
+                  src={`${process.env.NEXT_PUBLIC_FILE_URL}/${employee?.photo_profile}`}
+                  alt={employee?.name}
+                />
+                <AvatarFallback className="text-base font-medium">
+                  {stringAvatar(employee?.name ?? "")}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex flex-col">
+                <p className="text-base font-normal text-grayscale-100">
+                  {employee?.name}
+                </p>
+                <p className="text-text-disabled text-xs font-normal">
+                  {employee?.job_position}
+                </p>
+              </div>
             </div>
-          </div>
-        );
+          );
+        },
       },
-    },
-    {
-      label: tCommon("department"),
-      options: departmentOptions,
-      renderOption: (option) => (
-        <div className="flex gap-2 items-center">
-          <Avatar className="h-8 w-8 bg-primary-background items-center justify-center">
-            <AvatarImage
-              className="size-5 bg-primary-background"
-              src="/icons/account-company.svg"
-              alt="department"
-            />
-          </Avatar>
-          {option.label}
-        </div>
-      ),
-    },
-    {
-      label: t("jobLevel"),
-      options: jobLevelOptions,
-      renderOption: (option) => (
-        <div className="flex gap-2 items-center">
-          <Avatar className="h-8 w-8 bg-primary-background items-center justify-center">
-            <AvatarImage
-              className="size-5 bg-primary-background"
-              src="/icons/Group.svg"
-              alt="job level"
-            />
-          </Avatar>
-          {option.label}
-        </div>
-      ),
-    },
-  ],
-  [t, tCommon, employeesOptions, departmentOptions, jobLevelOptions, employees?.data?.data],
+      {
+        label: tCommon("department"),
+        type: "Departement",
+        options: departmentOptions,
+        renderOption: (option) => (
+          <div className="flex gap-2 items-center">
+            <Avatar className="h-8 w-8 bg-primary-background items-center justify-center">
+              <AvatarImage
+                className="size-5 bg-primary-background"
+                src="/icons/account-company.svg"
+                alt="department"
+              />
+            </Avatar>
+            {option.label}
+          </div>
+        ),
+      },
+      {
+        label: t("jobLevel"),
+        type: "JobLevel",
+        options: jobLevelOptions,
+        renderOption: (option) => (
+          <div className="flex gap-2 items-center">
+            <Avatar className="h-8 w-8 bg-primary-background items-center justify-center">
+              <AvatarImage
+                className="size-5 bg-primary-background"
+                src="/icons/Group.svg"
+                alt="job level"
+              />
+            </Avatar>
+            {option.label}
+          </div>
+        ),
+      },
+    ],
+    [
+      t,
+      tCommon,
+      employeesOptions,
+      departmentOptions,
+      jobLevelOptions,
+      employees?.data?.data,
+    ],
   );
 
   const isSubmitting = disabled || isLoading || isManageAccessLoading;
@@ -428,6 +443,7 @@ export default function ManageAccessModal({
             className="flex flex-col flex-1"
           >
             <div className="flex-1 px-1 space-y-6">
+              <p className="text-xs text-text-disabled">{t("accessHelpText")}</p>
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
                   <div className="md:col-span-8">
@@ -508,9 +524,6 @@ export default function ManageAccessModal({
                                     </Avatar>
                                     <span>{item.label}</span>
                                     <span className="text-text-disabled">
-                                      ({employeeData?.id})
-                                    </span>
-                                    <span className="text-text-disabled">
                                       {employeeData?.job_position}
                                     </span>
                                   </div>
@@ -582,7 +595,9 @@ export default function ManageAccessModal({
                 {isSubmitting ? (
                   <>
                     <RefreshCw className="h-4 w-4 animate-spin mr-2" />
-                    {isManageAccessLoading ? tCommon("loading") : tCommon("saving")}
+                    {isManageAccessLoading
+                      ? tCommon("loading")
+                      : tCommon("saving")}
                   </>
                 ) : (
                   tCommon("save")
