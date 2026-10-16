@@ -6,14 +6,11 @@ import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import type { ApiErrorResponse } from '@/lib/types';
 import {
-  backfillIclock,
   getIclockDevices,
   getIclockHealth,
   getIclockLogs,
-  reconcileIclock,
-  reprocessIclock,
   syncIclockDevices,
-  triggerIclockSync,
+  triggerIclockCsvSync,
 } from '@/services/iclock';
 
 async function getErrorMessage(error: unknown, fallback: string): Promise<string> {
@@ -41,11 +38,11 @@ async function getErrorMessage(error: unknown, fallback: string): Promise<string
   return fallback;
 }
 
-export function useIclockHealth(enabled = true) {
+export function useIclockHealth(enabled = true, refetchInterval?: number | false) {
   return useQuery({
     queryKey: ['iclock', 'health'],
     queryFn: async () => (await getIclockHealth()).data,
-    refetchInterval: 60_000,
+    refetchInterval: refetchInterval === undefined ? 60_000 : refetchInterval,
     enabled,
   });
 }
@@ -82,17 +79,6 @@ export function useIclockActions() {
     qc.invalidateQueries({ queryKey: ['iclock'] });
   };
 
-  const syncNow = useMutation({
-    mutationFn: () => triggerIclockSync({ sync: true }),
-    onSuccess: () => {
-      toast.success(t('liveSyncCompleted'));
-      invalidate();
-    },
-    onError: async (e: unknown) => {
-      toast.error(await getErrorMessage(e, t('syncFailed')));
-    },
-  });
-
   const syncDevices = useMutation({
     mutationFn: () => syncIclockDevices(),
     onSuccess: (res) => {
@@ -100,48 +86,20 @@ export function useIclockActions() {
       invalidate();
     },
     onError: async (e: unknown) => {
-      toast.error(await getErrorMessage(e, t('deviceSyncFailed')));
+      toast.error(await getErrorMessage(e, t('syncDevicesFailed')));
     },
   });
 
-  const reconcile = useMutation({
-    mutationFn: reconcileIclock,
-    onError: async (e: unknown) => {
-      toast.error(await getErrorMessage(e, t('reconcileFailed')));
-    },
-  });
-
-  const backfill = useMutation({
-    mutationFn: backfillIclock,
-    onError: async (e: unknown) => {
-      toast.error(await getErrorMessage(e, t('backfillFailed')));
-    },
-  });
-
-  const reprocess = useMutation({
-    mutationFn: reprocessIclock,
-    onSuccess: (res, variables) => {
-      if (variables && 'from' in variables) {
-        const data = res.data as {
-          processed_days?: number;
-          updated?: number;
-        } | null;
-        toast.success(
-          t('rebuildCompletedSuccess', {
-            scope: `${variables.from} → ${variables.to}${variables.pin ? `, PIN ${variables.pin}` : ''}`,
-            days: data?.processed_days ?? 0,
-            updated: data?.updated ?? 0,
-          }),
-        );
-      } else {
-        toast.success(res.message || t('reprocessCompleted'));
-      }
+  const csvSync = useMutation({
+    mutationFn: (payload: { from: string; to: string }) => triggerIclockCsvSync(payload),
+    onSuccess: (res) => {
+      toast.success(t('csvSyncQueued', { runId: res.data?.run_id ?? '' }));
       invalidate();
     },
     onError: async (e: unknown) => {
-      toast.error(await getErrorMessage(e, t('reprocessFailed')));
+      toast.error(await getErrorMessage(e, t('csvSyncFailed')));
     },
   });
 
-  return { syncNow, syncDevices, reconcile, backfill, reprocess, invalidate };
+  return { syncDevices, csvSync };
 }
