@@ -58,15 +58,6 @@ export function MultiSelectComboboxForm({
   const [searchValue, setSearchValue] = React.useState("");
   const inputRef = React.useRef<HTMLDivElement>(null);
 
-  const getOptionType = (groupLabel: string) => {
-    const typeMap: Record<string, string> = {
-      Employee: "EmployeeProfile",
-      Department: "Departement",
-      "Job Level": "JobLevel",
-    };
-    return typeMap[groupLabel] || "";
-  };
-
   const handleSelect = (option: ComboboxOption, type?: string) => {
     const newValue = {
       value: option.value.toString(),
@@ -165,7 +156,7 @@ export function MultiSelectComboboxForm({
                           <CommandItem
                             key={`${option.value}-${option.label}`}
                             onSelect={() =>
-                              handleSelect(option, getOptionType(group.label))
+                              handleSelect(option, group.type || "")
                             }
                             disabled={option.disabled}
                             className={cn(

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { api } from "@/lib/api";
+import { api, apiPublic } from "@/lib/api";
 import { IManageAccessDocumentResponse } from "./types";
 import { ApiResponse } from "@/lib/types";
 
@@ -7,7 +7,7 @@ interface Params {
   employee_document_id: number;
   access_level: string;
   link_enabled: boolean;
-  granteeables: {
+  granteeables?: {
     granteeable_type: string;
     granteeable_id: number;
   }[];
@@ -15,9 +15,9 @@ interface Params {
 
 export const postManageAccessDocument = async (
   params: Params,
-): Promise<IManageAccessDocumentResponse> => {
+): Promise<ApiResponse<IManageAccessDocumentResponse>> => {
   try {
-    const response = api.post<IManageAccessDocumentResponse>(
+    const response = api.post<ApiResponse<IManageAccessDocumentResponse>>(
       `documents/access-control`,
       { json: params },
     );
@@ -56,4 +56,23 @@ export const getManageAccessDocument = async (
     }
     throw error;
   }
+};
+
+export const getSharedDocument = async (
+  token: string,
+): Promise<
+  ApiResponse<{
+    id: number;
+    filename: string;
+    mime_type: string;
+    size: number;
+    path: string;
+    url: string | null;
+    type: string;
+    uploaded_by?: { id: number; name: string };
+    uploaded_at?: string;
+  }>
+> => {
+  const response = apiPublic.get(`documents/shared/${token}`);
+  return response.json();
 };
