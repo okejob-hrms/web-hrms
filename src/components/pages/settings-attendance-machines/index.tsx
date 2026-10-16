@@ -1,9 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
-import { toast } from 'sonner';
 import dayjs from 'dayjs';
 import {
   AlertDialog,
@@ -15,7 +13,6 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { SearchableSelect } from '@/components/ui/combobox';
 import { BasicDatePicker } from '@/components/ui/date-picker';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -31,7 +28,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Can } from '@/components/auth/can';
 import { useDebounce } from '@/hooks/use-debounce';
 import { usePermissionStore } from '@/hooks/use-permission-store';
-import { getEmployees } from '@/services/employees';
+import { cn } from '@/lib/utils';
 import {
   useIclockActions,
   useIclockDevices,
@@ -39,13 +36,7 @@ import {
   useIclockLogs,
 } from './hook';
 import { UnknownPinsTab } from './unknown-pins-tab';
-import type {
-  IclockBackfillResult,
-  IclockReconcileReport,
-  IclockReprocessRangeResult,
-} from '@/services/iclock/types';
-
-type BackfillResultState = IclockBackfillResult & { rangeFrom: string; rangeTo: string };
+import type { IclockCsvSyncSummary } from '@/services/iclock/types';
 
 function formatDt(value?: string | null) {
   if (!value) return '—';
@@ -56,30 +47,6 @@ function formatDt(value?: string | null) {
   }
 }
 
-const LAST_RUN_STAT_KEYS = [
-  'fetched',
-  'stored',
-  'created',
-  'updated',
-  'unmatched',
-  'failed',
-  'skipped',
-  'duplicates',
-] as const;
-
-type LastRunStatKey = (typeof LAST_RUN_STAT_KEYS)[number];
-
-const LAST_RUN_STAT_LABEL_KEY: Record<LastRunStatKey, string> = {
-  fetched: 'statFetched',
-  stored: 'statStored',
-  created: 'statCreated',
-  updated: 'statUpdated',
-  unmatched: 'statUnmatched',
-  failed: 'statFailed',
-  skipped: 'statSkipped',
-  duplicates: 'statDuplicates',
-};
-
 function formatStatValue(value: unknown): string {
   if (value === null || value === undefined) return '—';
   if (typeof value === 'number' || typeof value === 'boolean' || typeof value === 'string') {
@@ -88,16 +55,33 @@ function formatStatValue(value: unknown): string {
   return '—';
 }
 
-/** Soft cap for write backfill to avoid ADMS timeouts / huge rewrites. */
-const MAX_BACKFILL_DAYS = 31;
+const CSV_STAT_KEYS = [
+  'inserted',
+  'updated',
+  'deleted',
+  'unknown_pins',
+  'ignored_pins',
+  'skipped_approved',
+  'skipped_manual',
+  'unresolved_punches',
+  'rows_read',
+  'writes',
+] as const;
 
-function inclusiveDaySpan(from: string, to: string): number {
-  const [fy, fm, fd] = from.split('-').map(Number);
-  const [ty, tm, td] = to.split('-').map(Number);
-  const start = Date.UTC(fy, fm - 1, fd);
-  const end = Date.UTC(ty, tm - 1, td);
-  return Math.floor((end - start) / 86_400_000) + 1;
-}
+type CsvStatKey = (typeof CSV_STAT_KEYS)[number];
+
+const CSV_STAT_LABEL_KEY: Record<CsvStatKey, string> = {
+  inserted: 'statInserted',
+  updated: 'statUpdated',
+  deleted: 'statDeleted',
+  unknown_pins: 'statUnknownPins',
+  ignored_pins: 'statIgnoredPins',
+  skipped_approved: 'statSkippedApproved',
+  skipped_manual: 'statSkippedManual',
+  unresolved_punches: 'statUnresolved',
+  rows_read: 'statRowsRead',
+  writes: 'statWrites',
+};
 
 function dateToStr(d: Date | undefined): string {
   return d ? dayjs(d).format('YYYY-MM-DD') : '';
@@ -107,14 +91,68 @@ function strToDate(s: string): Date | undefined {
   return s ? dayjs(s).toDate() : undefined;
 }
 
+function StatCard({
+  label,
+  value,
+  badge,
+}: {
+  label: string;
+  value: string;
+  badge?: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-md border p-3 space-y-1">
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-muted-foreground text-xs">{label}</p>
+        {badge}
+      </div>
+      <p className="text-sm font-semibold break-all">{value}</p>
+    </div>
+  );
+}
+
+function csvStatValue(
+  summary: IclockCsvSyncSummary | null | undefined,
+  metadata: Record<string, number | string | null> | null | undefined,
+  key: CsvStatKey,
+): unknown {
+  if (summary && summary[key] !== undefined && summary[key] !== null) {
+    return summary[key];
+  }
+  return metadata?.[key];
+}
+
 export default function SettingsAttendanceMachines() {
   const t = useTranslations('settings.attendanceMachines');
   const tCommon = useTranslations('common');
   const canEdit = usePermissionStore((s) => s.can('time_attendance.attendance_configuration.edit'));
   const [activeTab, setActiveTab] = React.useState('overview');
-  const healthQuery = useIclockHealth(true);
-  const devicesQuery = useIclockDevices(activeTab === 'machines' || activeTab === 'repair');
   const actions = useIclockActions();
+
+  const [repairFrom, setRepairFrom] = React.useState('');
+  const [repairTo, setRepairTo] = React.useState('');
+  const [confirmOpen, setConfirmOpen] = React.useState(false);
+  const [watchingRunId, setWatchingRunId] = React.useState<string | null>(null);
+
+  const csvBusyStatus = (status?: string | null) =>
+    status === 'queued' || status === 'exporting' || status === 'importing';
+
+  const healthQuery = useIclockHealth(
+    true,
+    watchingRunId || activeTab === 'repair' || activeTab === 'overview' ? 5_000 : 60_000,
+  );
+  const devicesQuery = useIclockDevices(activeTab === 'machines');
+  const health = healthQuery.data;
+  const csvSync = health?.csv_sync ?? null;
+  const csvRunning = csvBusyStatus(csvSync?.status);
+
+  React.useEffect(() => {
+    if (!watchingRunId || !csvSync) return;
+    if (csvSync.run_id !== watchingRunId) return;
+    if (csvSync.status === 'completed' || csvSync.status === 'failed') {
+      setWatchingRunId(null);
+    }
+  }, [watchingRunId, csvSync]);
 
   const statusLabel = (status: number): string => {
     switch (status) {
@@ -126,6 +164,10 @@ export default function SettingsAttendanceMachines() {
         return t('statusUnmatched');
       case 3:
         return t('statusFailed');
+      case 4:
+        return t('statusUnresolved');
+      case 5:
+        return t('statusIgnored');
       default:
         return String(status);
     }
@@ -150,142 +192,56 @@ export default function SettingsAttendanceMachines() {
     activeTab === 'logs',
   );
 
-  const [repairFrom, setRepairFrom] = React.useState('');
-  const [repairTo, setRepairTo] = React.useState('');
-  const [repairDevice, setRepairDevice] = React.useState('');
-  const [repairPin, setRepairPin] = React.useState('');
-  const [reconcileReport, setReconcileReport] = React.useState<IclockReconcileReport | null>(null);
-  const [backfillResult, setBackfillResult] = React.useState<BackfillResultState | null>(null);
-  const [backfillConfirmOpen, setBackfillConfirmOpen] = React.useState(false);
-  const [reprocessConfirmOpen, setReprocessConfirmOpen] = React.useState(false);
-  const [rebuildConfirmOpen, setRebuildConfirmOpen] = React.useState(false);
-  const [rebuildResult, setRebuildResult] = React.useState<IclockReprocessRangeResult | null>(null);
-
-  const repairFiltersRef = React.useRef({
-    from: repairFrom,
-    to: repairTo,
-    device: repairDevice,
-    pin: repairPin,
-  });
-  repairFiltersRef.current = {
-    from: repairFrom,
-    to: repairTo,
-    device: repairDevice,
-    pin: repairPin,
-  };
-
-  const [reprocessDate, setReprocessDate] = React.useState('');
-  const [reprocessPin, setReprocessPin] = React.useState('');
-  const [reprocessUserId, setReprocessUserId] = React.useState<number | null>(null);
-  const [reprocessEmployeeLabel, setReprocessEmployeeLabel] = React.useState('');
-  const [employeeSearch, setEmployeeSearch] = React.useState('');
-  const debouncedEmployeeSearch = useDebounce(employeeSearch, 400);
-
-  const employeesQuery = useQuery({
-    queryKey: ['iclock', 'reprocess-employees', debouncedEmployeeSearch],
-    queryFn: () =>
-      getEmployees(
-        debouncedEmployeeSearch
-          ? { search: debouncedEmployeeSearch, per_page: 50, status: '1' }
-          : { per_page: 50, status: '1' },
-      ),
-    enabled: activeTab === 'repair' && canEdit,
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
-  });
-
-  const employeeOptions = React.useMemo(() => {
-    const options =
-      employeesQuery.data?.data?.data
-        ?.filter((item) => Boolean(item.code?.trim()))
-        .map((item) => ({
-          label: `${item.name} · ${item.code}`,
-          value: item.code,
-        })) ?? [];
-
-    if (
-      reprocessPin &&
-      reprocessEmployeeLabel &&
-      !options.some((option) => option.value === reprocessPin)
-    ) {
-      options.unshift({
-        label: reprocessEmployeeLabel,
-        value: reprocessPin,
-      });
-    }
-
-    return options;
-  }, [employeesQuery.data?.data?.data, reprocessEmployeeLabel, reprocessPin]);
-
-  React.useEffect(() => {
-    setReconcileReport(null);
-    setBackfillResult(null);
-    setRebuildResult(null);
-  }, [repairFrom, repairTo, repairDevice, repairPin]);
-
-  const matchesRepairFilters = React.useCallback(
-    (variables: { from: string; to: string; device?: string; pin?: string }) => {
-      const current = repairFiltersRef.current;
-      return (
-        variables.from === current.from &&
-        variables.to === current.to &&
-        (variables.device ?? '') === current.device &&
-        (variables.pin ?? '') === current.pin
-      );
-    },
-    [],
-  );
-
-  const formatRepairScope = (variables: {
-    from: string;
-    to: string;
-    device?: string;
-    pin?: string;
-  }) => {
-    const parts = [`${variables.from} → ${variables.to}`];
-    if (variables.device) parts.push(t('repairScopeDevice', { device: variables.device }));
-    if (variables.pin) parts.push(t('repairScopePin', { pin: variables.pin }));
-    return parts.join(', ');
-  };
-
-  const health = healthQuery.data;
   const logsLastPage = logsQuery.data?.last_page ?? 1;
   const logsTotal = logsQuery.data?.total ?? 0;
-  const repairRangeValid =
-    Boolean(repairFrom && repairTo) && repairFrom <= repairTo;
-  const repairSpanDays = repairRangeValid ? inclusiveDaySpan(repairFrom, repairTo) : 0;
-  const backfillWriteAllowed = repairRangeValid && repairSpanDays <= MAX_BACKFILL_DAYS;
-  const admsBusy =
-    actions.syncNow.isPending ||
-    actions.syncDevices.isPending ||
-    actions.reconcile.isPending ||
-    actions.backfill.isPending ||
-    actions.reprocess.isPending;
+  const repairRangeValid = Boolean(repairFrom && repairTo) && repairFrom <= repairTo;
+  const admsBusy = actions.syncDevices.isPending || actions.csvSync.isPending || csvRunning;
+
+  const summary = csvSync?.summary ?? null;
+  const meta = health?.metadata ?? null;
+
+  const startCsvSync = () => {
+    if (!repairRangeValid) return;
+    actions.csvSync.mutate(
+      { from: repairFrom, to: repairTo },
+      {
+        onSuccess: (res) => {
+          setConfirmOpen(false);
+          setWatchingRunId(res.data?.run_id ?? null);
+        },
+      },
+    );
+  };
 
   return (
     <div className="rounded-md bg-white border shadow-sm border-gray-200 flex flex-col gap-4 p-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h2 className="font-semibold text-xl">{t('title')}</h2>
-          <p className="text-sm text-text-secondary">{t('subtitle')}</p>
-        </div>
-        <Can permission="time_attendance.attendance_configuration.edit">
-          <Button
-            onClick={() => actions.syncNow.mutate()}
-            disabled={admsBusy}
-          >
-            {actions.syncNow.isPending ? t('syncing') : t('syncNow')}
-          </Button>
-        </Can>
+      <div>
+        <h2 className="font-semibold text-xl">{t('title')}</h2>
+        <p className="text-sm text-text-secondary">{t('subtitle')}</p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="gap-4">
-        <TabsList>
-          <TabsTrigger value="overview">{t('tabOverview')}</TabsTrigger>
-          <TabsTrigger value="machines">{t('tabMachines')}</TabsTrigger>
-          <TabsTrigger value="logs">{t('tabLogs')}</TabsTrigger>
-          <TabsTrigger value="unmatched">{t('tabUnmatched')}</TabsTrigger>
-          {canEdit ? <TabsTrigger value="repair">{t('tabRepair')}</TabsTrigger> : null}
+        <TabsList className="p-1 w-full bg-secondary-background min-h-12">
+          {[
+            { value: 'overview', label: t('tabOverview') },
+            { value: 'machines', label: t('tabMachines') },
+            { value: 'logs', label: t('tabLogs') },
+            { value: 'unmatched', label: t('tabUnmatched') },
+            ...(canEdit ? [{ value: 'repair', label: t('tabRepair') }] : []),
+          ].map((tab) => (
+            <TabsTrigger
+              key={tab.value}
+              value={tab.value}
+              className={cn(
+                'px-2.5 sm:px-3 text-secondary-hover border-l-0',
+                'data-[state=active]:border-l-0 data-[state=active]:bg-secondary data-[state=active]:text-white data-[state=active]:font-medium',
+              )}
+            >
+              <code className="flex items-center gap-1 text-[13px] [&>svg]:h-4 [&>svg]:w-4">
+                {tab.label}
+              </code>
+            </TabsTrigger>
+          ))}
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
@@ -299,7 +255,7 @@ export default function SettingsAttendanceMachines() {
           <div className="grid gap-4 md:grid-cols-3">
             <StatCard
               label={t('syncStatus')}
-              value={health?.last_run_status ?? '—'}
+              value={health?.last_run_status ?? csvSync?.status ?? '—'}
               badge={
                 health == null ? null : health.stale ? (
                   <Badge variant="destructive">{t('stale')}</Badge>
@@ -309,29 +265,32 @@ export default function SettingsAttendanceMachines() {
               }
             />
             <StatCard label={t('lastSynced')} value={formatDt(health?.last_synced_at)} />
-            <StatCard label={t('cursorTid')} value={String(health?.last_tid ?? '—')} />
+            <StatCard
+              label={t('syncRange')}
+              value={
+                csvSync?.from && csvSync?.to ? `${csvSync.from} → ${csvSync.to}` : '—'
+              }
+            />
           </div>
 
-          {health?.last_error ? (
+          {health?.last_error || csvSync?.error ? (
             <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">
-              {health.last_error}
+              {health?.last_error || csvSync?.error}
             </div>
           ) : null}
 
-          {health?.metadata ? (
-            <div className="space-y-3 rounded-md border p-4">
-              <h3 className="text-sm font-medium">{t('lastRunStats')}</h3>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                {LAST_RUN_STAT_KEYS.map((key) => (
-                  <StatCard
-                    key={key}
-                    label={t(LAST_RUN_STAT_LABEL_KEY[key])}
-                    value={formatStatValue(health.metadata?.[key])}
-                  />
-                ))}
-              </div>
+          <div className="space-y-3 rounded-md border p-4">
+            <h3 className="text-sm font-medium">{t('lastRunStats')}</h3>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {CSV_STAT_KEYS.map((key) => (
+                <StatCard
+                  key={key}
+                  label={t(CSV_STAT_LABEL_KEY[key])}
+                  value={formatStatValue(csvStatValue(summary, meta, key))}
+                />
+              ))}
             </div>
-          ) : null}
+          </div>
         </TabsContent>
 
         <TabsContent value="machines" className="space-y-4">
@@ -526,10 +485,10 @@ export default function SettingsAttendanceMachines() {
           <Can permission="time_attendance.attendance_configuration.edit">
             <div className="space-y-4 rounded-md border p-4">
               <div className="space-y-1">
-                <h3 className="text-sm font-semibold">{t('reconcileBackfillTitle')}</h3>
-                <p className="text-muted-foreground text-sm">{t('reconcileBackfillDesc')}</p>
+                <h3 className="text-sm font-semibold">{t('csvRepairTitle')}</h3>
+                <p className="text-muted-foreground text-sm">{t('csvRepairHint')}</p>
               </div>
-              <div className="grid gap-3 md:grid-cols-4">
+              <div className="grid gap-3 md:grid-cols-2">
                 <BasicDatePicker
                   label={t('from')}
                   value={strToDate(repairFrom)}
@@ -540,468 +499,74 @@ export default function SettingsAttendanceMachines() {
                   value={strToDate(repairTo)}
                   onSelect={(d) => setRepairTo(dateToStr(d))}
                 />
-                <div className="space-y-2">
-                  <Label>{t('deviceOptional')}</Label>
-                  <Input
-                    list="iclock-repair-device-serials"
-                    value={repairDevice}
-                    onChange={(e) => setRepairDevice(e.target.value)}
-                    placeholder={t('deviceSn')}
-                  />
-                  <datalist id="iclock-repair-device-serials">
-                    {(devicesQuery.data ?? []).map((d) => (
-                      <option key={d.serial} value={d.serial}>
-                        {d.alias ? `${d.serial} (${d.alias})` : d.serial}
-                      </option>
-                    ))}
-                  </datalist>
-                </div>
-                <div className="space-y-2">
-                  <Label>{t('pinOptional')}</Label>
-                  <Input value={repairPin} onChange={(e) => setRepairPin(e.target.value)} />
-                </div>
               </div>
-              {!repairRangeValid && repairFrom && repairTo ? (
-                <p className="text-destructive text-sm">{t('fromBeforeTo')}</p>
-              ) : null}
-              {repairRangeValid && !backfillWriteAllowed ? (
-                <p className="text-destructive text-sm">
-                  {t('repairLimitedDays', {
-                    max: MAX_BACKFILL_DAYS,
-                    selected: repairSpanDays,
-                  })}
-                </p>
-              ) : null}
               <div className="flex flex-wrap gap-2">
                 <Button
-                  variant="outline"
-                  disabled={!backfillWriteAllowed || admsBusy}
-                  isLoading={actions.reconcile.isPending}
-                  onClick={() => {
-                    const payload = {
-                      from: repairFrom,
-                      to: repairTo,
-                      device: repairDevice || undefined,
-                      pin: repairPin || undefined,
-                    };
-                    actions.reconcile.mutate(payload, {
-                      onSuccess: (res, variables) => {
-                        toast.success(
-                          t('reconcileSuccess', {
-                            scope: formatRepairScope(variables),
-                            missing: res.data?.missing_count ?? 0,
-                            adms: res.data?.adms_count ?? 0,
-                          }),
-                        );
-                        if (!matchesRepairFilters(variables)) return;
-                        setReconcileReport(res.data);
-                      },
-                    });
-                  }}
+                  disabled={!repairRangeValid || admsBusy}
+                  onClick={() => setConfirmOpen(true)}
                 >
-                  {t('reconcilePreview')}
-                </Button>
-                <Button
-                  variant="secondary"
-                  disabled={!backfillWriteAllowed || admsBusy}
-                  isLoading={actions.backfill.isPending && !!actions.backfill.variables?.dry_run}
-                  onClick={() => {
-                    const payload = {
-                      from: repairFrom,
-                      to: repairTo,
-                      device: repairDevice || undefined,
-                      pin: repairPin || undefined,
-                      dry_run: true as const,
-                      rebuild_all: true as const,
-                    };
-                    actions.backfill.mutate(payload, {
-                      onSuccess: (res, variables) => {
-                        toast.success(
-                          t('backfillDryRunSuccess', {
-                            scope: formatRepairScope(variables),
-                            missing: res.data?.missing_before ?? 0,
-                            stored: res.data?.stored ?? 0,
-                          }),
-                        );
-                        if (!matchesRepairFilters(variables)) return;
-                        setBackfillResult(
-                          res.data
-                            ? { ...res.data, rangeFrom: variables.from, rangeTo: variables.to }
-                            : null,
-                        );
-                      },
-                    });
-                  }}
-                >
-                  {t('backfillDryRun')}
-                </Button>
-                <Button
-                  disabled={!backfillWriteAllowed || admsBusy}
-                  isLoading={
-                    actions.backfill.isPending && actions.backfill.variables?.dry_run === false
-                  }
-                  onClick={() => setBackfillConfirmOpen(true)}
-                >
-                  {t('runBackfill')}
-                </Button>
-                <Button
-                  variant="outline"
-                  disabled={!backfillWriteAllowed || admsBusy}
-                  isLoading={
-                    actions.reprocess.isPending &&
-                    !!(actions.reprocess.variables && 'from' in actions.reprocess.variables)
-                  }
-                  onClick={() => setRebuildConfirmOpen(true)}
-                >
-                  {t('rebuildAttendance')}
+                  {csvRunning || actions.csvSync.isPending
+                    ? t('csvSyncRunning')
+                    : t('runCsvSync')}
                 </Button>
               </div>
 
-              {reconcileReport ? (
-                <div className="space-y-2 rounded-md bg-muted/40 p-4 text-sm">
-                  <div>
-                    {t('reconcileSummary', {
-                      adms: reconcileReport.adms_count,
-                      hrms: reconcileReport.hrms_count,
-                    })}{' '}
-                    <strong>{reconcileReport.missing_count}</strong>
+              {csvSync ? (
+                <div className="space-y-3 rounded-md border bg-muted/30 p-4">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h4 className="text-sm font-medium">{t('csvSyncStatus')}</h4>
+                    <Badge variant={csvSync.status === 'failed' ? 'destructive' : 'secondary'}>
+                      {csvSync.status}
+                    </Badge>
                   </div>
-                  {(reconcileReport.missing ?? []).slice(0, 10).map((row) => (
-                    <div key={row.iclock_log_id} className="text-muted-foreground font-mono text-xs">
-                      #{row.iclock_log_id} {row.pin} {row.time} {row.device}
+                  <p className="text-muted-foreground text-xs">
+                    {t('csvSyncRunMeta', {
+                      runId: csvSync.run_id,
+                      from: csvSync.from,
+                      to: csvSync.to,
+                      started: formatDt(csvSync.started_at),
+                      finished: formatDt(csvSync.finished_at),
+                    })}
+                  </p>
+                  {csvSync.error ? (
+                    <p className="text-destructive text-sm">{csvSync.error}</p>
+                  ) : null}
+                  {summary ? (
+                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                      {CSV_STAT_KEYS.map((key) => (
+                        <StatCard
+                          key={key}
+                          label={t(CSV_STAT_LABEL_KEY[key])}
+                          value={formatStatValue(csvStatValue(summary, null, key))}
+                        />
+                      ))}
                     </div>
-                  ))}
+                  ) : null}
                 </div>
               ) : null}
-
-              {backfillResult ? (
-                <div className="space-y-3 rounded-md bg-muted/40 p-4">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">
-                      {backfillResult.dry_run ? t('dryRunResult') : t('backfillResult')}
-                    </span>
-                    {backfillResult.dry_run && (
-                      <Badge variant="outline">{t('dryRun')}</Badge>
-                    )}
-                  </div>
-                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                    <StatCard
-                      compact
-                      label={t('backfillPeriod')}
-                      value={`${backfillResult.rangeFrom} → ${backfillResult.rangeTo}`}
-                    />
-                    <StatCard compact label={t('missingBefore')} value={String(backfillResult.missing_before)} />
-                    <StatCard compact label={t('statStored')} value={String(backfillResult.stored)} />
-                    <StatCard compact label={t('processedDays')} value={String(backfillResult.processed_days)} />
-                    <StatCard
-                      compact
-                      label={t('rebuildDays')}
-                      value={String(backfillResult.rebuild_days ?? backfillResult.processed_days)}
-                    />
-                  </div>
-                  <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
-                    <StatCard compact label={t('statCreated')} value={String(backfillResult.created)} />
-                    <StatCard compact label={t('statUpdated')} value={String(backfillResult.updated)} />
-                    <StatCard compact label={t('statUnmatched')} value={String(backfillResult.unmatched)} />
-                    <StatCard compact label={t('statSkipped')} value={String(backfillResult.skipped)} />
-                    <StatCard compact label={t('statFailed')} value={String(backfillResult.failed)} />
-                  </div>
-                </div>
-              ) : null}
-
-              {rebuildResult ? (
-                <div className="space-y-3 rounded-md bg-muted/40 p-4">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">
-                      {rebuildResult.dry_run ? t('rebuildDryRunResult') : t('rebuildResult')}
-                    </span>
-                  </div>
-                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                    <StatCard
-                      compact
-                      label={t('backfillPeriod')}
-                      value={`${rebuildResult.from} → ${rebuildResult.to}`}
-                    />
-                    <StatCard compact label={t('rebuildDays')} value={String(rebuildResult.processed_days)} />
-                    <StatCard compact label={t('statCreated')} value={String(rebuildResult.created)} />
-                    <StatCard compact label={t('statUpdated')} value={String(rebuildResult.updated)} />
-                  </div>
-                </div>
-              ) : null}
-            </div>
-
-            <div className="space-y-4 rounded-md border p-4">
-              <div className="space-y-1">
-                <h3 className="text-sm font-semibold">{t('reprocessTitle')}</h3>
-                <p className="text-muted-foreground text-sm">{t('reprocessDesc')}</p>
-              </div>
-              <div className="grid gap-3 md:grid-cols-2">
-                <BasicDatePicker
-                  label={t('date')}
-                  value={strToDate(reprocessDate)}
-                  onSelect={(d) => setReprocessDate(dateToStr(d))}
-                />
-                <div className="space-y-2">
-                  <Label>{t('employeePin')}</Label>
-                  <SearchableSelect
-                    value={reprocessPin || null}
-                    onValueChange={(value) => {
-                      const code = value == null || value === '' ? '' : String(value);
-                      setReprocessPin(code);
-                      if (!code) {
-                        setReprocessUserId(null);
-                        setReprocessEmployeeLabel('');
-                        return;
-                      }
-                      const match = employeesQuery.data?.data?.data?.find(
-                        (item) => item.code === code,
-                      );
-                      setReprocessUserId(match?.user_id ?? null);
-                      setReprocessEmployeeLabel(
-                        match ? `${match.name} · ${match.code}` : code,
-                      );
-                    }}
-                    options={employeeOptions}
-                    placeholder={t('selectEmployeePin')}
-                    searchPlaceholder={t('searchEmployeePin')}
-                    emptyMessage={t('noEmployeeFound')}
-                    searchValue={employeeSearch}
-                    onSearchChange={setEmployeeSearch}
-                    isLoading={employeesQuery.isFetching}
-                    allowClear
-                  />
-                  <p className="text-muted-foreground text-xs">{t('employeePinHint')}</p>
-                </div>
-              </div>
-              <Button
-                disabled={!reprocessDate || !reprocessPin || admsBusy}
-                isLoading={
-                  actions.reprocess.isPending &&
-                  !(actions.reprocess.variables && 'from' in actions.reprocess.variables)
-                }
-                onClick={() => setReprocessConfirmOpen(true)}
-              >
-                {t('reprocessDay')}
-              </Button>
             </div>
           </Can>
         </TabsContent>
       </Tabs>
 
-      {/* Backfill confirm dialog */}
-      <AlertDialog
-        open={backfillConfirmOpen}
-        onOpenChange={(open) => {
-          if (
-            !open &&
-            actions.backfill.isPending &&
-            actions.backfill.variables?.dry_run === false
-          ) {
-            return;
-          }
-          setBackfillConfirmOpen(open);
-        }}
-      >
-        <AlertDialogContent className="max-w-md bg-white">
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t('confirmBackfillTitle')}</AlertDialogTitle>
+            <AlertDialogTitle>{t('csvSyncConfirmTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              {t('confirmBackfill', {
-                from: repairFrom,
-                to: repairTo,
-                devicePart: repairDevice ? t('confirmBackfillDevice', { device: repairDevice }) : '',
-                pinPart: repairPin ? t('confirmBackfillPin', { pin: repairPin }) : '',
-              })}
+              {t('csvSyncConfirmBody', { from: repairFrom, to: repairTo })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <Button
-              variant="outline"
-              disabled={
-                actions.backfill.isPending && actions.backfill.variables?.dry_run === false
-              }
-              onClick={() => setBackfillConfirmOpen(false)}
-            >
+            <Button variant="outline" onClick={() => setConfirmOpen(false)}>
               {tCommon('cancel')}
             </Button>
-            <Button
-              isLoading={actions.backfill.isPending && actions.backfill.variables?.dry_run === false}
-              onClick={() => {
-                if (actions.backfill.isPending) return;
-                const payload = {
-                  from: repairFrom,
-                  to: repairTo,
-                  device: repairDevice || undefined,
-                  pin: repairPin || undefined,
-                  dry_run: false as const,
-                  confirm: true as const,
-                  rebuild_all: true as const,
-                };
-                actions.backfill.mutate(payload, {
-                  onSuccess: (res, variables) => {
-                    setBackfillConfirmOpen(false);
-                    toast.success(
-                      t('backfillCompletedSuccess', {
-                        scope: formatRepairScope(variables),
-                        stored: res.data?.stored ?? 0,
-                        days: res.data?.processed_days ?? 0,
-                      }),
-                    );
-                    actions.invalidate();
-                    if (!matchesRepairFilters(variables)) return;
-                    setBackfillResult(
-                      res.data
-                        ? { ...res.data, rangeFrom: variables.from, rangeTo: variables.to }
-                        : null,
-                    );
-                  },
-                });
-              }}
-            >
-              {t('runBackfill')}
+            <Button onClick={startCsvSync} disabled={actions.csvSync.isPending}>
+              {actions.csvSync.isPending ? t('csvSyncQueuing') : t('runCsvSync')}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      {/* Reprocess confirm dialog */}
-      <AlertDialog
-        open={reprocessConfirmOpen}
-        onOpenChange={(open) => {
-          if (!open && actions.reprocess.isPending) return;
-          setReprocessConfirmOpen(open);
-        }}
-      >
-        <AlertDialogContent className="max-w-md bg-white">
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t('confirmReprocessTitle')}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {t('confirmReprocess', { pin: reprocessPin, date: reprocessDate })}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <Button
-              variant="outline"
-              disabled={actions.reprocess.isPending}
-              onClick={() => setReprocessConfirmOpen(false)}
-            >
-              {tCommon('cancel')}
-            </Button>
-            <Button
-              isLoading={actions.reprocess.isPending}
-              onClick={() => {
-                if (actions.reprocess.isPending) return;
-                actions.reprocess.mutate(
-                  {
-                    date: reprocessDate,
-                    pin: reprocessPin,
-                    ...(reprocessUserId != null ? { employee_id: reprocessUserId } : {}),
-                  },
-                  { onSuccess: () => setReprocessConfirmOpen(false) },
-                );
-              }}
-            >
-              {t('reprocessDay')}
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Bulk rebuild confirm (from stored logs, no ADMS) */}
-      <AlertDialog
-        open={rebuildConfirmOpen}
-        onOpenChange={(open) => {
-          if (
-            !open &&
-            actions.reprocess.isPending &&
-            actions.reprocess.variables &&
-            'from' in actions.reprocess.variables
-          ) {
-            return;
-          }
-          setRebuildConfirmOpen(open);
-        }}
-      >
-        <AlertDialogContent className="max-w-md bg-white">
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t('confirmRebuildTitle')}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {t('confirmRebuild', {
-                from: repairFrom,
-                to: repairTo,
-                pinPart: repairPin ? t('confirmBackfillPin', { pin: repairPin }) : '',
-              })}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <Button
-              variant="outline"
-              disabled={
-                actions.reprocess.isPending &&
-                !!(actions.reprocess.variables && 'from' in actions.reprocess.variables)
-              }
-              onClick={() => setRebuildConfirmOpen(false)}
-            >
-              {tCommon('cancel')}
-            </Button>
-            <Button
-              isLoading={
-                actions.reprocess.isPending &&
-                !!(actions.reprocess.variables && 'from' in actions.reprocess.variables)
-              }
-              onClick={() => {
-                if (actions.reprocess.isPending) return;
-                const payload = {
-                  from: repairFrom,
-                  to: repairTo,
-                  pin: repairPin || undefined,
-                  confirm: true as const,
-                };
-                actions.reprocess.mutate(payload, {
-                  onSuccess: (res, variables) => {
-                    setRebuildConfirmOpen(false);
-                    if (!('from' in variables)) return;
-                    if (!matchesRepairFilters({
-                      from: variables.from,
-                      to: variables.to,
-                      pin: variables.pin,
-                    })) {
-                      return;
-                    }
-                    setRebuildResult((res.data as IclockReprocessRangeResult) ?? null);
-                  },
-                });
-              }}
-            >
-              {t('rebuildAttendance')}
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
-  );
-}
-
-function StatCard({
-  label,
-  value,
-  badge,
-  compact,
-}: {
-  label: string;
-  value: string;
-  badge?: React.ReactNode;
-  compact?: boolean;
-}) {
-  return (
-    <div className={`min-w-0 rounded-md border ${compact ? 'p-3' : 'p-4'}`}>
-      <div className="text-muted-foreground mb-1 flex items-center justify-between gap-2 text-xs uppercase tracking-wide">
-        <span className="min-w-0 truncate">{label}</span>
-        {badge ? <span className="shrink-0">{badge}</span> : null}
-      </div>
-      <div className="truncate text-sm font-medium" title={value}>
-        {value}
-      </div>
     </div>
   );
 }

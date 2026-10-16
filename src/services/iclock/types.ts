@@ -1,10 +1,45 @@
+export type IclockCsvSyncSummary = {
+  run_id?: string;
+  from?: string;
+  to?: string;
+  rows_read?: number;
+  unknown_pins?: number;
+  ignored_pins?: number;
+  writes?: number;
+  unresolved_punches?: number;
+  inserted?: number;
+  updated?: number;
+  deleted?: number;
+  deleted_replaced?: number;
+  deleted_own_stale?: number;
+  skipped_approved?: number;
+  skipped_manual?: number;
+  kept_absent?: number;
+  total_s?: number;
+  report_dir?: string | null;
+  by_resolution?: Record<string, number>;
+};
+
+export type IclockCsvSyncState = {
+  run_id: string;
+  status: 'queued' | 'exporting' | 'importing' | 'completed' | 'failed' | string;
+  from: string;
+  to: string;
+  tenant_id?: number;
+  started_at?: string | null;
+  finished_at?: string | null;
+  summary?: IclockCsvSyncSummary | null;
+  error?: string | null;
+  report_dir?: string | null;
+};
+
 export type IclockHealth = {
-  last_tid: number;
-  last_did: number;
   last_synced_at: string | null;
   last_run_status: string | null;
   last_error: string | null;
-  metadata: Record<string, number> | null;
+  last_run_kind?: string | null;
+  csv_sync?: IclockCsvSyncState | null;
+  metadata: Record<string, number | string | null> | null;
   stale: boolean;
   stale_after_minutes: number;
   api_url: string;
@@ -51,45 +86,10 @@ export type IclockIgnoredPin = {
   created_by?: { id: number; name: string } | null;
 };
 
-export type IclockReconcileReport = {
+export type IclockCsvSyncQueued = {
+  run_id: string;
+  status: string;
   from: string;
   to: string;
-  adms_count: number;
-  hrms_count: number;
-  missing_count: number;
-  missing: Array<{
-    iclock_log_id: number;
-    pin: string | null;
-    time: string | null;
-    device: string | null;
-    state: string | null;
-  }>;
-};
-
-export type IclockBackfillResult = {
-  stored: number;
-  processed_days: number;
-  created: number;
-  updated: number;
-  unmatched: number;
-  skipped: number;
-  failed: number;
-  missing_before: number;
-  rebuild_days?: number;
-  dry_run: boolean;
-};
-
-export type IclockReprocessRangeResult = {
-  from: string;
-  to: string;
-  pin: string | null;
-  days: number;
-  logs: number;
-  processed_days: number;
-  created: number;
-  updated: number;
-  unmatched: number;
-  skipped: number;
-  failed: number;
-  dry_run: boolean;
+  tenant_id: number;
 };

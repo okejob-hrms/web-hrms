@@ -37,6 +37,8 @@ function formatDt(value?: string | null) {
   return value ? new Date(value).toLocaleString() : '—';
 }
 
+const PAGE_SIZE = 25;
+
 export function UnknownPinsTab({ enabled, canEdit }: { enabled: boolean; canEdit: boolean }) {
   const t = useTranslations('settings.attendanceMachines');
   const qc = useQueryClient();
@@ -44,6 +46,8 @@ export function UnknownPinsTab({ enabled, canEdit }: { enabled: boolean; canEdit
   const [ignoreOpen, setIgnoreOpen] = React.useState(false);
   const [note, setNote] = React.useState('');
   const [unignoreTarget, setUnignoreTarget] = React.useState<IclockIgnoredPin | null>(null);
+  const [unmatchedPage, setUnmatchedPage] = React.useState(1);
+  const [ignoredPage, setIgnoredPage] = React.useState(1);
 
   const unmatchedQuery = useQuery({
     queryKey: ['iclock', 'unmatched'],
@@ -88,9 +92,27 @@ export function UnknownPinsTab({ enabled, canEdit }: { enabled: boolean; canEdit
     onError,
   });
 
-  const rows = unmatchedQuery.data ?? [];
-  const visibleSelected = selected.filter((pin) => rows.some((row) => row.pin === pin));
-  const allSelected = rows.length > 0 && visibleSelected.length === rows.length;
+  const allRows = unmatchedQuery.data ?? [];
+  const unmatchedLastPage = Math.max(1, Math.ceil(allRows.length / PAGE_SIZE));
+  const unmatchedPageSafe = Math.min(unmatchedPage, unmatchedLastPage);
+  const rows = allRows.slice((unmatchedPageSafe - 1) * PAGE_SIZE, unmatchedPageSafe * PAGE_SIZE);
+
+  const allIgnored = ignoredQuery.data ?? [];
+  const ignoredLastPage = Math.max(1, Math.ceil(allIgnored.length / PAGE_SIZE));
+  const ignoredPageSafe = Math.min(ignoredPage, ignoredLastPage);
+  const ignoredRows = allIgnored.slice((ignoredPageSafe - 1) * PAGE_SIZE, ignoredPageSafe * PAGE_SIZE);
+
+  React.useEffect(() => {
+    if (unmatchedPage !== unmatchedPageSafe) setUnmatchedPage(unmatchedPageSafe);
+  }, [unmatchedPage, unmatchedPageSafe]);
+
+  React.useEffect(() => {
+    if (ignoredPage !== ignoredPageSafe) setIgnoredPage(ignoredPageSafe);
+  }, [ignoredPage, ignoredPageSafe]);
+
+  const pageSelected = selected.filter((pin) => rows.some((row) => row.pin === pin));
+  const visibleSelected = selected.filter((pin) => allRows.some((row) => row.pin === pin));
+  const allSelected = rows.length > 0 && pageSelected.length === rows.length;
   const toggle = (pin: string, on: boolean) =>
     setSelected((s) => (on ? Array.from(new Set([...s, pin])) : s.filter((p) => p !== pin)));
 
@@ -117,7 +139,14 @@ export function UnknownPinsTab({ enabled, canEdit }: { enabled: boolean; canEdit
                     <Checkbox
                       checked={allSelected}
                       aria-label={t('selectAll')}
-                      onCheckedChange={(v) => setSelected(v === true ? rows.map((r) => r.pin) : [])}
+                      onCheckedChange={(v) => {
+                        const pagePins = rows.map((r) => r.pin);
+                        setSelected((s) =>
+                          v === true
+                            ? Array.from(new Set([...s, ...pagePins]))
+                            : s.filter((pin) => !pagePins.includes(pin)),
+                        );
+                      }}
                     />
                   </TableHead>
                 ) : null}
@@ -156,7 +185,7 @@ export function UnknownPinsTab({ enabled, canEdit }: { enabled: boolean; canEdit
                   <TableCell className="text-xs">{row.devices.join(', ') || '—'}</TableCell>
                 </TableRow>
               ))}
-              {unmatchedQuery.isSuccess && !rows.length ? (
+              {unmatchedQuery.isSuccess && !allRows.length ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-muted-foreground text-center">{t('noUnmatchedPins')}</TableCell>
                 </TableRow>
@@ -164,6 +193,31 @@ export function UnknownPinsTab({ enabled, canEdit }: { enabled: boolean; canEdit
             </TableBody>
           </Table>
         </div>
+        {allRows.length > 0 ? (
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-muted-foreground text-sm">
+              {t('pageOf', { page: unmatchedPageSafe, last: unmatchedLastPage, total: allRows.length })}
+            </p>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={unmatchedPageSafe <= 1}
+                onClick={() => setUnmatchedPage((p) => Math.max(1, p - 1))}
+              >
+                {t('previous')}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={unmatchedPageSafe >= unmatchedLastPage}
+                onClick={() => setUnmatchedPage((p) => Math.min(unmatchedLastPage, p + 1))}
+              >
+                {t('next')}
+              </Button>
+            </div>
+          </div>
+        ) : null}
       </section>
 
       <section className="space-y-3">
@@ -188,7 +242,7 @@ export function UnknownPinsTab({ enabled, canEdit }: { enabled: boolean; canEdit
                   <TableCell colSpan={5} className="text-destructive text-center">{t('failedLoadIgnored')}</TableCell>
                 </TableRow>
               ) : null}
-              {(ignoredQuery.data ?? []).map((row) => (
+              {ignoredRows.map((row) => (
                 <TableRow key={row.id}>
                   <TableCell className="font-medium">{row.pin}</TableCell>
                   <TableCell>{row.note ?? '—'}</TableCell>
@@ -203,7 +257,7 @@ export function UnknownPinsTab({ enabled, canEdit }: { enabled: boolean; canEdit
                   ) : null}
                 </TableRow>
               ))}
-              {ignoredQuery.isSuccess && !ignoredQuery.data.length ? (
+              {ignoredQuery.isSuccess && !allIgnored.length ? (
                 <TableRow>
                   <TableCell colSpan={5} className="text-muted-foreground text-center">{t('noIgnoredPins')}</TableCell>
                 </TableRow>
@@ -211,6 +265,31 @@ export function UnknownPinsTab({ enabled, canEdit }: { enabled: boolean; canEdit
             </TableBody>
           </Table>
         </div>
+        {allIgnored.length > 0 ? (
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-muted-foreground text-sm">
+              {t('pageOf', { page: ignoredPageSafe, last: ignoredLastPage, total: allIgnored.length })}
+            </p>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={ignoredPageSafe <= 1}
+                onClick={() => setIgnoredPage((p) => Math.max(1, p - 1))}
+              >
+                {t('previous')}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={ignoredPageSafe >= ignoredLastPage}
+                onClick={() => setIgnoredPage((p) => Math.min(ignoredLastPage, p + 1))}
+              >
+                {t('next')}
+              </Button>
+            </div>
+          </div>
+        ) : null}
       </section>
 
       <Dialog open={ignoreOpen} onOpenChange={setIgnoreOpen}>
