@@ -8,6 +8,7 @@ export function isPublicPath(pathname: string): boolean {
   return (
     pathname.startsWith('/auth') ||
     pathname.startsWith('/docs') ||
+    pathname.startsWith('/documents/shared') ||
     pathname === '/reset-password' ||
     pathname.startsWith('/reset-password/') ||
     pathname === '/app/reset-password' ||

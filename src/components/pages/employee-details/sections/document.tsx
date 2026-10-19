@@ -38,17 +38,20 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DropEvent, FileRejection } from "react-dropzone";
 import { IDocument } from "@/lib/types";
 import DeleteDocumentModal from "./delete-document-modal";
+import EditDocumentModal from "./edit-document-modal";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   addEmployeeDocument,
   deleteEmployeeDocument,
   getAllEmployeeDocument,
+  getEmployeeDocumentVersions,
 } from "@/services/document";
 import { uploadAttachment } from "@/services/attachments";
 import { toast } from "sonner";
 import AppSkeleton from "@/components/partials/app-skeleton";
 import ManageAccessModal from "./manage-acccess-modal";
 import { useTranslations } from "next-intl";
+import { getPublicFileUrl } from "@/lib/helpers";
 
 interface DragnDropProps {
   handleDrop:
@@ -105,7 +108,7 @@ const DocumentPreview = React.memo(function DocumentPreview({
   file: IDocument;
 }) {
   const t = useTranslations("employee");
-  const fileUrl = `${process.env.NEXT_PUBLIC_FILE_URL}/${file.path}`;
+  const fileUrl = getPublicFileUrl(file.url || file.path);
   const fileType = getFileType(file.filename);
   const extension = getFileExtension(file.filename);
 
@@ -330,7 +333,17 @@ const CardItem = React.memo(function CardItem({ file, userId }: CardItemProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
   const [isManageAccessOpen, setIsManageAccessOpen] = React.useState(false);
+  const [isEditOpen, setIsEditOpen] = React.useState(false);
+  const [showVersions, setShowVersions] = React.useState(false);
   const queryClient = useQueryClient();
+
+  const fileUrl = getPublicFileUrl(file.url || file.path);
+
+  const { data: versionsResponse, isLoading: versionsLoading } = useQuery({
+    queryKey: ["document-versions", userId, file.id],
+    queryFn: () => getEmployeeDocumentVersions(userId, file.id),
+    enabled: showVersions,
+  });
 
   const { mutate: deleteDocument, isPending: isPendingDelete } = useMutation({
     mutationFn: () => deleteEmployeeDocument(userId, file.id),
@@ -344,8 +357,13 @@ const CardItem = React.memo(function CardItem({ file, userId }: CardItemProps) {
     },
   });
 
-  const handleDropdownOpenChange = (open: boolean) => {
-    setDropdownOpen(open);
+  const openFile = (pathOrUrl?: string | null) => {
+    const url = getPublicFileUrl(pathOrUrl || file.url || file.path);
+    if (!url) {
+      toast.error(t("documentOpenFailed"));
+      return;
+    }
+    window.open(url, "_blank", "noopener,noreferrer");
   };
 
   if (isPendingDelete) {
@@ -369,12 +387,15 @@ const CardItem = React.memo(function CardItem({ file, userId }: CardItemProps) {
       <DocumentPreview file={file} />
       <div className="p-4 bg-white rounded-b-md">
         <div className="flex justify-between gap-2">
-          <p className="text-text-secondary text-sm truncate" title={file.type}>
-            {file.type}
+          <p
+            className="text-text-secondary text-sm truncate"
+            title={file.filename || file.type}
+          >
+            {file.filename || file.type}
           </p>
           <DropdownMenu
             open={dropdownOpen}
-            onOpenChange={handleDropdownOpenChange}
+            onOpenChange={setDropdownOpen}
           >
             <DropdownMenuTrigger
               className="shrink-0 p-1 hover:bg-gray-100 rounded transition-colors cursor-pointer"
@@ -388,6 +409,8 @@ const CardItem = React.memo(function CardItem({ file, userId }: CardItemProps) {
               <DropdownMenuItem
                 onSelect={(e) => {
                   e.preventDefault();
+                  setDropdownOpen(false);
+                  openFile();
                 }}
                 className="cursor-pointer"
               >
@@ -402,6 +425,8 @@ const CardItem = React.memo(function CardItem({ file, userId }: CardItemProps) {
               <DropdownMenuItem
                 onSelect={(e) => {
                   e.preventDefault();
+                  setDropdownOpen(false);
+                  setIsEditOpen(true);
                 }}
                 className="cursor-pointer"
               >
@@ -416,10 +441,26 @@ const CardItem = React.memo(function CardItem({ file, userId }: CardItemProps) {
               <DropdownMenuItem
                 onSelect={(e) => {
                   e.preventDefault();
+                  setDropdownOpen(false);
+                  setShowVersions((prev) => !prev);
+                }}
+                className="cursor-pointer"
+              >
+                <Image
+                  width={15}
+                  height={15}
+                  src="/icons/openNewTabGrey.svg"
+                  alt="Version history"
+                />
+                {t("versionHistory")}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onSelect={(e) => {
+                  e.preventDefault();
                 }}
               >
                 <a
-                  href={`${process.env.NEXT_PUBLIC_FILE_URL}/${file.path}`}
+                  href={fileUrl}
                   download={file.filename}
                   className="flex items-center gap-2 w-full cursor-pointer"
                   onClick={() => setDropdownOpen(false)}
@@ -454,7 +495,6 @@ const CardItem = React.memo(function CardItem({ file, userId }: CardItemProps) {
                   e.preventDefault();
                   setDropdownOpen(false);
                   setIsManageAccessOpen(true);
-                  e.preventDefault();
                 }}
                 className="cursor-pointer"
               >
@@ -474,10 +514,20 @@ const CardItem = React.memo(function CardItem({ file, userId }: CardItemProps) {
             onArchieve={deleteDocument}
             disabled={isPendingDelete}
           />
+          <EditDocumentModal
+            isOpen={isEditOpen}
+            onClose={() => setIsEditOpen(false)}
+            file={file}
+            userId={userId}
+          />
           <ManageAccessModal
             isOpen={isManageAccessOpen}
             onClose={() => setIsManageAccessOpen(false)}
-            onSave={() => {}}
+            onSave={() => {
+              queryClient.invalidateQueries({
+                queryKey: ["document-employee", userId],
+              });
+            }}
             disabled={isPendingDelete}
             employeeDocumentId={file.id}
           />
@@ -485,8 +535,39 @@ const CardItem = React.memo(function CardItem({ file, userId }: CardItemProps) {
         <p className="text-xs text-text-disabled mt-1">{file.uploaded_at}</p>
         <p className="text-text-disabled text-xs">
           {t("uploadedBy")}{" "}
-          <span className="text-text-secondary">{file.uploaded_by.name}</span>
+          <span className="text-text-secondary">
+            {file.uploaded_by?.name}
+          </span>
+          {file.current_version ? (
+            <span className="ml-1">· v{file.current_version}</span>
+          ) : null}
         </p>
+        {showVersions && (
+          <div className="mt-2 border-t pt-2 space-y-1">
+            <p className="text-xs font-medium text-text-secondary">
+              {t("versionHistory")}
+            </p>
+            {versionsLoading && (
+              <p className="text-xs text-text-disabled">{tCommon("loading")}</p>
+            )}
+            {versionsResponse?.data?.map((version) => (
+              <button
+                key={version.id}
+                type="button"
+                className="flex w-full text-left text-xs text-text-secondary hover:text-primary gap-1"
+                onClick={() => openFile(version.url || version.path)}
+              >
+                <span>v{version.version}</span>
+                <span>·</span>
+                <span className="truncate">{version.uploaded_at}</span>
+                <span>·</span>
+                <span className="truncate">
+                  {version.uploaded_by?.name}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
