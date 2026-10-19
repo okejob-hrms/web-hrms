@@ -66,9 +66,8 @@ export const getSharedDocument = async (
     filename: string;
     mime_type: string;
     size: number;
-    path: string;
-    url: string | null;
     type: string;
+    download_url: string;
     uploaded_by?: { id: number; name: string };
     uploaded_at?: string;
   }>

@@ -15,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { SelectForm } from "@/components/ui/select-form";
+import { CheckboxForm } from "@/components/ui/checkbox-form";
 import { MultiSelectComboboxForm } from "@/components/ui/multi-select-combobox";
 import { getDepartment } from "@/services/department";
 import { useQuery } from "@tanstack/react-query";
@@ -33,6 +34,7 @@ import { useTranslations } from "next-intl";
 
 const accessFormSchema = z.object({
   access_level: z.string(),
+  link_enabled: z.boolean(),
   granteeables: z
     .array(
       z.object({
@@ -90,6 +92,7 @@ export default function ManageAccessModal({
   const form = useForm<AccessFormValues>({
     defaultValues: {
       access_level: "confidential",
+      link_enabled: false,
       granteeables: [],
       ...defaultValues,
     },
@@ -100,6 +103,7 @@ export default function ManageAccessModal({
   const [linkToken, setLinkToken] = React.useState<string | null>(null);
 
   const selectedGranteeables = form.watch("granteeables");
+  const linkEnabled = form.watch("link_enabled");
 
   const mutation = useMutation({
     mutationFn: postManageAccessDocument,
@@ -107,13 +111,24 @@ export default function ManageAccessModal({
       if (onSave) {
         onSave(response);
       }
-      setLinkToken(response.data?.access_control?.link_token ?? null);
-      onClose();
-      form.reset({ access_level: "confidential", granteeables: [] });
+      const token = response.data?.access_control?.link_token ?? null;
+      setLinkToken(token);
+      form.setValue(
+        "link_enabled",
+        !!response.data?.access_control?.link_enabled,
+      );
       queryClient.invalidateQueries({
         queryKey: ["manage_access", employeeDocumentId],
       });
-      toast.success(t("accessControlGranted"));
+      if (token && response.data?.link) {
+        toast.success(t("accessControlGrantedWithLink"), {
+          description: response.data.link,
+          duration: 8000,
+        });
+      } else {
+        toast.success(t("accessControlGranted"));
+      }
+      // Keep modal open so Copy Link works with the fresh token.
     },
     onError: (error: any) => {
       if (error?.response) {
@@ -181,6 +196,7 @@ export default function ManageAccessModal({
     if (access_control?.access_level) {
       form.setValue("access_level", access_control.access_level);
     }
+    form.setValue("link_enabled", !!access_control?.link_enabled);
 
     if (
       shares &&
@@ -247,6 +263,7 @@ export default function ManageAccessModal({
       const timer = setTimeout(() => {
         form.reset({
           access_level: "confidential",
+          link_enabled: false,
           granteeables: [],
           ...defaultValues,
         });
@@ -271,7 +288,7 @@ export default function ManageAccessModal({
       mutation.mutate({
         employee_document_id: employeeDocumentId,
         access_level: data.access_level,
-        link_enabled: true,
+        link_enabled: data.link_enabled,
         granteeables:
           data.access_level === "public" ? [] : formattedGranteeables,
       });
@@ -281,6 +298,10 @@ export default function ManageAccessModal({
   };
 
   const handleCopyLink = () => {
+    if (!linkEnabled) {
+      toast.error(t("enableShareLinkFirst"));
+      return;
+    }
     const token =
       linkToken || manageAccess?.data?.access_control?.link_token;
     if (token) {
@@ -454,13 +475,17 @@ export default function ManageAccessModal({
                       required
                     />
                   </div>
-                  <div className="md:col-span-4">
+                  <div className="md:col-span-4 flex flex-col gap-2">
+                    <CheckboxForm
+                      name="link_enabled"
+                      label={t("enableShareLink")}
+                    />
                     <Button
                       type="button"
                       variant="outline"
                       onClick={handleCopyLink}
                       className="w-full"
-                      disabled={isSubmitting}
+                      disabled={isSubmitting || !linkEnabled}
                     >
                       <Copy className="h-4 w-4 mr-2" />
                       {t("copyLink")}

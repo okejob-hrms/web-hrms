@@ -8,7 +8,6 @@ import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
 import { getSharedDocument } from "@/services/document/access-control";
-import { getPublicFileUrl } from "@/lib/helpers";
 
 export default function SharedDocumentPage() {
   const params = useParams<{ token: string }>();
@@ -24,7 +23,8 @@ export default function SharedDocumentPage() {
   });
 
   const doc = data?.data;
-  const url = getPublicFileUrl(doc?.url || doc?.path);
+  // Token-scoped backend stream — re-validates link_enabled on every request.
+  const url = doc?.download_url || "";
 
   if (isLoading) {
     return (
@@ -74,11 +74,17 @@ export default function SharedDocumentPage() {
           >
             {t("openDocument")}
           </Button>
-          <Button type="button" variant="outline" className="flex-1" asChild>
-            <a href={url} download={doc.filename}>
+          {url ? (
+            <Button type="button" variant="outline" className="flex-1" asChild>
+              <a href={url} download={doc.filename}>
+                {tCommon("download")}
+              </a>
+            </Button>
+          ) : (
+            <Button type="button" variant="outline" className="flex-1" disabled>
               {tCommon("download")}
-            </a>
-          </Button>
+            </Button>
+          )}
         </div>
       </div>
     </main>
