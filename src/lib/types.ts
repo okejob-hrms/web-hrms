@@ -92,6 +92,9 @@ export interface IDocument {
   size: number;
   path: string;
   disk: string;
+  url?: string | null;
+  current_version?: number;
+  version_count?: number;
   uploaded_by: {
     id: number;
     name: string;
@@ -260,6 +263,8 @@ export interface ComboboxOption {
 
 export interface ComboboxGroup {
   label: string;
+  /** Stable API type key (e.g. EmployeeProfile) — prefer over translated label */
+  type?: string;
   options: ComboboxOption[];
   renderOption?: (option: ComboboxOption, index: number) => React.ReactNode;
 }

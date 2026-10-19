@@ -3,7 +3,7 @@ export interface IManageAccessDocumentResponse {
     employee_document_id: number;
     access_level: string;
     link_enabled: boolean;
-    link_token: string;
+    link_token: string | null;
     updated_at: string;
     created_at: string;
     id: number;
@@ -20,4 +20,5 @@ export interface IManageAccessDocumentResponse {
     created_at: string;
     id: number;
   }[];
+  link?: string | null;
 }
