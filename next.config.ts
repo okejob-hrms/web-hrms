@@ -7,9 +7,9 @@ const withNextra = nextra({});
 
 const nextConfig: NextConfig = {
   output: 'standalone',
-  // Turbopack `next build` (Next 16 default) omits Nextra docs layouts / page-map
-  // from the standalone server bundle. Production builds must use webpack
-  // (`next build --webpack` in package.json). Keep turbopack aliases for `next dev`.
+  // Webpack `next build --webpack` fails on Next 16.2+ with Nextra MDX
+  // (`export const metadata` from a client-wrapped page). Production builds
+  // use Turbopack (`next build`). postbuild still copies Nextra standalone deps.
   devIndicators: false,
   pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
   // Nextra Layout is often left as a traced package (not fully bundled). In Docker
