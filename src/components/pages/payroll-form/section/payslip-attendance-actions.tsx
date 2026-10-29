@@ -105,6 +105,10 @@ export function PayslipAttendanceActions({
   const invalidate = () => {
     void queryClient.invalidateQueries({ queryKey });
     void queryClient.invalidateQueries({ queryKey: ['attendance'] });
+    void queryClient.invalidateQueries({ queryKey: ['payslip'] });
+    void queryClient.invalidateQueries({ queryKey: ['detailPayroll'] });
+    void queryClient.invalidateQueries({ queryKey: ['detailPayrollSpend'] });
+    void queryClient.invalidateQueries({ queryKey: ['payroll'] });
   };
 
   const statusMutation = useMutation({

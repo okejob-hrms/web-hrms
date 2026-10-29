@@ -64,6 +64,7 @@ export const attendanceRuleFormSchema = z
   )
   .refine(
     (data) =>
+      data.trigger_type === 'absent' ||
       data.condition_type !== 'monthly_aggregate' ||
       (data.min_threshold !== undefined && data.min_threshold !== null),
     {
@@ -73,6 +74,7 @@ export const attendanceRuleFormSchema = z
   )
   .refine(
     (data) =>
+      data.trigger_type === 'absent' ||
       data.condition_type !== 'monthly_aggregate' ||
       (data.max_threshold !== undefined && data.max_threshold !== null),
     {

@@ -160,7 +160,7 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
 
   const openPayslipAttendance = (row: Payslip) => {
     setAttendanceTarget({
-      userId: row.employee.id,
+      userId: row.employee.user_id ?? row.employee.id,
       name: row.employee.name,
     });
     setAttendanceOpen(true);

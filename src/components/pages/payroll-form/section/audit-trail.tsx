@@ -58,7 +58,9 @@ export function PayrunsHistorySheet({
           ) : (
             <div className="space-y-6">
               {visibleHistory.map((item, i) => {
-                const stamp = formatDateTime(item.created_at, locale);
+                const stamp = item.created_at
+                  ? formatDateTime(item.created_at, locale)
+                  : { date: '—', hour: '' };
                 return (
                   <div key={i} className="space-y-2">
                     <p className="text-xs text-muted-foreground">
