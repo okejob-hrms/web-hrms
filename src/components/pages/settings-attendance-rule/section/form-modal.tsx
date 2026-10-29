@@ -100,6 +100,7 @@ export default function AttendanceRuleForm({
   });
 
   const conditionType = form.watch('condition_type');
+  const triggerType = form.watch('trigger_type');
   const impactType = form.watch('impact_type');
   const valueType = form.watch('value_type');
 
@@ -150,6 +151,14 @@ export default function AttendanceRuleForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [impactType]);
 
+  React.useEffect(() => {
+    if (triggerType === 'absent') {
+      form.setValue('min_threshold', undefined);
+      form.setValue('max_threshold', undefined);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [triggerType]);
+
   const thresholdUnit =
     conditionType === 'monthly_aggregate' ? 'Jumlah Kejadian' : 'Menit';
 
@@ -175,11 +184,16 @@ export default function AttendanceRuleForm({
 
     if (data.condition_type === 'per_occurrence') {
       payload.monthly_free_count = data.monthly_free_count ?? 0;
-      if (data.min_threshold !== undefined) payload.min_threshold = data.min_threshold;
-      if (data.max_threshold !== undefined) payload.max_threshold = data.max_threshold;
-    } else {
-      payload.min_threshold = data.min_threshold;
-      payload.max_threshold = data.max_threshold;
+    }
+
+    if (data.trigger_type !== 'absent') {
+      if (data.condition_type === 'monthly_aggregate') {
+        payload.min_threshold = data.min_threshold;
+        payload.max_threshold = data.max_threshold;
+      } else {
+        if (data.min_threshold !== undefined) payload.min_threshold = data.min_threshold;
+        if (data.max_threshold !== undefined) payload.max_threshold = data.max_threshold;
+      }
     }
 
     saveMutation.mutate(
@@ -461,6 +475,7 @@ export default function AttendanceRuleForm({
                 />
               </div>
 
+              {triggerType !== 'absent' && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
@@ -523,6 +538,7 @@ export default function AttendanceRuleForm({
                   )}
                 />
               </div>
+              )}
 
               {conditionType === 'per_occurrence' && (
                 <FormField

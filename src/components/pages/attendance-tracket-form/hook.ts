@@ -20,6 +20,7 @@ import {
   getAttendanceDetailById,
   postAttendance,
   putAttendance,
+  putAttendanceStatus,
 } from '@/services/attendance';
 import { AttendanceDetail } from '@/services/attendance/types';
 import { ApiErrorResponse } from '@/lib/types';
@@ -282,6 +283,45 @@ export function useAttendenceForm() {
     setSelectedAttendance(slug);
   }, []);
 
+  const setAbsentMutation = useMutation({
+    mutationFn: (attendanceId: number) =>
+      putAttendanceStatus(attendanceId, { status: 3 }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['attendance'] });
+      queryClient.invalidateQueries({
+        queryKey: ['attendanceDetailById', selectedAttendance],
+      });
+      toast.success(t('setAsAbsentSuccess'));
+      setIsLoading(false);
+      router.push('/attendance/attendance-tracker');
+    },
+    onError: async (error) => {
+      setIsLoading(false);
+      const fallback = t('setAsAbsentFailed');
+      const response = (error as Error & { response?: Response })?.response;
+      if (!response) {
+        toast.error(fallback);
+        return;
+      }
+      try {
+        const data: ApiErrorResponse = await response.json();
+        toast.error(data.message || fallback);
+      } catch {
+        toast.error(fallback);
+      }
+    },
+  });
+
+  const onSetAbsent = () => {
+    const attendanceId = detailData?.data?.id;
+    if (!attendanceId) {
+      toast.error(t('setAsAbsentFailed'));
+      return;
+    }
+    setIsLoading(true);
+    setAbsentMutation.mutate(attendanceId);
+  };
+
   return {
     form,
     onSubmit,
@@ -300,5 +340,7 @@ export function useAttendenceForm() {
     defaultMap,
     setSelectedDate,
     setSelectedId,
+    onSetAbsent,
+    attendanceStatus: detailData?.data?.status,
   };
 }

@@ -24,28 +24,38 @@ type AttendancePenaltyEvidenceListProps = {
 
 function metaSummary(
   meta: AttendancePenaltyMeta | null | undefined,
-  t: (key: string, values?: Record<string, string | number | Date>) => string,
+  tEmployee: (key: string, values?: Record<string, string | number | Date>) => string,
+  tPayroll: (key: string, values?: Record<string, string | number | Date>) => string,
 ): string[] {
   if (!meta) return [];
 
   const parts: string[] = [];
+  const isAbsent = meta.trigger_type === 'absent';
 
   if (meta.count !== undefined) {
-    parts.push(t('occurrenceCount') + ': ' + meta.count);
+    parts.push(tPayroll('occurrenceCountValue', { count: meta.count }));
   }
-  if (meta.minutes !== undefined) {
-    parts.push(t('minutesUnit', { minutes: meta.minutes }));
+  if (!isAbsent && typeof meta.minutes === 'number') {
+    parts.push(tEmployee('minutesUnit', { minutes: meta.minutes }));
   }
   if (meta.occurrence_index !== undefined) {
-    parts.push(t('occurrenceIndex') + ': ' + meta.occurrence_index);
+    parts.push(tPayroll('occurrenceIndexValue', { index: meta.occurrence_index }));
   }
-  if (meta.min_threshold !== undefined && meta.max_threshold !== undefined) {
-    parts.push(`${meta.min_threshold}–${meta.max_threshold}`);
+  if (
+    typeof meta.min_threshold === 'number' &&
+    typeof meta.max_threshold === 'number'
+  ) {
+    parts.push(
+      tPayroll('thresholdRangeValue', {
+        min: meta.min_threshold,
+        max: meta.max_threshold,
+      }),
+    );
   }
   if (meta.impact_type === 'allowance') {
-    parts.push(t('allowance'));
+    parts.push(tPayroll('allowance'));
   } else if (meta.impact_type === 'base_salary') {
-    parts.push(t('baseSalary'));
+    parts.push(tEmployee('baseSalary'));
   }
 
   return parts;
@@ -71,7 +81,7 @@ export function AttendancePenaltyEvidenceList({
   return (
     <div className="space-y-3">
       {penalties.map((item) => {
-        const summary = metaSummary(item.meta, t);
+        const summary = metaSummary(item.meta, t, tPayroll);
 
         return (
           <div
@@ -133,14 +143,16 @@ export function AttendancePenaltyEvidenceDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg p-6 rounded-2xl bg-white">
-        <DialogHeader>
+      <DialogContent className="flex max-h-[90vh] max-w-lg flex-col overflow-hidden p-6 rounded-2xl bg-white">
+        <DialogHeader className="shrink-0">
           <DialogTitle>{title ?? t('penaltyEvidenceTitle')}</DialogTitle>
           <DialogDescription className="sr-only">
             {t('penaltyEvidenceDescription')}
           </DialogDescription>
         </DialogHeader>
-        <AttendancePenaltyEvidenceList items={items} />
+        <div className="min-h-0 overflow-y-auto pr-1">
+          <AttendancePenaltyEvidenceList items={items} />
+        </div>
       </DialogContent>
     </Dialog>
   );

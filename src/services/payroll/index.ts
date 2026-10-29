@@ -298,3 +298,12 @@ export const postRecalculate = async (
     })
     .json<ResponsePayrollList>();
 };
+
+export const deletePayslipFromPayrun = async (
+  payrunId: string,
+  payslipId: number,
+): Promise<ResponsePayrollList> => {
+  return api
+    .delete(`payruns/${payrunId}/payslips/${payslipId}`)
+    .json<ResponsePayrollList>();
+};

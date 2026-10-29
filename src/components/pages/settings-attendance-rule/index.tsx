@@ -41,9 +41,20 @@ const conditionBadgeVariant = (
 const triggerBadgeVariant = (
   type: AttendanceRuleTriggerType,
 ): React.ComponentProps<typeof Badge>['variant'] => {
-  if (type === 'late') return 'default';
-  if (type === 'early_leave') return 'secondary';
-  return 'outline';
+  switch (type) {
+    case 'late':
+      return 'default';
+    case 'early_leave':
+      return 'secondary';
+    case 'both':
+      return 'outline';
+    case 'absent':
+      return 'destructive';
+    default: {
+      const _exhaustive: never = type;
+      return _exhaustive;
+    }
+  }
 };
 
 const formatImpactValue = (rule: AttendanceRule): string => {
@@ -281,6 +292,7 @@ export default function SettingsAttendanceRule() {
               <SelectItem value="late">Keterlambatan</SelectItem>
               <SelectItem value="early_leave">Pulang Cepat</SelectItem>
               <SelectItem value="both">Keduanya</SelectItem>
+              <SelectItem value="absent">Tidak hadir</SelectItem>
             </SelectContent>
           </Select>
 

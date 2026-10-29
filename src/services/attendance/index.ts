@@ -115,15 +115,33 @@ export const putAttendanceStatus = async (
   id: number,
   payload: RequestAttendanceStatus
 ): Promise<ApiResponse<PaginatedResponse<Attendance>>> => {
+  const remarks = payload.remarks?.trim();
   return api
     .post(`employee/attendances/${id}/set-status`, {
       json: {
-        ...payload,
-        rejected_reason: '-',
-        remarks: '-',
+        status: payload.status,
+        remarks: remarks || undefined,
+        rejected_reason: payload.status === 2 ? remarks || '-' : undefined,
       },
     })
     .json<ApiResponse<PaginatedResponse<Attendance>>>();
+};
+
+export const postMarkAttendanceAbsent = async (payload: {
+  user_id: number;
+  attendance_date: string;
+  remarks?: string;
+}): Promise<ApiResponse<AttendanceDetail>> => {
+  const remarks = payload.remarks?.trim();
+  return api
+    .post('employee/attendances/mark-absent', {
+      json: {
+        user_id: payload.user_id,
+        attendance_date: payload.attendance_date,
+        remarks: remarks || undefined,
+      },
+    })
+    .json<ApiResponse<AttendanceDetail>>();
 };
 
 export const deleteAttendance = async (
