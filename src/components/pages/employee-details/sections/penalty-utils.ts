@@ -17,6 +17,7 @@ export function usePenaltyLabels() {
           late: t("penaltyTriggerLate"),
           early_leave: t("penaltyTriggerEarlyLeave"),
           both: t("penaltyTriggerBoth"),
+          absent: t("penaltyTriggerAbsent"),
         };
         return labels[value] ?? value;
       },

@@ -9,6 +9,7 @@ export const TRIGGER_TYPE_OPTIONS = [
   { value: 'late', label: 'Keterlambatan' },
   { value: 'early_leave', label: 'Pulang Cepat' },
   { value: 'both', label: 'Keduanya' },
+  { value: 'absent', label: 'Tidak hadir' },
 ] as const;
 
 export const IMPACT_TYPE_OPTIONS = [
@@ -26,7 +27,7 @@ export const attendanceRuleFormSchema = z
     name: z.string().min(1, 'Nama aturan wajib diisi').max(255),
     shift_id: z.array(z.string()).min(1, 'Pilih minimal 1 shift'),
     condition_type: z.enum(['per_occurrence', 'monthly_aggregate']),
-    trigger_type: z.enum(['late', 'early_leave', 'both']),
+    trigger_type: z.enum(['late', 'early_leave', 'both', 'absent']),
     min_threshold: z
       .union([z.number().int().min(0), z.nan()])
       .optional()
@@ -63,6 +64,7 @@ export const attendanceRuleFormSchema = z
   )
   .refine(
     (data) =>
+      data.trigger_type === 'absent' ||
       data.condition_type !== 'monthly_aggregate' ||
       (data.min_threshold !== undefined && data.min_threshold !== null),
     {
@@ -72,6 +74,7 @@ export const attendanceRuleFormSchema = z
   )
   .refine(
     (data) =>
+      data.trigger_type === 'absent' ||
       data.condition_type !== 'monthly_aggregate' ||
       (data.max_threshold !== undefined && data.max_threshold !== null),
     {

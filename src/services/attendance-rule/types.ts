@@ -2,7 +2,7 @@ export type AttendanceRuleConditionType =
   | 'per_occurrence'
   | 'monthly_aggregate';
 
-export type AttendanceRuleTriggerType = 'late' | 'early_leave' | 'both';
+export type AttendanceRuleTriggerType = 'late' | 'early_leave' | 'both' | 'absent';
 
 export type AttendanceRuleImpactType = 'base_salary' | 'allowance';
 

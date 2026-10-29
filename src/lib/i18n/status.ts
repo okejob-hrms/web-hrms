@@ -46,6 +46,34 @@ const ENGLISH_LABEL_TO_KEY: Record<string, StatusKey> = {
   Unknown: 'unknown',
 };
 
+const INDONESIAN_LABEL_TO_KEY: Record<string, StatusKey> = {
+  Disetujui: 'approved',
+  Menunggu: 'waiting',
+  'Menunggu Persetujuan': 'waitingForApproval',
+  Ditolak: 'rejected',
+  Dibatalkan: 'cancelled',
+  'Tidak Hadir': 'absent',
+  'Tepat Waktu': 'onTime',
+  'Lebih Awal': 'early',
+  Terlambat: 'late',
+  Draf: 'draft',
+  Tertunda: 'pending',
+  Selesai: 'completed',
+  Gagal: 'failed',
+  Aktif: 'active',
+  Kedaluwarsa: 'expired',
+  'Belum Dimulai': 'notStarted',
+  'Sedang Berjalan': 'inProgress',
+  Tervalidasi: 'validated',
+  Diarsipkan: 'archived',
+  'Tidak Diketahui': 'unknown',
+};
+
+const LABEL_TO_KEY: Record<string, StatusKey> = {
+  ...ENGLISH_LABEL_TO_KEY,
+  ...INDONESIAN_LABEL_TO_KEY,
+};
+
 export function resolveStatusKey(
   value: string | number | null | undefined,
 ): StatusKey {
@@ -58,12 +86,12 @@ export function resolveStatusKey(
   }
 
   const trimmed = value.trim();
-  if (ENGLISH_LABEL_TO_KEY[trimmed]) {
-    return ENGLISH_LABEL_TO_KEY[trimmed];
+  if (LABEL_TO_KEY[trimmed]) {
+    return LABEL_TO_KEY[trimmed];
   }
 
   const lower = trimmed.toLowerCase().replace(/\s+/g, '');
-  const fromLower = Object.entries(ENGLISH_LABEL_TO_KEY).find(
+  const fromLower = Object.entries(LABEL_TO_KEY).find(
     ([label]) => label.toLowerCase().replace(/\s+/g, '') === lower,
   );
   if (fromLower) {

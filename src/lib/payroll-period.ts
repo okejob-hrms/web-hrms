@@ -3,12 +3,28 @@ import 'dayjs/locale/id';
 
 export const MAX_PAY_PERIOD_DAYS = 31;
 
+function withUiLocale(value: string, locale: string) {
+  return dayjs(value).locale(locale === 'id' ? 'id' : 'en');
+}
+
 /**
  * "26 Aug 2026" in the UI locale ("26 Agt 2026" in id).
  */
 export function formatPeriodDate(value: string | null | undefined, locale: string, fallback = '-'): string {
   if (!value || !dayjs(value).isValid()) return fallback;
-  return dayjs(value).locale(locale === 'id' ? 'id' : 'en').format('D MMM YYYY');
+  return withUiLocale(value, locale).format('D MMM YYYY');
+}
+
+/**
+ * "Tuesday, 26 Aug 2026" / "Selasa, 26 Agt 2026" from the UI locale weekday names.
+ */
+export function formatPeriodDateWithWeekday(
+  value: string | null | undefined,
+  locale: string,
+  fallback = '-',
+): string {
+  if (!value || !dayjs(value).isValid()) return fallback;
+  return withUiLocale(value, locale).format('dddd, D MMM YYYY');
 }
 
 /**

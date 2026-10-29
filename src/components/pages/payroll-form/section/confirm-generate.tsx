@@ -18,10 +18,17 @@ interface Props {
   onUpdate: (e?: React.FormEvent) => void;
   isOpen: boolean;
   setIsOpen: (x: boolean) => void;
-  titleKey?: 'confirmRegeneratePayrun' | 'confirmRecalculatePayslip';
+  titleKey?:
+    | 'confirmRegeneratePayrun'
+    | 'confirmRecalculatePayslip'
+    | 'confirmExcludeEmployee';
   descriptionKey?:
     | 'confirmRegeneratePayrunDesc'
-    | 'confirmRecalculatePayslipDesc';
+    | 'confirmRecalculatePayslipDesc'
+    | 'confirmExcludeEmployeeDesc';
+  values?: Record<string, string | number>;
+  confirmKey?: 'continue' | 'delete';
+  confirmClassName?: string;
 }
 
 export default function PayrunGenerateModal({
@@ -30,6 +37,9 @@ export default function PayrunGenerateModal({
   setIsOpen,
   titleKey = 'confirmRegeneratePayrun',
   descriptionKey = 'confirmRegeneratePayrunDesc',
+  values,
+  confirmKey = 'continue',
+  confirmClassName = 'flex-1 bg-primary text-white rounded-md py-2 font-medium',
 }: Props) {
   const t = useTranslations('payroll');
   const tCommon = useTranslations('common');
@@ -58,10 +68,10 @@ export default function PayrunGenerateModal({
               alt="confirmation"
             />
             <AlertDialogTitle className="text-lg text-center font-semibold text-black mb-2">
-              {t(titleKey)}
+              {t(titleKey, values)}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-sm text-center text-text-secondary">
-              {t(descriptionKey)}
+              {t(descriptionKey, values)}
             </AlertDialogDescription>
           </AlertDialogHeader>
 
@@ -74,9 +84,9 @@ export default function PayrunGenerateModal({
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleUpdate}
-              className="flex-1 bg-primary text-white rounded-md py-2 font-medium"
+              className={confirmClassName}
             >
-              {tCommon('continue')}
+              {tCommon(confirmKey)}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
