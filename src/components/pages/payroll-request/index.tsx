@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useLocale, useTranslations } from 'next-intl';
-import { formatPeriodRange } from '@/lib/payroll-period';
+import { formatPeriodDate, formatPeriodRange } from '@/lib/payroll-period';
 import { DataTable } from '@/components/tables/data-table';
 import { ColumnDef, PaginationState } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
@@ -162,13 +162,12 @@ export const PayrollRequest = () => {
       size: 200,
       cell: ({ row }) => (
         <span className="text-gray-400">
-          {activeTab === 'print-list'
-            ? dayjs(row.original.print_access_requested_at).format(
-                'MMMM D, YYYY',
-              )
-            : dayjs(row.original.view_access_requested_at).format(
-                'MMMM D, YYYY',
-              )}
+          {formatPeriodDate(
+            activeTab === 'print-list'
+              ? row.original.print_access_requested_at
+              : row.original.view_access_requested_at,
+            locale,
+          )}
         </span>
       ),
     },
@@ -193,7 +192,7 @@ export const PayrollRequest = () => {
       size: 200,
       cell: ({ row }) => (
         <span className="text-gray-400">
-          {dayjs(row.original.updated_at).format('MMMM D, YYYY') || '-'}
+          {formatPeriodDate(row.original.updated_at, locale)}
         </span>
       ),
     },

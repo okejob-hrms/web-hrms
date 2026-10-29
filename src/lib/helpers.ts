@@ -233,6 +233,10 @@ export function getStatusAttendance(status?: string): StatusConfig {
     case "rejected":
       variant = "destructive";
       break;
+    case "absent":
+      variant = "secondary";
+      className = "bg-orange-100 text-orange-700";
+      break;
     default:
       break;
   }

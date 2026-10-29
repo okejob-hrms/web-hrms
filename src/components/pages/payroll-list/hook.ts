@@ -24,6 +24,7 @@ import { MAX_PAY_PERIOD_DAYS, periodDays } from "@/lib/payroll-period";
 
 export function usePayroll() {
   const t = useTranslations('payroll');
+  const tCommon = useTranslations('common');
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: 0,
     pageSize: 10,
@@ -97,7 +98,7 @@ export function usePayroll() {
       return true;
     }
 
-    toast.error(`Failed to save: ${rule?.message ?? (err as Error).message}`);
+    toast.error(tCommon('saveFailed', { message: rule?.message ?? (err as Error).message }));
     return false;
   };
 
@@ -165,7 +166,7 @@ export function usePayroll() {
     },
     onMutate: () => setLoading(true),
     onSuccess: () => {
-      toast.success('Payroll group successfully save');
+      toast.success(t('groupSaved'));
       queryClient.invalidateQueries({ queryKey: ['payroll'] });
       payrollDataRefetch();
       setOpenAdd(false);
@@ -215,7 +216,7 @@ export function usePayroll() {
       postRegenerate(payrunId, { acknowledge_early_generation: acknowledge }),
     onMutate: () => setLoading(true),
     onSuccess: () => {
-      toast.success("Payrun successfully regenerate");
+      toast.success(t('regeneratedSuccess'));
       queryClient.invalidateQueries({ queryKey: ["payroll"] });
       payrollDataRefetch();
     },
@@ -231,7 +232,7 @@ export function usePayroll() {
 
   const handleRegenerate = (id: string) => {
     if (!id) {
-      toast.error("Payroll ID not found");
+      toast.error(t('payrunIdNotFound'));
       return;
     }
     mutationPostRegenerate.mutate({ payrunId: id })

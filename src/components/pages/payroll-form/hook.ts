@@ -8,7 +8,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { AdditionalItem, AdditionalRequest, AllowanceItem, AllowanceRequest, OvertimePayrun, OvertimeRequest, PAYRUN_PERIOD_NOT_ENDED, Payrun, PayrunRuleError, Payslip, PenaltyPayrun, PenaltyRequest, RequestPayrollGroup, WorkHourPayrun, WorkingHourRequest } from "@/services/payroll/types";
 import { Filters } from "./types";
-import { getPayrollDetail, getPayrollDetailSpend, getPayrollEmployee, getPayrollViewLog, postFinalPayrun, postRecalculate, postRegenerate, putAdditionalPayrun, putAllowancePayrun, putOvertimePayrun, putPenaltyPayrun, putWorkingHourPayrun, readPayrunRuleError } from "@/services/payroll";
+import { deletePayslipFromPayrun, getPayrollDetail, getPayrollDetailSpend, getPayrollEmployee, getPayrollViewLog, postFinalPayrun, postRecalculate, postRegenerate, putAdditionalPayrun, putAllowancePayrun, putOvertimePayrun, putPenaltyPayrun, putWorkingHourPayrun, readPayrunRuleError } from "@/services/payroll";
 import { PaginatedResponse } from "@/lib/types";
 import { AllowanceTypeResponse } from "@/services/salary/types";
 import { getAllowanceType } from "@/services/salary";
@@ -17,6 +17,7 @@ import { formatPeriodRange } from "@/lib/payroll-period";
 
 export function usePayrollDetail() {
   const t = useTranslations("payroll");
+  const tCommon = useTranslations("common");
   const locale = useLocale();
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: 0,
@@ -26,6 +27,11 @@ export function usePayrollDetail() {
   const [openConfirm, setOpenConfirm] = React.useState(false);
   const [openConfirmGenerate, setOpenConfirmGenerate] = React.useState(false);
   const [openConfirmRecalculate, setOpenConfirmRecalculate] = React.useState(false);
+  const [openConfirmExclude, setOpenConfirmExclude] = React.useState(false);
+  const [excludeTarget, setExcludeTarget] = React.useState<{
+    id: number;
+    name: string;
+  } | null>(null);
   const [filters, setFilters] = React.useState<Filters>({
     date: '',
     search: '',
@@ -152,14 +158,14 @@ export function usePayrollDetail() {
     mutationFn: (payrunId: string) => postFinalPayrun(payrunId),
     onMutate: () => setLoading(true),
     onSuccess: () => {
-      toast.success("Payrun successfully saved as final");
+      toast.success(t("finalizedSuccess"));
       queryClient.invalidateQueries({ queryKey: ["payroll"] });
       setOpenAdd(false);
       setOpenConfirm(false);
       router.push('/payroll/list');
     },
     onError: (err) => {
-      toast.error(`Failed to save: ${err.message}`);
+      toast.error(tCommon("saveFailed", { message: err.message }));
     },
     onSettled: () => setLoading(false),
   });
@@ -181,7 +187,7 @@ export function usePayrollDetail() {
 
   const handleSubmit = (id: string) => {
     if (!id) {
-      toast.error("Payroll ID not found");
+      toast.error(t("payrunIdNotFound"));
       return;
     }
     mutationPostFinal.mutate(id)
@@ -198,7 +204,7 @@ export function usePayrollDetail() {
     onMutate: () => setLoading(true),
 
     onSuccess: () => {
-      toast.success("Allowance successfully updated");
+      toast.success(t("allowanceUpdated"));
       queryClient.invalidateQueries({ queryKey: ["payslip"] });
       setOpenAllowance(false);
       detailDataRefetch();
@@ -206,7 +212,7 @@ export function usePayrollDetail() {
     },
 
     onError: (err) => {
-      toast.error(`Failed to save: ${err.message}`);
+      toast.error(tCommon("saveFailed", { message: err.message }));
     },
 
     onSettled: () => setLoading(false),
@@ -228,7 +234,7 @@ export function usePayrollDetail() {
     onMutate: () => setLoading(true),
 
     onSuccess: () => {
-      toast.success("Working Hour successfully updated");
+      toast.success(t("workingHourUpdated"));
       queryClient.invalidateQueries({ queryKey: ["payslip"] });
       setOpenWorkingHour(false);
       detailDataRefetch();
@@ -236,7 +242,7 @@ export function usePayrollDetail() {
     },
 
     onError: (err) => {
-      toast.error(`Failed to save: ${err.message}`);
+      toast.error(tCommon("saveFailed", { message: err.message }));
     },
 
     onSettled: () => setLoading(false),
@@ -257,7 +263,7 @@ export function usePayrollDetail() {
     onMutate: () => setLoading(true),
 
     onSuccess: () => {
-      toast.success("Overtime successfully updated");
+      toast.success(t("overtimeUpdated"));
       queryClient.invalidateQueries({ queryKey: ["payslip"] });
       setOpenOvertime(false);
       detailDataRefetch();
@@ -265,7 +271,7 @@ export function usePayrollDetail() {
     },
 
     onError: (err) => {
-      toast.error(`Failed to save: ${err.message}`);
+      toast.error(tCommon("saveFailed", { message: err.message }));
     },
 
     onSettled: () => setLoading(false),
@@ -286,7 +292,7 @@ export function usePayrollDetail() {
     onMutate: () => setLoading(true),
 
     onSuccess: () => {
-      toast.success("Additional successfully updated");
+      toast.success(t("additionalUpdated"));
       queryClient.invalidateQueries({ queryKey: ["payslip"] });
       setOpenAdditional(false);
       detailDataRefetch();
@@ -294,7 +300,7 @@ export function usePayrollDetail() {
     },
 
     onError: (err) => {
-      toast.error(`Failed to save: ${err.message}`);
+      toast.error(tCommon("saveFailed", { message: err.message }));
     },
 
     onSettled: () => setLoading(false),
@@ -315,7 +321,7 @@ export function usePayrollDetail() {
     onMutate: () => setLoading(true),
 
     onSuccess: () => {
-      toast.success("Penalty successfully updated");
+      toast.success(t("penaltyUpdated"));
       queryClient.invalidateQueries({ queryKey: ["payslip"] });
       setOpenPenalty(false);
       detailDataRefetch();
@@ -323,7 +329,7 @@ export function usePayrollDetail() {
     },
 
     onError: (err) => {
-      toast.error(`Failed to save: ${err.message}`);
+      toast.error(tCommon("saveFailed", { message: err.message }));
     },
 
     onSettled: () => setLoading(false),
@@ -463,7 +469,7 @@ export function usePayrollDetail() {
       postRegenerate(payrunId, { acknowledge_early_generation: acknowledge }),
     onMutate: () => setLoading(true),
     onSuccess: () => {
-      toast.success("Payrun successfully regenerate");
+      toast.success(t("regeneratedSuccess"));
       queryClient.invalidateQueries({ queryKey: ["payslip"] });
       detailDataRefetch();
       auditTrailRefetch();
@@ -477,14 +483,14 @@ export function usePayrollDetail() {
         setRuleError(rule);
         return;
       }
-      toast.error(`Failed to save: ${rule?.message ?? err.message}`);
+      toast.error(tCommon("saveFailed", { message: rule?.message ?? err.message }));
     },
     onSettled: () => setLoading(false),
   });
 
   const handleRegenerate = (id: string) => {
     if (!id) {
-      toast.error("Payroll ID not found");
+      toast.error(t("payrunIdNotFound"));
       return;
     }
     mutationPostRegenerate.mutate({ payrunId: id })
@@ -513,14 +519,14 @@ export function usePayrollDetail() {
       employeeListRefetch();
     },
     onError: (err) => {
-      toast.error(`${t("recalculatePayslipFailed")}: ${err.message}`);
+      toast.error(tCommon("saveFailed", { message: err.message }));
     },
     onSettled: () => setLoading(false),
   });
 
   const handleRecalculate = (idx: string) => {
     if (!idx) {
-      toast.error("Payroll ID not found");
+      toast.error(t("payrunIdNotFound"));
       return;
     }
 
@@ -535,6 +541,47 @@ export function usePayrollDetail() {
       payload: {payslip_id: selectedRecalculate},
     });
   }
+
+  const mutationExcludePayslip = useMutation({
+    mutationFn: ({ payrunId, payslipId }: { payrunId: string; payslipId: number }) =>
+      deletePayslipFromPayrun(payrunId, payslipId),
+    onMutate: () => setLoading(true),
+    onSuccess: () => {
+      toast.success(t("excludeEmployeeSuccess"));
+      queryClient.invalidateQueries({ queryKey: ["payslip"] });
+      queryClient.invalidateQueries({ queryKey: ["detailPayroll"] });
+      queryClient.invalidateQueries({ queryKey: ["detailPayrollSpend"] });
+      queryClient.invalidateQueries({ queryKey: ["auditTrail"] });
+      detailDataRefetch();
+      detailDataSpendRefetch();
+      employeeListRefetch();
+    },
+    onError: async (err) => {
+      const rule = await readPayrunRuleError(err);
+      toast.error(t("excludeEmployeeFailed", { message: rule?.message ?? err.message }));
+    },
+    onSettled: () => {
+      setLoading(false);
+      setOpenConfirmExclude(false);
+      setExcludeTarget(null);
+    },
+  });
+
+  const handleExclude = (row: Payslip) => {
+    setExcludeTarget({ id: row.id, name: row.employee.name });
+    setOpenConfirmExclude(true);
+  };
+
+  const handleConfirmExclude = () => {
+    if (!id || !excludeTarget) {
+      toast.error(t("payrunIdNotFound"));
+      return;
+    }
+    mutationExcludePayslip.mutate({
+      payrunId: id,
+      payslipId: excludeTarget.id,
+    });
+  };
 
   return {
     employeeList,
@@ -615,6 +662,11 @@ export function usePayrollDetail() {
     openConfirmRecalculate,
     setOpenConfirmRecalculate,
     handleRegenerateCalculate,
+    handleExclude,
+    handleConfirmExclude,
+    openConfirmExclude,
+    setOpenConfirmExclude,
+    excludeTarget,
     ruleError,
     confirmRule,
     cancelRule,

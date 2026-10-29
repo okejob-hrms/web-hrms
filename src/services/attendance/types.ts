@@ -201,4 +201,5 @@ export interface AttendanceDetail {
 
 export interface RequestAttendanceStatus {
     status: number;
+    remarks?: string;
 }

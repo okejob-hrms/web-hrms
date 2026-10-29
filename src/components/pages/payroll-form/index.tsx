@@ -5,7 +5,7 @@ import { DataTable } from '@/components/tables/data-table';
 import { ColumnDef } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, Edit3, Send, Clock, Eye, RefreshCcw } from 'lucide-react';
+import { ArrowLeft, Edit3, Send, Clock, Eye, RefreshCcw, Trash } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { StatusBadge } from '@/components/shared/status-badge';
 import { Input } from '@/components/ui/input';
@@ -36,6 +36,8 @@ import { getStatusPayroll } from '@/lib/helpers';
 import PayrunGenerateModal from './section/confirm-generate';
 import PayrunRuleConfirm from '@/components/pages/payroll-list/section/payrun-rule-confirm';
 import { AttendancePenaltyEvidenceDialog } from '@/components/shared/attendance-penalty-evidence';
+import { PayslipAttendanceModal } from './section/payslip-attendance-modal';
+import { Can } from '@/components/auth/can';
 
 type PayrollFormFormProps = {
   id?: string;
@@ -114,6 +116,11 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
     openConfirmRecalculate,
     setOpenConfirmRecalculate,
     handleRegenerateCalculate,
+    handleExclude,
+    handleConfirmExclude,
+    openConfirmExclude,
+    setOpenConfirmExclude,
+    excludeTarget,
     ruleError,
     confirmRule,
     cancelRule,
@@ -140,10 +147,23 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
   const [penaltyEvidenceItems, setPenaltyEvidenceItems] = React.useState<
     DeductionList[]
   >([]);
+  const [attendanceOpen, setAttendanceOpen] = React.useState(false);
+  const [attendanceTarget, setAttendanceTarget] = React.useState<{
+    userId: number;
+    name: string;
+  } | null>(null);
 
   const openPenaltyEvidence = (deductions: DeductionList[] | undefined) => {
     setPenaltyEvidenceItems(getAttendancePenalties(deductions));
     setPenaltyEvidenceOpen(true);
+  };
+
+  const openPayslipAttendance = (row: Payslip) => {
+    setAttendanceTarget({
+      userId: row.employee.id,
+      name: row.employee.name,
+    });
+    setAttendanceOpen(true);
   };
 
   const penaltyTotalFor = (row: Payslip) => {
@@ -241,23 +261,34 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
                 <span className="text-muted-foreground">{t('hours')}</span>
               </div>
             </div>
-            {currentStep === 1 && !isDetail && (
+            <div className="flex items-center gap-1">
               <Button
                 type="button"
                 variant="link"
                 className="text-primary"
-                onClick={() => {
-                  setIdRow(String(row.original.id));
-                  setWorkingHours({
-                    working_days: row.original.working_days,
-                    working_hours: row.original.working_hours,
-                  });
-                  setOpenWorkingHour(true);
-                }}
+                title={t('viewPayslipAttendance')}
+                onClick={() => openPayslipAttendance(row.original)}
               >
-                <Edit3 />
+                <Eye />
               </Button>
-            )}
+              {currentStep === 1 && !isDetail && (
+                <Button
+                  type="button"
+                  variant="link"
+                  className="text-primary"
+                  onClick={() => {
+                    setIdRow(String(row.original.id));
+                    setWorkingHours({
+                      working_days: row.original.working_days,
+                      working_hours: row.original.working_hours,
+                    });
+                    setOpenWorkingHour(true);
+                  }}
+                >
+                  <Edit3 />
+                </Button>
+              )}
+            </div>
           </div>
         );
       },
@@ -397,9 +428,8 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
 
         return (
           <div className="flex gap-2 items-center justify-between min-w-[180px]">
-            <div className="text-gray-400">
-              - Rp{' '}
-              <span className="text-gray-800">{formatCurrency(total)}</span>
+            <div className="text-red-600">
+              - Rp {formatCurrency(total)}
             </div>
             <div className="flex items-center gap-1">
               {penalties.length > 0 && (
@@ -486,38 +516,52 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
       header: t('nettPay'),
       size: 200,
       cell: ({ row }) => (
-        <div className="min-w-[150px] flex items-center justify-between">
-          <div className="text-gray-400">
-            Rp{' '}
-            <span className="text-gray-800">
-              {formatCurrency(Number(row.original.net_pay))}
-            </span>
+        <div className="min-w-[180px] flex items-center justify-between gap-2">
+          <div className="font-bold text-gray-800">
+            Rp {formatCurrency(Number(row.original.net_pay))}
           </div>
-          {employeeList?.data.payrun.status !== 2 && (
-            <Button
-              onClick={() => {
-                handleRecalculate(String(row.original.id));
-              }}
-              type="button"
-              variant="outline"
-              size="icon"
-              className="bg-white text-primary border-1 border font-medium py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <RefreshCcw />
-            </Button>
-          )}
-          {isDetail && employeeList?.data.payrun.status === 2 && (
-            <Button
-              type="button"
-              variant="link"
-              className="text-primary"
-              onClick={() =>
-                handleDownload(row.original, employeeList.data.payrun)
-              }
-            >
-              <Eye />
-            </Button>
-          )}
+          <div className="flex items-center gap-1">
+            {!isDetail && employeeList?.data.payrun.status !== 2 && (
+              <>
+                <Button
+                  onClick={() => {
+                    handleRecalculate(String(row.original.id));
+                  }}
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="bg-white text-primary border-1 border font-medium py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <RefreshCcw />
+                </Button>
+                <Can permission="payroll_management.payruns_setup.edit">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="bg-white text-red-600 border-1 border font-medium py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                    aria-label={t('excludeEmployee')}
+                    disabled={employeeList?.data.payrun.is_generating}
+                    onClick={() => handleExclude(row.original)}
+                  >
+                    <Trash />
+                  </Button>
+                </Can>
+              </>
+            )}
+            {isDetail && employeeList?.data.payrun.status === 2 && (
+              <Button
+                type="button"
+                variant="link"
+                className="text-primary"
+                onClick={() =>
+                  handleDownload(row.original, employeeList.data.payrun)
+                }
+              >
+                <Eye />
+              </Button>
+            )}
+          </div>
         </div>
       ),
       meta: {
@@ -886,6 +930,22 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
               items={penaltyEvidenceItems}
             />
 
+            <PayslipAttendanceModal
+              open={attendanceOpen}
+              onOpenChange={setAttendanceOpen}
+              userId={attendanceTarget?.userId ?? null}
+              employeeName={attendanceTarget?.name ?? ''}
+              periodStart={
+                detailData?.data?.period_start ??
+                employeeList?.data?.payrun?.period_start
+              }
+              periodEnd={
+                detailData?.data?.period_end ??
+                employeeList?.data?.payrun?.period_end
+              }
+              showActions={!isDetail}
+            />
+
             <PayrunRuleConfirm
               error={ruleError}
               onConfirm={confirmRule}
@@ -913,6 +973,17 @@ export default function PayrollForm({ id }: PayrollFormFormProps) {
               setIsOpen={(e) => setOpenConfirmRecalculate(e)}
               titleKey="confirmRecalculatePayslip"
               descriptionKey="confirmRecalculatePayslipDesc"
+            />
+
+            <PayrunGenerateModal
+              onUpdate={() => handleConfirmExclude()}
+              isOpen={openConfirmExclude}
+              setIsOpen={setOpenConfirmExclude}
+              titleKey="confirmExcludeEmployee"
+              descriptionKey="confirmExcludeEmployeeDesc"
+              values={{ name: excludeTarget?.name ?? '' }}
+              confirmKey="delete"
+              confirmClassName="flex-1 bg-red-600 text-white hover:bg-red-700 rounded-md py-2 font-medium"
             />
           </div>
         </div>

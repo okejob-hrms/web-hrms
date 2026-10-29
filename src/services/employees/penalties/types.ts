@@ -5,7 +5,7 @@ export interface IPenaltyMeta {
   rule_name?: string;
   value_type?: "fixed" | "percentage";
   impact_type?: "base_salary" | "allowance";
-  trigger_type?: "late" | "early_leave" | "both";
+  trigger_type?: "late" | "early_leave" | "both" | "absent";
   max_threshold?: number;
   min_threshold?: number;
   occurrence_index?: number;

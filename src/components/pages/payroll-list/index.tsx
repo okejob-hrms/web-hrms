@@ -27,7 +27,7 @@ import { Filters } from './types';
 import PayrunsAddModal from './section/add-modal';
 import PayrunRuleConfirm from './section/payrun-rule-confirm';
 import { formatCurrency } from '@/lib/utils';
-import { formatPeriodRange } from '@/lib/payroll-period';
+import { formatPeriodDate, formatPeriodRange } from '@/lib/payroll-period';
 import { ResponsePayrollItem } from '@/services/payroll/types';
 import { Can } from '@/components/auth/can';
 import { usePermissionStore } from '@/hooks/use-permission-store';
@@ -156,7 +156,7 @@ export const PayrollList = () => {
       header: tCommon('lastUpdated'),
       size: 200,
       cell: ({ row }) =>
-        dayjs(row.original.updated_at).format('MMMM D, YYYY') || '-',
+        formatPeriodDate(row.original.updated_at, locale),
     },
     {
       accessorKey: 'menu',
