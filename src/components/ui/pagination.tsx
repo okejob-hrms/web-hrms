@@ -164,9 +164,10 @@ function GeneralPagination<T = unknown>({
   table,
 }: PaginationProps<T>) {
   const t = useTranslations("common");
-  const { current_page, next_page_url, prev_page_url, next, prev } = pagination;
+  const { current_page, last_page, next_page_url, prev_page_url, next, prev } = pagination;
   const nextUrl = next_page_url ?? next;
   const prevUrl = prev_page_url ?? prev;
+  const goToPage = (page: number) => table.setPageIndex(page - 1);
   return (
     <Pagination className="justify-between py-4">
       <PaginationContent>
@@ -183,6 +184,16 @@ function GeneralPagination<T = unknown>({
         </PaginationItem>
       </PaginationContent>
       <PaginationContent>
+        {current_page > 2 && (
+          <PaginationItem key={1}>
+            <PaginationLink onClick={() => goToPage(1)}>1</PaginationLink>
+          </PaginationItem>
+        )}
+        {current_page > 3 && (
+          <PaginationItem>
+            <PaginationEllipsis />
+          </PaginationItem>
+        )}
         {prevUrl && (
           <PaginationItem key={current_page - 1}>
             <PaginationLink onClick={table.previousPage}>
@@ -193,7 +204,6 @@ function GeneralPagination<T = unknown>({
         <PaginationItem key={current_page}>
           <PaginationLink isActive>{current_page}</PaginationLink>
         </PaginationItem>
-        {/* TODO: adjust pagination */}
         {nextUrl && (
           <PaginationItem key={current_page + 1}>
             <PaginationLink onClick={table.nextPage}>
@@ -201,20 +211,18 @@ function GeneralPagination<T = unknown>({
             </PaginationLink>
           </PaginationItem>
         )}
-        {/* <PaginationItem>
-          <PaginationLink href="#">1</PaginationLink>
-        </PaginationItem>
-        <PaginationItem>
-          <PaginationLink href="#" isActive>
-            2
-          </PaginationLink>
-        </PaginationItem>
-        <PaginationItem>
-          <PaginationLink href="#">3</PaginationLink>
-        </PaginationItem>
-        <PaginationItem>
-          <PaginationEllipsis />
-        </PaginationItem> */}
+        {last_page !== undefined && last_page > current_page + 2 && (
+          <PaginationItem>
+            <PaginationEllipsis />
+          </PaginationItem>
+        )}
+        {last_page !== undefined && last_page > current_page + 1 && (
+          <PaginationItem key={last_page}>
+            <PaginationLink onClick={() => goToPage(last_page)}>
+              {last_page}
+            </PaginationLink>
+          </PaginationItem>
+        )}
       </PaginationContent>
       <PaginationContent>
         <PaginationItem>
