@@ -93,10 +93,15 @@ export function DataTable<TData, TValue>({
     }),
   });
 
+  // Skeleton only on first load. Refetches keep the rows on screen (dimmed)
+  // so the layout and scroll position don't jump after every mutation.
+  const showSkeleton = loading && data.length === 0;
+  const isRefreshing = loading && !showSkeleton;
+
   return (
     <div className="w-full">
       <div className="rounded-md border border-grayscale-20 overflow-hidden">
-        {loading ? (
+        {showSkeleton ? (
           <>
             <div className="flex flex-col gap-4 items-center w-full">
               <Skeleton className="h-12 w-full" />
@@ -107,7 +112,12 @@ export function DataTable<TData, TValue>({
           </>
         ) : (
           <div
-            className={cn('overflow-x-auto', wrapperTableClassName)}
+            aria-busy={isRefreshing || undefined}
+            className={cn(
+              'overflow-x-auto transition-opacity',
+              isRefreshing && 'opacity-60',
+              wrapperTableClassName,
+            )}
             style={
               maxBodyHeight
                 ? {

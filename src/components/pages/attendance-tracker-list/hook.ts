@@ -1,37 +1,42 @@
 "use client";
 
 import * as React from "react";
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getAttendance, getAttendanceStat, getAttendanceDetail, getAttendanceStatEmployee, putAttendanceStatus, deleteAttendance } from "@/services/attendance";
-import { PaginationState } from "@tanstack/react-table";
 import { Attendance, AttendanceSummary, AttendanceSummaryDetail } from "@/services/attendance/types";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { Filters } from "./types";
 import dayjs from "dayjs";
+import { useUrlTableState } from "@/hooks/use-url-table-state";
 
-export function useAttendance() {
+const DETAIL_PAGE_SIZE = 20;
+
+const DEFAULT_FILTERS: Filters = {
+  search: '',
+  start_date: '',
+  end_date: '',
+  status: '',
+  shift_id: '',
+  source: '',
+};
+
+export function useAttendance({ syncUrl = true }: { syncUrl?: boolean } = {}) {
   const t = useTranslations('attendance');
-  const [pagination, setPagination] = React.useState<PaginationState>({
-    pageIndex: 0,
-    pageSize: 10,
+  const { filters, setFilters, pagination, setPagination } = useUrlTableState({
+    defaultFilters: DEFAULT_FILTERS,
+    enabled: syncUrl,
   });
   const [openDetail, setOpenDetail] = React.useState(false);
   const [openApprove, setOpenApprove] = React.useState(false);
   const [openDelete, setOpenDelete] = React.useState(false);
   const [openReject, setOpenReject] = React.useState(false);
   const [selectedData, setSelectedData] = React.useState<Attendance>();
-  const [selectedId, setSelectedId] = React.useState<string>('');
-  const [selectedIdTrackers, setSelectedIdTrackers] = React.useState<string>('');
-  const [filters, setFilters] = React.useState<Filters>({
-    search: '',
-    start_date: '',
-    end_date: '',
-    status: '',
-    shift_id: '',
-    source: '',
-  });
+  /** User whose history/summary the detail sheet shows. */
+  const [detailUserId, setDetailUserId] = React.useState<string>('');
+  /** Attendance record targeted by approve / reject / delete. */
+  const [actionAttendanceId, setActionAttendanceId] = React.useState<string>('');
 
   const [detailFilter, setDetailFilter] = React.useState(() => {
     const now = dayjs();
@@ -69,45 +74,67 @@ export function useAttendance() {
   });
 
   const { data: statEmployee } = useQuery<AttendanceSummaryDetail>({
-    queryKey: ["attendanceStatUser", selectedId],
-    queryFn: () => getAttendanceStatEmployee(selectedId),
-    enabled: !!selectedId,
+    queryKey: ["attendanceStatUser", detailUserId],
+    queryFn: () => getAttendanceStatEmployee(detailUserId),
+    enabled: !!detailUserId,
     staleTime: 1000 * 60 * 5,
   });
 
-  // Query untuk detail attendance
+  // Detail sheet history: paged so a full month loads as the user scrolls.
   const {
-    data: detailData,
+    data: detailPages,
     isLoading: isDetailLoading,
-    refetch: refetchDetail,
-  } = useQuery({
-    queryKey: ["attendanceDetail", selectedId, detailFilter.month, detailFilter.year],
-    queryFn: () => getAttendanceDetail(selectedId, detailFilter.month, detailFilter.year),
-    enabled: !!selectedId,
+    fetchNextPage: fetchNextDetailPage,
+    hasNextPage: hasNextDetailPage,
+    isFetchingNextPage: isFetchingNextDetailPage,
+  } = useInfiniteQuery({
+    queryKey: ["attendanceDetail", detailUserId, detailFilter.month, detailFilter.year],
+    queryFn: ({ pageParam }) =>
+      getAttendanceDetail(detailUserId, detailFilter.month, detailFilter.year, {
+        page: pageParam,
+        per_page: DETAIL_PAGE_SIZE,
+      }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      const { current_page, last_page } = lastPage.data;
+      return last_page && current_page < last_page ? current_page + 1 : undefined;
+    },
+    enabled: !!detailUserId,
   });
+
+  const detailItems = React.useMemo(
+    () => detailPages?.pages.flatMap((page) => page.data.data) ?? [],
+    [detailPages],
+  );
 
   const { mutate: updateStatus } = useMutation({
     mutationFn: ({ id, status }: { id: number; status: number }) =>
       putAttendanceStatus(id, { status }),
     onSuccess: () => {
+      // Refresh only what a status change touches; the detail sheet stays open.
       queryClient.invalidateQueries({ queryKey: ["attendance"] });
-      queryClient.invalidateQueries({ queryKey: ["attendanceDetail", selectedId] });
+      queryClient.invalidateQueries({ queryKey: ["attendanceStats"] });
+      if (detailUserId) {
+        queryClient.invalidateQueries({ queryKey: ["attendanceDetail", detailUserId] });
+        queryClient.invalidateQueries({ queryKey: ["attendanceStatUser", detailUserId] });
+      }
       toast.success(t('updateStatusSuccess'));
       setOpenApprove(false);
       setOpenReject(false);
-      setOpenDetail(false);
+      setActionAttendanceId('');
     },
     onError: () => {
       toast.error(t('updateStatusFailed'));
     }
   });
-  
+
   const { mutate: removeAttendance } = useMutation({
     mutationFn: (id: number) => deleteAttendance(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["attendance"] });
       toast.success(t('deleteAttendanceSuccess'));
       setOpenDelete(false);
+      setActionAttendanceId('');
     },
     onError: () => {
       toast.error(t('deleteAttendanceFailed'));
@@ -122,18 +149,18 @@ export function useAttendance() {
   }
 
   const handleApprove = () => {
-    if (!selectedIdTrackers) return;
-    updateStatus({ id: Number(selectedIdTrackers), status: 1 });
+    if (!actionAttendanceId) return;
+    updateStatus({ id: Number(actionAttendanceId), status: 1 });
   };
 
   const handleReject = () => {
-    if (!selectedIdTrackers) return;
-    updateStatus({ id: Number(selectedIdTrackers), status: 2 });
+    if (!actionAttendanceId) return;
+    updateStatus({ id: Number(actionAttendanceId), status: 2 });
   };
 
   const handleDelete = () => {
-    if (!selectedId) return;
-    removeAttendance(Number(selectedId));
+    if (!actionAttendanceId) return;
+    removeAttendance(Number(actionAttendanceId));
   };
 
   const handleNextDetailMonth = () => {
@@ -164,10 +191,13 @@ export function useAttendance() {
     openDetail,
     setSelectedData,
     selectedData,
-    detailData,
+    detailItems,
     isDetailLoading,
-    setSelectedId,
-    refetchDetail,
+    fetchNextDetailPage,
+    hasNextDetailPage,
+    isFetchingNextDetailPage,
+    setDetailUserId,
+    setActionAttendanceId,
     handleGoDetailEmployee,
     statEmployee: statEmployee?.data,
     handleApprove,
@@ -184,6 +214,5 @@ export function useAttendance() {
     detailFilter,
     handleNextDetailMonth,
     handlePrevDetailMonth,
-    setSelectedIdTrackers,
   };
 }

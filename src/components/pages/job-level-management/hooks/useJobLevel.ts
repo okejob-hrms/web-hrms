@@ -15,7 +15,7 @@ import {
   deleteJobLevels,
 } from "@/services/job-levels";
 import { toast } from "sonner";
-import { PaginationState } from "@tanstack/react-table";
+import { useUrlTableState } from "@/hooks/use-url-table-state";
 import { IJobLevelForm, JobLevel } from "@/services/job-levels/types";
 import { HTTPError } from "ky";
 
@@ -28,10 +28,7 @@ export function useJobLevels() {
     null,
   );
 
-  const [pagination, setPagination] = useState<PaginationState>({
-    pageIndex: 0,
-    pageSize: 10,
-  });
+  const { pagination, setPagination } = useUrlTableState({ defaultFilters: {} });
 
   const {
     data: paginatedData,

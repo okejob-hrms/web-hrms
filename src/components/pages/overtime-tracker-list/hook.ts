@@ -3,7 +3,7 @@
 import * as React from "react";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { addOvertime, deleteOvertime, getOvertime, getOvertimeEmployee, putOvertime, putOvertimeeEmployee, putOvertimeStatus } from "@/services/overtime";
-import { PaginationState } from "@tanstack/react-table";
+import { useUrlTableState } from "@/hooks/use-url-table-state";
 import { toast } from "sonner";
 import { Filters } from "./types";
 import { OvertimeListItem, RequestOvertime, RequestOvertimeStatus } from "@/services/overtime/types";
@@ -14,7 +14,8 @@ interface ApiErrorResponse {
   error_code?: string | null;
 }
 
-export function useOvertime(isEmployee: boolean) {
+/** `syncUrl` keeps filters/page in the URL; off for embedded (dashboard/ESS) lists. */
+export function useOvertime(isEmployee: boolean, syncUrl = false) {
   const extractErrorMessage = async (error: unknown): Promise<string> => {
     // fetch-style error
     if (
@@ -55,10 +56,6 @@ export function useOvertime(isEmployee: boolean) {
     return "Something went wrong";
   };
 
-  const [pagination, setPagination] = React.useState<PaginationState>({
-    pageIndex: 0,
-    pageSize: 10,
-  });
   const [openDetail, setOpenDetail] = React.useState(false);
   const [openApprove, setOpenApprove] = React.useState(false);
   const [openDelete, setOpenDelete] = React.useState(false);
@@ -68,11 +65,14 @@ export function useOvertime(isEmployee: boolean) {
   const [selectedData, setSelectedData] = React.useState<OvertimeListItem>();
 
   const [selectedId, setSelectedId] = React.useState<string>('');
-  const [filters, setFilters] = React.useState<Filters>({
-    start_date: '',
-    end_date: '',
-    search: '',
-    status: 1,
+  const { filters, setFilters, pagination, setPagination } = useUrlTableState<Filters>({
+    defaultFilters: {
+      start_date: '',
+      end_date: '',
+      search: '',
+      status: 1,
+    },
+    enabled: syncUrl,
   });
   const queryClient = useQueryClient();
 

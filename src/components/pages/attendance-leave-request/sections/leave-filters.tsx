@@ -76,7 +76,7 @@ export default function LeaveFilters({
   return (
     <div className="flex flex-col justify-between gap-4">
       <Tabs
-        defaultValue={String(tabs[0].value)}
+        value={String(filters.status ?? tabs[0].value)}
         className="w-full mx-auto"
         onValueChange={(value) => {
           setFilters((prev) => ({

@@ -88,8 +88,13 @@ export const AttendanceTrackerList = ({
     setSelectedData,
     openDetail,
     setOpenDetail,
-    setSelectedId,
-    detailData,
+    setDetailUserId,
+    setActionAttendanceId,
+    detailItems,
+    isDetailLoading,
+    fetchNextDetailPage,
+    hasNextDetailPage,
+    isFetchingNextDetailPage,
     handleGoDetailEmployee,
     statEmployee,
     handleApprove,
@@ -106,10 +111,36 @@ export const AttendanceTrackerList = ({
     detailFilter,
     handleNextDetailMonth,
     handlePrevDetailMonth,
-    setSelectedIdTrackers,
-  } = useAttendance();
+  } = useAttendance({ syncUrl: !hidePannel });
 
   const [openExport, setOpenExport] = React.useState(false);
+
+  const detailScrollRef = React.useRef<HTMLDivElement>(null);
+  const detailSentinelRef = React.useRef<HTMLDivElement>(null);
+
+  // Load the next history page once the sentinel scrolls into the sheet.
+  React.useEffect(() => {
+    const root = detailScrollRef.current;
+    const target = detailSentinelRef.current;
+    if (!openDetail || !root || !target || !hasNextDetailPage) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting && !isFetchingNextDetailPage) {
+          fetchNextDetailPage();
+        }
+      },
+      { root, rootMargin: '200px' },
+    );
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [
+    openDetail,
+    hasNextDetailPage,
+    isFetchingNextDetailPage,
+    fetchNextDetailPage,
+    detailItems.length,
+  ]);
 
   const { data: shiftsData } = useQuery({
     queryKey: ['shifts', 'attendance-tracker-filter'],
@@ -290,7 +321,7 @@ export const AttendanceTrackerList = ({
             <DropdownMenuContent align="end">
               <DropdownMenuItem
                 onSelect={() => {
-                  setSelectedId(String(row.original.id));
+                  setDetailUserId(String(row.original.id));
                   setSelectedData(row.original);
                   setTimeout(() => setOpenDetail(true), 0);
                 }}
@@ -302,7 +333,7 @@ export const AttendanceTrackerList = ({
                 <Can permission="time_attendance.attendance_records.approval">
                   <DropdownMenuItem
                     onSelect={() => {
-                      setSelectedId(String(attendanceId));
+                      setActionAttendanceId(String(attendanceId));
                       setTimeout(() => setOpenApprove(true), 0);
                     }}
                   >
@@ -315,7 +346,7 @@ export const AttendanceTrackerList = ({
                 <Can permission="time_attendance.attendance_records.approval">
                   <DropdownMenuItem
                     onSelect={() => {
-                      setSelectedId(String(attendanceId));
+                      setActionAttendanceId(String(attendanceId));
                       setTimeout(() => setOpenReject(true), 0);
                     }}
                   >
@@ -339,7 +370,7 @@ export const AttendanceTrackerList = ({
               <Can permission="time_attendance.attendance_records.delete">
                 <DropdownMenuItem
                   onSelect={() => {
-                    setSelectedId(String(attendanceId));
+                    setActionAttendanceId(String(attendanceId));
                     setTimeout(() => setOpenDelete(true), 0);
                   }}
                 >
@@ -659,16 +690,19 @@ export const AttendanceTrackerList = ({
                 </div>
               </div>
 
-              {detailData?.data?.data && detailData?.data?.data?.length > 0 ? (
-                <div className="bg-gray-100 p-6 space-y-6 flex-1 overflow-y-auto border-t">
-                  {detailData?.data?.data.map((item, index) => {
+              {detailItems.length > 0 ? (
+                <div
+                  ref={detailScrollRef}
+                  className="bg-gray-100 p-6 space-y-6 flex-1 overflow-y-auto border-t"
+                >
+                  {detailItems.map((item) => {
                     const status = item?.status_label;
                     const { variant, className, key: statusKey } =
                       getStatusAttendance(status);
                     return (
                       <div
                         className="border rounded-md p-4 bg-white space-y-5"
-                        key={index}
+                        key={item.id}
                       >
                         <div className="flex sm:flex-row flex-col gap-4">
                           <div className="text-primary font-bold">
@@ -740,8 +774,8 @@ export const AttendanceTrackerList = ({
                                     size="sm"
                                     className="bg-white text-red-500 border-red-500"
                                     onClick={() => {
+                                      setActionAttendanceId(String(item.id));
                                       setOpenReject(true);
-                                      setSelectedIdTrackers(String(item.id));
                                     }}
                                   >
                                     <X />
@@ -755,8 +789,8 @@ export const AttendanceTrackerList = ({
                                     variant="default"
                                     size="sm"
                                     onClick={() => {
+                                      setActionAttendanceId(String(item.id));
                                       setOpenApprove(true);
-                                      setSelectedIdTrackers(String(item.id));
                                     }}
                                   >
                                     <Check />
@@ -809,11 +843,17 @@ export const AttendanceTrackerList = ({
                       </div>
                     );
                   })}
+                  <div ref={detailSentinelRef} aria-hidden className="h-px" />
+                  {isFetchingNextDetailPage && (
+                    <div className="flex items-center justify-center text-sm text-muted-foreground">
+                      {tCommon('loading')}
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="bg-gray-100 p-6 space-y-6 flex-1 overflow-y-auto border-t">
                   <div className="flex items-center justify-center">
-                    {t('noAttendanceData')}
+                    {isDetailLoading ? tCommon('loading') : t('noAttendanceData')}
                   </div>
                 </div>
               )}
