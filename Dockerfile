@@ -7,7 +7,7 @@ WORKDIR /app
 
 # Install dependencies only when needed
 # This layer will be recreated only when package.json or bun.lockb changes
-COPY package.json bun.lockb* ./
+COPY package.json bun.lock ./
 
 # Install all dependencies (including devDependencies) needed for build
 # Using --frozen-lockfile to ensure reproducible builds
@@ -18,7 +18,7 @@ RUN bun install --frozen-lockfile
 # Stage 2: Builder
 # Build the Next.js application
 # =============================================================================
-FROM node:20-alpine AS builder
+FROM node:22.23.4-alpine AS builder
 WORKDIR /app
 
 # Copy dependencies from deps stage
@@ -70,7 +70,7 @@ RUN npm run build
 # Stage 3: Runner
 # Production runtime — Node (Next standalone + Nextra are unreliable under Bun)
 # =============================================================================
-FROM node:20-alpine AS runner
+FROM node:22.23.4-alpine AS runner
 WORKDIR /app
 
 # Set production environment variables
