@@ -76,7 +76,7 @@ export function useAttendance({ syncUrl = true }: { syncUrl?: boolean } = {}) {
   const { data: statEmployee } = useQuery<AttendanceSummaryDetail>({
     queryKey: ["attendanceStatUser", detailUserId],
     queryFn: () => getAttendanceStatEmployee(detailUserId),
-    enabled: !!detailUserId,
+    enabled: !!detailUserId && openDetail,
     staleTime: 1000 * 60 * 5,
   });
 
@@ -99,7 +99,9 @@ export function useAttendance({ syncUrl = true }: { syncUrl?: boolean } = {}) {
       const { current_page, last_page } = lastPage.data;
       return last_page && current_page < last_page ? current_page + 1 : undefined;
     },
-    enabled: !!detailUserId,
+    // Gated on the open sheet, not by clearing the id, so its data stays on
+    // screen through the close animation.
+    enabled: !!detailUserId && openDetail,
   });
 
   const detailItems = React.useMemo(

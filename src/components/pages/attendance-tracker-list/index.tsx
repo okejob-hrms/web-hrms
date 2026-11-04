@@ -81,6 +81,7 @@ export const AttendanceTrackerList = ({
 
   const {
     attendances,
+    loading,
     pagination,
     setPagination,
     stat,
@@ -595,6 +596,7 @@ export const AttendanceTrackerList = ({
             pagination={attendances?.data}
             paginationState={pagination}
             setPaginationState={setPagination}
+            loading={loading}
           />
 
           <Sheet open={openDetail} onOpenChange={setOpenDetail}>

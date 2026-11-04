@@ -66,6 +66,7 @@ export default function OvertimeTrackerList({
   const tStatus = useTranslations('status');
   const {
     attendances,
+    loading,
     pagination,
     setPagination,
     setSelectedData,
@@ -489,6 +490,7 @@ export default function OvertimeTrackerList({
             pagination={attendances?.data}
             paginationState={pagination}
             setPaginationState={setPagination}
+            loading={loading}
           />
 
           <OvertimeDetailModal
