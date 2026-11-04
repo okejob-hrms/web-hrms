@@ -8,7 +8,7 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import { PaginationState } from "@tanstack/react-table";
+import { useUrlTableState } from "@/hooks/use-url-table-state";
 import { toast } from "sonner";
 import {
   approveBusinessTrip,
@@ -28,17 +28,17 @@ export type BusinessTripModalKey = "detail" | "approve" | "reject";
 export function useBusinessTrips() {
   const queryClient = useQueryClient();
 
-  const [pagination, setPagination] = React.useState<PaginationState>({
-    pageIndex: 0,
-    pageSize: 10,
-  });
 
-  const [filters, setFilters] = React.useState<BusinessTripFilters>({
-    start_date: "",
-    end_date: "",
-    status: undefined,
-    user_id: undefined,
-  });
+  const { filters, setFilters, pagination, setPagination } =
+    useUrlTableState<BusinessTripFilters>({
+      defaultFilters: {
+        start_date: "",
+        end_date: "",
+        status: undefined,
+        user_id: undefined,
+      },
+      numberKeys: ["status", "user_id"],
+    });
 
   const [modalState, setModalState] = React.useState({
     detail: false,

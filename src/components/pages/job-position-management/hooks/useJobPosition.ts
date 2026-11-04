@@ -15,7 +15,7 @@ import {
   deleteJobPositions,
 } from "@/services/job-position";
 import { toast } from "sonner";
-import { PaginationState } from "@tanstack/react-table";
+import { useUrlTableState } from "@/hooks/use-url-table-state";
 import {
   IPositionForm,
   JobPositionResponse,
@@ -31,10 +31,7 @@ export function useJobPositions() {
   const [selectedJobPosition, setSelectedJobPosition] =
     useState<JobPositionResponse | null>(null);
 
-  const [pagination, setPagination] = useState<PaginationState>({
-    pageIndex: 0,
-    pageSize: 10,
-  });
+  const { pagination, setPagination } = useUrlTableState({ defaultFilters: {} });
 
   const {
     data: paginatedData,

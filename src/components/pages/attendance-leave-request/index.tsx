@@ -19,7 +19,7 @@ export default function AttendanceLeaveRequest({
   hidePannel = false,
 }: AttendanceLeaveRequestProps) {
   const tCommon = useTranslations('common');
-  const leaveRequest = useLeaveRequest(isEmployee);
+  const leaveRequest = useLeaveRequest(isEmployee, !isEmployee && !hidePannel);
 
   return (
     <div className="font-sans min-h-screen flex flex-col space-y-6 px-6">
