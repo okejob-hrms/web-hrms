@@ -329,7 +329,7 @@ export const AttendanceTrackerList = ({
                 <Eye />
                 {t('attendanceDetails')}
               </DropdownMenuItem>
-              {row.original.latest_attendance?.status !== 1 && (
+              {attendanceId != null && row.original.latest_attendance?.status !== 1 && (
                 <Can permission="time_attendance.attendance_records.approval">
                   <DropdownMenuItem
                     onSelect={() => {
@@ -342,7 +342,7 @@ export const AttendanceTrackerList = ({
                   </DropdownMenuItem>
                 </Can>
               )}
-              {row.original.latest_attendance?.status !== 2 && (
+              {attendanceId != null && row.original.latest_attendance?.status !== 2 && (
                 <Can permission="time_attendance.attendance_records.approval">
                   <DropdownMenuItem
                     onSelect={() => {
@@ -356,28 +356,32 @@ export const AttendanceTrackerList = ({
                 </Can>
               )}
 
-              <Can permission="time_attendance.attendance_records.edit">
-                <DropdownMenuItem asChild>
-                  <Link
-                    href={`/attendance/attendance-tracker/${row.original.id}/${attendanceId}`}
-                    className="flex items-center gap-2"
-                  >
-                    <Edit3 />
-                    {t('editAttendanceRecord')}
-                  </Link>
-                </DropdownMenuItem>
-              </Can>
-              <Can permission="time_attendance.attendance_records.delete">
-                <DropdownMenuItem
-                  onSelect={() => {
-                    setActionAttendanceId(String(attendanceId));
-                    setTimeout(() => setOpenDelete(true), 0);
-                  }}
-                >
-                  <Trash />
-                  {t('deleteAttendance')}
-                </DropdownMenuItem>
-              </Can>
+              {attendanceId != null && (
+                <>
+                  <Can permission="time_attendance.attendance_records.edit">
+                    <DropdownMenuItem asChild>
+                      <Link
+                        href={`/attendance/attendance-tracker/${row.original.id}/${attendanceId}`}
+                        className="flex items-center gap-2"
+                      >
+                        <Edit3 />
+                        {t('editAttendanceRecord')}
+                      </Link>
+                    </DropdownMenuItem>
+                  </Can>
+                  <Can permission="time_attendance.attendance_records.delete">
+                    <DropdownMenuItem
+                      onSelect={() => {
+                        setActionAttendanceId(String(attendanceId));
+                        setTimeout(() => setOpenDelete(true), 0);
+                      }}
+                    >
+                      <Trash />
+                      {t('deleteAttendance')}
+                    </DropdownMenuItem>
+                  </Can>
+                </>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         );

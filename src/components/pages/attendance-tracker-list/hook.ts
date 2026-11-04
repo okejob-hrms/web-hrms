@@ -107,17 +107,20 @@ export function useAttendance({ syncUrl = true }: { syncUrl?: boolean } = {}) {
     [detailPages],
   );
 
+  // A record can belong to any employee, not only the one in the detail sheet.
+  // Only mounted queries refetch; the rest are marked stale for their next use.
+  const invalidateAttendanceData = () => {
+    queryClient.invalidateQueries({ queryKey: ["attendance"] });
+    queryClient.invalidateQueries({ queryKey: ["attendanceStats"] });
+    queryClient.invalidateQueries({ queryKey: ["attendanceDetail"] });
+    queryClient.invalidateQueries({ queryKey: ["attendanceStatUser"] });
+  };
+
   const { mutate: updateStatus } = useMutation({
     mutationFn: ({ id, status }: { id: number; status: number }) =>
       putAttendanceStatus(id, { status }),
     onSuccess: () => {
-      // Refresh only what a status change touches; the detail sheet stays open.
-      queryClient.invalidateQueries({ queryKey: ["attendance"] });
-      queryClient.invalidateQueries({ queryKey: ["attendanceStats"] });
-      if (detailUserId) {
-        queryClient.invalidateQueries({ queryKey: ["attendanceDetail", detailUserId] });
-        queryClient.invalidateQueries({ queryKey: ["attendanceStatUser", detailUserId] });
-      }
+      invalidateAttendanceData();
       toast.success(t('updateStatusSuccess'));
       setOpenApprove(false);
       setOpenReject(false);
@@ -131,7 +134,7 @@ export function useAttendance({ syncUrl = true }: { syncUrl?: boolean } = {}) {
   const { mutate: removeAttendance } = useMutation({
     mutationFn: (id: number) => deleteAttendance(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["attendance"] });
+      invalidateAttendanceData();
       toast.success(t('deleteAttendanceSuccess'));
       setOpenDelete(false);
       setActionAttendanceId('');

@@ -43,6 +43,11 @@ const writeStorage = (key: string, value: string) => {
  * State lives in React and is mirrored to the query string (only non-default
  * values). The last query per path is also kept in sessionStorage, so coming
  * back through the sidebar or a form's redirect restores where the user left off.
+ *
+ * Reading sessionStorage in the state initializer relies on callers rendering
+ * client-only: AuthGuard returns null on private routes until a client effect
+ * runs, so these lists never go through SSR or hydration. Using this hook on a
+ * server-rendered route would need the restore moved into a mount effect.
  */
 export function useUrlTableState<F extends { [K in keyof F]: FilterValue }>({
   defaultFilters,
