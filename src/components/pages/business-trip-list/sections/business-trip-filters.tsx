@@ -55,8 +55,10 @@ export default function BusinessTripFiltersSection({
 }: Props) {
   const tCommon = useTranslations("common");
   const form = useForm<FormValues>({
+    // Seed from (possibly URL-restored) filters so the sync effect below
+    // does not clear the employee filter and page on mount.
     defaultValues: {
-      user_id: null,
+      user_id: filters.user_id ?? null,
     },
   });
 

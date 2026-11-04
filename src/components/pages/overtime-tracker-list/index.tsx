@@ -66,6 +66,7 @@ export default function OvertimeTrackerList({
   const tStatus = useTranslations('status');
   const {
     attendances,
+    loading,
     pagination,
     setPagination,
     setSelectedData,
@@ -90,7 +91,7 @@ export default function OvertimeTrackerList({
     setOpenAdd,
     overtimeDataEmployee,
     handleAdd,
-  } = useOvertime(isEmployee);
+  } = useOvertime(isEmployee, !isEmployee && !hidePannel);
 
   const [detail, setDetail] = React.useState<OvertimeListItem>();
   const [formData, setFormData] = React.useState<RequestOvertime>({
@@ -370,14 +371,15 @@ export default function OvertimeTrackerList({
       )}
 
       <Tabs
-        defaultValue={String(tabs[0].value)}
+        value={String(filters.status ?? tabs[0].value)}
         className="w-full mx-auto"
-        onValueChange={(value) =>
+        onValueChange={(value) => {
           setFilters((prev) => ({
             ...prev,
             status: Number(value),
-          }))
-        }
+          }));
+          setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+        }}
       >
         <TabsList className="p-1 w-full bg-secondary-background min-h-12">
           {tabs.map((tab) => (
@@ -488,6 +490,7 @@ export default function OvertimeTrackerList({
             pagination={attendances?.data}
             paginationState={pagination}
             setPaginationState={setPagination}
+            loading={loading}
           />
 
           <OvertimeDetailModal

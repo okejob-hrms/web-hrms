@@ -9,7 +9,6 @@ import { RowActions } from "@/components/tables/row-actions";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { formatDateTime } from "@/lib/formatting";
 import { resolveLocale } from "@/lib/i18n/locale";
-import { Skeleton } from "@/components/ui/skeleton";
 import DeleteJobLevelDialog from "./sections/delete-modal";
 import JobLevelModal from "./sections/edit-modal";
 import { useJobPositions } from "./hooks/useJobPosition";
@@ -102,23 +101,15 @@ export default function JobPositionList() {
             </Button>
           </Can>
         </div>
-        {isLoading ? (
-          <div className="flex flex-col gap-4 items-center w-full">
-            <Skeleton className="h-12 w-full" />
-            <div className="space-y-2 w-full">
-              <Skeleton className="h-30 w-full" />
-            </div>
-          </div>
-        ) : (
-          <DataTable
-            columns={columns}
-            data={job_positions?.data}
-            customSize={!isMobile}
-            pagination={job_positions}
-            paginationState={pagination}
-            setPaginationState={setPagination}
-          />
-        )}
+        <DataTable
+          columns={columns}
+          data={job_positions?.data}
+          customSize={!isMobile}
+          pagination={job_positions}
+          paginationState={pagination}
+          setPaginationState={setPagination}
+          loading={isLoading}
+        />
       </div>
       <DeleteJobLevelDialog
         open={isDeleteDialogOpen}

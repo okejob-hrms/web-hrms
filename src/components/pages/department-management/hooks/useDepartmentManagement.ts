@@ -16,7 +16,7 @@ import {
   deleteDepartment,
 } from "@/services/department";
 import { toast } from "sonner";
-import { PaginationState } from "@tanstack/react-table";
+import { useUrlTableState } from "@/hooks/use-url-table-state";
 import { HTTPError } from "ky";
 
 export function useDepartmentManagement() {
@@ -28,10 +28,7 @@ export function useDepartmentManagement() {
   const [selectedDepartment, setSelectedDepartment] =
     useState<IDepartment | null>(null);
 
-  const [pagination, setPagination] = useState<PaginationState>({
-    pageIndex: 0,
-    pageSize: 10,
-  });
+  const { pagination, setPagination } = useUrlTableState({ defaultFilters: {} });
 
   const {
     data: paginatedData,
