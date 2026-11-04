@@ -256,7 +256,14 @@ export const BasicDateRangePicker: React.FC<BasicDateRangePickerProps> = ({
     onSelect(undefined);
   };
 
-  const handleSelect = (range: DateRange | undefined) => {
+  const handleSelect = (range: DateRange | undefined, triggerDate?: Date) => {
+    // A click on an empty or complete range starts a new one. Left alone,
+    // react-day-picker moves the nearest edge and keeps the old end, which
+    // can lock the user into an over-long span they cannot escape.
+    if (triggerDate && (!draft?.from || draft.to)) {
+      updateDraft({ from: triggerDate, to: undefined });
+      return;
+    }
     updateDraft(range);
     if (!range?.from) {
       onSelect(undefined);

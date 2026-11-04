@@ -14,7 +14,6 @@ import { formatDateTime } from "@/lib/formatting";
 import { resolveLocale } from "@/lib/i18n/locale";
 import DeleteDepartmentDialog from "./sections/delete-modal";
 import { DepartmentResponse } from "@/services/department/types";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Can } from "@/components/auth/can";
 
 export default function DepartmentManagementList() {
@@ -114,23 +113,15 @@ export default function DepartmentManagementList() {
             </Button>
           </Can>
         </div>
-        {isLoading ? (
-          <div className="flex flex-col gap-4 items-center w-full">
-            <Skeleton className="h-12 w-full" />
-            <div className="space-y-2 w-full">
-              <Skeleton className="h-30 w-full" />
-            </div>
-          </div>
-        ) : (
-          <DataTable
-            columns={columns}
-            data={departments?.data?.data}
-            customSize={!isMobile}
-            pagination={departments?.data}
-            paginationState={pagination}
-            setPaginationState={setPagination}
-          />
-        )}
+        <DataTable
+          columns={columns}
+          data={departments?.data?.data}
+          customSize={!isMobile}
+          pagination={departments?.data}
+          paginationState={pagination}
+          setPaginationState={setPagination}
+          loading={isLoading}
+        />
       </div>
       <DeleteDepartmentDialog
         open={isDeleteDialogOpen}

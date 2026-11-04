@@ -8,7 +8,7 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import { PaginationState } from "@tanstack/react-table";
+import { useUrlTableState } from "@/hooks/use-url-table-state";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -29,22 +29,22 @@ import {
 import { Filters } from "./types";
 import { ApiErrorResponse, PaginatedResponse } from "@/lib/types";
 
-export function useLeaveRequest(isEmployee?: boolean) {
+/** `syncUrl` keeps filters/page in the URL; off for embedded (dashboard/ESS) lists. */
+export function useLeaveRequest(isEmployee?: boolean, syncUrl = false) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const t = useTranslations('attendance');
   const tCommon = useTranslations('common');
 
-  const [pagination, setPagination] = React.useState<PaginationState>({
-    pageIndex: 0,
-    pageSize: 10,
-  });
 
-  const [filters, setFilters] = React.useState<Filters>({
-    start_date: "",
-    end_date: "",
-    search: "",
-    status: 1,
+  const { filters, setFilters, pagination, setPagination } = useUrlTableState<Filters>({
+    defaultFilters: {
+      start_date: "",
+      end_date: "",
+      search: "",
+      status: 1,
+    },
+    enabled: syncUrl,
   });
 
   const [modalState, setModalState] = React.useState({
