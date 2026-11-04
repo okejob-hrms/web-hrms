@@ -140,6 +140,8 @@ export const AttendanceTrackerList = ({
     isFetchingNextDetailPage,
     fetchNextDetailPage,
     detailItems.length,
+    detailFilter.month,
+    detailFilter.year,
   ]);
 
   const { data: shiftsData } = useQuery({
