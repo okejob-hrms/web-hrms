@@ -98,6 +98,10 @@ export const ROUTE_VIEW_PERMISSIONS: Array<{
     permission: 'time_attendance.attendance_records.view',
   },
   {
+    match: '/attendance/attendance-review',
+    permission: 'time_attendance.attendance_records.approval',
+  },
+  {
     match: '/attendance/leave-request',
     permission: 'time_attendance.leave_requests.view',
   },

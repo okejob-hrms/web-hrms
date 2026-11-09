@@ -98,6 +98,11 @@ export const menus: Record<string, MenuItem[]> = {
       permission: 'time_attendance.attendance_records.view',
     },
     {
+      key: 'attendanceReview',
+      value: 'attendance/attendance-review',
+      permission: 'time_attendance.attendance_records.approval',
+    },
+    {
       key: 'leaveRequest',
       value: 'attendance/leave-request',
       permission: 'time_attendance.leave_requests.view',
@@ -285,6 +290,7 @@ const BREADCRUMB_SEGMENT_KEYS: Record<string, string> = {
   'off-boarding': 'offBoarding',
   attendance: 'attendance',
   'attendance-tracker': 'attendanceTracker',
+  'attendance-review': 'attendanceReview',
   'leave-request': 'leaveRequest',
   'over-time': 'overTime',
   'business-trip': 'businessTrip',

@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
+import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
@@ -42,8 +43,18 @@ export default function SettingsShiftRoster() {
   const canEdit = usePermissionStore((s) => s.can('time_attendance.attendance_configuration.edit'));
   const qc = useQueryClient();
 
-  const [weekStart, setWeekStart] = React.useState(() => weekStartOf());
+  const searchParams = useSearchParams();
+  const weekFromUrl = searchParams.get('week');
+  const [weekStart, setWeekStart] = React.useState(() =>
+    weekFromUrl && /^\d{4}-\d{2}-\d{2}$/.test(weekFromUrl) ? weekStartOf(weekFromUrl) : weekStartOf(),
+  );
   const [selection, setSelection] = React.useState<Selection | null>(null);
+
+  React.useEffect(() => {
+    if (weekFromUrl && /^\d{4}-\d{2}-\d{2}$/.test(weekFromUrl)) {
+      setWeekStart(weekStartOf(weekFromUrl));
+    }
+  }, [weekFromUrl]);
 
   const indexQuery = useQuery({
     queryKey: ['roster-week-index', weekStart],
