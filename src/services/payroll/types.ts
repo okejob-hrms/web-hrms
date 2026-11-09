@@ -64,6 +64,7 @@ export interface RequestPayrollGroup {
     period_end?: string;
     acknowledge_gap?: boolean;
     acknowledge_early_generation?: boolean;
+    acknowledge_attendance_review?: boolean;
     /** @deprecated See PAYSLIP_AUTO_SEND_ENABLED. */
     auto_send_payslip?: boolean;
     /** @deprecated See PAYSLIP_AUTO_SEND_ENABLED. */
@@ -86,6 +87,24 @@ export interface NextPeriodResponse {
 
 export const PAYRUN_GAP = 'PAYRUN_GAP';
 export const PAYRUN_PERIOD_NOT_ENDED = 'PAYRUN_PERIOD_NOT_ENDED';
+export const PAYRUN_ATTENDANCE_NOT_REVIEWED = 'PAYRUN_ATTENDANCE_NOT_REVIEWED';
+
+/** Request flag that accepts each warning-only payrun rule on the retry. */
+export const PAYRUN_ACKNOWLEDGE_FLAGS = {
+    [PAYRUN_GAP]: 'acknowledge_gap',
+    [PAYRUN_PERIOD_NOT_ENDED]: 'acknowledge_early_generation',
+    [PAYRUN_ATTENDANCE_NOT_REVIEWED]: 'acknowledge_attendance_review',
+} as const;
+
+export type PayrunAcknowledgements = Partial<
+    Record<(typeof PAYRUN_ACKNOWLEDGE_FLAGS)[keyof typeof PAYRUN_ACKNOWLEDGE_FLAGS], boolean>
+>;
+
+/** Flags accumulated so far plus the one for `code` (unknown codes add nothing). */
+export const withPayrunAcknowledgement = <T extends PayrunAcknowledgements>(acknowledged: T, code: string): T => {
+    const flag = PAYRUN_ACKNOWLEDGE_FLAGS[code as keyof typeof PAYRUN_ACKNOWLEDGE_FLAGS];
+    return flag ? { ...acknowledged, [flag]: true } : acknowledged;
+};
 
 export interface PayrunRuleError {
     message: string;
@@ -94,6 +113,10 @@ export interface PayrunRuleError {
         gaps?: { from: string; to: string; adjacent_payrun_id: number | null }[];
         period_end?: string;
         today?: string;
+        waiting_count?: number;
+        review_status?: 'none' | 'open' | 'completed';
+        start?: string;
+        end?: string;
         [key: string]: unknown;
     };
 }

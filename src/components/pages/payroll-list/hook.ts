@@ -9,12 +9,15 @@ import { toast } from "sonner";
 import { Filters } from "./types";
 import { useTranslations } from "next-intl";
 import {
+  PAYRUN_ATTENDANCE_NOT_REVIEWED,
   PAYRUN_GAP,
   PAYRUN_PERIOD_NOT_ENDED,
+  PayrunAcknowledgements,
   PayrunRuleError,
   RequestPayrollGroup,
   ResponsePayrollItem,
   ResponsePayrollList,
+  withPayrunAcknowledgement,
 } from "@/services/payroll/types";
 import { getNextPeriod, getPayroll, postPayrollGroup, postRegenerate, readPayrunRuleError } from "@/services/payroll";
 import { PaginatedResponse } from "@/lib/types";
@@ -88,7 +91,7 @@ export function usePayroll() {
   const askToAcknowledge = async (
     err: unknown,
     retry: (code: string) => void,
-    acknowledgeable: string[] = [PAYRUN_GAP, PAYRUN_PERIOD_NOT_ENDED],
+    acknowledgeable: string[] = [PAYRUN_GAP, PAYRUN_PERIOD_NOT_ENDED, PAYRUN_ATTENDANCE_NOT_REVIEWED],
   ) => {
     const rule = await readPayrunRuleError(err);
     const code = rule?.error_code;
@@ -173,14 +176,7 @@ export function usePayroll() {
     },
     onError: (err, { data }) => {
       askToAcknowledge(err, (code) =>
-        submitMutation.mutate({
-          data: {
-            ...data,
-            ...(code === PAYRUN_GAP
-              ? { acknowledge_gap: true }
-              : { acknowledge_early_generation: true }),
-          },
-        }),
+        submitMutation.mutate({ data: withPayrunAcknowledgement(data, code) }),
       );
     },
     onSettled: () => setLoading(false),
@@ -203,7 +199,12 @@ export function usePayroll() {
       toast.error(t('periodTooLong', { max: MAX_PAY_PERIOD_DAYS }));
       return;
     }
-    const { acknowledge_gap: _gap, acknowledge_early_generation: _early, ...fresh } = values;
+    const {
+      acknowledge_gap: _gap,
+      acknowledge_early_generation: _early,
+      acknowledge_attendance_review: _attendance,
+      ...fresh
+    } = values;
     if (!PAYSLIP_AUTO_SEND_ENABLED) {
       delete fresh.auto_send_payslip;
       delete fresh.send_payslip_at;
@@ -212,19 +213,19 @@ export function usePayroll() {
   }
 
   const mutationPostRegenerate = useMutation({
-    mutationFn: ({ payrunId, acknowledge }: { payrunId: string; acknowledge?: boolean }) =>
-      postRegenerate(payrunId, { acknowledge_early_generation: acknowledge }),
+    mutationFn: ({ payrunId, acknowledged = {} }: { payrunId: string; acknowledged?: PayrunAcknowledgements }) =>
+      postRegenerate(payrunId, acknowledged),
     onMutate: () => setLoading(true),
     onSuccess: () => {
       toast.success(t('regeneratedSuccess'));
       queryClient.invalidateQueries({ queryKey: ["payroll"] });
       payrollDataRefetch();
     },
-    onError: (err, { payrunId }) => {
+    onError: (err, { payrunId, acknowledged = {} }) => {
       askToAcknowledge(
         err,
-        () => mutationPostRegenerate.mutate({ payrunId, acknowledge: true }),
-        [PAYRUN_PERIOD_NOT_ENDED],
+        (code) => mutationPostRegenerate.mutate({ payrunId, acknowledged: withPayrunAcknowledgement(acknowledged, code) }),
+        [PAYRUN_PERIOD_NOT_ENDED, PAYRUN_ATTENDANCE_NOT_REVIEWED],
       );
     },
     onSettled: () => setLoading(false),

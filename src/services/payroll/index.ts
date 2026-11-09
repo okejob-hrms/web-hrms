@@ -1,6 +1,6 @@
 import { HTTPError } from "ky";
 import { api } from "@/lib/api";
-import { AdditionalRequest, AllowanceRequest, NextPeriodResponse, OvertimeRequest, PayrunLog, PayrunRuleError, PayrunViewResponse, PayslipResponse, PenaltyRequest, RequestPayrollGroup, ResponsePayrollDetail, ResponsePayrollList, TotalSpendResponse, WorkingHourRequest } from "./types";
+import { AdditionalRequest, AllowanceRequest, NextPeriodResponse, OvertimeRequest, PayrunAcknowledgements, PayrunLog, PayrunRuleError, PayrunViewResponse, PayslipResponse, PenaltyRequest, RequestPayrollGroup, ResponsePayrollDetail, ResponsePayrollList, TotalSpendResponse, WorkingHourRequest } from "./types";
 import { PaginationState } from "@tanstack/react-table";
 
 export const getPayroll = async (
@@ -146,7 +146,7 @@ export const putPenaltyPayrun = async (
 
 export const postRegenerate = async (
   id: string,
-  options: { acknowledge_early_generation?: boolean } = {},
+  options: Pick<PayrunAcknowledgements, 'acknowledge_early_generation' | 'acknowledge_attendance_review'> = {},
 ): Promise<ResponsePayrollList> => {
   return api
     .post(`payruns/${id}/retry-generate-payslips`, {

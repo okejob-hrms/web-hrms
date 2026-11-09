@@ -19,6 +19,9 @@ export interface LatestAttendance {
   clock: {
     in_at: string | null;
     out_at: string | null;
+    in_at_local?: string | null;
+    out_at_local?: string | null;
+    is_overnight?: boolean;
     duration: string | null;
     overtime_duration_fomated?: string | null;
   };
@@ -165,6 +168,9 @@ export interface AttendanceDetail {
   clock: {
     in_at: string | null;
     out_at: string | null;
+    in_at_local?: string | null;
+    out_at_local?: string | null;
+    is_overnight?: boolean;
     duration: string | null;
   };
   duration: string | null;
