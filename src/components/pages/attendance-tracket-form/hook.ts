@@ -56,7 +56,7 @@ export function useAttendenceForm() {
     if (!raw) {
       return '/attendance/attendance-tracker';
     }
-    if (!raw.startsWith('/') || raw.startsWith('//')) {
+    if (!raw.startsWith('/') || raw.startsWith('//') || raw.includes('\\')) {
       return '/attendance/attendance-tracker';
     }
     return raw;

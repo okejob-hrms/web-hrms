@@ -162,14 +162,16 @@ export function IssueCard({
             </Button>
           ) : null}
           {dayMarkAbsent ? (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => onRecordAction({ kind: 'mark_absent', issue, record: null })}
-            >
-              <UserX />
-              {t('actionMarkAbsent')}
-            </Button>
+            <Can permission="time_attendance.attendance_records.approval">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => onRecordAction({ kind: 'mark_absent', issue, record: null })}
+              >
+                <UserX />
+                {t('actionMarkAbsent')}
+              </Button>
+            </Can>
           ) : null}
           {can('open_unresolved') ? (
             <>
@@ -257,16 +259,20 @@ function RecordRow({ record, locale, editHref, onReject, onMarkAbsent }: RecordR
             </Can>
           ) : null}
           {onMarkAbsent ? (
-            <Button size="sm" variant="outline" onClick={onMarkAbsent}>
-              <UserX />
-              {t('actionMarkAbsent')}
-            </Button>
+            <Can permission="time_attendance.attendance_records.approval">
+              <Button size="sm" variant="outline" onClick={onMarkAbsent}>
+                <UserX />
+                {t('actionMarkAbsent')}
+              </Button>
+            </Can>
           ) : null}
           {onReject ? (
-            <Button size="sm" variant="outline" className="border-red-300 text-red-600" onClick={onReject}>
-              <XCircle />
-              {t('actionReject')}
-            </Button>
+            <Can permission="time_attendance.attendance_records.approval">
+              <Button size="sm" variant="outline" className="border-red-300 text-red-600" onClick={onReject}>
+                <XCircle />
+                {t('actionReject')}
+              </Button>
+            </Can>
           ) : null}
         </div>
       </div>

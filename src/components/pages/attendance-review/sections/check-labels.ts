@@ -21,11 +21,10 @@ export function issueTitle(t: Translate, issue: AttendanceReviewIssue): string {
   return checkTitle(t, issue.code, issue.title);
 }
 
-/** Map API payroll-impact lines through FE copy (code-specific, else waiting fallback). */
+/** Map API payroll-impact lines through FE copy (code-specific, else the API string). */
 export function issuePayrollImpact(t: Translate, issue: AttendanceReviewIssue): string | null {
   if (!issue.payroll_impact) return null;
   const byCode = `payrollImpactByCode.${issue.code}`;
   if (t.has(byCode)) return t(byCode);
-  if (t.has('payrollImpactByCode.waiting')) return t('payrollImpactByCode.waiting');
   return issue.payroll_impact;
 }

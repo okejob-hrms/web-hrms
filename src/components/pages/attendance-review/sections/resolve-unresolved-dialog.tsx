@@ -314,7 +314,16 @@ export function ResolveUnresolvedDialog({
               type="button"
               variant="outline"
               disabled={isPending || selectedPunches.length === 0}
-              onClick={() => onResolve(discardItems())}
+              onClick={() => {
+                if (
+                  !window.confirm(
+                    t('resolveDiscardConfirm', { count: selectedPunches.length }),
+                  )
+                ) {
+                  return;
+                }
+                onResolve(discardItems());
+              }}
             >
               {t('resolveDiscardSelected', { count: selectedPunches.length })}
             </Button>

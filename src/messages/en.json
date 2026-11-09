@@ -1263,6 +1263,7 @@
     },
     "resolveAssignSelected": "Assign selected ({count})",
     "resolveDiscardSelected": "Discard selected ({count})",
+    "resolveDiscardConfirm": "Discard {count, plural, one {# selected punch} other {# selected punches}}? They will not count toward any attendance.",
     "resolveUnresolvedSuccess": "{count, plural, one {# punch resolved} other {# punches resolved}}.",
     "resolveUnresolvedFailed": "Failed to resolve punches.",
     "bookedOn": "Booked on {date}",

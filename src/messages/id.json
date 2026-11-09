@@ -1263,6 +1263,7 @@
     },
     "resolveAssignSelected": "Pasangkan yang dipilih ({count})",
     "resolveDiscardSelected": "Buang yang dipilih ({count})",
+    "resolveDiscardConfirm": "Buang {count} punch yang dipilih? Punch ini tidak akan dihitung di kehadiran mana pun.",
     "resolveUnresolvedSuccess": "{count} absen diselesaikan.",
     "resolveUnresolvedFailed": "Gagal menyelesaikan absen.",
     "bookedOn": "Dicatat tanggal {date}",
