@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useSearchParams } from 'next/navigation';
 import dayjs from 'dayjs';
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
@@ -63,6 +64,10 @@ function companyPunch(value: string): { date: string; dateTime: string } {
   return { date: `${y}-${m}-${d}`, dateTime: `${y}-${m}-${d} ${hh}:${mm}` };
 }
 
+function urlDate(value: string | null): string {
+  return value && /^\d{4}-\d{2}-\d{2}$/.test(value) && dayjs(value).isValid() ? value : '';
+}
+
 function reasonBadgeVariant(
   reason: string | null | undefined,
 ): 'default' | 'secondary' | 'outline' | 'destructive' {
@@ -75,10 +80,12 @@ function reasonBadgeVariant(
 export default function SettingsUnresolvedPunches() {
   const t = useTranslations('settings.unresolvedPunches');
   const qc = useQueryClient();
+  const searchParams = useSearchParams();
   const [branchId, setBranchId] = React.useState('');
   const [reason, setReason] = React.useState('');
-  const [from, setFrom] = React.useState('');
-  const [to, setTo] = React.useState('');
+  // Attendance Review deep-links here with ?from=&to= (YYYY-MM-DD).
+  const [from, setFrom] = React.useState(() => urlDate(searchParams.get('from')));
+  const [to, setTo] = React.useState(() => urlDate(searchParams.get('to')));
   const [page, setPage] = React.useState(1);
   const [assignTarget, setAssignTarget] = React.useState<UnresolvedPunch | null>(null);
   const [countedDate, setCountedDate] = React.useState(() => todayInIndonesiaTimezone());

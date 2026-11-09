@@ -38,6 +38,11 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { StatusBadge } from '@/components/shared/status-badge';
 import {
   Sheet,
@@ -254,12 +259,38 @@ export const AttendanceTrackerList = ({
         const att = row.original.latest_attendance;
         if (!att) return '-';
 
+        const inAt = att.clock.in_at || '-';
+        const outAt = att.clock.out_at || '-';
+        const reversed =
+          Boolean(att.clock.in_at) &&
+          Boolean(att.clock.out_at) &&
+          !att.clock.is_overnight &&
+          (att.clock.out_at as string) < (att.clock.in_at as string);
+        const timeLabel = att.clock.is_overnight
+          ? `${inAt} — ${outAt} (+1)`
+          : `${inAt} — ${outAt}`;
+        const timeSpan = (
+          <span className={reversed ? 'text-destructive' : undefined}>
+            {timeLabel}
+            {att.timezone_abbr ? ` (${att.timezone_abbr})` : ''}
+          </span>
+        );
+
         return (
           <div className="flex flex-col">
-            <span>
-              {att.clock.in_at || '-'} — {att.clock.out_at || '-'}
-              {att.timezone_abbr ? ` (${att.timezone_abbr})` : ''}
-            </span>
+            {att.clock.is_overnight &&
+            (att.clock.in_at_local || att.clock.out_at_local) ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="cursor-help">{timeSpan}</span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {att.clock.in_at_local || '-'} → {att.clock.out_at_local || '-'}
+                </TooltipContent>
+              </Tooltip>
+            ) : (
+              timeSpan
+            )}
             <span className="text-muted-foreground text-xs">
               {tCommon('duration')} {att.duration || '-'}
             </span>

@@ -6,7 +6,7 @@ import { PaginationState } from "@tanstack/react-table";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { toast } from "sonner";
-import { AdditionalItem, AdditionalRequest, AllowanceItem, AllowanceRequest, OvertimePayrun, OvertimeRequest, PAYRUN_PERIOD_NOT_ENDED, Payrun, PayrunRuleError, Payslip, PenaltyPayrun, PenaltyRequest, RequestPayrollGroup, WorkHourPayrun, WorkingHourRequest } from "@/services/payroll/types";
+import { AdditionalItem, AdditionalRequest, AllowanceItem, AllowanceRequest, OvertimePayrun, OvertimeRequest, PAYRUN_ATTENDANCE_NOT_REVIEWED, PAYRUN_PERIOD_NOT_ENDED, Payrun, PayrunAcknowledgements, PayrunRuleError, Payslip, PenaltyPayrun, PenaltyRequest, RequestPayrollGroup, WorkHourPayrun, WorkingHourRequest, withPayrunAcknowledgement } from "@/services/payroll/types";
 import { Filters } from "./types";
 import { deletePayslipFromPayrun, getPayrollDetail, getPayrollDetailSpend, getPayrollEmployee, getPayrollViewLog, postFinalPayrun, postRecalculate, postRegenerate, putAdditionalPayrun, putAllowancePayrun, putOvertimePayrun, putPenaltyPayrun, putWorkingHourPayrun, readPayrunRuleError } from "@/services/payroll";
 import { PaginatedResponse } from "@/lib/types";
@@ -465,8 +465,8 @@ export function usePayrollDetail() {
   const ruleRetry = React.useRef<(() => void) | null>(null);
 
   const mutationPostRegenerate = useMutation({
-    mutationFn: ({ payrunId, acknowledge }: { payrunId: string; acknowledge?: boolean }) =>
-      postRegenerate(payrunId, { acknowledge_early_generation: acknowledge }),
+    mutationFn: ({ payrunId, acknowledged = {} }: { payrunId: string; acknowledged?: PayrunAcknowledgements }) =>
+      postRegenerate(payrunId, acknowledged),
     onMutate: () => setLoading(true),
     onSuccess: () => {
       toast.success(t("regeneratedSuccess"));
@@ -475,11 +475,12 @@ export function usePayrollDetail() {
       auditTrailRefetch();
       employeeListRefetch();
     },
-    onError: async (err, { payrunId }) => {
+    onError: async (err, { payrunId, acknowledged = {} }) => {
       const rule = await readPayrunRuleError(err);
-      if (rule?.error_code === PAYRUN_PERIOD_NOT_ENDED) {
+      const code = rule?.error_code;
+      if (rule && (code === PAYRUN_PERIOD_NOT_ENDED || code === PAYRUN_ATTENDANCE_NOT_REVIEWED)) {
         ruleRetry.current = () =>
-          mutationPostRegenerate.mutate({ payrunId, acknowledge: true });
+          mutationPostRegenerate.mutate({ payrunId, acknowledged: withPayrunAcknowledgement(acknowledged, code) });
         setRuleError(rule);
         return;
       }

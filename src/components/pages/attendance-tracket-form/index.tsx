@@ -73,7 +73,15 @@ export default function AttendanceTrackerForm({
     setSelectedId,
     onSetAbsent,
     attendanceStatus,
+    clockLocal,
   } = useAttendenceForm();
+
+  const clockInWatch = form.watch('clock_in_at');
+  const clockOutWatch = form.watch('clock_out_at');
+  const showNextDayHint =
+    Boolean(clockInWatch) &&
+    Boolean(clockOutWatch) &&
+    clockOutWatch <= clockInWatch;
 
   const handleSubmit = (values: AttendanceFormValues) => {
     onSubmit({ ...values, longitude: map.lng, latitude: map.lat });
@@ -183,6 +191,16 @@ export default function AttendanceTrackerForm({
                 </FormItem>
               )}
             />
+          </div>
+
+          <div className="space-y-1 text-sm text-muted-foreground">
+            {(clockLocal.inAtLocal || clockLocal.outAtLocal) && (
+              <p>
+                {clockLocal.inAtLocal || '-'} → {clockLocal.outAtLocal || '-'}
+              </p>
+            )}
+            {showNextDayHint && <p>{t('clockOutNextDay')}</p>}
+            <p>{t('nightShiftBookedOnEndDay')}</p>
           </div>
 
           <div className="grid sm:grid-cols-4 grid-cols-1 gap-2">

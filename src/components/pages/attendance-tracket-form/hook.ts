@@ -3,7 +3,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import {
   keepPreviousData,
   useMutation,
@@ -48,7 +48,19 @@ type AttendancePayload = Omit<
 export function useAttendenceForm() {
   const t = useTranslations('attendance');
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const isAddMode = pathname.endsWith('/add');
+
+  const resolveReturnTo = useCallback(() => {
+    const raw = searchParams.get('return_to');
+    if (!raw) {
+      return '/attendance/attendance-tracker';
+    }
+    if (!raw.startsWith('/') || raw.startsWith('//')) {
+      return '/attendance/attendance-tracker';
+    }
+    return raw;
+  }, [searchParams]);
 
   const attendanceSchema = useMemo(
     () =>
@@ -141,7 +153,7 @@ export function useAttendenceForm() {
     return {
       user_id: String(Number(selectedId)) ?? '',
       attendance_date: dayjs(data.attendance_date).toDate(),
-      shift_id: data.metadata.shift_id ?? 0,
+      shift_id: data.shift_id ?? data.metadata?.shift_id ?? 0,
       clock_in_at: data.clock.in_at ?? '',
       clock_out_at: data.clock.out_at ?? '',
       latitude: Number(data.location.latitude) ?? undefined,
@@ -189,7 +201,7 @@ export function useAttendenceForm() {
         isAddMode ? t('createAttendanceSuccess') : t('updateAttendanceSuccess'),
       );
       setIsLoading(false);
-      router.push('/attendance/attendance-tracker');
+      router.push(resolveReturnTo());
     },
     onError: async (error) => {
       setIsLoading(false);
@@ -252,8 +264,10 @@ export function useAttendenceForm() {
 
   const onSubmit = (values: AttendanceFormValues) => {
     setIsLoading(true);
-    let payload: AttendancePayload & { status?: number } = {
-      ...values,
+    const { note, ...rest } = values;
+    let payload: AttendancePayload & { status?: number; notes?: string } = {
+      ...rest,
+      notes: note,
       attendance_date: dayjs(values.attendance_date).format('YYYY-MM-DD'),
       user_id: Number(values.user_id),
     };
@@ -293,7 +307,7 @@ export function useAttendenceForm() {
       });
       toast.success(t('setAsAbsentSuccess'));
       setIsLoading(false);
-      router.push('/attendance/attendance-tracker');
+      router.push(resolveReturnTo());
     },
     onError: async (error) => {
       setIsLoading(false);
@@ -322,6 +336,15 @@ export function useAttendenceForm() {
     setAbsentMutation.mutate(attendanceId);
   };
 
+  const clockLocal = useMemo(
+    () => ({
+      inAtLocal: detailData?.data?.clock?.in_at_local ?? null,
+      outAtLocal: detailData?.data?.clock?.out_at_local ?? null,
+      isOvernight: Boolean(detailData?.data?.clock?.is_overnight),
+    }),
+    [detailData?.data?.clock],
+  );
+
   return {
     form,
     onSubmit,
@@ -342,5 +365,6 @@ export function useAttendenceForm() {
     setSelectedId,
     onSetAbsent,
     attendanceStatus: detailData?.data?.status,
+    clockLocal,
   };
 }

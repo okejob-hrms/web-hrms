@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 import { formatPeriodDate } from '@/lib/payroll-period';
 import {
@@ -12,7 +13,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
 import {
+  PAYRUN_ATTENDANCE_NOT_REVIEWED,
   PAYRUN_GAP,
   PayrunRuleError,
 } from '@/services/payroll/types';
@@ -29,6 +32,24 @@ export default function PayrunRuleConfirm({ error, onConfirm, onCancel }: Props)
   const formatDate = (value?: string) => formatPeriodDate(value, locale);
   const tCommon = useTranslations('common');
   const isGap = error?.error_code === PAYRUN_GAP;
+  const isAttendance = error?.error_code === PAYRUN_ATTENDANCE_NOT_REVIEWED;
+  const reviewHref = isAttendance
+    ? `/attendance/attendance-review?${new URLSearchParams({
+        start: error?.details?.start ?? '',
+        end: error?.details?.end ?? '',
+      }).toString()}`
+    : '';
+
+  const title = isGap
+    ? t('payrunGapTitle')
+    : isAttendance
+      ? t('payrunAttendanceTitle')
+      : t('payrunNotEndedTitle');
+  const confirmLabel = isGap
+    ? t('payrunGapConfirm')
+    : isAttendance
+      ? t('payrunAttendanceConfirm')
+      : t('payrunNotEndedConfirm');
 
   return (
     <AlertDialog
@@ -39,9 +60,7 @@ export default function PayrunRuleConfirm({ error, onConfirm, onCancel }: Props)
     >
       <AlertDialogContent className="max-w-md">
         <AlertDialogHeader>
-          <AlertDialogTitle>
-            {isGap ? t('payrunGapTitle') : t('payrunNotEndedTitle')}
-          </AlertDialogTitle>
+          <AlertDialogTitle>{title}</AlertDialogTitle>
           <AlertDialogDescription asChild>
             <div className="space-y-2 text-sm text-gray-600">
               {isGap ? (
@@ -55,6 +74,12 @@ export default function PayrunRuleConfirm({ error, onConfirm, onCancel }: Props)
                     ))}
                   </ul>
                 </>
+              ) : isAttendance ? (
+                <p>
+                  {t('payrunAttendanceDescription', {
+                    waiting: error?.details?.waiting_count ?? 0,
+                  })}
+                </p>
               ) : (
                 <p>
                   {t('payrunNotEndedDescription', {
@@ -70,9 +95,14 @@ export default function PayrunRuleConfirm({ error, onConfirm, onCancel }: Props)
           <AlertDialogCancel onClick={onCancel}>
             {tCommon('cancel')}
           </AlertDialogCancel>
-          <AlertDialogAction onClick={onConfirm}>
-            {isGap ? t('payrunGapConfirm') : t('payrunNotEndedConfirm')}
-          </AlertDialogAction>
+          {isAttendance && (
+            <Button variant="outline" asChild>
+              <Link href={reviewHref} onClick={onCancel}>
+                {t('payrunAttendanceOpenReview')}
+              </Link>
+            </Button>
+          )}
+          <AlertDialogAction onClick={onConfirm}>{confirmLabel}</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
