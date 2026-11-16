@@ -1123,6 +1123,10 @@
       "tooLong": "Periode paling lama {max} hari."
     },
     "refresh": "Muat ulang",
+    "export": "Ekspor",
+    "exporting": "Mengekspor…",
+    "exportSuccess": "Review absensi berhasil diekspor.",
+    "exportFailed": "Gagal mengekspor review absensi.",
     "retry": "Coba lagi",
     "nightShiftInfo": "Catatan dihitung pada tanggal pencatatannya. Shift malam dicatat pada tanggal shift berakhir.",
     "fallbackPeriodNotice": "Periode payroll berikutnya tidak dapat dimuat, jadi bulan ini yang ditampilkan. Pilih periode payroll di atas.",

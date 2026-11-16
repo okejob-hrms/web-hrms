@@ -1123,6 +1123,10 @@
       "tooLong": "The period can be at most {max} days."
     },
     "refresh": "Refresh",
+    "export": "Export",
+    "exporting": "Exporting…",
+    "exportSuccess": "Attendance review exported.",
+    "exportFailed": "Failed to export attendance review.",
     "retry": "Try again",
     "nightShiftInfo": "Records are counted on their booked date. Night shifts are booked on the day they end.",
     "fallbackPeriodNotice": "The next payroll period could not be loaded, so this month is shown. Pick the payroll period above.",

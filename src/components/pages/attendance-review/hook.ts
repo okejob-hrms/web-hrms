@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { getNextPeriod } from '@/services/payroll';
 import { postMarkAttendanceAbsent, putAttendanceStatus } from '@/services/attendance';
 import {
+  exportAttendanceReviewExcel,
   getAttendanceReviewIssues,
   getAttendanceReviewSummary,
   postAttendanceReviewAcknowledgement,
@@ -275,6 +276,28 @@ export function useAttendanceReview() {
     onError: async (error) => toast.error(await getErrorMessage(error, t('actionFailed'))),
   });
 
+  const exportMutation = useMutation({
+    mutationFn: async () => {
+      if (!activePeriod) throw new Error(t('exportFailed'));
+      const blob = await exportAttendanceReviewExcel(activePeriod);
+      const url = window.URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download =
+        activePeriod.start === activePeriod.end
+          ? `attendance-review-${activePeriod.start}.xlsx`
+          : `attendance-review-${activePeriod.start}_to_${activePeriod.end}.xlsx`;
+      anchor.click();
+      window.URL.revokeObjectURL(url);
+    },
+    onSuccess: () => toast.success(t('exportSuccess')),
+    onError: (error) => {
+      const message =
+        error instanceof Error && error.message ? error.message : t('exportFailed');
+      toast.error(message);
+    },
+  });
+
   /** Current review view; edit pages come back here after saving. */
   const reviewHref = React.useMemo(() => {
     const params = new URLSearchParams();
@@ -344,6 +367,7 @@ export function useAttendanceReview() {
     recordActionTarget,
     setRecordActionTarget,
     recordActionMutation,
+    exportMutation,
     editHref,
     unresolvedHref,
   };
