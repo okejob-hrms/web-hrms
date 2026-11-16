@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useLocale, useTranslations } from 'next-intl';
-import { Info, RefreshCw } from 'lucide-react';
+import { Download, Info, RefreshCw } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -127,6 +127,16 @@ export function AttendanceReview() {
                   >
                     <RefreshCw className={cn(review.isRefreshing && 'animate-spin')} />
                     {t('refresh')}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => review.exportMutation.mutate()}
+                    disabled={!activePeriod || review.exportMutation.isPending}
+                    aria-label={t('export')}
+                  >
+                    <Download className={cn(review.exportMutation.isPending && 'animate-pulse')} />
+                    {review.exportMutation.isPending ? t('exporting') : t('export')}
                   </Button>
                   <label className="mb-2 flex items-center gap-2 text-sm">
                     <Checkbox
