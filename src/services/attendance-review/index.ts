@@ -86,3 +86,30 @@ export const postAttendanceReviewResolveUnresolved = async (
     })
     .json<ResolveUnresolvedResponse>();
 };
+
+export const exportAttendanceReviewExcel = async (
+  period: ReviewPeriodRange,
+): Promise<Blob> => {
+  try {
+    const response = await api.get('employee/attendance-review/export', {
+      searchParams: periodParams(period),
+      timeout: REVIEW_TIMEOUT_MS,
+    });
+    return response.blob();
+  } catch (error: unknown) {
+    const httpError = error as { name?: string; response?: Response };
+    if (httpError?.name === 'HTTPError' && httpError.response) {
+      let message = 'Failed to export attendance review';
+      try {
+        const errorResponse = (await httpError.response.json()) as { message?: string };
+        if (errorResponse?.message) {
+          message = errorResponse.message;
+        }
+      } catch {
+        // response body may not be JSON
+      }
+      throw new Error(message);
+    }
+    throw error;
+  }
+};
