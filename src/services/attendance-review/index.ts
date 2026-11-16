@@ -95,7 +95,23 @@ export const exportAttendanceReviewExcel = async (
       searchParams: periodParams(period),
       timeout: REVIEW_TIMEOUT_MS,
     });
-    return response.blob();
+    const blob = await response.blob();
+
+    // Shared api Accepts JSON; a misconfigured 2xx JSON body must not download as .xlsx
+    if (blob.type.includes('json')) {
+      let message = 'Failed to export attendance review';
+      try {
+        const errorResponse = JSON.parse(await blob.text()) as { message?: string };
+        if (errorResponse?.message) {
+          message = errorResponse.message;
+        }
+      } catch {
+        // body may not be JSON despite content-type
+      }
+      throw new Error(message);
+    }
+
+    return blob;
   } catch (error: unknown) {
     const httpError = error as { name?: string; response?: Response };
     if (httpError?.name === 'HTTPError' && httpError.response) {
