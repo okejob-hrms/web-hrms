@@ -56,6 +56,14 @@ import { toTitleCase } from '@/lib/menu';
 
 const isPph21 = (name?: string | null) => name?.toUpperCase() === 'PPH21';
 
+/** Map legacy illegal calculation_basis values to current SelectItem values. */
+const normalizeCalculationBasis = (value?: string | null) => {
+  if (!value) return '';
+  if (value === 'gross_salary') return 'gross';
+  if (value === 'Voluntary') return 'base';
+  return value;
+};
+
 const ROUNDING_LABEL_KEYS: Record<
   DeductionRoundingMode,
   'roundingNone' | 'roundingUp' | 'roundingDown'
@@ -213,8 +221,12 @@ export default function SettingsSalaryDeduction() {
                 tiers: item.tiers || [],
                 employee_contribution: item.employee_contribution,
                 employer_contribution: item.employer_contribution,
-                calculation_basis: item.calculation_basis,
-                contribution_type: item.contribution_type,
+                calculation_basis: normalizeCalculationBasis(
+                  item.calculation_basis,
+                ),
+                contribution_type: isPph21(item.name)
+                  ? 'percentage'
+                  : (item.contribution_type ?? ''),
                 rounding_mode: item.rounding_mode ?? 'none',
               });
               setOpen(true);
@@ -316,18 +328,29 @@ export default function SettingsSalaryDeduction() {
     }
   };
 
+  const isPercentageContribution =
+    isPph21(form.name) || form.contribution_type === 'percentage';
+
   const handleSave = () => {
     if (!form.name || !form.effective_date || !form.deduction_type)
       return toast.error(t('fillRequiredFields'));
-    if (!form.contribution_type)
+    if (!isPph21(form.name) && !form.contribution_type)
       return toast.error(t('fillContributionType'));
     if (!form.employee_contribution || !form.employer_contribution)
       return toast.error(t('fillContributions'));
+    if (isPercentageContribution && !form.calculation_basis)
+      return toast.error(t('fillCalculationBasis'));
 
     saveMutation.mutate({
       id: editing?.id,
       data: {
         ...form,
+        contribution_type: isPph21(form.name)
+          ? 'percentage'
+          : form.contribution_type,
+        calculation_basis: isPercentageContribution
+          ? normalizeCalculationBasis(form.calculation_basis)
+          : undefined,
         status: 1,
         tiers: isPph21(form.name) ? form.tiers : [],
       },
@@ -404,7 +427,13 @@ export default function SettingsSalaryDeduction() {
                 <Select
                   value={form.name}
                   onValueChange={(val) =>
-                    setForm((prev) => ({ ...prev, name: val }))
+                    setForm((prev) => ({
+                      ...prev,
+                      name: val,
+                      ...(isPph21(val)
+                        ? { contribution_type: 'percentage' }
+                        : {}),
+                    }))
                   }
                 >
                   <SelectTrigger className="w-full">
@@ -494,27 +523,7 @@ export default function SettingsSalaryDeduction() {
               <hr className="my-2" />
 
               <h4 className="font-medium">{t('contribution')}</h4>
-              {isPph21(form.name) ? (
-                <div className="space-y-2">
-                  <Label>
-                    {t('calculationBasis')} <span className="text-red-500">*</span>
-                  </Label>
-                  <Select
-                    value={form.calculation_basis}
-                    onValueChange={(val) =>
-                      setForm((prev) => ({ ...prev, calculation_basis: val }))
-                    }
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder={t('calculationBasis')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="gross_salary">{t('grossSalary')}</SelectItem>
-                      <SelectItem value="Voluntary">{t('baseSalaryLabel')}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              ) : (
+              {!isPph21(form.name) && (
                 <div className="space-y-2 mb-2">
                   <Label>
                     {t('contributionType')} <span className="text-red-500">*</span>
@@ -527,6 +536,10 @@ export default function SettingsSalaryDeduction() {
                       setForm((prev) => ({
                         ...prev,
                         contribution_type: String(val),
+                        calculation_basis:
+                          String(val) === 'percentage'
+                            ? prev.calculation_basis
+                            : '',
                       }));
                     }}
                   >
@@ -540,6 +553,33 @@ export default function SettingsSalaryDeduction() {
                       <Label htmlFor="fixed_amount">{t('fixedAmount')}</Label>
                     </div>
                   </RadioGroup>
+                </div>
+              )}
+
+              {isPercentageContribution && (
+                <div className="space-y-2 mb-2">
+                  <Label>
+                    {t('calculationBasis')} <span className="text-red-500">*</span>
+                  </Label>
+                  <Select
+                    value={form.calculation_basis || undefined}
+                    onValueChange={(val) =>
+                      setForm((prev) => ({ ...prev, calculation_basis: val }))
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder={t('calculationBasis')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="gross">{t('grossSalary')}</SelectItem>
+                      <SelectItem value="base_matrix">
+                        {t('baseSalaryManagement')}
+                      </SelectItem>
+                      {form.calculation_basis === 'base' && (
+                        <SelectItem value="base">{t('baseSalaryLabel')}</SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
                 </div>
               )}
 
@@ -809,18 +849,26 @@ export default function SettingsSalaryDeduction() {
               <hr className="my-2" />
 
               <h4 className="font-medium">{t('contribution')}</h4>
-              {isPph21(editing?.name) ? (
-                <div className="space-y-2">
-                  <Label>{t('calculationBasis')}</Label>
-                  <Label className="font-semibold">
-                    {toTitleCase(editing?.calculation_basis ?? '')}
-                  </Label>
-                </div>
-              ) : (
+              {!isPph21(editing?.name) && (
                 <div className="space-y-2 mb-2">
                   <Label>{t('contributionType')}</Label>
                   <Label className="font-semibold">
                     {toTitleCase(editing?.contribution_type ?? '')}
+                  </Label>
+                </div>
+              )}
+              {(isPph21(editing?.name) ||
+                editing?.contribution_type === 'percentage') && (
+                <div className="space-y-2 mb-2">
+                  <Label>{t('calculationBasis')}</Label>
+                  <Label className="font-semibold">
+                    {editing?.calculation_basis === 'base_matrix'
+                      ? t('baseSalaryManagement')
+                      : editing?.calculation_basis === 'base'
+                        ? t('baseSalaryLabel')
+                        : editing?.calculation_basis === 'gross'
+                          ? t('grossSalary')
+                          : toTitleCase(editing?.calculation_basis ?? '-')}
                   </Label>
                 </div>
               )}
@@ -950,8 +998,12 @@ export default function SettingsSalaryDeduction() {
                       employer_contribution:
                         editing.employer_contribution ?? '',
                       description: editing.description ?? '',
-                      calculation_basis: editing.calculation_basis,
-                      contribution_type: editing.contribution_type,
+                      calculation_basis: normalizeCalculationBasis(
+                        editing.calculation_basis,
+                      ),
+                      contribution_type: isPph21(editing.name)
+                        ? 'percentage'
+                        : (editing.contribution_type ?? ''),
                       rounding_mode: editing.rounding_mode ?? 'none',
                       tiers: editing.tiers ?? [],
                     });
