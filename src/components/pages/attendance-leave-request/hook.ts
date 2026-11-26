@@ -10,15 +10,18 @@ import {
 } from "@tanstack/react-query";
 import { useUrlTableState } from "@/hooks/use-url-table-state";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
   getLeaves,
+  getDetailLeave,
   deleteLeave,
   updateLeave,
   updateStatusLeave,
+  updateLeaveTreatment,
   getLeavesEmployee,
 } from "@/services/employees/leave";
+import type { LeaveTreatment } from "@/services/employees/leave/types";
 import { getEmployeeDetailByUserId } from "@/services/employees";
 import {
   ILeaveEmployeeResponse,
@@ -32,6 +35,8 @@ import { ApiErrorResponse, PaginatedResponse } from "@/lib/types";
 /** `syncUrl` keeps filters/page in the URL; off for embedded (dashboard/ESS) lists. */
 export function useLeaveRequest(isEmployee?: boolean, syncUrl = false) {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const queryClient = useQueryClient();
   const t = useTranslations('attendance');
   const tCommon = useTranslations('common');
@@ -43,6 +48,7 @@ export function useLeaveRequest(isEmployee?: boolean, syncUrl = false) {
       end_date: "",
       search: "",
       status: 1,
+      not_confirmed: undefined,
     },
     enabled: syncUrl,
   });
@@ -57,6 +63,7 @@ export function useLeaveRequest(isEmployee?: boolean, syncUrl = false) {
 
   const [selectedData, setSelectedData] = React.useState<ILeaveResponse>();
   const [selectedId, setSelectedId] = React.useState<string>("");
+  const openLeaveHandled = React.useRef<string | null>(null);
 
   const {
     data: leaves,
@@ -227,6 +234,34 @@ export function useLeaveRequest(isEmployee?: boolean, syncUrl = false) {
     removeLeave(Number(selectedId));
   };
 
+  const { mutate: saveTreatment, isPending: isSavingTreatment } = useMutation({
+    mutationFn: ({
+      id,
+      treatment,
+    }: {
+      id: number;
+      treatment: LeaveTreatment;
+    }) => updateLeaveTreatment(id, treatment),
+    onSuccess: (response) => {
+      queryClient.invalidateQueries({ queryKey: ["leaves"] });
+      if (response?.data) {
+        setSelectedData(response.data as ILeaveResponse);
+      }
+      toast.success(t('treatmentSaveSuccess'));
+    },
+    onError: (error: Error) => {
+      toast.error(t('treatmentSaveFailed', { message: error.message }));
+    },
+  });
+
+  const handleSaveTreatment = React.useCallback(
+    (treatment: LeaveTreatment) => {
+      if (!selectedId) return;
+      saveTreatment({ id: Number(selectedId), treatment });
+    },
+    [selectedId, saveTreatment],
+  );
+
   const handleNavigateAddRequestPage = React.useCallback(() => {
     router.push(isEmployee ? "/ess/leave/leave-form" : "/attendance/leave-request/add");
   }, [router, isEmployee]);
@@ -254,6 +289,38 @@ export function useLeaveRequest(isEmployee?: boolean, syncUrl = false) {
     setSelectedId(String(leave.id));
   }, []);
 
+  // Deep-link from Attendance Review: /attendance/leave-request?open={id} opens detail modal
+  // so HR can confirm treatment (edit form has no treatment UI).
+  React.useEffect(() => {
+    if (!syncUrl || isEmployee) return;
+    const openId = searchParams.get('open');
+    if (!openId || openLeaveHandled.current === openId) return;
+    openLeaveHandled.current = openId;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const response = await getDetailLeave(Number(openId));
+        if (cancelled || !response?.data) return;
+        const leave = response.data as unknown as ILeaveResponse;
+        setSelectedData(leave);
+        setSelectedId(String(leave.id));
+        setModalState((prev) => ({ ...prev, detail: true }));
+      } catch {
+        toast.error(tCommon('errorLoading'));
+      } finally {
+        const next = new URLSearchParams(searchParams.toString());
+        next.delete('open');
+        const qs = next.toString();
+        router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [syncUrl, isEmployee, searchParams, pathname, router, tCommon]);
+
   return {
     leaves,
     selectedData,
@@ -276,6 +343,8 @@ export function useLeaveRequest(isEmployee?: boolean, syncUrl = false) {
     handleApprove,
     handleReject,
     handleDelete,
+    handleSaveTreatment,
+    isSavingTreatment,
     handleNavigateAddRequestPage,
 
     getEmployeeData,

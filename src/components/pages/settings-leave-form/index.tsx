@@ -208,6 +208,7 @@ export default function SettingsLeaveConfigurationForm({
       description: data.description,
       gender: data.gender,
       quota_configuration: data.quota_configuration,
+      default_treatment: data.default_treatment,
       quota_configuration_detail: [],
     };
 
@@ -290,6 +291,45 @@ export default function SettingsLeaveConfigurationForm({
                   </FormItem>
                 )}
               />
+
+              <div className="w-full md:w-1/2">
+                <FormField
+                  control={form.control}
+                  name="default_treatment"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('defaultLeaveTreatment')}</FormLabel>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue
+                              placeholder={t('selectDefaultLeaveTreatment')}
+                            />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="deduct_quota">
+                            {t('treatmentDeductQuota')}
+                          </SelectItem>
+                          <SelectItem value="absent">
+                            {t('treatmentAbsent')}
+                          </SelectItem>
+                          <SelectItem value="excused">
+                            {t('treatmentExcused')}
+                          </SelectItem>
+                          <SelectItem value="absent_unless_attachment">
+                            {t('treatmentAbsentUnlessAttachment')}
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
           </div>
 

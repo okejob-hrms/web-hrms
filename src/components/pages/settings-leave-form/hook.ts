@@ -29,6 +29,12 @@ export const formSchema = z.object({
   description: z.string().optional(),
   gender: z.string(),
   quota_configuration: z.string(),
+  default_treatment: z.enum([
+    'deduct_quota',
+    'absent',
+    'excused',
+    'absent_unless_attachment',
+  ]),
   quota_configuration_detail: z
     .array(quotaConfigurationDetailSchema)
     .optional(),
@@ -74,6 +80,7 @@ export function useLeaveTypeForm() {
       description: '',
       gender: 'all',
       quota_configuration: 'same',
+      default_treatment: 'deduct_quota',
       quota_configuration_detail: [
         {
           job_level: 0,
@@ -106,6 +113,9 @@ export function useLeaveTypeForm() {
         description: detail.description,
         gender: detail.gender,
         quota_configuration: detail.quota_configuration,
+        default_treatment:
+          (detail.default_treatment as LeaveConfigValues['default_treatment']) ||
+          'deduct_quota',
         quota_configuration_detail: mappedEntitlements,
       });
 

@@ -18,12 +18,18 @@ export interface IUser {
   } | null;
 }
 
+export type LeaveTreatment = 'deduct_quota' | 'absent' | 'excused';
+export type LeaveDefaultTreatment =
+  | LeaveTreatment
+  | 'absent_unless_attachment';
+
 export interface ILeaveType {
   id: number;
   name: string;
   description: string;
   gender: string;
   quota_configuration: string;
+  default_treatment?: LeaveDefaultTreatment;
   created_at: string;
   updated_at: string;
 }
@@ -51,6 +57,9 @@ export interface ILeaveResponse {
   reason: string;
   status: number;
   attachment: string | null;
+  treatment?: LeaveTreatment | null;
+  effective_treatment?: LeaveTreatment;
+  treatment_confirmed?: boolean;
   created_at: string;
   updated_at: string;
   user: IUser;
