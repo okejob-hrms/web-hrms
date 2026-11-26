@@ -2078,6 +2078,7 @@
     "fillRequiredFields": "Harap isi semua kolom wajib",
     "fillContributionType": "Harap isi jenis kontribusi",
     "fillContributions": "Harap isi kontribusi karyawan dan perusahaan",
+    "fillCalculationBasis": "Silakan pilih dasar perhitungan",
     "grossSalary": "Gaji Kotor",
     "baseSalaryLabel": "Gaji Pokok",
     "fixed": "(Tetap)",

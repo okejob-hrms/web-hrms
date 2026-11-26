@@ -2078,6 +2078,7 @@
     "fillRequiredFields": "Please fill all required fields",
     "fillContributionType": "Please fill contribution type",
     "fillContributions": "Please fill employee contribution and employer contribution",
+    "fillCalculationBasis": "Please select a calculation basis",
     "grossSalary": "Gross Salary",
     "baseSalaryLabel": "Base Salary",
     "fixed": "(Fixed)",

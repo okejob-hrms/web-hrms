@@ -23,7 +23,7 @@ export const getLeaves = async (
     start_date?: string;
     end_date?: string;
     status?: number;
-    not_confirmed?: boolean;
+    not_confirmed?: string;
   },
 ): Promise<
   ApiSummaryResponse<PaginatedResponse<ILeaveResponse>, ILeaveSummary>
@@ -53,7 +53,7 @@ export const getLeaves = async (
     searchParams.end_date = filters.end_date;
   }
 
-  if (filters?.not_confirmed) {
+  if (filters?.not_confirmed === '1') {
     searchParams.not_confirmed = '1';
   }
 

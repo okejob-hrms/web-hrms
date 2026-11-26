@@ -332,7 +332,17 @@ export default function LeaveDetailModal({
                       </Button>
                     </div>
                   ) : (
-                    <div>{t('treatmentReadOnly')}</div>
+                    <div>
+                      {treatmentLabel(data.effective_treatment)}
+                      {!data.treatment_confirmed && (
+                        <span className="ml-2 text-xs text-amber-700">
+                          ({t('treatmentNotConfirmed')})
+                        </span>
+                      )}
+                      <p className="text-xs text-gray-500 mt-1">
+                        {t('treatmentReadOnly')}
+                      </p>
+                    </div>
                   )}
                 </Can>
               </div>
