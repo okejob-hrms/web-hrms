@@ -66,6 +66,8 @@ export default function AttendanceLeaveRequest({
         onApprove={leaveRequest.handleApprove}
         onReject={leaveRequest.handleReject}
         onDelete={leaveRequest.handleDelete}
+        onSaveTreatment={leaveRequest.handleSaveTreatment}
+        isSavingTreatment={leaveRequest.isSavingTreatment}
         getEmployeeData={leaveRequest.getEmployeeData}
         isEmployee={isEmployee}
       />

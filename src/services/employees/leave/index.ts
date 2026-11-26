@@ -23,6 +23,7 @@ export const getLeaves = async (
     start_date?: string;
     end_date?: string;
     status?: number;
+    not_confirmed?: boolean;
   },
 ): Promise<
   ApiSummaryResponse<PaginatedResponse<ILeaveResponse>, ILeaveSummary>
@@ -52,11 +53,43 @@ export const getLeaves = async (
     searchParams.end_date = filters.end_date;
   }
 
+  if (filters?.not_confirmed) {
+    searchParams.not_confirmed = '1';
+  }
+
   const response = await api.get<ILeaveResponse>("employee/leaves", {
     searchParams,
   });
 
   return response.json();
+};
+
+export const updateLeaveTreatment = async (
+  id: number,
+  treatment: string,
+): Promise<ApiResponse<ILeaveResponse>> => {
+  try {
+    const response = await api.put<ApiResponse<ILeaveResponse>>(
+      `employee/leaves/${id}/treatment`,
+      { json: { treatment } },
+    );
+    return response.json();
+  } catch (error: any) {
+    if (error.name === "HTTPError") {
+      const errorResponse = await error.response.json();
+      const enhancedError = new Error(
+        errorResponse?.errors?.treatment?.[0] ||
+          errorResponse?.message ||
+          error.message,
+      );
+      (enhancedError as any).response = {
+        json: () => Promise.resolve(errorResponse),
+        status: error.response.status,
+      };
+      throw enhancedError;
+    }
+    throw error;
+  }
 };
 
 export const getDetailLeave = async (
@@ -169,7 +202,6 @@ export const updateStatusLeave = async (
     throw error;
   }
 };
-
 
 // EMPLOYEE
 

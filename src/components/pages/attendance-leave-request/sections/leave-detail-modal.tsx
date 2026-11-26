@@ -17,6 +17,7 @@ import { stringAvatar } from '@/lib/utils';
 import {
   ILeaveApprover,
   ILeaveResponse,
+  LeaveTreatment,
 } from '@/services/employees/leave/types';
 import {
   formatDateRange,
@@ -28,12 +29,18 @@ import Link from 'next/link';
 import { IEmployeeDetailsResponse } from '@/services/employees/types';
 import { getUserLeaveBalance } from '@/services/employees/leave';
 import { CircleX, ClockCheck } from 'lucide-react';
+import { Can } from '@/components/auth/can';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
   onApprove: () => void;
   onReject: () => void;
+  onSaveTreatment: (treatment: LeaveTreatment) => void;
+  isSavingTreatment?: boolean;
   data: ILeaveResponse | undefined;
   getEmployeeData: (user_id: number) => Promise<IEmployeeDetailsResponse>;
   isEmployee: boolean;
@@ -50,6 +57,8 @@ export default function LeaveDetailModal({
   onClose,
   onApprove,
   onReject,
+  onSaveTreatment,
+  isSavingTreatment,
   data,
   getEmployeeData,
   isEmployee,
@@ -65,6 +74,16 @@ export default function LeaveDetailModal({
     job_level: '-',
   });
   const [loading, setLoading] = useState(false);
+  const [treatment, setTreatment] = useState<LeaveTreatment>('deduct_quota');
+
+  useEffect(() => {
+    if (!data) return;
+    setTreatment(
+      (data.treatment as LeaveTreatment | null | undefined) ||
+        data.effective_treatment ||
+        'deduct_quota',
+    );
+  }, [data]);
 
   useEffect(() => {
     const fetchUsedBalanceData = async () => {
@@ -88,7 +107,7 @@ export default function LeaveDetailModal({
       }
     };
     fetchUsedBalanceData();
-  }, [data, isOpen, getUserLeaveBalance, t]);
+  }, [data, isOpen, t]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -159,6 +178,15 @@ export default function LeaveDetailModal({
     e.preventDefault();
     e.stopPropagation();
     onReject();
+  };
+
+  const canEditTreatment =
+    !isEmployee && !!data && (data.status === 1 || data.status === 2);
+
+  const treatmentLabel = (value?: string | null) => {
+    if (value === 'absent') return t('treatmentAbsent');
+    if (value === 'excused') return t('treatmentExcused');
+    return t('treatmentDeductQuota');
   };
 
   if (!data) return null;
@@ -234,6 +262,79 @@ export default function LeaveDetailModal({
               <div>
                 <div className="text-sm text-gray-500">{t('usedLeaveBalance')}</div>
                 <div>{leaveBalance}</div>
+              </div>
+              <div className="col-span-2">
+                <div className="text-sm text-gray-500 mb-2">
+                  {t('leaveTreatment')}
+                </div>
+                {!data.treatment_confirmed && (
+                  <p className="text-xs text-amber-700 mb-2">
+                    {t('treatmentNotConfirmedHint')}
+                  </p>
+                )}
+                <Can
+                  permission="time_attendance.leave_requests.edit"
+                  fallback={
+                    <div>
+                      {treatmentLabel(data.effective_treatment)}
+                      {!data.treatment_confirmed && (
+                        <span className="ml-2 text-xs text-amber-700">
+                          ({t('treatmentNotConfirmed')})
+                        </span>
+                      )}
+                    </div>
+                  }
+                >
+                  {canEditTreatment ? (
+                    <div className="space-y-3">
+                      <RadioGroup
+                        value={treatment}
+                        onValueChange={(value) =>
+                          setTreatment(value as LeaveTreatment)
+                        }
+                        className="gap-2"
+                      >
+                        <div className="flex items-center gap-2">
+                          <RadioGroupItem
+                            value="deduct_quota"
+                            id="treatment-deduct"
+                          />
+                          <Label htmlFor="treatment-deduct">
+                            {t('treatmentDeductQuota')}
+                          </Label>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <RadioGroupItem
+                            value="absent"
+                            id="treatment-absent"
+                          />
+                          <Label htmlFor="treatment-absent">
+                            {t('treatmentAbsent')}
+                          </Label>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <RadioGroupItem
+                            value="excused"
+                            id="treatment-excused"
+                          />
+                          <Label htmlFor="treatment-excused">
+                            {t('treatmentExcused')}
+                          </Label>
+                        </div>
+                      </RadioGroup>
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={() => onSaveTreatment(treatment)}
+                        disabled={!!isSavingTreatment}
+                      >
+                        {t('saveTreatment')}
+                      </Button>
+                    </div>
+                  ) : (
+                    <div>{t('treatmentReadOnly')}</div>
+                  )}
+                </Can>
               </div>
               <div className="col-span-2">
                 <div className="text-sm text-gray-500">{t('reason')}</div>

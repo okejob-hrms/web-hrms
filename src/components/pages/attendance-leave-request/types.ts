@@ -8,6 +8,8 @@ export interface Filters {
   start_date?: string;
   end_date?: string;
   status?: number;
+  /** HR filter: leaves whose treatment has not been confirmed. */
+  not_confirmed?: boolean;
 }
 
 export interface AdvancedFilterProps {
