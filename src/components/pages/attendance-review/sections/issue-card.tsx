@@ -40,17 +40,19 @@ export function IssueCard({
   onRecordAction,
 }: IssueCardProps) {
   const t = useTranslations('attendanceReview');
+  const tLeave = useTranslations('attendance');
   const locale = resolveLocale(useLocale());
   const can = (action: ReviewAction) => issue.actions.includes(action);
-  const details = useIssueDetails(issue);
+  const details = useIssueDetails(issue, tLeave);
   const payrollImpact = issuePayrollImpact(t, issue);
   const rosterHint = rosterHintFromIssue(issue);
 
   const canAccept = can('accept') && issue.state === 'open';
   const dayMarkAbsent = can('mark_absent') && issue.records.length === 0 && !!issue.employee && !!issue.date;
   const leaveId = numberParam(issue.params, 'leave_id');
+  // Detail modal (not edit form) is where HR confirms leave treatment.
   const leaveHref =
-    can('open_leave') && leaveId != null ? `/attendance/leave-request/edit/${leaveId}` : null;
+    can('open_leave') && leaveId != null ? `/attendance/leave-request?open=${leaveId}` : null;
 
   return (
     <article
@@ -297,8 +299,21 @@ const numberParam = (params: Record<string, unknown>, key: string) =>
 const stringParam = (params: Record<string, unknown>, key: string) =>
   typeof params[key] === 'string' && params[key] !== '' ? (params[key] as string) : null;
 
+function treatmentLabel(
+  tLeave: (key: 'treatmentAbsent' | 'treatmentExcused' | 'treatmentDeductQuota') => string,
+  value: string | null,
+): string {
+  if (value === 'absent') return tLeave('treatmentAbsent');
+  if (value === 'excused') return tLeave('treatmentExcused');
+  if (value === 'deduct_quota') return tLeave('treatmentDeductQuota');
+  return value ?? '-';
+}
+
 /** Short context lines from the check params (only the ones HR needs to decide). */
-function useIssueDetails(issue: AttendanceReviewIssue): string[] {
+function useIssueDetails(
+  issue: AttendanceReviewIssue,
+  tLeave: (key: 'treatmentAbsent' | 'treatmentExcused' | 'treatmentDeductQuota') => string,
+): string[] {
   const t = useTranslations('attendanceReview');
   const locale = resolveLocale(useLocale());
   const { params } = issue;
@@ -355,7 +370,7 @@ function useIssueDetails(issue: AttendanceReviewIssue): string[] {
   }
 
   if (issue.code === 'unconfirmed_leave_treatment') {
-    const treatment = stringParam(params, 'effective_treatment') ?? '-';
+    const treatment = treatmentLabel(tLeave, stringParam(params, 'effective_treatment'));
     const leaveType = stringParam(params, 'leave_type') ?? '-';
     const start = stringParam(params, 'start_date');
     const end = stringParam(params, 'end_date');
