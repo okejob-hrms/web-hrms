@@ -307,7 +307,7 @@ export function useLeaveRequest(isEmployee?: boolean, syncUrl = false) {
         setSelectedId(String(leave.id));
         setModalState((prev) => ({ ...prev, detail: true }));
       } catch {
-        toast.error(tCommon('error'));
+        toast.error(tCommon('errorLoading'));
       } finally {
         const next = new URLSearchParams(searchParams.toString());
         next.delete('open');
