@@ -18,6 +18,7 @@ export type ReviewAction =
   | 'open_unresolved'
   | 'open_adjustments'
   | 'open_overtime'
+  | 'open_leave'
   | 'open_employee'
   | 'open_unknown_pins';
 

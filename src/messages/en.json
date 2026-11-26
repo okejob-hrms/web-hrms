@@ -1178,6 +1178,7 @@
       "no_record_day": "Work day with no record",
       "no_records_in_period": "No records in this period",
       "worked_on_leave": "Worked on an approved leave day",
+      "unconfirmed_leave_treatment": "Leave treatment not confirmed by HR",
       "shift_guessed": "Shift was guessed by the system",
       "overtime_request_pending": "Overtime request still pending",
       "overtime_not_supported": "Approved overtime not seen in attendance",
@@ -1199,7 +1200,8 @@
       "absent": "Counts as absent. If an absent rule is active, a penalty is charged.",
       "overtime_request_pending": "Not paid until the request is approved.",
       "overtime_not_supported": "This overtime will be paid, but attendance does not show it.",
-      "possible_duplicate": "Rejecting one row drops its hours. Merge keeps the whole day."
+      "possible_duplicate": "Rejecting one row drops its hours. Merge keeps the whole day.",
+      "unconfirmed_leave_treatment": "Does not block payrun. Attendance Allowance will use the default treatment shown until HR confirms."
     },
     "state": {
       "open": "Open",
@@ -1237,6 +1239,8 @@
     "actionMarkAbsent": "Mark absent",
     "actionResolveUnresolved": "Resolve punches",
     "actionOpenUnresolved": "Open unresolved punches",
+    "actionOpenLeave": "Open leave request",
+    "detailLeaveTreatment": "{type}: will apply “{treatment}” ({start} – {end})",
     "actionEdit": "Edit",
     "actionReject": "Reject",
     "noClockIn": "No clock-in",

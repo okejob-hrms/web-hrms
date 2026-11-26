@@ -48,6 +48,9 @@ export function IssueCard({
 
   const canAccept = can('accept') && issue.state === 'open';
   const dayMarkAbsent = can('mark_absent') && issue.records.length === 0 && !!issue.employee && !!issue.date;
+  const leaveId = numberParam(issue.params, 'leave_id');
+  const leaveHref =
+    can('open_leave') && leaveId != null ? `/attendance/leave-request/edit/${leaveId}` : null;
 
   return (
     <article
@@ -153,7 +156,7 @@ export function IssueCard({
         </p>
       ) : null}
 
-      {canAccept || dayMarkAbsent || can('open_unresolved') ? (
+      {canAccept || dayMarkAbsent || can('open_unresolved') || leaveHref ? (
         <footer className="flex flex-wrap gap-2">
           {canAccept ? (
             <Button size="sm" variant="outline" onClick={() => onAccept(issue)}>
@@ -172,6 +175,14 @@ export function IssueCard({
                 {t('actionMarkAbsent')}
               </Button>
             </Can>
+          ) : null}
+          {leaveHref ? (
+            <Button size="sm" variant="link" className="h-8 px-1 text-xs text-text-secondary" asChild>
+              <Link href={leaveHref}>
+                <ExternalLink className="size-3.5" />
+                {t('actionOpenLeave')}
+              </Link>
+            </Button>
           ) : null}
           {can('open_unresolved') ? (
             <>
@@ -341,6 +352,21 @@ function useIssueDetails(issue: AttendanceReviewIssue): string[] {
     params.hints
       .filter((hint): hint is string => typeof hint === 'string')
       .forEach((hint) => lines.push(t.has(`hint.${hint}`) ? t(`hint.${hint}`) : hint));
+  }
+
+  if (issue.code === 'unconfirmed_leave_treatment') {
+    const treatment = stringParam(params, 'effective_treatment') ?? '-';
+    const leaveType = stringParam(params, 'leave_type') ?? '-';
+    const start = stringParam(params, 'start_date');
+    const end = stringParam(params, 'end_date');
+    lines.push(
+      t('detailLeaveTreatment', {
+        type: leaveType,
+        treatment,
+        start: start ? formatPeriodDate(start, locale) : '-',
+        end: end ? formatPeriodDate(end, locale) : '-',
+      }),
+    );
   }
 
   return lines;

@@ -1178,6 +1178,7 @@
       "no_record_day": "Hari kerja tanpa catatan",
       "no_records_in_period": "Tidak ada catatan di periode ini",
       "worked_on_leave": "Masuk kerja saat cuti disetujui",
+      "unconfirmed_leave_treatment": "Perlakuan cuti belum dikonfirmasi HR",
       "shift_guessed": "Shift ditebak oleh sistem",
       "overtime_request_pending": "Pengajuan lembur belum disetujui",
       "overtime_not_supported": "Lembur disetujui tapi tidak terlihat di absensi",
@@ -1199,7 +1200,8 @@
       "absent": "Dihitung tidak hadir. Jika aturan tidak hadir aktif, denda dikenakan.",
       "overtime_request_pending": "Belum dibayar sampai pengajuan disetujui.",
       "overtime_not_supported": "Lembur ini akan dibayar, tetapi tidak terlihat di absensi.",
-      "possible_duplicate": "Menolak satu catatan menghapus jamnya. Gabungkan agar seluruh hari tetap terhitung."
+      "possible_duplicate": "Menolak satu catatan menghapus jamnya. Gabungkan agar seluruh hari tetap terhitung.",
+      "unconfirmed_leave_treatment": "Tidak memblokir payrun. Tunjangan Hadir memakai perlakuan default yang ditampilkan sampai HR mengonfirmasi."
     },
     "state": {
       "open": "Terbuka",
@@ -1237,6 +1239,8 @@
     "actionMarkAbsent": "Tandai tidak hadir",
     "actionResolveUnresolved": "Selesaikan absen",
     "actionOpenUnresolved": "Buka absen yang belum cocok",
+    "actionOpenLeave": "Buka pengajuan cuti",
+    "detailLeaveTreatment": "{type}: akan memakai “{treatment}” ({start} – {end})",
     "actionEdit": "Ubah",
     "actionReject": "Tolak",
     "noClockIn": "Tidak ada jam masuk",
