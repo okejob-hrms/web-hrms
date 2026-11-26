@@ -19,6 +19,8 @@ import {
   Clock4Icon,
   Search,
 } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 
 interface Props {
   isEmployee: boolean;
@@ -166,6 +168,28 @@ export default function LeaveFilters({
                 setPagination((prev) => ({ ...prev, pageIndex: 0 }));
               }}
             />
+          )}
+
+          {!isEmployee && (
+            <div className="flex items-center gap-2 min-w-max">
+              <Checkbox
+                id="leave-not-confirmed"
+                checked={filters.not_confirmed === '1'}
+                onCheckedChange={(checked) => {
+                  setFilters((prev) => ({
+                    ...prev,
+                    not_confirmed: checked === true ? '1' : undefined,
+                  }));
+                  setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+                }}
+              />
+              <Label
+                htmlFor="leave-not-confirmed"
+                className="text-sm font-normal cursor-pointer"
+              >
+                {t('treatmentNotConfirmedFilter')}
+              </Label>
+            </div>
           )}
         </form>
       </Form>

@@ -155,6 +155,35 @@ export default function LeaveTable({
           );
         },
       },
+      ...(!isEmployee
+        ? [
+            {
+              accessorKey: 'effective_treatment',
+              header: t('leaveTreatment'),
+              size: 180,
+              cell: ({ row }: CellContext<ILeaveResponse, unknown>) => {
+                const leave = row.original;
+                const treatment = leave.effective_treatment ?? 'deduct_quota';
+                const labelKey =
+                  treatment === 'absent'
+                    ? 'treatmentAbsent'
+                    : treatment === 'excused'
+                      ? 'treatmentExcused'
+                      : 'treatmentDeductQuota';
+                return (
+                  <div className="flex flex-col gap-1">
+                    <span className="text-sm">{t(labelKey)}</span>
+                    {!leave.treatment_confirmed && (
+                      <span className="text-xs text-amber-700">
+                        {t('treatmentNotConfirmed')}
+                      </span>
+                    )}
+                  </div>
+                );
+              },
+            },
+          ]
+        : []),
       {
         accessorKey: 'updated_at',
         header: tCommon('lastUpdate'),

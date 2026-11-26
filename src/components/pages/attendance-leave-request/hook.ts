@@ -17,8 +17,10 @@ import {
   deleteLeave,
   updateLeave,
   updateStatusLeave,
+  updateLeaveTreatment,
   getLeavesEmployee,
 } from "@/services/employees/leave";
+import type { LeaveTreatment } from "@/services/employees/leave/types";
 import { getEmployeeDetailByUserId } from "@/services/employees";
 import {
   ILeaveEmployeeResponse,
@@ -43,6 +45,7 @@ export function useLeaveRequest(isEmployee?: boolean, syncUrl = false) {
       end_date: "",
       search: "",
       status: 1,
+      not_confirmed: undefined,
     },
     enabled: syncUrl,
   });
@@ -227,6 +230,34 @@ export function useLeaveRequest(isEmployee?: boolean, syncUrl = false) {
     removeLeave(Number(selectedId));
   };
 
+  const { mutate: saveTreatment, isPending: isSavingTreatment } = useMutation({
+    mutationFn: ({
+      id,
+      treatment,
+    }: {
+      id: number;
+      treatment: LeaveTreatment;
+    }) => updateLeaveTreatment(id, treatment),
+    onSuccess: (response) => {
+      queryClient.invalidateQueries({ queryKey: ["leaves"] });
+      if (response?.data) {
+        setSelectedData(response.data as ILeaveResponse);
+      }
+      toast.success(t('treatmentSaveSuccess'));
+    },
+    onError: (error: Error) => {
+      toast.error(t('treatmentSaveFailed', { message: error.message }));
+    },
+  });
+
+  const handleSaveTreatment = React.useCallback(
+    (treatment: LeaveTreatment) => {
+      if (!selectedId) return;
+      saveTreatment({ id: Number(selectedId), treatment });
+    },
+    [selectedId, saveTreatment],
+  );
+
   const handleNavigateAddRequestPage = React.useCallback(() => {
     router.push(isEmployee ? "/ess/leave/leave-form" : "/attendance/leave-request/add");
   }, [router, isEmployee]);
@@ -276,6 +307,8 @@ export function useLeaveRequest(isEmployee?: boolean, syncUrl = false) {
     handleApprove,
     handleReject,
     handleDelete,
+    handleSaveTreatment,
+    isSavingTreatment,
     handleNavigateAddRequestPage,
 
     getEmployeeData,

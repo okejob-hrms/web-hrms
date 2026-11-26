@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
-import { ILeaveResponse } from '@/services/employees/leave/types';
+import {
+  ILeaveResponse,
+  LeaveTreatment,
+} from '@/services/employees/leave/types';
 import LeaveDetailModal from './leave-detail-modal';
 import LeaveDeleteModal from './delete-modal';
 import LeaveRejectModal from './reject-modal';
@@ -21,6 +24,8 @@ interface Props {
   onApprove: () => void;
   onReject: () => void;
   onDelete: () => void;
+  onSaveTreatment: (treatment: LeaveTreatment) => void;
+  isSavingTreatment?: boolean;
   getEmployeeData: (user_id: number) => Promise<any>;
   isEmployee: boolean;
 }
@@ -32,6 +37,8 @@ export default function LeaveModals({
   onApprove,
   onReject,
   onDelete,
+  onSaveTreatment,
+  isSavingTreatment,
   getEmployeeData,
   isEmployee,
 }: Props) {
@@ -42,6 +49,8 @@ export default function LeaveModals({
         onClose={() => onCloseModal('detail')}
         onApprove={onApprove}
         onReject={onReject}
+        onSaveTreatment={onSaveTreatment}
+        isSavingTreatment={isSavingTreatment}
         data={selectedData}
         getEmployeeData={getEmployeeData}
         isEmployee={isEmployee}

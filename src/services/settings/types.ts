@@ -401,6 +401,7 @@ export interface LeaveConfigDetail {
     gender: string;
     message: string;
     quota_configuration: string;
+    default_treatment?: string;
     status: string;
     updated_at: string;
   };
@@ -415,6 +416,7 @@ export interface LeaveConfigItem {
   gender: string;
   message: string;
   quota_configuration: string;
+  default_treatment?: string;
   status: string;
   updated_at: string;
 }
@@ -467,6 +469,7 @@ export interface LeaveTypeRequest {
   gender?: string;
   name?: string;
   quota_configuration?: string;
+  default_treatment?: string;
   quota_configuration_detail?: QuotaConfigurationDetail[];
 }
 
