@@ -469,11 +469,14 @@ export function usePayrollDetail() {
       postRegenerate(payrunId, acknowledged),
     onMutate: () => setLoading(true),
     onSuccess: () => {
+      // Regenerate deletes payslips and queues GeneratePayslipsJob asynchronously.
+      // Staying on detail shows an empty/stale payrun; send HR back to the list.
       toast.success(t("regeneratedSuccess"));
+      setOpenConfirmGenerate(false);
+      queryClient.invalidateQueries({ queryKey: ["payroll"] });
       queryClient.invalidateQueries({ queryKey: ["payslip"] });
-      detailDataRefetch();
-      auditTrailRefetch();
-      employeeListRefetch();
+      queryClient.invalidateQueries({ queryKey: ["detailPayroll"] });
+      router.push("/payroll/list");
     },
     onError: async (err, { payrunId, acknowledged = {} }) => {
       const rule = await readPayrunRuleError(err);
