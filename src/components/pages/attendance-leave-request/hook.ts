@@ -45,7 +45,7 @@ export function useLeaveRequest(isEmployee?: boolean, syncUrl = false) {
       end_date: "",
       search: "",
       status: 1,
-      not_confirmed: false,
+      not_confirmed: undefined,
     },
     enabled: syncUrl,
   });

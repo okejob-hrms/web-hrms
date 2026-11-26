@@ -174,11 +174,11 @@ export default function LeaveFilters({
             <div className="flex items-center gap-2 min-w-max">
               <Checkbox
                 id="leave-not-confirmed"
-                checked={!!filters.not_confirmed}
+                checked={filters.not_confirmed === '1'}
                 onCheckedChange={(checked) => {
                   setFilters((prev) => ({
                     ...prev,
-                    not_confirmed: checked === true,
+                    not_confirmed: checked === true ? '1' : undefined,
                   }));
                   setPagination((prev) => ({ ...prev, pageIndex: 0 }));
                 }}
